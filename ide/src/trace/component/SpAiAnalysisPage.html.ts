@@ -192,6 +192,13 @@ export const SpAiAnalysisPageHtml = `
         padding-right: 10px;
     }
 
+    .ask_question pre code {
+        white-space: pre-wrap; 
+        overflow-wrap: break-word;
+        max-width: 100%; 
+        font-family: auto;
+    }
+
     .chatConfig {
         width: 100%;
         height: 24%;
