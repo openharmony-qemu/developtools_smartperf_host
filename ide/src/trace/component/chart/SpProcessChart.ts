@@ -798,14 +798,14 @@ export class SpProcessChart {
             }
           }
         }
-      }, 50);
+      }, 300);
     } else {
       pair.rowEL.translateY = pair.rowEL.offsetTop - this.trace.rowsPaneEL!.scrollTop;
     }
     let refreshTimeOut = setTimeout(() => {
       this.trace.refreshCanvas(true);
       clearTimeout(refreshTimeOut);
-    }, 200);
+    }, 300);
   }
 
   updatePairPoint(pair: PairPoint, processRow: TraceRow<ProcessStruct>): void {
