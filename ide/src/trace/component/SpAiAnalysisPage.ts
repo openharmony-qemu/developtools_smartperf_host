@@ -255,6 +255,8 @@ export class SpAiAnalysisPage extends BaseElement {
         chatInputBox!.style.display = 'block';
         //@ts-ignore
         reportDetails!.style.display = 'none';
+        this.noDataEl!.style.display = 'block';
+        this.noReportEl!.style.display = 'none';
     }
 
     // 发送消息
@@ -326,7 +328,7 @@ export class SpAiAnalysisPage extends BaseElement {
         // 生成ai头像
         let headerDiv = document.createElement('div');
         headerDiv.className = 'aiHeader headerDiv';
-        headerDiv.innerHTML = `<img class='headerImg' src = 'img/logo.png' title='></img>`;
+        headerDiv.innerHTML = `<img class='headerImg' src = 'img/logo.png' title=''></img>`;
         let newQuestion = document.createElement('div');
         newQuestion.className = 'systemSay';
         // @ts-ignore

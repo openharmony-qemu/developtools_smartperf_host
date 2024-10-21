@@ -343,8 +343,6 @@ export const SpAiAnalysisPageHtml = `
     .aiHeader {
         float: left;
         margin-right: 10px;
-        background-image: url('img/logo1.png');
-        background-size: cover;
     }
 
     .headerImg {
