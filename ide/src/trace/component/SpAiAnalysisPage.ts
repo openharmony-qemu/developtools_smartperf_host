@@ -356,12 +356,14 @@ export class SpAiAnalysisPage extends BaseElement {
             // 生成类型
             let typeDiv = document.createElement('div');
             typeDiv.className = 'item';
+            // @ts-ignore
             typeDiv.innerHTML = `<span class="item-name">问题类型：</span>${dataList[i].type}`
             // 生成时间
             let timeDiv = document.createElement('div');
             timeDiv.className = 'item two';
             // 获取每一个诊断项的时间
             let timeList = new Array();
+            // @ts-ignore
             dataList[i].trace_info.forEach((v: any) => {
                 timeList.push(v.ts! / 1000000000 + 's');
             });
@@ -380,6 +382,7 @@ export class SpAiAnalysisPage extends BaseElement {
             suggestonDiv.className = 'item two';
             let suggestionText = '';
             this.token = (await SpStatisticsHttpUtil.getAItoken()).data;
+            // @ts-ignore
             suggestionText = await this.getSuggestion(dataList[i].description, itemDiv, suggestonDiv);
             // @ts-ignore
             this.reportContent += `问题${i + 1}:${dataList[i].type}\n\n时间：${timeList.join(',')}\n\n问题原因：${dataList[i].description}\n\n优化建议：${suggestionText}\n\n\n`;
