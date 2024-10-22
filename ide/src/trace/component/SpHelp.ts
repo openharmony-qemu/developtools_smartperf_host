@@ -53,8 +53,10 @@ export class SpHelp extends BaseElement {
     let mainMenu = this.shadowRoot?.querySelector('#main-menu') as LitMainMenu;
     let header = mainMenu.shadowRoot?.querySelector('.header') as HTMLDivElement;
     let color = mainMenu.shadowRoot?.querySelector('.customColor') as HTMLDivElement;
+    let analysis = mainMenu.shadowRoot?.querySelector('.ai_analysis') as HTMLDivElement;
     let version = mainMenu.shadowRoot?.querySelector('.version') as HTMLDivElement;
     color.style.display = 'none';
+    analysis.style.display = 'none';
     header.style.display = 'none';
     version.style.display = 'none';
     this.setupMainMenu(mainMenu, this);

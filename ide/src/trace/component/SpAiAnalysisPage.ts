@@ -41,6 +41,7 @@ export class SpAiAnalysisPage extends BaseElement {
     private noDataEl: HTMLDivElement | null | undefined;
     private noReportEl: HTMLDListElement | null | undefined;
     private loginTipEl: HTMLDivElement | null | undefined;
+    private importTraceTipsEl: HTMLDivElement | null | undefined;
     private loadingItem: HTMLDivElement | null | undefined;
     private startTimeEl: HTMLSpanElement | null | undefined;
     private endTimeEl: HTMLSpanElement | null | undefined;
@@ -65,7 +66,9 @@ export class SpAiAnalysisPage extends BaseElement {
             html: true,
             typographer: true
         });
+        let aiAssistant = document.querySelector("body > sp-application")!.shadowRoot!.querySelector("#sp-ai-analysis");
         let chatBar = this.shadowRoot?.querySelector('.chatBar');
+        let closeBtn = document.querySelector("body > sp-application")!.shadowRoot!.querySelector("#sp-ai-analysis")!.shadowRoot!.querySelector("div.rightTabBar > lit-icon")!.shadowRoot!.querySelector("#icon");
         this.askQuestion = this.shadowRoot?.querySelector('.ask_question');
         this.reportBar = this.shadowRoot?.querySelector('.report');
         let reportDetails = this.shadowRoot?.querySelector('.report_details');
@@ -88,6 +91,8 @@ export class SpAiAnalysisPage extends BaseElement {
         this.noReportEl = this.shadowRoot?.querySelector('.no-report');
         // 未连接提示弹窗
         this.loginTipEl = this.shadowRoot?.querySelector('.loginTip');
+        //未导入trace提示弹窗
+        this.importTraceTipsEl = this.shadowRoot?.querySelector('.importTraceTips');
         // 时间展示区域
         this.startTimeEl = this.shadowRoot?.querySelector('.startTime');
         this.startTimeEl!.innerHTML = getTimeString(TraceRow.range?.startNS!);
@@ -106,6 +111,15 @@ export class SpAiAnalysisPage extends BaseElement {
             this.askQuestion!.innerHTML = '';
             this.createAiChatBox('有什么可以帮助您的吗？');
         });
+
+        //通过右上角的‘X’按钮关闭窗口
+        //@ts-ignore
+        closeBtn?.addEventListener('click',()=>{
+            //@ts-ignore
+            aiAssistant?.style.visibility = 'hidden';
+            //@ts-ignore
+            aiAssistant?.style.display = 'none';
+        })
 
         // 输入框发送消息
         this.inputEl?.addEventListener('keydown', (e) => {
@@ -206,6 +220,12 @@ export class SpAiAnalysisPage extends BaseElement {
         // 侧边栏诊断点击事件 *************优化，考虑多个按钮
         this.reportBar!.addEventListener('click', () => {
             if (!SpApplication.isTraceLoaded) {
+                //@ts-ignore
+                this.importTraceTipsEl?.style.visibility = 'visible';
+                setTimeout(() => {
+                    //@ts-ignore
+                    this.importTraceTipsEl?.style.visibility = 'hidden';
+                }, 4000);
                 return;
             }
             this.reportImg!.src = 'img/report_active.png';

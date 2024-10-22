@@ -30,6 +30,9 @@ export const SpAiAnalysisPageHtml = `
                     <div class="clear"></div>
                 </div>
             </div>
+                <div class="importTraceTips" style="visibility: hidden;">
+                    请先导入trace，再使用诊断功能
+                </div>
             <div class="report_details">
                 <div class="selectionBox">
                      <div class="startBox">
@@ -63,7 +66,7 @@ export const SpAiAnalysisPageHtml = `
                         </div>
                     </div>
                     <div class="loginTip">
-                        未连接，请启动本地扩展程序再试！[<a href="https://wiki.huawei.com/domains/76911/wiki/125480/WIKI202410154807421" target="_blank">指导</a>]
+                        未连接，请启动本地扩展程序再试！[<a href="https://wiki.huawei.com/domains/76911/wiki/125480/WIKI202410154807421" target="_blank" style="color: blue;">指导</a>]
                     </div>
                     <div class="data-record"></div>
                 </div>
@@ -99,6 +102,7 @@ export const SpAiAnalysisPageHtml = `
         </div>
     </div>
     <div class="rightTabBar">
+        <lit-icon name='close' size = '18' style='position: absolute; top: 12px; right: 17px; cursor: pointer;'></lit-icon>
         <div class="chatBar active">
             <img src="img/talk_active.png" class="chatInon"/>
             <div class="chatBarTitle">聊天</div>
@@ -204,6 +208,7 @@ export const SpAiAnalysisPageHtml = `
         height: 24%;
         position: relative;
         margin-top: 10px;
+        padding-bottom: 5px;
         border-top: 1px solid rgba(255, 255, 255, .3);
     }
 
@@ -264,9 +269,10 @@ export const SpAiAnalysisPageHtml = `
         border-radius: 10px;
         text-align: justify;
         box-sizing: border-box;
-        border: none;
+        border: 0.5px solid rgb(177, 205, 241);
         font-weight: 400;
         line-height: 20px;
+        box-shadow: -5px 5px 10px rgb(246, 246, 246);
     }
 
     .chatInputBox {
@@ -296,9 +302,13 @@ export const SpAiAnalysisPageHtml = `
         height: 100%;
         padding-top: 50px;
         font-size: 12px;
-        background-color: #fcfcfc;
+        background-color: rgb(246, 246, 246);
         color: #000;
         box-sizing:border-box;
+    }
+
+    .chatBar{
+        padding-top: 10px;
     }
 
     .chatBarTitle {
@@ -456,10 +466,10 @@ export const SpAiAnalysisPageHtml = `
     }
 
     .loginTip {
+        width:263px;
         visibility: hidden;
         position: absolute;
         top: 28%;
-        left: 15%;
         padding: 5px 15px;
         background-color: rgb(236, 239, 247);
         border-radius: 2px;
@@ -469,6 +479,26 @@ export const SpAiAnalysisPageHtml = `
         font-size: 14px;
         height: 50px;
         line-height: 50px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .importTraceTips{
+        width:203px;
+        visibility: hidden;
+        position: absolute;
+        top: 28%;
+        padding: 5px 15px;
+        background-color: rgb(236, 239, 247);
+        border-radius: 2px;
+        color: #000;
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        height: 50px;
+        line-height: 50px;
+        left: 50%;
+        transform: translateX(-50%);
     }
 
     .loadingItem {
@@ -489,6 +519,7 @@ export const SpAiAnalysisPageHtml = `
     }
 
     .selectionBox div {
+        font-size: 15px;
         display: flex;
         align-items: center;
         margin-bottom: 10px;

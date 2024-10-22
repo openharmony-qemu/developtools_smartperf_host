@@ -338,7 +338,7 @@ export const applicationHtml: string = `
             box-shadow:3px 0px 14px #000;
             border-radius:8px;
             background-color:#fff;
-            padding:10px 10px 10px 5px;
+            padding:10px 10px 30px 5px;
             user-select:none;
             box-sizing:border-box;
             visibility:hidden;
