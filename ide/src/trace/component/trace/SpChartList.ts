@@ -186,7 +186,7 @@ export class SpChartList extends BaseElement {
   }
 
     // 处理G1收藏栏折叠时，连线的y坐标
-    private handleCollect1LinkNodeY(): void {//xiugai
+    private handleCollect1LinkNodeY(): void {
       this.spSystemTrace?.linkNodes?.forEach(linkItem => {
         if (linkItem[0].rowEL.collectGroup === linkItem[1].rowEL.collectGroup && linkItem[1].rowEL.collectGroup === '1') { // 起点终点都在G1
           linkItem[0].rowEL.translateY = 23;
@@ -203,7 +203,7 @@ export class SpChartList extends BaseElement {
   
     // 处理G2收藏栏折叠时，连线的y坐标
     private handleCollect2LinkNodeY(): void {
-      this.spSystemTrace?.linkNodes?.forEach(linkItem => { //xiugai
+      this.spSystemTrace?.linkNodes?.forEach(linkItem => { 
         if (linkItem[0].rowEL.collectGroup === linkItem[1].rowEL.collectGroup && linkItem[1].rowEL.collectGroup === '2') { // 起点终点都在G2
           linkItem[0].rowEL.translateY = 23;
           linkItem[1].rowEL.translateY = 23;

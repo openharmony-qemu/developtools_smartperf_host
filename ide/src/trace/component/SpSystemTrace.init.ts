@@ -532,6 +532,9 @@ function selectHandler(sp: SpSystemTrace): void {
         ...sp.favoriteChartListEL!.getAllSelectCollectRows(),
       ];
     }
+    checkRows = checkRows.filter((item, index, self) => {  //去重 
+      return self.findIndex(obj => obj.rowId === item.rowId && obj.rowType === item.rowType && obj.name === item.name) === index;  
+    });  
     selectHandlerRefreshCheckBox(sp, checkRows, refreshCheckBox);
     if (!sp.isSelectClick) {
       sp.rangeTraceRow = [];
