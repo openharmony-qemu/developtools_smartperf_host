@@ -46,29 +46,33 @@ export const SpAiAnalysisPageHtml = `
                         <span class="endTime"></span>
                     </div>
                 </div>
-                <div class="analysisList" style="height: 84%;padding-right: 10px;">
+                <div class="analysisList">
                     <div class="analysis-header">
-                        <h3
-                            style="text-align: center;background-color: #4894f3;padding: 10px 0px;color: #fff;border-radius:2px;margin:0">
-                            分析报告
-                        </h3>
-                    </div>
-                    <div class="no-data">
-                        <img src="img/nodata.png" />
-                        <div>
-                            暂无数据
-                        </div>
-                    </div>
-                    <div class="no-report" style="display:none;">
-                        <img src="img/no-report.png" />
-                        <div>
-                            当前trace未诊断出问题
-                        </div>
-                    </div>
-                    <div class="loginTip">
-                        未连接，请启动本地扩展程序再试！[<a href="https://wiki.huawei.com/domains/76911/wiki/125480/WIKI202410154807421" target="_blank" style="color: blue;">指导</a>]
+                        <h4
+                            style="text-align: center;background-color: white;padding: 10px 0px;color: #35a1db;border-radius:2px;margin:0">
+                            诊断报告
+                        </h4>
                     </div>
                     <div class="data-record"></div>
+                    <div class="tips-content">
+                        <div class="no-data">
+                            <img src="img/nodata.png" />
+                            <div style="text-align: center;">
+                                暂无数据
+                            </div>
+                        </div>
+                        <div class="no-report" style="display:none;">
+                            <img src="img/no-report.png" />
+                            <div style="text-align: center;">
+                                当前trace未诊断出问题
+                            </div>
+                        </div>
+                        <div class="loginTip">
+                            <span>未连接，请启动本地扩展程序再试！[</span>
+                            <a href="https://wiki.huawei.com/domains/76911/wiki/125480/WIKI202410154807421" target="_blank" style="color: blue;">指导</a>
+                            <span>]</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="report-button">
                     <div class="analysisBtn button">
@@ -114,7 +118,7 @@ export const SpAiAnalysisPageHtml = `
     </div>
     <style>
     .report_details {
-        width: 98%;
+        width: 100%;
         height: 100%;
         display: none;
         position: relative;
@@ -146,6 +150,14 @@ export const SpAiAnalysisPageHtml = `
         border: 1px solid #c4ebf5;
         border-radius: 9px;
         border-top-right-radius: 0px;
+    }
+
+    .tips-content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 90%;
     }
 
     .systemSay {
@@ -183,7 +195,7 @@ export const SpAiAnalysisPageHtml = `
 
     .chatWindow {
         height: 92%;
-        padding: 0 10px 20px;
+        padding: 0 20px 20px 10px;
         border-radius: 10px;
         position: relative;
         background: rgba(235, 235, 235, 0)
@@ -410,13 +422,24 @@ export const SpAiAnalysisPageHtml = `
     .analysisList {
         overflow: hidden;
         overflow-y: auto;
+        height: 84%;
+        padding-right: 10px;
+        padding-left: 10px;
+        box-shadow: 1px 2px 5px #bfbfbf;
+        border-radius: 8px;
+    }
+
+    .analysis-header {
+        position: sticky;
+        top: 0;
+        background-color: white;
+        z-index: 1;
     }
 
     .analysisItem {
         width: 100%;
         letter-spacing: 1.5px;
         border-radius: 3px;
-        margin-top: 20px;
         line-height: 20px;
         position: relative;
     }
@@ -460,27 +483,15 @@ export const SpAiAnalysisPageHtml = `
         cursor: pointer;
     }
 
-    .no-data,.no-report {
-        text-align: center;
-        margin-top: 20%;
-    }
-
     .loginTip {
-        width:263px;
-        visibility: hidden;
-        position: absolute;
-        top: 28%;
-        padding: 5px 15px;
-        background-color: rgb(236, 239, 247);
-        border-radius: 2px;
-        color: #000;
-        display: flex;
-        align-items: center;
+        display: none;
         font-size: 14px;
-        height: 50px;
-        line-height: 50px;
-        left: 50%;
-        transform: translateX(-50%);
+        height: 45px;
+        line-height: 45px;
+        background-color: #dff4fd;
+        padding: 0 10px;
+        border: 1px solid #35a1db;
+        border-radius: 10px;
     }
 
     .importTraceTips{

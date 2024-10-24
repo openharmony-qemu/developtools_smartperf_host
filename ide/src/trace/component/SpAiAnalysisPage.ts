@@ -45,6 +45,7 @@ export class SpAiAnalysisPage extends BaseElement {
     private loadingItem: HTMLDivElement | null | undefined;
     private startTimeEl: HTMLSpanElement | null | undefined;
     private endTimeEl: HTMLSpanElement | null | undefined;
+    private tipsContent: HTMLDivElement | null | undefined;
     private question: string = '';
     private token: string = '';
     // 是否点击了新建聊天
@@ -89,6 +90,7 @@ export class SpAiAnalysisPage extends BaseElement {
         this.noDataEl = this.shadowRoot?.querySelector('.no-data');
         // 没诊断出来页面
         this.noReportEl = this.shadowRoot?.querySelector('.no-report');
+        this.tipsContent = this.shadowRoot?.querySelector('.tips-content');
         // 未连接提示弹窗
         this.loginTipEl = this.shadowRoot?.querySelector('.loginTip');
         //未导入trace提示弹窗
@@ -176,9 +178,10 @@ export class SpAiAnalysisPage extends BaseElement {
             this.downloadBtn!.style.display = 'none';
             // 没有登陆，弹窗提示，退出逻辑
             if (!WebSocketManager.getInstance()?.isReady()) {
-                this.loginTipEl!.style.visibility = 'visible';
+                this.tipsContent!.style.display = 'flex';
+                this.loginTipEl!.style.display = 'block';
                 setTimeout(() => {
-                    this.loginTipEl!.style.visibility = 'hidden';
+                    this.loginTipEl!.style.display = 'none';
                 }, 4000);
                 return;
             }
@@ -204,8 +207,7 @@ export class SpAiAnalysisPage extends BaseElement {
                     }
                 });
             };
-            // 隐藏nodata
-            this.noDataEl!.style.display = 'none';
+            this.tipsContent!.style.display = 'none';
             // 加载中的loading模块
             let loadingDiv = document.createElement('div');
             loadingDiv.className = 'loadingBox';
@@ -260,6 +262,7 @@ export class SpAiAnalysisPage extends BaseElement {
         this.draftList!.innerHTML = '';
         this.reportContent = '';
         this.downloadBtn!.style.display = 'none';
+        this.tipsContent!.style.display = 'flex';
         this.noDataEl!.style.display = 'block';
         this.noReportEl!.style.display = 'none';
         let chatBar = this.shadowRoot?.querySelector('.chatBar');
@@ -474,6 +477,7 @@ export class SpAiAnalysisPage extends BaseElement {
             let dataList = JSON.parse(jsonRes.resultMessage) || [];
             if (dataList && dataList.length === 0) {
                 this.draftList!.innerHTML = '';
+                this.tipsContent!.style.display = 'flex';
                 this.noReportEl!.style.display = 'block';
             } else {
                 // 整理数据,渲染数据
