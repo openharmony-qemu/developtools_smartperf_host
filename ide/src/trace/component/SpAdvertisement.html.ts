@@ -40,10 +40,25 @@ export const SpAdvertisementHtml = `<style>
         }
         #notice {
           color:red;
-          word-wrap: break-word;    
           overflow-wrap: break-word;
           line-height:30px;
           padding-right:15px;
+          overflow:hidden;
+        }
+        
+        img {
+            max-width:200px;
+            max-height:150px;
+            vertical-align: top;
+        }
+        
+        span {
+            display:inline-block;
+        }
+
+        a {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
         </style>
         <div class="sp-advertisement" id="sp-advertisement">

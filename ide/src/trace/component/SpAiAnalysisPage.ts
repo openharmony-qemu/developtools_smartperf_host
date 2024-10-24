@@ -55,6 +55,7 @@ export class SpAiAnalysisPage extends BaseElement {
     // 拼接下载内容
     private reportContent: string = '';
     private md: unknown;
+    private isResultBack: boolean = true;
     // 监听选中时间范围变化
     static selectChangeListener(startTime: number, endTime: number): void {
         let startEl = document.querySelector('body > sp-application')!.shadowRoot!.querySelector('#sp-ai-analysis')!.shadowRoot?.querySelector('div.chatBox > div > div.report_details > div.selectionBox > div.startBox > span');
@@ -109,6 +110,7 @@ export class SpAiAnalysisPage extends BaseElement {
         // 新建对话按钮点击事件
         this.newChatEl?.addEventListener('click', () => {
             this.isNewChat = true;
+            this.isResultBack = true;
             this.token = '';
             this.askQuestion!.innerHTML = '';
             this.createAiChatBox('有什么可以帮助您的吗？');
@@ -116,7 +118,7 @@ export class SpAiAnalysisPage extends BaseElement {
 
         //通过右上角的‘X’按钮关闭窗口
         //@ts-ignore
-        closeBtn?.addEventListener('click',()=>{
+        closeBtn?.addEventListener('click', () => {
             //@ts-ignore
             aiAssistant?.style.visibility = 'hidden';
             //@ts-ignore
@@ -284,6 +286,10 @@ export class SpAiAnalysisPage extends BaseElement {
 
     // 发送消息
     async sendMessage(): Promise<void> {
+        if (!this.isResultBack) {
+            return;
+        }
+        this.isResultBack = false;
         if (this.inputEl!.value !== '') {
             if (this.isNewChat) {
                 this.isNewChat = false;
@@ -294,13 +300,7 @@ export class SpAiAnalysisPage extends BaseElement {
             this.chatWindow!.scrollTop = this.chatWindow!.scrollHeight;
             // 没有token
             if (this.token === '') {
-                let data = await SpStatisticsHttpUtil.getAItoken();
-                if (data.status !== 200) {
-                    this.aiAnswerBox!.firstElementChild!.innerHTML = '获取token失败';
-                    return;
-                } else {
-                    this.token = data.data;
-                }
+                await this.getToken90Min();
             }
             this.answer();
         }
@@ -320,6 +320,7 @@ export class SpAiAnalysisPage extends BaseElement {
             this.aiAnswerBox!.firstElementChild!.innerHTML = this.md!.render(answer);
             // 滚动条滚到底部
             this.chatWindow!.scrollTop = this.chatWindow!.scrollHeight;
+            this.isResultBack = true;
         }
     }
 
@@ -406,7 +407,9 @@ export class SpAiAnalysisPage extends BaseElement {
             let suggestonDiv = document.createElement('div');
             suggestonDiv.className = 'item two';
             let suggestionText = '';
-            this.token = (await SpStatisticsHttpUtil.getAItoken()).data;
+            if (this.token === '') {
+                await this.getToken90Min();
+            }
             // @ts-ignore
             suggestionText = await this.getSuggestion(dataList[i].description, itemDiv, suggestonDiv);
             // @ts-ignore
@@ -414,6 +417,24 @@ export class SpAiAnalysisPage extends BaseElement {
         }
         this.loadingItem!.style.display = 'none';
         this.downloadBtn!.style.display = 'inline-block';
+    }
+
+    async getToken() {
+        let data = await SpStatisticsHttpUtil.getAItoken();
+        if (data.status !== 200) {
+            this.aiAnswerBox!.firstElementChild!.innerHTML = '获取token失败';
+            return;
+        } else {
+            this.token = data.data;
+        }
+    }
+
+    // 每90min重新获取token
+    async getToken90Min() {
+        await this.getToken();
+        await setInterval(async () => {
+            await this.getToken();
+        }, 5400000);
     }
 
     // 发送请求获取优化建议并渲染页面

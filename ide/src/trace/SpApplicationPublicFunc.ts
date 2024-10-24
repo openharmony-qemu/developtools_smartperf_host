@@ -339,7 +339,6 @@ export const applicationHtml: string = `
             border-radius:8px;
             background-color:#fff;
             padding:10px 10px 30px 5px;
-            user-select:none;
             box-sizing:border-box;
             visibility:hidden;
         }

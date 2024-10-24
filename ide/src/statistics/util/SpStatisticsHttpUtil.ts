@@ -196,45 +196,69 @@ export class SpStatisticsHttpUtil {
 
   // ai对话接口--获取token
   static async getAItoken(): Promise<aiResponse> {
+    let controller = new AbortController();
     let response: aiResponse = {
       status: 0,
       data: ''
     };
+    setTimeout(() => {
+      controller.abort();
+    }, 60000);
     let res = await window.fetch(`https://${window.location.host}/takeToken`, {
       method: 'post',
+      signal: controller.signal,
       headers: {
         'Content-Type': 'application/json'
       }
+    }).then(async res => {
+      response.status = res.status;
+      if (res.status === 200) {
+        let resp = await res.text();
+        let resj = await JSON.parse(resp);
+        response.data = resj.token;
+      }
+    }).catch(err => {
+      response.status = 700;
     })
-    response.status = res.status;
-    if (res.status === 200) {
-      let resp = await res.text();
-      let resj = await JSON.parse(resp);
-      response.data = resj.token;
-    }
     return response;
   }
 
   // ai对话接口--问答
   // @ts-ignore
   static async askAi(requestBody): aiResponse {
+    let controller = new AbortController();
     let response: aiResponse = {
       status: 0,
       data: ''
     };
-    let res = await window.fetch(`https://${window.location.host}/ask`, {
+    setTimeout(() => {
+      controller.abort();
+    }, 60000);
+    await window.fetch(`https://${window.location.host}/ask`, {
       method: 'post',
+      signal: controller.signal,
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(requestBody)
+    }).then(async res => {
+      response.status = res.status;
+      if (res.status === 200) {
+        let resp = await res.text();
+        let resj = await JSON.parse(resp);
+        response.data = resj.chatbot_reply;
+      }
+      else {
+        response.data = res.statusText || '请求错误';
+      }
+    }).catch((err) => {
+      if (err.toString().indexOf('AbortError') > -1) {
+        response.data = '请求超时，已中断！';
+        response.status = 504;
+      } else {
+        response.data = '请求错误';
+      }
     })
-    response.status = res.status;
-    if (res.status === 200) {
-      let resp = await res.text();
-      let resj = await JSON.parse(resp);
-      response.data = resj.chatbot_reply;
-    }
     return response;
   }
 }

@@ -35,29 +35,30 @@ export class SpAdvertisement extends BaseElement {
                     let resp = JSON.parse(it);
                     if (resp && resp.data && resp.data.data && resp.data.data !== this.message && resp.data.data !== '') {
                         this.message = resp.data.data;
-                        if (this.message.startsWith('图片:')) {
-                            this.noticeEl!.style.display = 'flex';
-                            this.noticeEl!.style.justifyContent = 'center';
-                            this.noticeEl!.innerHTML = `<img src ='${this.message.substring(3, this.message.length)}' style='height:150px' 
-                        alt = '图片加载失败'></img>`
-                        } else if (this.message.startsWith('链接:')) {
-                            this.noticeEl!.style.height = 'auto';
-                            this.noticeEl!.style.color = '#000';
-                            this.noticeEl!.innerHTML = `链接：<a href = '${this.message.substring(3, this.message.length)}' target = 'black'>
-                        ${this.message.substring(3, this.message.length)}</a>`
-                        } else {
-                            this.noticeEl!.style.color = 'red';
-                            this.noticeEl!.innerHTML = this.message;
+                        const regexImg = /图片:(.*?);/g;
+                        const regexLink = /链接:(.*?);/g;
+                        let matchImg;
+                        let matchLink;
+                        let resultStr = this.message;
+                        while ((matchImg = regexImg.exec(this.message)) !== null) {
+                            const imgTag = `<img src='${matchImg[1]}'/>`;
+                            resultStr = resultStr.replace(matchImg[1], imgTag);
                         }
+                        while ((matchLink = regexLink.exec(this.message)) !== null) {
+                            const LinkTag = `<a href='${matchLink[1]}' target = 'black'>${matchLink[1]}</a>`;
+                            resultStr = resultStr.replace(matchLink[1], LinkTag);
+                        }
+                        resultStr = resultStr.replace(/;/g, '<br>');
+                        resultStr = resultStr.replace(/链接:/g, '<span>链接:</span>');
+                        this.noticeEl!.innerHTML = `<p>${resultStr}</p>`;
                         this.advertisementEL!.style!.display = 'block';
                     }
                 });
             } else {
-                this.message = '请求错误！';
-                this.noticeEl!.style.color = 'red';
-                this.noticeEl!.innerHTML = this.message;
-                this.advertisementEL!.style!.display = 'block';
+                this.advertisementEL!.style!.display = 'none';
             }
+        }).catch(err => {
+            this.advertisementEL!.style!.display = 'none';
         })
     }
 
