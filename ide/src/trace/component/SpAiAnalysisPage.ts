@@ -23,6 +23,7 @@ import { TypeConstants } from '../../webSocket/Constants';
 import { TraceRow } from './trace/base/TraceRow';
 import { SpSystemTrace } from './SpSystemTrace';
 import { SpApplication } from '../SpApplication';
+import { Utils } from './trace/base/Utils';
 
 @element('sp-ai-analysis')
 export class SpAiAnalysisPage extends BaseElement {
@@ -56,8 +57,12 @@ export class SpAiAnalysisPage extends BaseElement {
     private reportContent: string = '';
     private md: unknown;
     private isResultBack: boolean = true;
+    static startTime: number = 0;
+    static endTime: number = 0;
     // 监听选中时间范围变化
     static selectChangeListener(startTime: number, endTime: number): void {
+        SpAiAnalysisPage.startTime = startTime;
+        SpAiAnalysisPage.endTime = endTime;
         let startEl = document.querySelector('body > sp-application')!.shadowRoot!.querySelector('#sp-ai-analysis')!.shadowRoot?.querySelector('div.chatBox > div > div.report_details > div.selectionBox > div.startBox > span');
         startEl!.innerHTML = getTimeString(startTime).toString();
         let endEl = document.querySelector('body > sp-application')!.shadowRoot!.querySelector('#sp-ai-analysis')!.shadowRoot?.querySelector('div.chatBox > div > div.report_details > div.selectionBox > div.endBox > span');
@@ -300,7 +305,7 @@ export class SpAiAnalysisPage extends BaseElement {
             this.chatWindow!.scrollTop = this.chatWindow!.scrollHeight;
             // 没有token
             if (this.token === '') {
-                await this.getToken90Min();
+                await this.getToken90Min(true);
             }
             this.answer();
         }
@@ -408,7 +413,7 @@ export class SpAiAnalysisPage extends BaseElement {
             suggestonDiv.className = 'item two';
             let suggestionText = '';
             if (this.token === '') {
-                await this.getToken90Min();
+                await this.getToken90Min(false);
             }
             // @ts-ignore
             suggestionText = await this.getSuggestion(dataList[i].description, itemDiv, suggestonDiv);
@@ -419,10 +424,12 @@ export class SpAiAnalysisPage extends BaseElement {
         this.downloadBtn!.style.display = 'inline-block';
     }
 
-    async getToken() {
+    async getToken(isChat?: boolean) {
         let data = await SpStatisticsHttpUtil.getAItoken();
         if (data.status !== 200) {
-            this.aiAnswerBox!.firstElementChild!.innerHTML = '获取token失败';
+            if (isChat) {
+                this.aiAnswerBox!.firstElementChild!.innerHTML = '获取token失败';
+            }
             return;
         } else {
             this.token = data.data;
@@ -430,10 +437,10 @@ export class SpAiAnalysisPage extends BaseElement {
     }
 
     // 每90min重新获取token
-    async getToken90Min() {
-        await this.getToken();
+    async getToken90Min(isChat: boolean) {
+        await this.getToken(isChat);
         await setInterval(async () => {
-            await this.getToken();
+            await this.getToken(isChat);
         }, 5400000);
     }
 
@@ -493,16 +500,17 @@ export class SpAiAnalysisPage extends BaseElement {
         if (cmd === 4) {
             //     需要处理
             if (jsonRes.resultCode !== 0) {
-                console.log('错误');
+                console.error('错误');
             }
-            let dataList = JSON.parse(jsonRes.resultMessage) || [];
-            if (dataList && dataList.length === 0) {
-                this.draftList!.innerHTML = '';
-                this.tipsContent!.style.display = 'flex';
-                this.noReportEl!.style.display = 'block';
-            } else {
-                // 整理数据,渲染数据
-                this.renderData(dataList);
+            if (this.isJsonString(jsonRes.resultMessage)) {
+                let dataList = JSON.parse(jsonRes.resultMessage) || [];
+                if (dataList && dataList.length === 0) {
+                    this.draftList!.innerHTML = '';
+                    this.noReportEl!.style.display = 'block';
+                } else {
+                    // 整理数据,渲染数据
+                    this.renderData(dataList);
+                }
             }
         }
     }
@@ -510,11 +518,22 @@ export class SpAiAnalysisPage extends BaseElement {
     // 发起诊断
     initiateDiagnosis(): void {
         let requestBodyObj = {
-            type: 0
+            startTime: Math.round(SpAiAnalysisPage.startTime + Utils.getInstance().getRecordStartNS()),
+            endTime: Math.round(SpAiAnalysisPage.endTime + Utils.getInstance().getRecordStartNS())
         };
         let requestBodyString = JSON.stringify(requestBodyObj);
         let requestBody = new TextEncoder().encode(requestBodyString);
         WebSocketManager.getInstance()!.sendMessage(TypeConstants.DIAGNOSIS_TYPE, TypeConstants.DIAGNOSIS_CMD, requestBody);
+    }
+
+    // 判断是否为json
+    isJsonString(str: string) {
+        try {
+            JSON.parse(str);
+        } catch (e) {
+            return false;
+        }
+        return true;
     }
 
     initHtml(): string {
