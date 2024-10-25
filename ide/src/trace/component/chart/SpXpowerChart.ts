@@ -218,6 +218,7 @@ export class SpXpowerChart {
                     traceRow,
                     XpowerStruct.hoverXpowerStruct,
                     `<span>${it.name === 'ThermalReport.ShellTemp' ? XpowerStruct.hoverXpowerStruct?.value! :
+                        it.name === 'ThermalReport.ThermalLevel' ? convertHoverValue(String(XpowerStruct.hoverXpowerStruct?.value!)) : 
                         ColorUtils.formatNumberComma(XpowerStruct.hoverXpowerStruct?.value!)}</span>`
                 );
             };
@@ -251,5 +252,21 @@ export function convertTitle(title: string): string {
             return '温度等级';
         default:
             return title;
+    }
+}
+
+// 鼠标悬浮ThermalReport.ThermalLevel泳道时转换悬浮框内容
+export function convertHoverValue(value: string): string { 
+    switch (value) {
+        case '0':
+            return 'COOL';
+        case '1':
+            return 'WARM';
+        case '2':
+            return 'HOT';
+        case '3':
+            return 'OVERHEATED';
+        default:
+            return value;
     }
 }
