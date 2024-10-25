@@ -670,7 +670,7 @@ export function createHiPerfConfig(
       }
     }
   } else {
-    recordArgs = `${recordArgs} -a `;
+    recordArgs = `${recordArgs} -a --exclude-hiperf`;
   }
   recordArgs = initHiPerfConfig(perfConfig, recordArgs);
   info('record config Args is: ', recordArgs);
