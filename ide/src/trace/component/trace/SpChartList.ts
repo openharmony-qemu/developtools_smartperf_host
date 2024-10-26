@@ -142,7 +142,7 @@ export class SpChartList extends BaseElement {
     };
     this.icon2?.addEventListener('click', () => foldCollect2());
     document.addEventListener('keyup', (e) => {
-      if (e.key.toLowerCase() === 'b' && e.ctrlKey === false) {
+      if (e.key.toLowerCase() === 'b' && e.ctrlKey === false && this.spSystemTrace?.keyboardEnable) {
         // 收藏夹有泳道时 为true
         const hasChildNode1 = this.collectEl1?.hasChildNodes() || this.fragmentGroup1.hasChildNodes();
         const hasChildNode2 = this.collectEl2?.hasChildNodes() || this.fragmentGroup2.hasChildNodes();

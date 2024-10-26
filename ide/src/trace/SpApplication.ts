@@ -85,6 +85,7 @@ import './component/SpAiAnalysisPage';
 import { WebSocketManager } from '../webSocket/WebSocketManager';
 import { SpAiAnalysisPage } from './component/SpAiAnalysisPage';
 import './component/SpAdvertisement';
+import { shadowRootInput } from './component/trace/base/shadowRootInput';
 import { SpBubblesAI } from './component/SpBubblesAI';
 
 @element('sp-application')
@@ -2206,6 +2207,8 @@ export class SpApplication extends BaseElement {
       }
       if (node === showNode) {
         showNode.style.visibility = 'visible';
+        let recordSetting = document.querySelector("body > sp-application")?.shadowRoot?.querySelector("#sp-record-trace")?.shadowRoot?.querySelector("#app-content > record-setting");
+        shadowRootInput.preventBubbling(recordSetting!);
         //@ts-ignore
       } else if (node.id! === 'sp-ai-analysis' && node.style!.visibility! === 'visible') {
         return;

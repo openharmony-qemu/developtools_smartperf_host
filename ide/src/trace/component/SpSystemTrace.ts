@@ -226,7 +226,6 @@ export class SpSystemTrace extends BaseElement {
   _flagList: Array<unknown> = [];
   static currentStartTime: number = 0;
   static retargetIndex: number = 0;
-  focusTarget: string = '';
   prevScrollY: number = 0;
   wakeupListTbl: LitTable | undefined | null;
   _checkclick: boolean = false; //判断点击getWakeupList按钮
@@ -1107,6 +1106,9 @@ export class SpSystemTrace extends BaseElement {
 
   // 一直按着回车键的时候执行搜索功能
   continueSearch = (ev: KeyboardEvent): void => {
+    if(!this.keyboardEnable){
+      return;
+    }
     if (ev.key === 'Enter') {
       if (ev.shiftKey) {
         this.dispatchEvent(
@@ -1116,7 +1118,7 @@ export class SpSystemTrace extends BaseElement {
           })
         );
       } else {
-        this.focusTarget === '' && this.dispatchEvent(
+        this.dispatchEvent(
           new CustomEvent('trace-next-data', {
             detail: { down: true },
             composed: false,

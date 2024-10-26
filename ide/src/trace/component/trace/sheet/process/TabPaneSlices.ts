@@ -102,12 +102,6 @@ export class TabPaneSlices extends BaseElement {
       // @ts-ignore
       this.findName(e.target.value);
     });
-    slicesInput?.addEventListener('focus', (e) => {
-      spSystemTrace.focusTarget = 'slicesInput';
-    });
-    slicesInput?.addEventListener('blur', (e) => {
-      spSystemTrace.focusTarget = '';
-    });
   }
 
   getSliceDb(

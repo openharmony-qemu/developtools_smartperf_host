@@ -498,7 +498,7 @@ function handleMouseInTimeShaft(sp: SpSystemTrace, ev: MouseEvent): boolean | un
 
 export function spSystemTraceDocumentOnMouseMove(sp: SpSystemTrace, ev: MouseEvent): void {
   //@ts-ignore
-  if (!sp.loadTraceCompleted || (window as unknown).flagInputFocus || !sp.mouseEventEnable) {
+  if (!sp.loadTraceCompleted || !sp.mouseEventEnable) {
     return;
   }
   //@ts-ignore
@@ -605,6 +605,9 @@ export function spSystemTraceDocumentOnMouseOut(sp: SpSystemTrace, ev: MouseEven
   CpuStruct.hoverCpuStruct = undefined;
   TraceRow.isUserInteraction = false;
   SpSystemTrace.isMouseLeftDown = false;
+  if(!sp.keyboardEnable){
+    return;
+  }
   if (sp.isMouseInSheet(ev)) {
     return;
   }
@@ -801,6 +804,9 @@ export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEven
       clearTimeout(timerId);
     }
   }
+  if(!sp.keyboardEnable){
+    return;
+  }
   let flag: boolean = sp.parentElement
     ?.querySelector('sp-record-trace')!
     .shadowRoot?.querySelector('lit-main-menu-item[icon="file-config"]')!
@@ -824,7 +830,7 @@ export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEven
   let flagsItem = window.localStorage.getItem(FlagsConfig.FLAGS_CONFIG_KEY);
   let flagsItemJson = JSON.parse(flagsItem!);
   if (flagsItemJson.VSync === 'Enabled') {
-    sp.keyboardEnable && enableVSync(false, ev, () => sp.refreshCanvas(true, 'sp key up'));
+    enableVSync(false, ev, () => sp.refreshCanvas(true, 'sp key up'));
   }
   let keyPress = ev.key.toLocaleLowerCase();
   if (keyPress === 'w' || keyPress === 'a' || keyPress === 's' || keyPress === 'd') {
@@ -843,7 +849,7 @@ export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEven
         })
       );
     } else {
-      sp.focusTarget === '' && sp.dispatchEvent(
+      sp.dispatchEvent(
         new CustomEvent('trace-next-data', {
           detail: {},
           composed: false,
