@@ -38,8 +38,8 @@ const events = {
   TRACE_PARSING_EVENT: 'trace_parsing',
   OPERATION_SKILLS_EVENT: 'operation_skills',
   KEYWORDS_SHORTCUTS_EVENT: 'keywords_shortcuts',
-  TRACE_STREAMER_EXPLAIN_EVENT: 'trace_streamer_explain',
   XPOWER_EVENT: 'xpower',
+  TRACE_STREAMER_EXPLAIN_EVENT: 'trace_streamer_explain',
 };
 
 export interface EventDefinition {
@@ -174,14 +174,14 @@ export const eventDefinitions: { [key: string]: EventDefinition } = {
     name: 'quickstart_keywords_shortcuts',
     index: 25,
   },
-  des_tables: {
-    event: events.TRACE_STREAMER_EXPLAIN_EVENT,
-    name: 'des_tables',
-    index: 26,
-  },
   quickstart_xpower: {
     event: events.XPOWER_EVENT,
     name: 'quickstart_xpower',
+    index: 26,
+  },
+  des_tables: {
+    event: events.TRACE_STREAMER_EXPLAIN_EVENT,
+    name: 'des_tables',
     index: 27,
   },
 };
