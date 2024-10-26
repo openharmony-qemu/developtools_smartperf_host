@@ -425,7 +425,6 @@ export class SpAiAnalysisPage extends BaseElement {
         }
         this.loadingItem!.style.display = 'none';
         this.downloadBtn!.style.display = 'inline-block';
-        this.draftBtn!.style.display = 'inline-block';
     }
 
     async getToken(isChat?: boolean) {
@@ -491,7 +490,8 @@ export class SpAiAnalysisPage extends BaseElement {
     }
 
     // websocket通信回调注册
-    webSocketCallBack = (cmd: number, result: Uint8Array): void => {
+    // @ts-ignore
+    webSocketCallBack = async (cmd: number, result: Uint8Array): unknown => {
         const decoder = new TextDecoder();
         const jsonString = decoder.decode(result);
         let jsonRes = JSON.parse(jsonString);
@@ -499,8 +499,11 @@ export class SpAiAnalysisPage extends BaseElement {
         if (cmd === 2) {
             SpAiAnalysisPage.isRepeatedly = true;
             this.initiateDiagnosis();
+            if (jsonRes.resultCode !== 0) {
+                this.draftBtn!.style.display = 'inline-block';
+            }
         }
-        // 诊断结果，resultCode===0:失败；resultCode===1:成功
+        // 诊断结果，resultCode===1:失败；resultCode===0:成功
         if (cmd === 4) {
             //     需要处理
             if (jsonRes.resultCode !== 0) {
@@ -513,9 +516,10 @@ export class SpAiAnalysisPage extends BaseElement {
                     this.noReportEl!.style.display = 'block';
                 } else {
                     // 整理数据,渲染数据
-                    this.renderData(dataList);
+                    await this.renderData(dataList);
                 }
             }
+            this.draftBtn!.style.display = 'inline-block';
         }
     }
 
