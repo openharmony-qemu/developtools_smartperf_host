@@ -271,6 +271,7 @@ export class SpAiAnalysisPage extends BaseElement {
         this.draftList!.innerHTML = '';
         this.reportContent = '';
         this.downloadBtn!.style.display = 'none';
+        this.draftBtn!.style.display = 'inline-block';
         this.tipsContent!.style.display = 'flex';
         this.noDataEl!.style.display = 'block';
         this.noReportEl!.style.display = 'none';
