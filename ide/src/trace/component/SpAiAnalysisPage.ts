@@ -194,6 +194,8 @@ export class SpAiAnalysisPage extends BaseElement {
             }
             // 清空诊断报告的内容
             this.reportContent = '';
+            // 隐藏诊断按钮
+            this.draftBtn!.style.display = 'none';
             // 同一个trace非第一次诊断，无需再发db文件过去
             if (SpAiAnalysisPage.isRepeatedly) {
                 this.initiateDiagnosis();
@@ -422,6 +424,7 @@ export class SpAiAnalysisPage extends BaseElement {
         }
         this.loadingItem!.style.display = 'none';
         this.downloadBtn!.style.display = 'inline-block';
+        this.draftBtn!.style.display = 'inline-block';
     }
 
     async getToken(isChat?: boolean) {
