@@ -174,7 +174,6 @@ export class SpApplication extends BaseElement {
   private currentPageNum: number = 1;
   private currentDataTime: string[] = [];
   static traceType: String = '';
-  // private xiaoLubanEl: HTMLElement | null | undefined;
 
   static get observedAttributes(): Array<string> {
     return ['server', 'sqlite', 'wasm', 'dark', 'vs', 'query-sql', 'subsection'];
@@ -318,7 +317,7 @@ export class SpApplication extends BaseElement {
     this.contentLeftOption = this.shadowRoot?.querySelector<HTMLDivElement>('.content-left-option');
     this.contentCenterOption = this.shadowRoot?.querySelector<HTMLDivElement>('.content-center-option');
     this.spAiAnalysisPage = this.shadowRoot!.querySelector('#sp-ai-analysis') as SpAiAnalysisPage;
-    let xiaoLubanEl: HTMLElement | null  = this.shadowRoot!.querySelector<HTMLElement>('#sp-bubbles');
+    let xiaoLubanEl: HTMLElement | null = this.shadowRoot!.querySelector<HTMLElement>('#sp-bubbles');
     this.initElementsAttr();
     this.initEvents();
     this.initRecordEvents();
@@ -330,16 +329,19 @@ export class SpApplication extends BaseElement {
     this.initGlobalEvents();
     this.initDocumentListener();
     this.initElementsEnd();
-    this.rootEL!.addEventListener('dragover', function(event) {
+    this.dragXiaolubanEvents(xiaoLubanEl!);
+    this.connectWebSocket();
+
+  }
+  private dragXiaolubanEvents(xiaoLubanEl: HTMLElement): void {
+    this.rootEL!.addEventListener('dragover', function (event) {
       event.preventDefault();
       event.stopPropagation();
     });
-     
-    this.rootEL!.addEventListener('drop', function(event) {
+    this.rootEL!.addEventListener('drop', function (event) {
       event.preventDefault();
       event.stopPropagation();
-      console.log(SpBubblesAI.isAIHover, '---------------------SpBubblesAI.isAIHover')
-      if(!SpBubblesAI.isAIHover) {
+      if (!SpBubblesAI.isAIHover) {
         return;
       };
       const x = event.clientX - 15 < 0 ? 0 : event.clientX - 15;
@@ -347,12 +349,6 @@ export class SpApplication extends BaseElement {
       xiaoLubanEl!.style.left = `${x}px`;
       xiaoLubanEl!.style.top = `${y}px`;
     });
-    this.connectWebSocket();
-    // this.dragXiaolubanEvents(xiaoLubanEl);
-  }
-
-  private dragXiaolubanEvents(xiaoLubanEl: HTMLElement | null) {
-    
   }
   private connectWebSocket(): void {
     document.addEventListener('DOMContentLoaded', function () {//
