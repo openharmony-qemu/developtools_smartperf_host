@@ -216,7 +216,7 @@ export class SpHelp extends BaseElement {
       this.createSubMenuItem('Trace解析能力增强', 'trace_parsing', 'quickstart_parsing_ability', that, '23'),
       this.createSubMenuItem('应用操作技巧', 'operation_skills', 'quickstart_Application_operation_skills', that, '24'),
       this.createSubMenuItem('快捷键说明', 'keywords_shortcuts', 'quickstart_keywords_shortcuts', that, '25'),
-      this.createSubMenuItem('Xpower抓取和展示说明', 'xpower', 'quickstart_xpower', that, '26'),
+      this.createSubMenuItem('Xpower抓取和展示说明', 'xpower', 'quickstart_xpower', that, '27'),
     ];
   }
 
