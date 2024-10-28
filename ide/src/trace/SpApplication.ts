@@ -334,11 +334,11 @@ export class SpApplication extends BaseElement {
 
   }
   private dragXiaolubanEvents(xiaoLubanEl: HTMLElement): void {
-    this.rootEL!.addEventListener('dragover', function (event) {
+    document.querySelector('body')!.addEventListener('dragover', function (event) {
       event.preventDefault();
       event.stopPropagation();
     });
-    this.rootEL!.addEventListener('drop', function (event) {
+    document.querySelector('body')!.addEventListener('drop', function (event) {
       event.preventDefault();
       event.stopPropagation();
       if (!SpBubblesAI.isAIHover) {
