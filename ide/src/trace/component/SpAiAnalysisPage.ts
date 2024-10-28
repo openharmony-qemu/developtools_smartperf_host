@@ -43,6 +43,7 @@ export class SpAiAnalysisPage extends BaseElement {
     private noReportEl: HTMLDListElement | null | undefined;
     private loginTipEl: HTMLDivElement | null | undefined;
     private importTraceTipsEl: HTMLDivElement | null | undefined;
+    private serviceExceptionTipsEl: HTMLDivElement | null | undefined;
     private loadingItem: HTMLDivElement | null | undefined;
     private startTimeEl: HTMLSpanElement | null | undefined;
     private endTimeEl: HTMLSpanElement | null | undefined;
@@ -99,6 +100,8 @@ export class SpAiAnalysisPage extends BaseElement {
         this.tipsContent = this.shadowRoot?.querySelector('.tips-content');
         // 未连接提示弹窗
         this.loginTipEl = this.shadowRoot?.querySelector('.loginTip');
+        //诊断异常提示弹窗
+        this.serviceExceptionTipsEl = this.shadowRoot?.querySelector('.service-exception');
         //未导入trace提示弹窗
         this.importTraceTipsEl = this.shadowRoot?.querySelector('.importTraceTips');
         // 时间展示区域
@@ -182,6 +185,7 @@ export class SpAiAnalysisPage extends BaseElement {
             this.draftList!.innerHTML = '';
             this.noDataEl!.style.display = 'none';
             this.noReportEl!.style.display = 'none';
+            this.serviceExceptionTipsEl!.style.display = 'none';
             this.downloadBtn!.style.display = 'none';
             // 没有登陆，弹窗提示，退出逻辑
             if (!WebSocketManager.getInstance()?.isReady()) {
@@ -275,6 +279,7 @@ export class SpAiAnalysisPage extends BaseElement {
         this.tipsContent!.style.display = 'flex';
         this.noDataEl!.style.display = 'block';
         this.noReportEl!.style.display = 'none';
+        this.serviceExceptionTipsEl!.style.display = 'block';
         let chatBar = this.shadowRoot?.querySelector('.chatBar');
         let chatInputBox = this.shadowRoot?.querySelector('.chatInputBox');
         let reportDetails = this.shadowRoot?.querySelector('.report_details');
@@ -290,6 +295,7 @@ export class SpAiAnalysisPage extends BaseElement {
         reportDetails!.style.display = 'none';
         this.noDataEl!.style.display = 'block';
         this.noReportEl!.style.display = 'none';
+        this.serviceExceptionTipsEl!.style.display = 'none';
     }
 
     // 发送消息
@@ -507,12 +513,15 @@ export class SpAiAnalysisPage extends BaseElement {
         if (cmd === 4) {
             //     需要处理
             if (jsonRes.resultCode !== 0) {
-                console.error('错误');
+                this.draftList!.innerHTML = '';
+                this.tipsContent!.style.display = 'flex';
+                this.serviceExceptionTipsEl!.style.display = 'block';
             }
             if (this.isJsonString(jsonRes.resultMessage)) {
                 let dataList = JSON.parse(jsonRes.resultMessage) || [];
                 if (dataList && dataList.length === 0) {
                     this.draftList!.innerHTML = '';
+                    this.tipsContent!.style.display = 'flex';
                     this.noReportEl!.style.display = 'block';
                 } else {
                     // 整理数据,渲染数据

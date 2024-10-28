@@ -67,6 +67,12 @@ export const SpAiAnalysisPageHtml = `
                                 当前trace未诊断出问题
                             </div>
                         </div>
+                        <div class="service-exception" style="display:none;">
+                            <img src="img/no-report.png" />
+                            <div style="text-align: center;">
+                                服务异常
+                            </div>
+                        </div>
                         <div class="loginTip">
                             <span>未连接，请启动本地扩展程序再试！[</span>
                             <a href="https://wiki.huawei.com/domains/76911/wiki/125480/WIKI202410154807421" target="_blank" style="color: blue;">指导</a>
