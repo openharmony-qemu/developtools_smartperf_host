@@ -820,11 +820,21 @@ export function spSystemTraceDrawFuncLine(
       // @ts-ignore
       `trace-row[row-id='${data.tid}'][row-type='func']`
     );
-    if (!endRowStruct) {
-      // @ts-ignore
-      endRowStruct = endParentRow.childrenList.find((item: TraceRow<FuncStruct>) => {
-        // @ts-ignore
-        return item.rowId === `${data.tid}` && item.rowType === 'func';
+    if (!endRowStruct) {// @ts-ignore
+      endParentRow.childrenList.forEach((item) => {
+        if (item.rowId === 'sameThreadProcess') {// @ts-ignore
+          endRowStruct = endParentRow.childrenList.concat(item.childrenList).find((item: TraceRow<FuncStruct>) => {
+            // @ts-ignore
+            return item.rowId === `${data.tid}` && item.rowType === 'func';
+          });// @ts-ignore
+          endRowStruct.parentRowEl.expansion = true;
+        } else {
+          // @ts-ignore
+          endRowStruct = endParentRow.childrenList.find((item: TraceRow<FuncStruct>) => {
+            // @ts-ignore
+            return item.rowId === `${data.tid}` && item.rowType === 'func';
+          });
+        }
       });
     }
     if (endRowStruct) {

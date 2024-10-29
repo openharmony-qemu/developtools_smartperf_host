@@ -848,7 +848,25 @@ export function cancelCurrentTraceRowHighlight(sp: SpSystemTrace, currentEntry: 
     if (!parentRow) {
       return;
     }
-    let filterRow = parentRow.childrenList.filter((child) => child.rowId === funcRowID && child.rowType === 'func')[0];
+    // @ts-ignore
+    let filterRow: TraceRow<unknown> | undefined;
+    parentRow.childrenList.forEach((item) => {
+      if (item.rowId === 'sameThreadProcess') {
+        filterRow = parentRow.childrenList.concat(item.childrenList).filter((child) => child.rowId === funcRowID && child.rowType === 'func')[0];
+      } else {
+        filterRow = parentRow.childrenList.filter((child) => child.rowId === funcRowID && child.rowType === 'func')[0];
+      }
+    });
+    if (!filterRow) {
+      let rowsPaneEL = document.querySelector("body > sp-application")?.shadowRoot?.querySelector("#sp-system-trace")?.shadowRoot?.querySelector("div > div.rows-pane")
+      // @ts-ignore
+      let funcRow = rowsPaneEL?.querySelector<TraceRow<unknown>>(`trace-row[row-id='${funcRowID}'][row-type='func']`);
+      if (funcRow) {
+        filterRow = funcRow;
+      } else {
+        return;
+      }
+    }
     filterRow.highlight = false;
     // @ts-ignore
   } else if (currentEntry?.type === 'sdk') {

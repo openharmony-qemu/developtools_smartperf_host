@@ -742,7 +742,9 @@ export class SpProcessChart {
         ThreadStruct.selectThreadStruct = selectProcessStruct; //@ts-ignore
         ThreadStruct.hoverThreadStruct = selectProcessStruct;
       }
-    });
+    });//@ts-ignore
+    linkItem[0].backrowEL = linkItem[0].sourcebackrowEL!.parentRowEl?.expansion ? linkItem[0].sourcebackrowEL! : linkItem[0].sourcebackrowEL!.parentRowEl;//@ts-ignore
+    linkItem[1].backrowEL = linkItem[1].sourcebackrowEL!.parentRowEl?.expansion ? linkItem[1].sourcebackrowEL! : linkItem[1].sourcebackrowEL!.parentRowEl;
     if (linkItem[0].rowEL.expansion && linkItem[0].backrowEL) {
       this.updatePairPointTranslateY(linkItem[0]);
       linkItem[0].x = ns2xByTimeShaft(linkItem[0].ns, this.trace.timerShaftEL!);
@@ -766,12 +768,23 @@ export class SpProcessChart {
     linkItem[0].y = processRow!.translateY + linkItem[0].offsetY;
     this.updatePairPointTranslateY(linkItem[1]);
     linkItem[1].y = linkItem[1].rowEL!.translateY + linkItem[1].offsetY; //@ts-ignore
-    if (linkItem[0].rowEL.rowParentId === e.detail.rowId) {
-      //@ts-ignore
-      this.updatePairPoint(linkItem[0], processRow);
-    } //@ts-ignore
-    if (linkItem[1].rowEL.rowParentId === e.detail.rowId) {
-      this.updatePairPoint(linkItem[1], processRow);
+    if (e.detail.rowId === 'sameThreadProcess') {//@ts-ignore
+      if (linkItem[0].rowEL.parentRowEl?.rowId === e.detail.rowId) {
+        //@ts-ignore
+        this.updatePairPoint(linkItem[0], processRow);
+      } //@ts-ignore
+      if (linkItem[1].rowEL.parentRowEl?.rowId === e.detail.rowId) {
+        this.updatePairPoint(linkItem[1], processRow);
+      }
+    }
+    //@ts-ignore
+    if (e.detail.rowId !== 'sameThreadProcess') {//@ts-ignore
+      if (linkItem[0].rowEL.rowParentId === e.detail.rowId) {
+        this.updatePairPoint(linkItem[0], processRow);
+      }//@ts-ignore
+      if (linkItem[1].rowEL.rowParentId === e.detail.rowId) {
+        this.updatePairPoint(linkItem[1], processRow);
+      }
     }
   }
 
@@ -1128,6 +1141,7 @@ export class SpProcessChart {
       let sameThreadFolder = await this.initSameThreadFolder(it, pRow, sameThreadList, traceId!);
       if (sameThreadFolder) {
         pRow.addChildTraceRow(this.sameThreadFolder);
+        this.addProcessRowListener(this.sameThreadFolder, actualRow);
       }
       await this.initSameThreadData(sameThreadFolder, it, expectedRow, actualRow, soRow, startupRow, sameThreadList, traceId);
     }

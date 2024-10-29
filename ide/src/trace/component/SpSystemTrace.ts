@@ -356,6 +356,8 @@ export class SpSystemTrace extends BaseElement {
       endPoint.y = endPoint.rowEL!.translateY! + endPoint.offsetY;
       startPoint.backrowEL = startPoint.rowEL;
       endPoint.backrowEL = endPoint.rowEL;
+      startPoint.sourcebackrowEL = startPoint.rowEL;
+      endPoint.sourcebackrowEL = endPoint.rowEL;
       //判断是否是分布式连线，分布式连线需有rangeTime
       if (!lineType) {
         this.linkNodes.push([startPoint, endPoint]);
@@ -1651,9 +1653,19 @@ export class SpSystemTrace extends BaseElement {
     let startRowEl = startRow;
     let startOffSetY = selectFuncStruct ? 20 * (0.5 + Number(selectFuncStruct.depth)) : 20 * 0.5;
     // @ts-ignore
-    const startParentRow = startRow ? this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(`trace-row[row-id='${startRow.rowParentId}'][folder]`) : this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
+    let startParentRow = startRow ? this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(`trace-row[row-id='${startRow.rowParentId}'][folder]`) : this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
       `trace-row[row-id='${pid}'][folder]`
     );
+    if (startParentRow && startParentRow.expansion){
+      let filterRow = startParentRow?.childrenList.filter((item)=>item.rowId === selectFuncStruct!.tid)[0];
+      !filterRow && startParentRow?.childrenList.forEach((i)=>{
+       if(i.rowId === 'sameThreadProcess'){// @ts-ignore
+        filterRow = startParentRow?.childrenList.concat(i.childrenList).filter((item)=>item.rowId === String(selectFuncStruct!.tid))[0];
+          // @ts-ignore
+          startParentRow = filterRow!.parentRowEl!;
+       }
+      });
+    }
     const expansionFlag = this.collectionHasThread(startRow);
     if (startParentRow && !startParentRow.expansion && expansionFlag) {
       startY = startParentRow.translateY!;
@@ -2499,7 +2511,21 @@ export class SpSystemTrace extends BaseElement {
     if (!parentRow) {
       return;
     }
-    let filterRow = parentRow.childrenList.filter((child) => child.rowId === funcRowID && child.rowType === 'func')[0];
+    // @ts-ignore
+    let filterRow: TraceRow<unknown> | undefined;
+    let isSameThreadProcess = false;
+    parentRow.childrenList.forEach((item) => {
+      if (item.rowId === 'sameThreadProcess') {
+        filterRow = parentRow.childrenList.concat(item.childrenList).filter((child) => child.rowId === funcRowID && child.rowType === 'func')[0];
+        item.childrenList.forEach((i) => {
+          if (filterRow!.rowId === i.rowId) {
+            isSameThreadProcess = true;
+          }
+        });
+      } else {
+        filterRow = parentRow.childrenList.filter((child) => child.rowId === funcRowID && child.rowType === 'func')[0];
+      }
+    });
     if (!filterRow) {
       // @ts-ignore
       let funcRow = this.rowsEL?.querySelector<TraceRow<unknown>>(`trace-row[row-id='${funcRowID}'][row-type='func']`);
@@ -2518,8 +2544,15 @@ export class SpSystemTrace extends BaseElement {
     if (row && !row.expansion) {
       row.expansion = true;
     }
+    if (row!.expansion) {
+      if (isSameThreadProcess) {
+        this.currentRow = this.rowsEL!.querySelector<TraceRow<BaseStruct>>( // @ts-ignore
+          'trace-row[row-id="sameThreadProcess"][folder]');
+        this.currentRow!.expansion = true;
+      }
+    }
     const completeEntry = (): void => {
-      this.toTargetDepth(filterRow.fixedList[0], funcRowID, funcStract);
+      this.toTargetDepth(filterRow!.fixedList[0], funcRowID, funcStract);
     };
     if (filterRow!.isComplete) {
       completeEntry();
