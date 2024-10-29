@@ -737,7 +737,7 @@ export class SpApplication extends BaseElement {
               if (urlParams.get('local')) {
                 URL.revokeObjectURL(localUrl);
               }
-              this.handleWasmMode(new File([arrayBuf], fileName), showFileName, arrayBuf.byteLength, fileName);
+              this.handleWasmMode(new File([arrayBuf], fileName), showFileName, arrayBuf.byteLength, fileName, jsonStr);
             });
           })
           .catch((e) => {
