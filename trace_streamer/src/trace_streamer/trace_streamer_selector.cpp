@@ -264,7 +264,7 @@ void TraceStreamerSelector::GetMarkPositionData(std::unique_ptr<uint8_t[]> &data
         // Move the data pointer to the starting position of the remaining data
         // The remaining data size is equal to the data size minus the current markinfo size
         size -= curMarkSize;
-        auto remainingData = std::make_unique<uint8_t>(size);
+        auto remainingData = std::make_unique<uint8_t[]>(size);
         memcpy_s(remainingData.get(), size, data.get() + curMarkSize, size);
         data.reset(remainingData.release());
     }
