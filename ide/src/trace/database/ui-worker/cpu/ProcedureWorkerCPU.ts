@@ -263,18 +263,15 @@ export class CpuStruct extends BaseStruct {
       let pid = data.processId || 0;
       let tid = data.tid || 0;
       let width = data.frame.width || 0;
+      ctx.globalAlpha = 1;
       if (data.tid === CpuStruct.hoverCpuStruct?.tid || !CpuStruct.hoverCpuStruct) {
-        ctx.globalAlpha = 1;
         ctx.fillStyle = ColorUtils.colorForTid(pid > 0 ? pid : tid);
       } else if (data.processId === CpuStruct.hoverCpuStruct?.processId) {
-        ctx.globalAlpha = 0.6;
         ctx.fillStyle = ColorUtils.colorForTid(pid > 0 ? pid : tid);
       } else {
-        ctx.globalAlpha = 1;
         ctx.fillStyle = '#e0e0e0';
       }
       ctx.fillRect(data.frame.x, data.frame.y, width, data.frame.height);
-      ctx.globalAlpha = 1;
       CpuStruct.drawText(ctx, data, width, pid, tid);
       CpuStruct.drawRim(ctx, data, width);
     }
