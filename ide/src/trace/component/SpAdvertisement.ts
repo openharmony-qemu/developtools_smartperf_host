@@ -33,7 +33,9 @@ export class SpAdvertisement extends BaseElement {
             if (res.status === 200) {
                 res.text().then((it) => {
                     let resp = JSON.parse(it);
-                    if (resp && resp.data && resp.data.data && resp.data.data !== this.message && resp.data.data !== '') {
+                    let publish = localStorage.getItem('message');
+                    if ((resp && resp.data && resp.data.data && resp.data.data !== publish && resp.data.data !== '') || !publish) {
+                        localStorage.setItem('message', this.message);
                         this.message = resp.data.data;
                         let parts = this.message.split(';');
                         let linkInfo = parts[2].match(/链接:([^\s]+)/)![1] || '';
@@ -41,6 +43,8 @@ export class SpAdvertisement extends BaseElement {
                         let finalString = `${parts[0]}<br>${link}`;
                         this.noticeEl!.innerHTML = `<p>${finalString}</p>`;
                         this.advertisementEL!.style!.display = 'block';
+                    } else {
+                        this.advertisementEL!.style!.display = 'none';
                     }
                 });
             } else {

@@ -20,7 +20,7 @@ export const SpAdvertisementHtml = `<style>
           left: 50%;  
           transform: translateX(-50%);
           opacity: 0;
-          animation: slideUpVerticalAndFadeIn 3s forwards ease-out;
+          animation: slideUpVerticalAndFadeIn 1.5s forwards ease-out;
           background-color:#fff;
           display:none;
           min-width: 400px;
