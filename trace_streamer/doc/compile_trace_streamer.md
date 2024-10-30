@@ -14,7 +14,7 @@ TraceStreamer可以编译为命令行下的可执行程序，或者WebAssembly�
 | ---  | --- | --- |
 |linux |clang/clang++| (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0|
 | macx |clang/clang++| 14.0.3 |
-|windows |gcc.exe/g++.exe| (i686-posix-dwarf-rev0, Built by MinGW-W64 project) 8.1.0|
+|windows |gcc.exe/g++.exe| gcc version 12.1.0 (x86_64-posix-sjlj-rev3, Built by MinGW-W64 project)|
 |wasm(linux下编译) |emcc/em++| 3.1.12|
 
 对于wasm环境（目前只支持linux下编译），build.sh会自行配置环境。

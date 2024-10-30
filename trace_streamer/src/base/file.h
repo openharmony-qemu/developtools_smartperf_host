@@ -16,8 +16,13 @@
 #ifndef INCLUDE_TUNING_BASE_FILE_UTILS_H
 #define INCLUDE_TUNING_BASE_FILE_UTILS_H
 
+#include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
+#include <filesystem>
+
+#include "contrib/minizip/unzip.h"
 
 namespace SysTuning {
 namespace base {
@@ -48,6 +53,24 @@ std::vector<std::string> GetFilesNameFromDir(const std::string &path, bool onlyF
 bool UnZipFile(const std::string &zipFile, std::string &traceFile);
 
 bool LocalUnzip(const std::string &zipFile, const std::string &dstDir);
+
+class LocalZip {
+public:
+    LocalZip(const std::string &file);
+    bool Unzip(std::string &traceFile);
+
+private:
+    bool IsFileExist();
+    bool IsZipFile();
+    static bool CreateDir(const std::filesystem::path &dirName, bool del = false);
+    bool WriteFile(const unzFile &uzf, const std::filesystem::path &fileName);
+    std::string filePath_;
+    std::string tmpDir_;
+    uint32_t bufSize_ = 512000000;
+    uint8_t magicNumLen_ = 2;
+    std::unique_ptr<char[]> buf_;
+};
+
 } // namespace base
 } // namespace SysTuning
 #endif // INCLUDE_TUNING_BASE_FILE_UTILS_H_

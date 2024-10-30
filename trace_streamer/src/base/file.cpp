@@ -18,21 +18,17 @@
 #include <fcntl.h>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <sys/stat.h>
 #include <unistd.h>
 
 #include "log.h"
+#include "codec_cov.h"
 #if defined(_WIN32)
 #include <direct.h>
 #include <io.h>
 #include <windows.h>
 #endif
-#if defined(is_linux) || defined(_WIN32)
-#include <filesystem>
-#endif
-#include "zlib.h"
-#include "contrib/minizip/zip.h"
-#include "contrib/minizip/unzip.h"
 
 namespace SysTuning {
 namespace base {
@@ -82,7 +78,7 @@ std::string GetExecutionDirectoryPath()
     std::string str(currPath);
     return str.substr(0, str.find_last_of('/'));
 }
-#if defined(is_linux) || defined(_WIN32)
+
 std::vector<std::string> GetFilesNameFromDir(const std::string &path, bool onlyFileName)
 {
     std::vector<std::string> soFiles;
@@ -102,128 +98,148 @@ std::vector<std::string> GetFilesNameFromDir(const std::string &path, bool onlyF
     }
     return soFiles;
 }
-#endif
 
 bool UnZipFile(const std::string &zipFile, std::string &traceFile)
 {
-    std::filesystem::path stdZipFile(zipFile);
-    // 检查文件是否存在
-    if (!std::filesystem::exists(stdZipFile)) {
-        TS_LOGI("!std::filesystem::exists(dirPath), dirPath: %s\n", zipFile.data());
-        return false;
-    }
-    std::ifstream zipIfstream(stdZipFile);
-    char buf[2];
-    zipIfstream.read(buf, 2);
-    if (buf[0] != 'P' || buf[1] != 'K') {
-        // 不是zip文件, 返回true走正常解析流程
-        return true;
-    } else {
-        auto unzipDirPath = stdZipFile.parent_path().append("tmp").string();
-        LocalUnzip(zipFile, unzipDirPath);
-        auto files = GetFilesNameFromDir(unzipDirPath, false);
-        if (files.size() == 1) {
-            traceFile = files[0];
-            return true;
-        }
-        return false;
-    }
+    LocalZip localZip(zipFile);
+    return localZip.Unzip(traceFile);
 }
 
-bool LocalUnzip(const std::string &zipFile, const std::string &dstDir)
+LocalZip::LocalZip(const std::string &file) : filePath_(file)
 {
-    int err = 0;
-    void *buf;
-    uInt size_buf;
-    // 创建 dstDir
-    if (std::filesystem::exists(dstDir)) {
-        std::filesystem::remove_all(dstDir);
-        std::filesystem::create_directories(dstDir);
-    }
+    buf_ = std::make_unique<char[]>(bufSize_);
+    tmpDir_ = std::filesystem::path(file).parent_path().append("ts_tmp").string();
+}
 
+// 检查文件是否存在
+bool LocalZip::IsFileExist()
+{
+#ifdef _WIN32
+    std::filesystem::path zipFile(String2WString(filePath_));
+#else
+    std::filesystem::path zipFile(filePath_);
+#endif
+    if (!std::filesystem::exists(zipFile)) {
+        TS_LOGE("!std::filesystem::exists(zipFile), filePath: %s\n", filePath_.data());
+        return false;
+    }
+    return true;
+}
+
+// 检查是否为zip文件
+bool LocalZip::IsZipFile()
+{
+    std::ifstream zipIfstream(filePath_);
+    char buf[magicNumLen_];
+    zipIfstream.read(buf, magicNumLen_);
+    return buf[0] == 'P' && buf[1] == 'K';
+}
+
+bool LocalZip::CreateDir(const std::filesystem::path &dirName, bool del)
+{
+    std::filesystem::path dir = dirName;
+    if (dirName.u8string().back() == '/' || dirName.u8string().back() == '\\') {
+        auto tmpStr = dirName.u8string().substr(0, dirName.u8string().size() - 1);
+#ifdef _WIN32
+        dir = std::filesystem::path(String2WString(tmpStr));
+#else
+        dir = std::filesystem::path(tmpStr);
+#endif
+    }
+    if (std::filesystem::exists(dir)) {
+        if (del) {
+            std::filesystem::remove_all(dir);
+        } else {
+            return true;
+        }
+    }
+    return std::filesystem::create_directories(dir);
+}
+
+bool LocalZip::WriteFile(const unzFile &uzf, const std::filesystem::path &fileName)
+{
+    if (unzOpenCurrentFile(uzf) != UNZ_OK) {
+        TS_LOGE("unzOpenCurrentFile error.");
+    } else {
+        auto parentPath = fileName.parent_path();
+        if (!parentPath.empty()) {
+            CreateDir(parentPath);
+        }
+        auto err = unzReadCurrentFile(uzf, buf_.get(), bufSize_);
+        if (err < 0) {
+            TS_LOGE("unzReadCurrentFile error.");
+            return false;
+        }
+        if (err > 0) {
+#ifdef _WIN32
+            FILE *fout = fopen(Utf8ToGbk(fileName.u8string().c_str()).c_str(), "wb");
+#else
+            FILE *fout = fopen(fileName.c_str(), "wb");
+#endif
+            if (fwrite(buf_.get(), (unsigned)err, 1, fout) != 1) {
+                TS_LOGE("error in writing extracted filee.");
+                err = UNZ_ERRNO;
+                return false;
+            }
+            fclose(fout);
+        }
+        unzCloseCurrentFile(uzf);
+    }
+    return true;
+}
+
+bool LocalZip::Unzip(std::string &traceFile)
+{
+    if (!IsFileExist() || !IsZipFile() || !CreateDir(tmpDir_, true)) {
+        return false;
+    }
     // 打开zip文件
-    unzFile uf = unzOpen(zipFile.c_str());
-    if (uf == NULL) {
-        std::cout << "unzOpen error." << std::endl;
+    unzFile uzf = unzOpen(filePath_.c_str());
+    if (uzf == nullptr) {
+        TS_LOGE("unzOpen error.");
         return false;
     }
-
     // 获取zip文件信息
-    unz_global_info gi;
-    err = unzGetGlobalInfo(uf, &gi);
-    if (err != UNZ_OK) {
-        std::cout << "unzGetGlobalInfo error." << std::endl;
+    unz_global_info ugi;
+    if (unzGetGlobalInfo(uzf, &ugi) != UNZ_OK) {
+        TS_LOGE("unzGetGlobalInfo error.");
         return false;
     }
-
-    size_buf = 512000000;
-    buf = (void *)malloc(size_buf);
-
-    // 遍历zip
-    for (int i = 0; i < gi.number_entry; i++) {
-        char filename_inzip[256];
+    for (int i = 0; i < ugi.number_entry; i++) {
+        char filenameInZip[256];
         unz_file_info file_info;
-        uLong ratio = 0;
-        const char *string_method = "";
-        char charCrypt = ' ';
-        err = unzGetCurrentFileInfo(uf, &file_info, filename_inzip, sizeof(filename_inzip), NULL, 0, NULL, 0);
-        if (err != UNZ_OK) {
-            std::cout << "error " << err << " with zipfile in unzGetCurrentFileInfo." << std::endl;
+        if (unzGetCurrentFileInfo(uzf, &file_info, filenameInZip, sizeof(filenameInZip), NULL, 0, NULL, 0) != UNZ_OK) {
+            TS_LOGE("unzGetCurrentFileInfo error.");
             break;
         }
-        std::string isdir;
-        std::string filename = filename_inzip;
-        if (filename.back() == '/' || filename.back() == '\\') {
-            //* 是目录，则创建目录
-            isdir = " is directory";
-            std::string dir = dstDir + "/" + filename;
-            if (!std::filesystem::exists(dir)) {
-                std::filesystem::create_directories(dir);
-            }
-        } else {
-            //* 是文件，打开 -> 读取 -> 写入解压文件 -> 关闭
-            isdir = " is file";
-
-            err = unzOpenCurrentFile(uf);
-            if (err != UNZ_OK) {
-                std::cout << "error " << err << " with zipfile in unzOpenCurrentFile." << std::endl;
-            } else {
-                std::string writefile = dstDir + "/" + filename;
-                std::filesystem::path fpath(writefile);
-                std::string par = fpath.parent_path().string();
-                if (!fpath.parent_path().empty() && !std::filesystem::exists(fpath.parent_path())) {
-                    std::filesystem::create_directories(fpath.parent_path());
-                }
-                err = unzReadCurrentFile(uf, buf, size_buf);
-                if (err < 0) {
-                    std::cout << "error " << err << " with zipfile in unzReadCurrentFile." << std::endl;
-                    break;
-                }
-                if (err > 0) {
-                    FILE *fout = fopen(writefile.c_str(), "wb");
-                    if (fwrite(buf, (unsigned)err, 1, fout) != 1) {
-                        std::cout << "error in writing extracted filee." << std::endl;
-                        err = UNZ_ERRNO;
-                        break;
-                    }
-                    fclose(fout);
-                }
-                unzCloseCurrentFile(uf);
-            }
+#ifdef _WIN32
+        auto fileName = std::filesystem::path(tmpDir_).append(String2WString(filenameInZip));
+#else
+        auto fileName = std::filesystem::path(tmpDir_).append(filenameInZip);
+#endif
+        // 是目录，则创建目录; 是文件，打开 -> 读取 -> 写入解压文件 -> 关闭
+        auto isDir = fileName.string().back() == '/' || fileName.string().back() == '\\';
+        if (!(isDir ? CreateDir(fileName) : WriteFile(uzf, fileName))) {
+            break;
         }
-
-        if ((i + 1) < gi.number_entry) {
-            err = unzGoToNextFile(uf);
-            if (err != UNZ_OK) {
-                std::cout << "error " << err << " with zipfile in unzGoToNextFile." << std::endl;
+        // uzf迭代
+        if ((i + 1) < ugi.number_entry) {
+            if (unzGoToNextFile(uzf) != UNZ_OK) {
+                TS_LOGE("unzGoToNextFile error.");
                 break;
             }
         }
     }
-
-    unzClose(uf);
-
-    return true;
+    unzClose(uzf);
+    auto files = GetFilesNameFromDir(tmpDir_, false);
+    if (files.size() == 1) {
+        traceFile = files[0];
+#ifdef _WIN32
+        traceFile = Utf8ToGbk(traceFile.c_str());
+#endif
+        return true;
+    }
+    return false;
 }
 } // namespace base
 } // namespace SysTuning

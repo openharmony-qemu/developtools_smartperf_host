@@ -25,6 +25,7 @@ ohos_static_library("pbreader_arkts_parser") {
     "pbreader_js_memory_parser.cpp",
   ]
   public_deps = [
+    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/base:base",
     "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/services:ts_all_type_cpp",
     "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/js_memory:js_memory_data_reader",
     "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/js_memory:ts_js_memory_data_cpp",
