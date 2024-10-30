@@ -17,11 +17,14 @@ export class Constants {
     static INTERVAL_TIME = 30000;
     static LOGIN_PARAM = { type: 0, cmd: 1 };
     static LOGIN_CMD = 2;// cmd 2 有效 3无效
+    static GET_CMD = 1;
+    static UPDATE_CMD = 3;
 }
 
 export class TypeConstants {
-    static LOGIN_TYPE = 0;// 先判断type  0（登录） 和 其他(业务)
+    static LOGIN_TYPE = 0;
     static HEARTBEAT_TYPE = 1;
+    static UPDATE_TYPE = 2;
     static DIAGNOSIS_TYPE = 8;
     static SENDDB_CMD = 1;
     static DIAGNOSIS_CMD = 3;

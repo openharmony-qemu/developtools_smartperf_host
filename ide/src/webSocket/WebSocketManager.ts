@@ -40,8 +40,8 @@ export class WebSocketManager {
         this.websocket.onopen = (): void => {
             // 设置心跳定时器  
             this.sendHeartbeat();
-            // 连接后登录
-            this.login();
+            //检查版本
+            this.getVersion();
         };
 
         //接受webSocket的消息
@@ -72,7 +72,20 @@ export class WebSocketManager {
      */
     onmessage(decode: MessageParam): void {
         // 解码event  调decode
-        if (decode.type === TypeConstants.LOGIN_TYPE) {// 登录
+        if (decode.type === TypeConstants.UPDATE_TYPE) {// 升级
+            if (decode.cmd === Constants.GET_CMD) {
+                // 小于则升级
+                let targetVersion = '1.0.1';
+                let currentVersion = new TextDecoder().decode(decode.data)
+                let result = this.compareVersion(currentVersion, targetVersion);
+                if (result === -1) {
+                    this.updateVersion();
+                } else {
+                    // 连接后登录
+                    this.login();
+                }
+            }
+        } else if (decode.type === TypeConstants.LOGIN_TYPE) {// 登录
             if (decode.cmd === Constants.LOGIN_CMD) {
                 this.ready = true;
                 this.sessionId = decode.session_id;
@@ -85,6 +98,50 @@ export class WebSocketManager {
                 }
             };
         }
+    }
+
+    // get版本
+    getVersion() {
+        // 获取扩展程序版本
+        this.send(TypeConstants.UPDATE_TYPE, Constants.GET_CMD);
+    }
+
+    //check版本
+    compareVersion(currentVersion: string, targetVersion: string) {
+        // 将版本字符串分割成数组
+        let parts1 = currentVersion.split('.');
+        let parts2 = targetVersion.split('.');
+
+        // 遍历数组，各部分进行比较
+        for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
+            let currentNum = i < parts1.length ? parseInt(parts1[i], 10) : 0;
+            let targetNum = i < parts2.length ? parseInt(parts2[i], 10) : 0;
+
+            // 比较
+            if (currentNum > targetNum) {// 无需更新
+                return 1;
+            } else if (currentNum < targetNum) { // 需要更新
+                return -1;
+            }
+        }
+        return 0; // 无需更新
+    }
+
+    // 更新扩展程序
+    updateVersion() {
+        // 用户手动重装
+        let url = `https://${window.location.host.split(':')[0]}:${window.location.port
+            }/application/extend/hi-smart-perf-host-extend.zip`;
+        fetch(url).then(response => {
+            if (!response.ok) {
+                throw new Error("No corresponding upgrade compression package found");
+            }
+            return response.arrayBuffer()
+        }).then((arrayBuffer) => {
+            this.send(TypeConstants.UPDATE_TYPE, Constants.UPDATE_CMD, new Uint8Array(arrayBuffer));
+        }).catch((error) => {
+            console.error(error);
+        })
     }
 
     // 登录
@@ -125,6 +182,10 @@ export class WebSocketManager {
         if (!this.ready) {// 改判断条件 ready
             return;
         }
+        this.send(type, cmd, data)
+    }
+
+    send(type: number, cmd?: number, data?: Uint8Array) {
         let message: MessageParam = {
             type: type,
             cmd: cmd,
