@@ -106,7 +106,6 @@ export class SpCpuChart {
           }
         }
       }
-      SpStatisticsHttpUtil.recordPlugin.push('ftrace-plugin');
     }
     let CpuDurTime = new Date().getTime() - CpuStartTime;
     info('The time to load the Cpu data is: ', CpuDurTime);

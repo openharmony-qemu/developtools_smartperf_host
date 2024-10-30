@@ -157,8 +157,6 @@ export class SpArkTsChart implements ParseListener {
       if (this.jsCpuProfilerRow && jsCpu.length > 0) {
         this.cpuProfilerSupplierFrame();
       }
-      // 统计arkTs插件
-      SpStatisticsHttpUtil.recordPlugin.push('arkts-plugin');
     }
   }
 

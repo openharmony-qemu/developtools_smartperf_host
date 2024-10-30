@@ -46,7 +46,6 @@ export class SpXpowerChart {
         await this.initXpowerFolder(traceId);
         await this.initSystemFolder(traceId);
         await this.initSystemData(this.systemFolder, xpowerList, traceId);
-        SpStatisticsHttpUtil.recordPlugin.push('xpower-plugin');
     }
 
     initXpowerFolder = async (traceId?: string): Promise<void> => {

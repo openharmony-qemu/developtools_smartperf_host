@@ -100,7 +100,6 @@ export class VmTrackerChart {
       await this.initDmaRow();
     }
     await this.initGpuData();
-    SpStatisticsHttpUtil.recordPlugin.push('vmtracker-plugin');
   }
 
   private async initGpuData(): Promise<void> {

@@ -56,7 +56,6 @@ export class SpEBPFChart {
           await this.initDiskIOLatency(folder);
           await this.initProcessDiskIOLatency(folder);
         }
-        SpStatisticsHttpUtil.recordPlugin.push('hiebpf-plugin');
       }
     }
   }

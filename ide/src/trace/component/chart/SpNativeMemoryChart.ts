@@ -182,7 +182,6 @@ export class SpNativeMemoryChart {
     if (nativeProcess.length === 0) {
       return;
     }
-    SpStatisticsHttpUtil.recordPlugin.push('nativehook-plugin');
     await this.initNativeMemory();
     await nativeMemoryChartDataCacheSender(
       nativeProcess.map((it) => it.ipid),

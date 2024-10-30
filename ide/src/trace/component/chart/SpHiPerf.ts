@@ -93,7 +93,6 @@ export class SpHiPerf {
       await this.initCpuMerge();
       await this.initCpu();
       await this.initProcess();
-      SpStatisticsHttpUtil.recordPlugin.push('hiperf-plugin');
     }
     info('HiPerf Data initialized');
   }
