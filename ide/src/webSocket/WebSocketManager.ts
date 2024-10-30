@@ -75,7 +75,7 @@ export class WebSocketManager {
         if (decode.type === TypeConstants.UPDATE_TYPE) {// 升级
             if (decode.cmd === Constants.GET_CMD) {
                 // 小于则升级
-                let targetVersion = '1.0.1';
+                let targetVersion = '1.0.0';
                 let currentVersion = new TextDecoder().decode(decode.data)
                 let result = this.compareVersion(currentVersion, targetVersion);
                 if (result === -1) {
