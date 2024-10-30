@@ -25,6 +25,7 @@ export class SpAdvertisement extends BaseElement {
         }, 10000);
         this.closeEL?.addEventListener('click', () => {
             this.advertisementEL!.style!.display = 'none';
+            localStorage.setItem('isdisplay','false');
         })
     }
 
@@ -34,9 +35,11 @@ export class SpAdvertisement extends BaseElement {
                 res.text().then((it) => {
                     let resp = JSON.parse(it);
                     let publish = localStorage.getItem('message');
-                    if ((resp && resp.data && resp.data.data && resp.data.data !== publish && resp.data.data !== '') || !publish) {
-                        localStorage.setItem('message', this.message);
+                    let isdisplay = localStorage.getItem('isdisplay');
+                    resp && resp.data && resp.data.data && resp.data.data !== publish || !publish && localStorage.setItem('isdisplay','true');
+                    if ((resp && resp.data && resp.data.data && resp.data.data !== publish && resp.data.data !== '') || !publish || isdisplay !== 'false') {
                         this.message = resp.data.data;
+                        localStorage.setItem('message', this.message);
                         let parts = this.message.split(';');
                         let linkInfo = parts[2].match(/链接:([^\s]+)/)![1] || '';
                         let link = `<a href="${linkInfo}" target="_self">${parts[1]}</a>`;
