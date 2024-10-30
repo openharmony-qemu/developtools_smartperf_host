@@ -184,7 +184,7 @@ export class SpStatisticsHttpUtil {
   }
 
   static getNotice(): Promise<Response> {
-    return fetch(`${document.URL}messagePublish`);
+    return fetch(`https://${window.location.host}${window.location.pathname}/messagePublish`);
   }
 
   static getCorrectRequestTime(): number {

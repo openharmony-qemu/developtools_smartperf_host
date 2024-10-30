@@ -18,7 +18,7 @@ export class SpAdvertisement extends BaseElement {
             querySelector('#sp-advertisement')?.shadowRoot?.querySelector('#close');
         // 公告内容
         this.noticeEl = document.querySelector('body > sp-application')?.shadowRoot?.
-            querySelector('#sp-advertisement')?.shadowRoot?.querySelector('#notice');
+            querySelector('#sp-advertisement')?.shadowRoot?.querySelector('.text');
         this.getMessage();
         setInterval(() => {
             this.getMessage();
@@ -35,22 +35,11 @@ export class SpAdvertisement extends BaseElement {
                     let resp = JSON.parse(it);
                     if (resp && resp.data && resp.data.data && resp.data.data !== this.message && resp.data.data !== '') {
                         this.message = resp.data.data;
-                        const regexImg = /图片:(.*?);/g;
-                        const regexLink = /链接:(.*?);/g;
-                        let matchImg;
-                        let matchLink;
-                        let resultStr = this.message;
-                        while ((matchImg = regexImg.exec(this.message)) !== null) {
-                            const imgTag = `<img src='${matchImg[1]}'/>`;
-                            resultStr = resultStr.replace(matchImg[1], imgTag);
-                        }
-                        while ((matchLink = regexLink.exec(this.message)) !== null) {
-                            const LinkTag = `<a href='${matchLink[1]}' target = 'black'>${matchLink[1]}</a>`;
-                            resultStr = resultStr.replace(matchLink[1], LinkTag);
-                        }
-                        resultStr = resultStr.replace(/;/g, '<br>');
-                        resultStr = resultStr.replace(/链接:/g, '<span>链接:</span>');
-                        this.noticeEl!.innerHTML = `<p>${resultStr}</p>`;
+                        let parts = this.message.split(';');
+                        let linkInfo = parts[2].match(/链接:([^\s]+)/)![1] || '';
+                        let link = `<a href="${linkInfo}" target="_self">${parts[1]}</a>`;
+                        let finalString = `${parts[0]}<br>${link}`;
+                        this.noticeEl!.innerHTML = `<p>${finalString}</p>`;
                         this.advertisementEL!.style!.display = 'block';
                     }
                 });
