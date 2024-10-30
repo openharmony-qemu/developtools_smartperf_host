@@ -22,7 +22,7 @@ export class SpAdvertisement extends BaseElement {
         this.getMessage();
         setInterval(() => {
             this.getMessage();
-        }, 10000);
+        }, 36000000);
         this.closeEL?.addEventListener('click', () => {
             this.advertisementEL!.style!.display = 'none';
             localStorage.setItem('isdisplay','false');
