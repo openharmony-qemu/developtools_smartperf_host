@@ -217,6 +217,7 @@ export class SpHelp extends BaseElement {
       this.createSubMenuItem('应用操作技巧', 'operation_skills', 'quickstart_Application_operation_skills', that, '24'),
       this.createSubMenuItem('快捷键说明', 'keywords_shortcuts', 'quickstart_keywords_shortcuts', that, '25'),
       this.createSubMenuItem('Xpower抓取和展示说明', 'xpower', 'quickstart_xpower', that, '26'),
+      this.createSubMenuItem('扩展程序安装指导', 'extensions', 'quickstart_extensions', that, '27'),
     ];
   }
 
@@ -456,7 +457,7 @@ export class SpHelp extends BaseElement {
       title: 'TraceStreamer数据库说明',
       icon: '',
       clickHandler: function (item: MenuItem): void {
-        that.handleMemoryMenuItemClick(that, 'trace_streamer_explain', 'des_tables', '27');
+        that.handleMemoryMenuItemClick(that, 'trace_streamer_explain', 'des_tables', '28');
       },
     };
   }

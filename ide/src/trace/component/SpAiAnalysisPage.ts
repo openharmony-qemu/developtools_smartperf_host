@@ -177,8 +177,9 @@ export class SpAiAnalysisPage extends BaseElement {
             // 没有登陆，弹窗提示，退出逻辑
             if (!WebSocketManager.getInstance()?.isReady()) {
                 this.tipsContent!.style.display = 'flex';
-                let guideSrc = 'https://wiki.huawei.com/domains/76911/wiki/125480/WIKI202410154807421';
-                let linkNodeTips = `<span>未连接，请启动本地扩展程序再试！[</span><a href=${guideSrc} style="color: blue; target="_blank"">指导</a><span>]</span>`;
+                let guideSrc = `https://${window.location.host.split(':')[0]}:${window.location.port
+            }/application/?action=help_27`;
+                let linkNodeTips = `<span>未连接，请启动本地扩展程序再试！[</span><a href=${guideSrc} style="color: blue;" target="_blank">指导</a><span>]</span>`;
                 this.abnormalPageTips(linkNodeTips,'',4000);
                 return;
             }

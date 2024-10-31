@@ -39,6 +39,7 @@ const events = {
   OPERATION_SKILLS_EVENT: 'operation_skills',
   KEYWORDS_SHORTCUTS_EVENT: 'keywords_shortcuts',
   XPOWER_EVENT: 'xpower',
+  EXTEND_EVENT: 'extensions',
   TRACE_STREAMER_EXPLAIN_EVENT: 'trace_streamer_explain',
 };
 
@@ -179,9 +180,14 @@ export const eventDefinitions: { [key: string]: EventDefinition } = {
     name: 'quickstart_xpower',
     index: 26,
   },
+  quickstart_extensions: {
+    event: events.EXTEND_EVENT,
+    name: 'quickstart_extensions',
+    index: 27,
+  },
   des_tables: {
     event: events.TRACE_STREAMER_EXPLAIN_EVENT,
     name: 'des_tables',
-    index: 27,
+    index: 28,
   },
 };
