@@ -40,7 +40,7 @@ export class SpAdvertisement extends BaseElement {
                         localStorage.setItem('message', this.message);
                         let parts = this.message.split(';');
                         let linkInfo = parts[2].match(/链接:([^\s]+)/)![1] || '';
-                        let link = `<a href="${linkInfo}" target="_self">${parts[1]}</a>`;
+                        let link = `<a href="${linkInfo}" target="_blank">${parts[1]}</a>`;
                         let finalString = `${parts[0]}<br>${link}`;
                         this.noticeEl!.innerHTML = `<p>${finalString}</p>`;
                         if (publish) {
