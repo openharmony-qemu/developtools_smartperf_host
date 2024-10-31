@@ -798,6 +798,9 @@ export function spSystemTraceDocumentOnMouseUp(sp: SpSystemTrace, ev: MouseEvent
 }
 
 export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEvent): void {
+  if (SpSystemTrace.isAiAsk) {
+    return;
+  }
   SpSystemTrace.isKeyUp = true;
   if (sp.times.size > 0) {
     for (let timerId of sp.times) {
@@ -811,7 +814,7 @@ export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEven
     ?.querySelector('sp-record-trace')!
     .shadowRoot?.querySelector('lit-main-menu-item[icon="file-config"]')!
     .hasAttribute('back')!;
-  if (ev.key.toLocaleLowerCase() === String.fromCharCode(47) && !flag) {
+  if (ev.key.toLocaleLowerCase() === String.fromCharCode(47) && !flag && !SpSystemTrace.isAiAsk) {
     if (SpSystemTrace.keyboardFlar) {
       document
         .querySelector('body > sp-application')!

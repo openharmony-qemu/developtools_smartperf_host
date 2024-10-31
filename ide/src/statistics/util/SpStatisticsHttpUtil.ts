@@ -246,10 +246,10 @@ export class SpStatisticsHttpUtil {
       if (res.status === 200) {
         let resp = await res.text();
         let resj = await JSON.parse(resp);
-        response.data = resj.chatbot_reply;
+        response.data =resj.reason && resj.reason === 'ok' ? resj.chatbot_reply : '服务器异常，请稍后再试';
       }
       else {
-        response.data = res.statusText || '请求错误';
+        response.data = '服务器请求失败';
       }
     }).catch((err) => {
       if (err.toString().indexOf('AbortError') > -1) {

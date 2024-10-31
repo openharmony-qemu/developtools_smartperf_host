@@ -208,7 +208,6 @@ export class TabPaneSlices extends BaseElement {
     let search = spApplication!.shadowRoot?.querySelector('#lit-search') as LitSearch;
     spSystemTrace?.visibleRows.forEach((it) => {
       it.highlight = false;
-      it.draw();
     });
     spSystemTrace?.timerShaftEL?.removeTriangle('inverted');
     // @ts-ignore
@@ -238,6 +237,9 @@ export class TabPaneSlices extends BaseElement {
         return;
       }
       this.slicesTblFreshSearchSelect(search, sliceRowList, data, spSystemTrace);
+      spSystemTrace?.visibleRows.forEach((it) => {
+        it.draw();
+      });
     });
   }
 

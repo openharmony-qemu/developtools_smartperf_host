@@ -18,21 +18,42 @@ export const SpAiAnalysisPageHtml = `
         <h3 class="chatTitle" style="color:#35a1db">
             HiSmartPerf AI助手
         </h3>
-        <div class="chatWindow">
+        <div class="contentWindow">
             <div class="ask_question">
-                <div class="aiMessage message">
-                    <div class="aiHeader headerDiv">
-                        <img src="img/logo.png" class="headerImg"/>
+                <div class="q_a_window">
+                    <div class="aiMessage message">
+                        <div class="aiHeader headerDiv">
+                            <img src="img/logo.png" class="headerImg"/>
+                        </div>
+                        <div class="systemSay">
+                            有什么可以帮助您吗？
+                        </div>
+                        <div class="clear"></div>
                     </div>
-                    <div class="systemSay">
-                        有什么可以帮助您吗？
+                </div>
+            <div class="chatInputBox">
+                <div class="chatConfig">
+                    <div class="right-box">
+                        <div class="history">
+                            <img src="img/history.png" style="margin-right: 10px;"/>
+                            <div class="config-tip hisTip">
+                                历史记录
+                            </div>
+                        </div>
+                        <div class="newChat">
+                            <img src="img/new_chat.png"/>
+                            <div class="config-tip">
+                                新建聊天
+                            </div>
+                        </div>
                     </div>
-                    <div class="clear"></div>
+                </div>
+                <div class="chatInput">
+                    <textarea class="inputText" placeholder="请输入消息"></textarea>
+                    <img src="img/send.png" class="sendImg">
                 </div>
             </div>
-                <div class="importTraceTips" style="visibility: hidden;">
-                    请先导入trace，再使用诊断功能
-                </div>
+            </div>
             <div class="report_details">
                 <div class="selectionBox">
                      <div class="startBox">
@@ -61,23 +82,6 @@ export const SpAiAnalysisPageHtml = `
                                 暂无数据
                             </div>
                         </div>
-                        <div class="no-report" style="display:none;">
-                            <img src="img/no-report.png" />
-                            <div style="text-align: center;">
-                                当前trace未诊断出问题
-                            </div>
-                        </div>
-                        <div class="service-exception" style="display:none;">
-                            <img src="img/no-report.png" />
-                            <div style="text-align: center;">
-                                服务异常
-                            </div>
-                        </div>
-                        <div class="loginTip">
-                            <span>未连接，请启动本地扩展程序再试！[</span>
-                            <a href="https://wiki.huawei.com/domains/76911/wiki/125480/WIKI202410154807421" target="_blank" style="color: blue;">指导</a>
-                            <span>]</span>
-                        </div>
                     </div>
                 </div>
                 <div class="report-button">
@@ -85,28 +89,6 @@ export const SpAiAnalysisPageHtml = `
                         一键诊断
                     </div>
                     <div class="downloadBtn button" style="display: none;">报告下载</div>
-                </div>
-            </div>
-            <div class="chatInputBox">
-                <div class="chatConfig">
-                    <div class="right-box">
-                        <div class="history">
-                            <img src="img/history.png" style="margin-right: 10px;"/>
-                            <div class="config-tip hisTip">
-                                历史记录
-                            </div>
-                        </div>
-                        <div class="newChat">
-                            <img src="img/new_chat.png"/>
-                            <div class="config-tip">
-                                新建聊天
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="chatInput">
-                    <textarea class="inputText" placeholder="请输入消息"></textarea>
-                    <img src="img/send.png" class="sendImg">
                 </div>
             </div>
         </div>
@@ -122,7 +104,37 @@ export const SpAiAnalysisPageHtml = `
             <div class="chatBarTitle">诊断</div>
         </div>
     </div>
+    <div class="tipsContainer" style="display:none;"></div>
     <style>
+    .q_a_window{
+        height: 75%;
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+    .mixedText{
+        text-align: center;
+    }
+    .textTips{
+        padding: 5px 15px;
+        background-color: rgb(236, 239, 247);
+        border-radius: 2px;
+        color: #000;
+        font-size: 14px;
+        height: 50px;
+        line-height: 50px;
+    }
+    .tipsContainer{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 320px;
+        height: 50%;
+        position: absolute;
+        top: 23%;
+        left: 44%;
+        transform: translateX(-50%);
+        background-color: sky-blue;
+    }
     .report_details {
         width: 100%;
         height: 100%;
@@ -199,9 +211,9 @@ export const SpAiAnalysisPageHtml = `
         line-height: 50px;
     }
 
-    .chatWindow {
+    .contentWindow {
         height: 92%;
-        padding: 0 20px 20px 10px;
+        padding: 0 10px 20px 10px;
         border-radius: 10px;
         position: relative;
         background: rgba(235, 235, 235, 0)
@@ -209,9 +221,9 @@ export const SpAiAnalysisPageHtml = `
 
     .ask_question {
         overflow-y: auto;
+        position: relative;
         overflow-x:hidden;
-        height: 77%;
-        padding-right: 10px;
+        height: 100%;
     }
 
     .ask_question pre code {
@@ -223,7 +235,7 @@ export const SpAiAnalysisPageHtml = `
 
     .chatConfig {
         width: 100%;
-        height: 24%;
+        height: 30px;
         position: relative;
         margin-top: 10px;
         padding-bottom: 5px;
@@ -241,7 +253,7 @@ export const SpAiAnalysisPageHtml = `
     .chatInput {
         position: relative;
         width: 100%;
-        height: 127px;
+        height: 125px;
         border-radius: 10px;
         text-align: justify;
     }
@@ -249,7 +261,7 @@ export const SpAiAnalysisPageHtml = `
     .right-box {
         position: absolute;
         display: flex;
-        right: 0;
+        right: 25px;
         top: 10px;
     }
 
@@ -295,7 +307,9 @@ export const SpAiAnalysisPageHtml = `
 
     .chatInputBox {
         padding-right: 10px;
-        height: 20%;
+        position: absolute;
+        width: 100%;
+        bottom: 5px;
     }
 
     .sendImg {

@@ -20,7 +20,7 @@ const NUM = '000000';
 const VSYNC_CONTENT = [
   { value: 'H:VsyncGenerator', content: 'VsyncGeneratior' },
   { value: 'H:rs_SendVsync', content: 'Vsync-rs' },
-  { value: 'H:rs_SendVsync', content: 'Vsync-app' }
+  { value: 'H:app_SendVsync', content: 'Vsync-app' }
 ];
 //cat二级下拉选框对应的value和content
 const CAT_CONTENT = [
