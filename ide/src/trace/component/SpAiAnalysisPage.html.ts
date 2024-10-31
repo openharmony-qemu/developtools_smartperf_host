@@ -564,6 +564,19 @@ export const SpAiAnalysisPageHtml = `
         margin: 0 10px 0 0 !important;
     }
 
+    .timeText {
+        color:blue;
+        cursor: pointer;
+    }
+
+    .timeText[active]{
+        color:purple;
+    }
+
+    .timeText:not([active]) {
+        color:blue;
+    }
+
     p {
       margin:0;
     }

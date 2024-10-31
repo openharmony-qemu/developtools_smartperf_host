@@ -27,6 +27,7 @@ import { Utils } from './trace/base/Utils';
 
 @element('sp-ai-analysis')
 export class SpAiAnalysisPage extends BaseElement {
+    valueChangeHandler: ((str: string, id: number) => void) | undefined | null;
     private askQuestion: Element | null | undefined;
     private q_a_window: HTMLDivElement | null | undefined;
     private aiAnswerBox: HTMLDivElement | null | undefined;
@@ -372,14 +373,19 @@ export class SpAiAnalysisPage extends BaseElement {
             typeDiv.innerHTML = `<span class="item-name">问题类型：</span>${dataList[i].type}`
             // 生成时间
             let timeDiv = document.createElement('div');
-            timeDiv.className = 'item two';
-            // 获取每一个诊断项的时间
+            timeDiv.className = 'item two timeDiv';
+            timeDiv!.innerHTML = `<span class='item-name'>发生时间：</span>`;
             let timeList = new Array();
             // @ts-ignore
-            dataList[i].trace_info.forEach((v: any) => {
+            dataList[i].trace_info.forEach((v: any, index: number) => {
+                let timeSpan = document.createElement('span');
+                timeSpan.id = v.id;
+                timeSpan.className = 'timeItem';
+                timeSpan.setAttribute('name', v.name);
+                timeSpan.innerHTML = `[<span class = 'timeText'>${v.ts! / 1000000000}</span>s] ,`;
+                timeDiv.appendChild(timeSpan);
                 timeList.push(v.ts! / 1000000000 + 's');
             });
-            timeDiv!.innerHTML = `<span class='item-name'>发生时间：</span>${timeList.join(',')}`;
             // 生成问题原因
             let reasonDiv = document.createElement('div');
             reasonDiv.className = 'item';
@@ -389,6 +395,7 @@ export class SpAiAnalysisPage extends BaseElement {
             itemDiv.appendChild(typeDiv);
             itemDiv.appendChild(timeDiv);
             itemDiv.appendChild(reasonDiv);
+            this.timeClickHandler(timeDiv);
             // 生成优化建议
             let suggestonDiv = document.createElement('div');
             suggestonDiv.className = 'item two';
@@ -545,6 +552,27 @@ export class SpAiAnalysisPage extends BaseElement {
         let requestBodyString = JSON.stringify(requestBodyObj);
         let requestBody = new TextEncoder().encode(requestBodyString);
         WebSocketManager.getInstance()!.sendMessage(TypeConstants.DIAGNOSIS_TYPE, TypeConstants.DIAGNOSIS_CMD, requestBody);
+    }
+
+    // 点击时间跳转
+    timeClickHandler(timeDiv: HTMLDivElement) {
+        let timeElementList = timeDiv!.getElementsByClassName('timeItem');
+        for (let i = 0; i < timeElementList.length; i++) {
+            timeElementList[i].addEventListener('click', (e) => {
+                // 点击项更换颜色
+                timeElementList[i].getElementsByClassName('timeText')[0].setAttribute('active', '')
+                let name = timeElementList[i].getAttribute('name');
+                let id = Number(timeElementList[i].getAttribute('id'));
+                // 其他项重置颜色
+                for (let j = 0; j < timeElementList.length; j++) {
+                    if (i !== j) {
+                        timeElementList[j].getElementsByClassName('timeText')[0].removeAttribute('active');
+                    }
+                }
+                // @ts-ignore
+                this.valueChangeHandler!(name, id);
+            })
+        }
     }
 
     // 判断是否为json

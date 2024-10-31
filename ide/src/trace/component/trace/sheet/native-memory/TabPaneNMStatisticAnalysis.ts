@@ -135,11 +135,13 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
 
   set data(statisticAnalysisParam: SelectionParam) {
     if (statisticAnalysisParam === this.currentSelection) {
-      // @ts-ignore
-      this.eventTypeData.unshift(this.typeStatisticsData);
-      this.typeUsageTbl!.recycleDataSource = this.eventTypeData;
-      // @ts-ignore
-      this.eventTypeData.shift(this.typeStatisticsData);
+      if (this.eventTypeData) {
+        // @ts-ignore
+        this.eventTypeData.unshift(this.typeStatisticsData);
+        this.typeUsageTbl!.recycleDataSource = this.eventTypeData;
+        // @ts-ignore
+        this.eventTypeData.shift(this.typeStatisticsData);
+      }
       return;
     }
     if (this.nmTableArray) {

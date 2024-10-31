@@ -2000,6 +2000,10 @@ export class SpApplication extends BaseElement {
       }
     })
 
+    this.spAiAnalysisPage!.valueChangeHandler = (value: string, id: number) => {
+      this.litSearch!.valueChangeHandler!(this.litSearch!.trimSideSpace(value), id);
+    }
+
     // 鼠标拖动改变大小
     this.aiPageResize();
   }
@@ -2061,7 +2065,7 @@ export class SpApplication extends BaseElement {
 
   private initSearchChangeEvents(): void {
     let timer: NodeJS.Timeout;
-    this.litSearch!.valueChangeHandler = (value: string): void => {
+    this.litSearch!.valueChangeHandler = (value: string, id: number = -1): void => {
       Utils.currentSelectTrace = this.litSearch?.getSearchTraceId();
       this.litSearch!.currenSearchValue = value;
       if (value.length > 0) {
@@ -2085,11 +2089,17 @@ export class SpApplication extends BaseElement {
             list = cpus;
             let asyncFuncArr = this.spSystemTrace!.seachAsyncFunc(value);
             this.spSystemTrace!.searchFunction(list, asyncFuncArr, value).then((mixedResults) => {
-              if (this.litSearch!.searchValue !== '') {
+              if (this.litSearch!.searchValue !== '' || id > -1) {
                 if (!Utils.isDistributedMode()) {
                   this.litSearch!.list = this.spSystemTrace!.searchSdk(mixedResults, value);
                 } else {
                   this.litSearch!.list = mixedResults;
+                }
+                if (id > -1) {
+                  this.litSearch!.list = this.litSearch!.list.filter((v: unknown) => {
+                    // @ts-ignore
+                    return v.id === id
+                  })
                 }
                 this.litSearch!.index = this.spSystemTrace!.showStruct(false, -1, this.litSearch!.list);
               }

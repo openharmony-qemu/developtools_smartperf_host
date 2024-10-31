@@ -26,7 +26,7 @@ const LOCAL_STORAGE_SEARCH_KEY = 'search_key';
 let timerId: unknown = null;
 @element('lit-search')
 export class LitSearch extends BaseElement {
-  valueChangeHandler: ((str: string) => void) | undefined | null;
+  valueChangeHandler: ((str: string, id?: number) => void) | undefined | null;
   private search: HTMLInputElement | undefined | null;
   private _total: number = 0;
   private _index: number = 0;
@@ -200,7 +200,7 @@ export class LitSearch extends BaseElement {
   private searchKeyupListener(e: unknown): void {
     timerId = null;
     // @ts-ignore
-    if (e.keyCode === 13 ) {
+    if (e.keyCode === 13) {
       this.updateSearchList(this.search!.value);
       // @ts-ignore
       if (e.shiftKey) {
