@@ -144,14 +144,6 @@ export class TraceSheet extends BaseElement {
 
   displayTab<T>(...names: string[]): T {
     this.setMode('max');
-    if (names.includes('box-flag') || names.includes('tabpane-current')) {
-      this.showUploadSoBt(this.selection);
-      this.showSwitchProcessBt(this.selection);
-    } else {
-      this.showOptionsBt(null);
-      this.showUploadSoBt(null);
-      this.showSwitchProcessBt(null);
-    }
     this.shadowRoot
       ?.querySelectorAll<LitTabpane>('#tabs lit-tabpane')
       .forEach((it) => (it.hidden = !names.some((k) => k === it.id)));
