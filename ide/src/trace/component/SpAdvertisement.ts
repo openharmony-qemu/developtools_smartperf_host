@@ -22,10 +22,10 @@ export class SpAdvertisement extends BaseElement {
         this.getMessage();
         setInterval(() => {
             this.getMessage();
-        }, 36000000);
+        }, 300000);
         this.closeEL?.addEventListener('click', () => {
             this.advertisementEL!.style!.display = 'none';
-            localStorage.setItem('isdisplay','false');
+            localStorage.setItem('isdisplay', 'false');
         })
     }
 
@@ -35,9 +35,7 @@ export class SpAdvertisement extends BaseElement {
                 res.text().then((it) => {
                     let resp = JSON.parse(it);
                     let publish = localStorage.getItem('message');
-                    let isdisplay = localStorage.getItem('isdisplay');
-                    resp && resp.data && resp.data.data && resp.data.data !== publish || !publish && localStorage.setItem('isdisplay','true');
-                    if ((resp && resp.data && resp.data.data && resp.data.data !== publish && resp.data.data !== '') || !publish || isdisplay !== 'false') {
+                    if (resp && resp.data && resp.data.data && resp.data.data !== '') {
                         this.message = resp.data.data;
                         localStorage.setItem('message', this.message);
                         let parts = this.message.split(';');
@@ -45,10 +43,18 @@ export class SpAdvertisement extends BaseElement {
                         let link = `<a href="${linkInfo}" target="_self">${parts[1]}</a>`;
                         let finalString = `${parts[0]}<br>${link}`;
                         this.noticeEl!.innerHTML = `<p>${finalString}</p>`;
-                        this.advertisementEL!.style!.display = 'block';
+                        if (publish) {
+                            if (resp.data.data !== publish) {
+                                localStorage.setItem('isdisplay', 'true');
+                            }
+                        } else {
+                            localStorage.setItem('isdisplay', 'true');
+                        }
                     } else {
-                        this.advertisementEL!.style!.display = 'none';
+                        localStorage.setItem('isdisplay', 'false');
                     }
+                    let isdisplay = localStorage.getItem('isdisplay');
+                    this.advertisementEL!.style!.display = isdisplay === 'true' ? 'block' : 'none';
                 });
             } else {
                 this.advertisementEL!.style!.display = 'none';

@@ -16,8 +16,7 @@
 export const SpAdvertisementHtml = `<style>
         #sp-advertisement {
           position: absolute;  
-          bottom: -200px; 
-          left: 50%;  
+          bottom: -200px;
           transform: translateX(-50%);
           opacity: 0;
           animation: slideUpVerticalAndFadeIn 1.5s forwards ease-out;
@@ -38,7 +37,6 @@ export const SpAdvertisementHtml = `<style>
            }  
            100% {  
             bottom: 0;
-            left: 0; 
             transform: translateX(-100%);
             opacity: 1;
           }  
