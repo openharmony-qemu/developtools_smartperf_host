@@ -144,6 +144,9 @@ export class TraceSheet extends BaseElement {
 
   displayTab<T>(...names: string[]): T {
     this.setMode('max');
+    this.showOptionsBt(this.selection);
+    this.showUploadSoBt(this.selection);
+    this.showSwitchProcessBt(this.selection);
     this.shadowRoot
       ?.querySelectorAll<LitTabpane>('#tabs lit-tabpane')
       .forEach((it) => (it.hidden = !names.some((k) => k === it.id)));
@@ -684,7 +687,7 @@ export class TraceSheet extends BaseElement {
     // @ts-ignore
     this.displayTab<TabPaneCurrentSelection>('current-selection').setDmaFenceData(data, rowData);
   displayXpowerData = (data: XpowerStruct): Promise<void> =>
-    this.displayTab<TabPaneCurrentSelection>('current-selection').setXpowerData(data); 
+    this.displayTab<TabPaneCurrentSelection>('current-selection').setXpowerData(data);
   displayPerfToolsData = (data: PerfToolStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setPerfToolsData(data);
   displayIrqData = (data: IrqStruct): void =>
