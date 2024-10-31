@@ -359,6 +359,7 @@ export class LitSearch extends BaseElement {
             this._retarge_index!.value = '';
           }, 2000);
         }
+        SpSystemTrace.isKeyUp = true;
         // @ts-ignore
         e.target.blur();
       }
