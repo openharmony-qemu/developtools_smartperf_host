@@ -413,6 +413,36 @@ export class TabPaneCurrentSelection extends BaseElement {
       } else {
         this.handleNonBinder(data, list, name, information);
       }
+    } else if (data.funName!.startsWith("H:Et") && (data.depth === 1 || data.depth === 0)) {
+      list.push({
+        name: 'StartTime(Relative)',
+        value: getTimeString(data.startTs || 0),
+      });
+      this.createStartTimeNode(list, data.startTs || 0, FUN_TRANSF_BTN_ID, FUN_STARTTIME_ABSALUTED_ID);
+      list.push({
+        name: 'Duration',
+        value: getTimeString(data.dur || 0),
+      });
+      data.funName!.split(',').map((item, index) => ({
+        name: [
+          'Sender tid',
+          'Send time',
+          'Expect handle time',
+          'Task name/ID',
+          'Prio',
+          'Sender'
+        ][index],
+        value: item,
+      })).forEach((item, index) => {
+        if (index === 0) {
+          item.value = item.value.split(':').at(-1)!;
+        }
+        list.push(item);
+      });
+      this.currentSelectionTbl!.dataSource = list;
+      // @ts-ignore
+      let startTimeAbsolute = (data.startTs || 0) + (window as unknown).recordStartNS;
+      this.addClickToTransfBtn(startTimeAbsolute, FUN_TRANSF_BTN_ID, FUN_STARTTIME_ABSALUTED_ID);
     } else {
       this.setTableHeight('auto');
       list.push({ name: 'Name', value: name });

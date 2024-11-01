@@ -918,9 +918,9 @@ export class SpProcessChart {
       processName: string | null;
     },
     processRow: TraceRow<ProcessStruct>,
-    funcRow: TraceRow<FuncStruct>,
+    threadRow: TraceRow<ThreadStruct>,
     thread: unknown
-  ): void {
+  ): TraceRow<HangStruct> | null {
     if (this.hangProcessSet.has(data.pid!) && FlagsConfig.getFlagsConfigEnableStatus('Hangs Detection')) {
       //@ts-ignore
       if (data.pid === thread.tid) {
@@ -962,9 +962,11 @@ export class SpProcessChart {
           hangsRow,
           this.trace
         );
-        processRow.addChildTraceRowAfter(hangsRow, funcRow);
+        processRow.addChildTraceRowBefore(hangsRow, threadRow);
+        return hangsRow;
       }
     }
+    return null;
   }
 
   jankSenderCallback(
@@ -1300,8 +1302,9 @@ export class SpProcessChart {
         tRow,
         this.trace
       );
+      let hangRow: TraceRow<HangStruct> | null = null;
       // @ts-ignore
-      this.insertRowToDoc(it, j, thread, pRow, tRow, list, tRowArr, actualRow, expectedRow, startupRow, soRow);
+      this.insertRowToDoc(it, j, thread, pRow, tRow, list, tRowArr, actualRow, expectedRow, hangRow, startupRow, soRow);
       this.addFuncStackRow(it, thread, j, list, tRowArr, tRow, pRow);
       // @ts-ignore
       if ((thread.switchCount || 0) === 0) {
@@ -1340,6 +1343,7 @@ export class SpProcessChart {
     actualRow: TraceRow<unknown> | null,
     //@ts-ignore
     expectedRow: TraceRow<unknown> | null,
+    hangRow: TraceRow<HangStruct> | null,
     startupRow: TraceRow<AppStartupStruct> | null | undefined,
     soRow: TraceRow<SoStruct> | null | undefined
   ): void {
@@ -1362,6 +1366,8 @@ export class SpProcessChart {
           processRow.addChildTraceRowAfter(threadRow, soRow);
         } else if (startupRow) {
           processRow.addChildTraceRowAfter(threadRow, startupRow);
+        } else if (hangRow !== null) {
+          processRow.addChildTraceRowAfter(threadRow, hangRow);
         } else {
           processRow.addChildTraceRowSpecifyLocation(threadRow, 0);
         }
@@ -1382,6 +1388,7 @@ export class SpProcessChart {
   ): void {
     //@ts-ignore
     if (this.threadFuncMaxDepthMap.get(`${thread.upid}-${thread.tid}`) !== undefined) {
+      this.addHangRow(process, processRow, threadRow,thread);
       //@ts-ignore
       let max = this.threadFuncMaxDepthMap.get(`${thread.upid}-${thread.tid}`) || 1;
       let maxHeight = max * 18 + 6;
@@ -1429,7 +1436,6 @@ export class SpProcessChart {
       } else {
         processRow.addChildTraceRowAfter(funcRow, threadRow);
       }
-      this.addHangRow(process, processRow, funcRow, thread);
     }
   }
 
