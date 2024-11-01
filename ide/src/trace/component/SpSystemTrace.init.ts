@@ -43,16 +43,16 @@ const pluginArray = [
   {
     pluginName: 'ftrace-plugin',
     tables: [
-      'animation', 'spp_startup', 'args', 'callstack', 'clk_event_filter',
+      'animation', 'app_startup', 'args', 'callstack', 'clk_event_filter',
       'clock_event_filter', 'cpu_measure_filter', 'device_info', 'dynamic_frame', 'frame_maps',
       'frame_slice', 'gpu_slice', 'instant', 'irq', 'process_measure_filter', 'process_measure',
-      'sched_slice', 'static_initalize', 'symbols', 'syscall', 'task_pool', 'thread_state,dam_fence'
+      'sched_slice', 'static_initalize', 'symbols', 'syscall', 'task_pool', 'thread_state','dma_fence'
     ]
   },
   {
     pluginName: 'hiperf-plugin',
     tables: [
-      'perf_callchain', 'perf_napi_async', 'perf_files', 'perf_report', 'perf_sample', 'perf_thread'
+      'perf_callchain', 'perf_files', 'perf_report', 'perf_sample', 'perf_thread'
     ]
   },
   {
@@ -64,18 +64,18 @@ const pluginArray = [
   {
     pluginName: 'arkTs-plugin',
     tables: [
-      'js_config', 'js_cpu_profiker_node', 'js_cpu_profiler_sample', 'js_heap_files', 'js_heap_info', 'js_heap_location',
-      'js_heap_nodes', 'js_heap_sample', 'js_heap_string', 'js_heap_trace_function_info', 'js_heap_trace_node'
+      'js_config', 'js_cpu_profiler_node', 'js_cpu_profiler_sample', 'js_heap_files', 'js_heap_info', 'js_heap_location',
+      'js_heap_nodes', 'js_heap_sample', 'js_heap_string', 'js_heap_trace_function_info', 'js_heap_trace_node','js_heap_edges'
     ]
   },
   {
     pluginName: 'memory-plugin',
     tables: [
-      'memory_ashmem', 'memory_cpu', 'memory_dma', 'memory_process_gpu', 'memory_profile,', 'memory_rs_image', 'memory_window_gpu'
+      'memory_ashmem', 'memory_cpu', 'memory_dma', 'memory_process_gpu', 'memory_profile,', 'memory_rs_image', 'memory_window_gpu','smaps','sys_event_filter','sys_mem_measure'
     ]
   },
   {
-    pluginName: 'hisevent-plugin',
+    pluginName: 'hisysevent-plugin',
     tables: [
       'app_name', 'device_state', 'hisys_all_event', 'hisys_event_measure'
     ]
