@@ -689,7 +689,7 @@ function jankPoint(
   let ts: number = 0;
   if (findJankEntry) {
     ts = selectThreadStruct.startTime! + selectThreadStruct.dur! / 2;
-    const [startY, startRowEl, startOffSetY] = sp.calculateStartY(startRow, selectThreadStruct.pid);
+    const [startY, startRowEl, startOffSetY] = sp.calculateStartY(startRow, selectThreadStruct.pid,selectThreadStruct.tid);
     const [endY, endRowEl, endOffSetY] = sp.calculateEndY(endParentRow, endRowStruct);
     sp.addPointPair(
       sp.makePoint(
@@ -729,7 +729,7 @@ function junkBinder(
   let ts: number = 0;
   if (findJankEntry) {
     ts = selectFuncStruct.startTs! + selectFuncStruct.dur! / 2;
-    const [startY, startRowEl, startOffSetY] = sp.calculateStartY(startRow, selectFuncStruct.pid, selectFuncStruct);
+    const [startY, startRowEl, startOffSetY] = sp.calculateStartY(startRow, selectFuncStruct.pid, selectFuncStruct.tid, selectFuncStruct);
     const [endY, endRowEl, endOffSetY] = sp.calculateEndY(endParentRow, endRowStruct, data);
     sp.addPointPair(
       sp.makePoint(

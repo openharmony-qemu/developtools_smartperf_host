@@ -1649,7 +1649,7 @@ export class SpSystemTrace extends BaseElement {
     return startRow;
   }
 
-  calculateStartY(startRow: unknown, pid: number | undefined, selectFuncStruct?: FuncStruct): [number, unknown, number] {
+  calculateStartY(startRow: unknown, pid: number | undefined, tid: number | undefined, selectFuncStruct?: FuncStruct): [number, unknown, number] {
     // @ts-ignore
     let startY = startRow ? startRow!.translateY! : 0;
     let startRowEl = startRow;
@@ -1659,10 +1659,10 @@ export class SpSystemTrace extends BaseElement {
       `trace-row[row-id='${pid}'][folder]`
     );
     if (startParentRow && startParentRow.expansion){
-      let filterRow = startParentRow?.childrenList.filter((item)=>item.rowId === selectFuncStruct!.tid)[0];
+      let filterRow = startParentRow?.childrenList.filter((item)=>item.rowId === tid)[0];
       !filterRow && startParentRow?.childrenList.forEach((i)=>{
        if(i.rowId === 'sameThreadProcess'){// @ts-ignore
-        filterRow = startParentRow?.childrenList.concat(i.childrenList).filter((item)=>item.rowId === String(selectFuncStruct!.tid))[0];
+        filterRow = startParentRow?.childrenList.concat(i.childrenList).filter((item)=>item.rowId === String(tid))[0];
           // @ts-ignore
           startParentRow = filterRow!.parentRowEl!;
        }
