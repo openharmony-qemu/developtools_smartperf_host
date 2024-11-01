@@ -150,7 +150,7 @@ function rightButtonOnClick(sp: SpSystemTrace, rightStar: HTMLElementAlias): unk
       CpuStruct.selectCpuStruct!.ts = CpuStruct.selectCpuStruct!.startTime;
       CpuStruct.selectCpuStruct!.thread = CpuStruct.selectCpuStruct!.name;
       CpuStruct.selectCpuStruct!.pid = CpuStruct.selectCpuStruct!.processId;
-      CpuStruct.selectCpuStruct!.process = CpuStruct.selectCpuStruct!.displayProcess?.substring(0, startIndex).trim();
+      CpuStruct.selectCpuStruct!.process = CpuStruct.selectCpuStruct!.displayProcess?.substring(0, startIndex).trim() || CpuStruct.selectCpuStruct!.processName;
       CpuStruct.selectCpuStruct!.itid = CpuStruct.wakeupBean!.itid;
       sessionStorage.setItem('saveselectcpustruct', JSON.stringify(CpuStruct.selectCpuStruct));
     } else {
@@ -160,7 +160,7 @@ function rightButtonOnClick(sp: SpSystemTrace, rightStar: HTMLElementAlias): unk
       CpuStruct.selectCpuStruct!.ts = CpuStruct.selectCpuStruct!.startTime;
       CpuStruct.selectCpuStruct!.thread = CpuStruct.selectCpuStruct!.name;
       CpuStruct.selectCpuStruct!.pid = CpuStruct.selectCpuStruct!.processId;
-      CpuStruct.selectCpuStruct!.process = CpuStruct.selectCpuStruct!.displayProcess?.substring(0, startIndex).trim();
+      CpuStruct.selectCpuStruct!.process = CpuStruct.selectCpuStruct!.displayProcess?.substring(0, startIndex).trim() || CpuStruct.selectCpuStruct!.processName;
       CpuStruct.selectCpuStruct!.itid = CpuStruct.wakeupBean!.itid;
       sessionStorage.setItem('saveselectcpustruct', JSON.stringify(CpuStruct.selectCpuStruct));
     }
