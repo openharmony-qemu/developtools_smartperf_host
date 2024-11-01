@@ -115,13 +115,13 @@ export const SpAiAnalysisPageHtml = `
         text-align: center;
     }
     .textTips{
-        padding: 5px 15px;
-        background-color: rgb(236, 239, 247);
-        border-radius: 2px;
-        color: #000;
         font-size: 14px;
-        height: 50px;
-        line-height: 50px;
+        height: 45px;
+        line-height: 45px;
+        background-color: #dff4fd;
+        padding: 0 10px;
+        border: 1px solid #35a1db;
+        border-radius: 10px;
     }
     .tipsContainer{
         display: flex;
