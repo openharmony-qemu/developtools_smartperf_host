@@ -133,6 +133,7 @@ export class TabPaneCurrentSelection extends BaseElement {
   private bootTime: number = 0;
   private funcDetailMap: Map<string, Array<object>> = new Map();
   private topChainStr: string = '';
+  private fpsResult: Array<unknown> = [];
 
   set data(selection: unknown) {
     // @ts-ignore
@@ -1883,7 +1884,16 @@ export class TabPaneCurrentSelection extends BaseElement {
     });
     list.push({ name: 'Duration', value: `${Utils.getTimeString(data.dur || 0)}` });
     if (data.status === 'Completion delay') {
+      let queryJoinName = `${data.frameInfo?.split(':')[1]}: ${data.name?.split(':')![1]}`;
       let frameFpsMessage = data.frameInfo?.split(':');
+      await queryFpsSourceList(data.inputTime, data.endTime, queryJoinName).then((result) => {
+        if (result.length > 0) {
+          this.isFpsAvailable = true;
+          this.fpsResult = result;
+        } else {
+          this.isFpsAvailable = false;
+        }
+      });
       if (frameFpsMessage) {
         if (frameFpsMessage[1] !== '0') {
           if (this.isFpsAvailable) {
@@ -1909,33 +1919,25 @@ export class TabPaneCurrentSelection extends BaseElement {
   }
 
   private fpsClickEvent(data: FrameAnimationStruct, scrollCallback: Function): void {
-    let queryJoinName = `${data.frameInfo?.split(':')[1]}: ${data.name?.split(':')![1]}`;
     let recordNs: number = Utils.getInstance().getRecordStartNS();
-    this.currentSelectionTbl?.shadowRoot?.querySelector('#fps-jump')?.addEventListener('click', () => {
-      queryFpsSourceList(data.inputTime, data.endTime, queryJoinName).then((result) => {
-        if (result.length > 0) {
-          this.isFpsAvailable = true;
-          let pt: {
-            pid: number;
-            tid: number;
-            name: string;
-            ts: number;
-            dur: number;
-            depth: number;
-          } = result[0];
-          scrollCallback({
-            pid: pt.tid,
-            tid: pt.tid,
-            dur: pt.dur,
-            type: 'func',
-            depth: pt.depth,
-            funName: pt.name,
-            startTs: pt.ts - recordNs,
-            keepOpen: true,
-          });
-        } else {
-          this.isFpsAvailable = false;
-        }
+    this.currentSelectionTbl?.shadowRoot?.querySelector('#fps-jump')?.addEventListener('click', () => {// @ts-ignore
+      let pt: {
+        pid: number;
+        tid: number;
+        name: string;
+        ts: number;
+        dur: number;
+        depth: number;
+      } = this.fpsResult[0];
+      scrollCallback({
+        pid: pt.tid,
+        tid: pt.tid,
+        dur: pt.dur,
+        type: 'func',
+        depth: pt.depth,
+        funName: pt.name,
+        startTs: pt.ts - recordNs,
+        keepOpen: true,
       });
     });
   }
