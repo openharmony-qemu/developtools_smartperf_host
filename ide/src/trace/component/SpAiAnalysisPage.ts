@@ -301,14 +301,13 @@ export class SpAiAnalysisPage extends BaseElement {
             collection: 'smart_perf_test',
             scope: 'smartperf'
         };
-        let answer = await (await SpStatisticsHttpUtil.askAi(requestBody)).data;
+        let answer = await (await SpStatisticsHttpUtil.askAi(requestBody));
+        if (answer.status === 200) {
+            SpStatisticsHttpUtil.generalRecord('AI_statistic', 'large_model_q&a', []);
+        }
         if (!this.isNewChat) {
             // @ts-ignore
-            this.aiAnswerBox!.firstElementChild!.innerHTML = this.md!.render(answer);
-            let likeDiv = document.createElement('div');
-            likeDiv.className = 'likeDiv';
-            likeDiv.innerHTML = '<lit-like type = "chat"></lit-like>';
-            this.aiAnswerBox?.appendChild(likeDiv);
+            this.aiAnswerBox!.firstElementChild!.innerHTML = this.md!.render(answer.data);
             // 滚动条滚到底部
             this.q_a_window!.scrollTop = this.q_a_window!.scrollHeight;
         }
@@ -538,6 +537,7 @@ export class SpAiAnalysisPage extends BaseElement {
                 this.abnormalPageTips(textStr, imgsrc, 0);
             }
             if (this.isJsonString(jsonRes.resultMessage)) {
+                SpStatisticsHttpUtil.generalRecord('AI_statistic', 'large_model_detect', []);
                 let dataList = JSON.parse(jsonRes.resultMessage) || [];
                 if (dataList && dataList.length === 0) {
                     SpStatisticsHttpUtil.generalRecord('AI_statistic', 'large_model_detect', [0])

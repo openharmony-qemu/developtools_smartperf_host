@@ -30,6 +30,7 @@ export class SpBubblesAI extends BaseElement {
         event: 'AItrace'
       };
       SpStatisticsHttpUtil.addOrdinaryVisitAction(requestBody);
+      SpStatisticsHttpUtil.generalRecord('AI_statistic', 'smart_luban', []);
     });
     let isShowXiaoLuban: boolean = FlagsConfig.getFlagsConfigEnableStatus('AI');
     if (isShowXiaoLuban) {
@@ -38,12 +39,12 @@ export class SpBubblesAI extends BaseElement {
       xiaoLubanEl?.removeAttribute('enabled');
     }
     // 鼠标进入元素
-    xiaoLubanEl?.addEventListener('mouseenter', function() {
+    xiaoLubanEl?.addEventListener('mouseenter', function () {
       SpBubblesAI.isAIHover = true;
     });
-    
+
     // 鼠标离开元素
-    xiaoLubanEl?.addEventListener('mouseleave', function() {
+    xiaoLubanEl?.addEventListener('mouseleave', function () {
       SpBubblesAI.isAIHover = false;
     });
   }
