@@ -1,11 +1,6 @@
 --- prebuilts/other/perf_event.h	2023-01-16 15:50:19.155934716 +0800
 +++ third_party/perf_include/linux/perf_event.h	2023-01-16 15:52:07.091731926 +0800
-@@ -1,4 +1,3 @@
--/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
- /*
-  * Performance events:
-  *
-@@ -12,12 +11,9 @@
+@@ -12,12 +12,9 @@
   *
   * For licencing details see kernel-base/COPYING
   */
@@ -21,7 +16,7 @@
  
  /*
   * User-space ABI bits:
-@@ -38,21 +34,6 @@ enum perf_type_id {
+@@ -38,21 +35,6 @@
  };
  
  /*
@@ -43,7 +38,7 @@
   * Generalized performance event event_id types, used by the
   * attr.event_id parameter of the sys_perf_event_open()
   * syscall:
-@@ -127,7 +108,6 @@ enum perf_sw_ids {
+@@ -127,7 +109,6 @@
  	PERF_COUNT_SW_EMULATION_FAULTS		= 8,
  	PERF_COUNT_SW_DUMMY			= 9,
  	PERF_COUNT_SW_BPF_OUTPUT		= 10,
@@ -51,7 +46,7 @@
  
  	PERF_COUNT_SW_MAX,			/* non-ABI */
  };
-@@ -157,18 +137,10 @@ enum perf_event_sample_format {
+@@ -157,18 +138,10 @@
  	PERF_SAMPLE_TRANSACTION			= 1U << 17,
  	PERF_SAMPLE_REGS_INTR			= 1U << 18,
  	PERF_SAMPLE_PHYS_ADDR			= 1U << 19,
@@ -71,7 +66,7 @@
  /*
   * values to program into branch_sample_type when PERF_SAMPLE_BRANCH is set
   *
-@@ -202,8 +174,6 @@ enum perf_branch_sample_type_shift {
+@@ -202,8 +175,6 @@
  
  	PERF_SAMPLE_BRANCH_TYPE_SAVE_SHIFT	= 16, /* save branch type */
  
@@ -80,7 +75,7 @@
  	PERF_SAMPLE_BRANCH_MAX_SHIFT		/* non-ABI */
  };
  
-@@ -231,8 +201,6 @@ enum perf_branch_sample_type {
+@@ -231,8 +202,6 @@
  	PERF_SAMPLE_BRANCH_TYPE_SAVE	=
  		1U << PERF_SAMPLE_BRANCH_TYPE_SAVE_SHIFT,
  
@@ -89,7 +84,7 @@
  	PERF_SAMPLE_BRANCH_MAX		= 1U << PERF_SAMPLE_BRANCH_MAX_SHIFT,
  };
  
-@@ -326,8 +294,6 @@ enum perf_event_read_format {
+@@ -326,8 +295,6 @@
  					/* add: sample_stack_user */
  #define PERF_ATTR_SIZE_VER4	104	/* add: sample_regs_intr */
  #define PERF_ATTR_SIZE_VER5	112	/* add: aux_watermark */
@@ -98,7 +93,7 @@
  
  /*
   * Hardware event_id to monitor via a performance monitoring event:
-@@ -400,16 +366,7 @@ struct perf_event_attr {
+@@ -400,16 +367,7 @@
  				context_switch :  1, /* context switch data */
  				write_backward :  1, /* Write ring buffer from end to beginning */
  				namespaces     :  1, /* include namespaces data */
@@ -116,7 +111,7 @@
  
  	union {
  		__u32		wakeup_events;	  /* wakeup every n events */
-@@ -419,14 +376,10 @@ struct perf_event_attr {
+@@ -419,14 +377,10 @@
  	__u32			bp_type;
  	union {
  		__u64		bp_addr;
@@ -131,7 +126,7 @@
  		__u64		config2; /* extension of config1 */
  	};
  	__u64	branch_sample_type; /* enum perf_branch_sample_type */
-@@ -458,53 +411,24 @@ struct perf_event_attr {
+@@ -458,53 +412,24 @@
  	 */
  	__u32	aux_watermark;
  	__u16	sample_max_stack;
@@ -197,7 +192,7 @@
  
  enum perf_event_ioc_flags {
  	PERF_IOC_FLAG_GROUP		= 1U << 0,
-@@ -564,10 +488,9 @@ struct perf_event_mmap_page {
+@@ -564,10 +489,9 @@
  				cap_bit0_is_deprecated	: 1, /* Always 1, signals that bit 0 is zero */
  
  				cap_user_rdpmc		: 1, /* The RDPMC instruction can be used to read counts */
@@ -210,7 +205,7 @@
  		};
  	};
  
-@@ -626,29 +549,13 @@ struct perf_event_mmap_page {
+@@ -626,29 +550,13 @@
  	 *               ((rem * time_mult) >> time_shift);
  	 */
  	__u64	time_zero;
@@ -241,7 +236,7 @@
  
  	/*
  	 * Control data for the mmap() data buffer.
-@@ -688,22 +595,6 @@ struct perf_event_mmap_page {
+@@ -688,22 +596,6 @@
  	__u64	aux_size;
  };
  
@@ -264,7 +259,7 @@
  #define PERF_RECORD_MISC_CPUMODE_MASK		(7 << 0)
  #define PERF_RECORD_MISC_CPUMODE_UNKNOWN	(0 << 0)
  #define PERF_RECORD_MISC_KERNEL			(1 << 0)
-@@ -717,41 +608,19 @@ struct perf_event_mmap_page {
+@@ -717,41 +609,19 @@
   */
  #define PERF_RECORD_MISC_PROC_MAP_PARSE_TIMEOUT	(1 << 12)
  /*
@@ -312,7 +307,7 @@
  /*
   * Reserve the last bit to indicate some extended misc field
   */
-@@ -929,9 +798,7 @@ enum perf_event_type {
+@@ -929,9 +799,7 @@
  	 *	  char                  data[size];}&& PERF_SAMPLE_RAW
  	 *
  	 *	{ u64                   nr;
@@ -323,7 +318,7 @@
  	 *
  	 * 	{ u64			abi; # enum perf_sample_regs_abi
  	 * 	  u64			regs[weight(mask)]; } && PERF_SAMPLE_REGS_USER
-@@ -940,33 +807,12 @@ enum perf_event_type {
+@@ -940,33 +808,12 @@
  	 * 	  char			data[size];
  	 * 	  u64			dyn_size; } && PERF_SAMPLE_STACK_USER
  	 *
@@ -358,7 +353,7 @@
  	 * };
  	 */
  	PERF_RECORD_SAMPLE			= 9,
-@@ -982,20 +828,10 @@ enum perf_event_type {
+@@ -982,20 +829,10 @@
  	 *	u64				addr;
  	 *	u64				len;
  	 *	u64				pgoff;
@@ -383,7 +378,7 @@
  	 *	u32				prot, flags;
  	 *	char				filename[];
  	 * 	struct sample_id		sample_id;
-@@ -1024,7 +860,6 @@ enum perf_event_type {
+@@ -1024,7 +861,6 @@
  	 *	struct perf_event_header	header;
  	 *	u32				pid;
  	 *	u32				tid;
@@ -391,7 +386,7 @@
  	 * };
  	 */
  	PERF_RECORD_ITRACE_START		= 12,
-@@ -1079,106 +914,9 @@ enum perf_event_type {
+@@ -1079,106 +915,9 @@
  	 */
  	PERF_RECORD_NAMESPACES			= 16,
  
@@ -498,7 +493,7 @@
  #define PERF_MAX_STACK_DEPTH		127
  #define PERF_MAX_CONTEXTS_PER_STACK	  8
  
-@@ -1197,15 +935,10 @@ enum perf_callchain_context {
+@@ -1197,15 +936,10 @@
  /**
   * PERF_RECORD_AUX::flags bits
   */
@@ -518,7 +513,7 @@
  
  #define PERF_FLAG_FD_NO_GROUP		(1UL << 0)
  #define PERF_FLAG_FD_OUTPUT		(1UL << 1)
-@@ -1224,18 +957,14 @@ union perf_mem_data_src {
+@@ -1224,18 +958,14 @@
  			mem_lvl_num:4,	/* memory hierarchy level number */
  			mem_remote:1,   /* remote */
  			mem_snoopx:2,	/* snoop mode, ext */
@@ -539,7 +534,7 @@
  			mem_snoopx:2,	/* snoop mode, ext */
  			mem_remote:1,   /* remote */
  			mem_lvl_num:4,	/* memory hierarchy level number */
-@@ -1247,7 +976,7 @@ union perf_mem_data_src {
+@@ -1247,7 +977,7 @@
  	};
  };
  #else
@@ -548,7 +543,7 @@
  #endif
  
  /* type of opcode (load/store/prefetch,code) */
-@@ -1258,13 +987,7 @@ union perf_mem_data_src {
+@@ -1258,13 +988,7 @@
  #define PERF_MEM_OP_EXEC	0x10 /* code (execution) */
  #define PERF_MEM_OP_SHIFT	0
  
@@ -563,7 +558,7 @@
  #define PERF_MEM_LVL_NA		0x01  /* not available */
  #define PERF_MEM_LVL_HIT	0x02  /* hit level */
  #define PERF_MEM_LVL_MISS	0x04  /* miss level  */
-@@ -1324,20 +1047,6 @@ union perf_mem_data_src {
+@@ -1324,20 +1048,6 @@
  #define PERF_MEM_TLB_OS		0x40 /* OS fault handler */
  #define PERF_MEM_TLB_SHIFT	26
  
@@ -584,7 +579,7 @@
  #define PERF_MEM_S(a, s) \
  	(((__u64)PERF_MEM_##a##_##s) << PERF_MEM_##a##_SHIFT)
  
-@@ -1369,23 +1078,4 @@ struct perf_branch_entry {
+@@ -1369,23 +1079,4 @@
  		reserved:40;
  };
  
