@@ -278,6 +278,14 @@ export class TabPaneCounterSample extends BaseElement {
             // @ts-ignore
             return sortByColumnRightData.value - sortByColumnLeftData.value;
           }
+        } else if (key === 'count') {
+          if (type === 1) {
+            // @ts-ignore
+            return sortByColumnLeftData.count - sortByColumnRightData.count;
+          } else {
+            // @ts-ignore
+            return sortByColumnRightData.count - sortByColumnLeftData.count;
+          }
         } else {
           return 0;
         }
