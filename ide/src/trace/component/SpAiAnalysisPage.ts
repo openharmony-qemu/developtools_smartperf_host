@@ -54,6 +54,7 @@ export class SpAiAnalysisPage extends BaseElement {
     static isRepeatedly: boolean = false;
     // 拼接下载内容
     private reportContent: string = '';
+    private isNodata: boolean = true;
     private md: unknown;
     private isResultBack: boolean = true;
     static startTime: number = 0;
@@ -173,6 +174,7 @@ export class SpAiAnalysisPage extends BaseElement {
 
         this.draftBtn?.addEventListener('click', async () => {
             this.draftList!.innerHTML = '';
+            this.tipsContainer!.style.display = 'none';
             this.tipsContent!.style.display = 'none';
             this.downloadBtn!.style.display = 'none';
             // 没有登陆，弹窗提示，退出逻辑
@@ -234,6 +236,7 @@ export class SpAiAnalysisPage extends BaseElement {
             this.askQuestion!.style.display = 'none';
             //@ts-ignore
             reportDetails!.style.display = 'block';
+            this.tipsContent!.style.display = this.isNodata ? 'flex' : 'none';
             this.tipsContainer!.style.display = 'none';
         });
 
@@ -530,6 +533,7 @@ export class SpAiAnalysisPage extends BaseElement {
         if (cmd === 4) {
             //     需要处理
             if (jsonRes.resultCode !== 0) {
+                this.isNodata = true;
                 this.draftList!.innerHTML = '';
                 let textStr = '服务异常';
                 let imgsrc = 'img/no-report.png';
@@ -540,14 +544,14 @@ export class SpAiAnalysisPage extends BaseElement {
                 SpStatisticsHttpUtil.generalRecord('AI_statistic', 'large_model_detect', []);
                 let dataList = JSON.parse(jsonRes.resultMessage) || [];
                 if (dataList && dataList.length === 0) {
-                    SpStatisticsHttpUtil.generalRecord('AI_statistic', 'large_model_detect', [0])
+                    this.isNodata = true;
                     this.draftList!.innerHTML = '';
                     let textStr = '当前trace未诊断出问题';
                     let imgsrc = 'img/no-report.png';
                     this.tipsContent!.style.display = 'none';
                     this.abnormalPageTips(textStr, imgsrc, 0);
                 } else {
-                    SpStatisticsHttpUtil.generalRecord('AI_statistic', 'large_model_detect', [1]);
+                    this.isNodata = false;
                     // 整理数据,渲染数据
                     await this.renderData(dataList);
                 }
