@@ -29,3 +29,19 @@ export interface pluginUsage {
     plugin: Array<string>;
   }
 }
+
+export interface GeneralRecordRequest {
+  ts: number,
+  category: string, //'AI_STATISTIC'
+  /*
+    smart_luban:小鲁班
+    large_model_q&a:AI问答
+    large_model_detect:AI诊断
+    user_feedback:用户反馈
+  */
+  /*
+     'feedback_good,feedback_bad':诊断反馈
+  */
+  secondCat: string,
+  thirdCat: Array<string | number>
+}

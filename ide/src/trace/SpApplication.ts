@@ -17,6 +17,7 @@ import { BaseElement, element } from '../base-ui/BaseElement';
 import '../base-ui/menu/LitMainMenu';
 import '../base-ui/icon/LitIcon';
 import '../base-ui/loading/LitLoading';
+import '../base-ui/like/LitLike';
 import { SpMetrics } from './component/SpMetrics';
 import { SpHelp } from './component/SpHelp';
 import './component/SpHelp';

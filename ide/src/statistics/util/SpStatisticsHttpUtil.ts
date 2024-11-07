@@ -14,7 +14,7 @@
  */
 
 import { warn } from '../../log/Log';
-import { BurialPointRequestBody, pluginUsage } from './SpStatisticsHttpBean';
+import { BurialPointRequestBody, GeneralRecordRequest, pluginUsage } from './SpStatisticsHttpBean';
 
 export class SpStatisticsHttpUtil {
   static requestServerInfo: string = '';
@@ -166,6 +166,27 @@ export class SpStatisticsHttpUtil {
       .then((resp) => { });
   }
 
+  // ai问答
+  static generalRecord(category: string, secondCat: string, thirdCat: Array<string | number>): void {
+    let requestBody: GeneralRecordRequest = {
+      ts: SpStatisticsHttpUtil.getCorrectRequestTime(),
+      category,
+      secondCat,
+      thirdCat
+    };
+    fetch(`https://${SpStatisticsHttpUtil.requestServerInfo}/generalRecord`, {
+      method: 'post',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestBody)
+    }).then(
+      res => { }
+    ).catch(err => {
+
+    })
+  }
+
   static recordPluginUsage() {
     fetch(`https://${SpStatisticsHttpUtil.requestServerInfo}/recordPluginUsage`, {
       method: 'post',
@@ -246,7 +267,7 @@ export class SpStatisticsHttpUtil {
       if (res.status === 200) {
         let resp = await res.text();
         let resj = await JSON.parse(resp);
-        response.data =resj.reason && resj.reason === 'ok' ? resj.chatbot_reply : '服务器异常，请稍后再试';
+        response.data = resj.reason && resj.reason === 'ok' ? resj.chatbot_reply : '服务器异常，请稍后再试';
       }
       else {
         response.data = '服务器请求失败';

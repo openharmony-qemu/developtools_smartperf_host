@@ -580,5 +580,11 @@ export const SpAiAnalysisPageHtml = `
     p {
       margin:0;
     }
+
+    .likeDiv {
+        width:100%;
+        height:25px;
+        margin-top:10px;
+    }
 </style>
 `;

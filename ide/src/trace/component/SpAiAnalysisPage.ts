@@ -179,9 +179,9 @@ export class SpAiAnalysisPage extends BaseElement {
             if (!WebSocketManager.getInstance()?.isReady()) {
                 this.tipsContent!.style.display = 'flex';
                 let guideSrc = `https://${window.location.host.split(':')[0]}:${window.location.port
-            }/application/?action=help_27`;
+                    }/application/?action=help_27`;
                 let linkNodeTips = `<span>未连接，请启动本地扩展程序再试！[</span><a href=${guideSrc} style="color: blue;" target="_blank">指导</a><span>]</span>`;
-                this.abnormalPageTips(linkNodeTips,'',4000);
+                this.abnormalPageTips(linkNodeTips, '', 4000);
                 return;
             }
             // 清空诊断报告的内容
@@ -223,7 +223,7 @@ export class SpAiAnalysisPage extends BaseElement {
         this.reportBar!.addEventListener('click', () => {
             if (!SpApplication.isTraceLoaded) {
                 let importTraceTips = '请先导入trace，再使用诊断功能';
-                this.abnormalPageTips(importTraceTips,'',4000);
+                this.abnormalPageTips(importTraceTips, '', 4000);
                 return;
             }
             this.reportImg!.src = 'img/report_active.png';
@@ -276,8 +276,8 @@ export class SpAiAnalysisPage extends BaseElement {
         if (!this.isResultBack) {
             return;
         }
-        this.isResultBack = false;
         if (this.inputEl!.value !== '') {
+            this.isResultBack = false;
             if (this.isNewChat) {
                 this.isNewChat = false;
             }
@@ -305,10 +305,14 @@ export class SpAiAnalysisPage extends BaseElement {
         if (!this.isNewChat) {
             // @ts-ignore
             this.aiAnswerBox!.firstElementChild!.innerHTML = this.md!.render(answer);
+            let likeDiv = document.createElement('div');
+            likeDiv.className = 'likeDiv';
+            likeDiv.innerHTML = '<lit-like type = "chat"></lit-like>';
+            this.aiAnswerBox?.appendChild(likeDiv);
             // 滚动条滚到底部
-            this.contentWindow!.scrollTop = this.contentWindow!.scrollHeight;
-            this.isResultBack = true;
+            this.q_a_window!.scrollTop = this.q_a_window!.scrollHeight;
         }
+        this.isResultBack = true;
     }
 
     // 创建用户聊天对话气泡
@@ -404,7 +408,7 @@ export class SpAiAnalysisPage extends BaseElement {
                 await this.getToken90Min(false);
             }
             // @ts-ignore
-            suggestionText = await this.getSuggestion(dataList[i].description, itemDiv, suggestonDiv);
+            suggestionText = await this.getSuggestion(dataList[i], itemDiv, suggestonDiv);
             // @ts-ignore
             this.reportContent += `问题${i + 1}:${dataList[i].type}\n\n时间：${timeList.join(',')}\n\n问题原因：${dataList[i].description}\n\n优化建议：${suggestionText}\n\n\n`;
         }
@@ -445,7 +449,7 @@ export class SpAiAnalysisPage extends BaseElement {
             textTipsBox!.innerHTML = tipStr;
             this.tipsContainer!.appendChild(textTipsBox);
         }
-        if(setTimeoutTime){
+        if (setTimeoutTime) {
             setTimeout(() => {
                 this.tipsContainer!.style.display = 'none';
             }, setTimeoutTime);
@@ -461,14 +465,21 @@ export class SpAiAnalysisPage extends BaseElement {
     }
 
     // 发送请求获取优化建议并渲染页面
-    async getSuggestion(description: string, itemDiv: HTMLDivElement | null | undefined, suggestonDiv: HTMLDivElement | null | undefined): Promise<string> {
+    async getSuggestion(item: unknown, itemDiv: HTMLDivElement | null | undefined, suggestonDiv: HTMLDivElement | null | undefined): Promise<string> {
         let suggestion = await SpStatisticsHttpUtil.askAi({
             token: this.token,
-            question: description + ',请问该怎么优化？',
+            // @ts-ignore
+            question: item.description + ',请问该怎么优化？',
             collection: ''
         });
         // @ts-ignore
         suggestonDiv!.innerHTML = `<span class="item-name">优化建议：</span>${this.md!.render(suggestion.data)}`;
+        let likeDiv = document.createElement('div');
+        likeDiv.className = 'likeDiv';
+        // @ts-ignore
+        likeDiv.innerHTML = `<lit-like type = "detect" content = ${item.type}#${item.subtype}></lit-like>`;
+        this.aiAnswerBox?.appendChild(likeDiv);
+        suggestonDiv!.appendChild(likeDiv);
         itemDiv!.appendChild(suggestonDiv!);
         // 吧loading放到最后面
         this.draftList!.insertBefore(itemDiv!, this.loadingItem!);
@@ -524,17 +535,19 @@ export class SpAiAnalysisPage extends BaseElement {
                 let textStr = '服务异常';
                 let imgsrc = 'img/no-report.png';
                 this.tipsContent!.style.display = 'none';
-                this.abnormalPageTips(textStr,imgsrc,0);
+                this.abnormalPageTips(textStr, imgsrc, 0);
             }
             if (this.isJsonString(jsonRes.resultMessage)) {
                 let dataList = JSON.parse(jsonRes.resultMessage) || [];
                 if (dataList && dataList.length === 0) {
+                    SpStatisticsHttpUtil.generalRecord('AI_statistic', 'large_model_detect', [0])
                     this.draftList!.innerHTML = '';
                     let textStr = '当前trace未诊断出问题';
                     let imgsrc = 'img/no-report.png';
                     this.tipsContent!.style.display = 'none';
-                    this.abnormalPageTips(textStr,imgsrc,0);
+                    this.abnormalPageTips(textStr, imgsrc, 0);
                 } else {
+                    SpStatisticsHttpUtil.generalRecord('AI_statistic', 'large_model_detect', [1]);
                     // 整理数据,渲染数据
                     await this.renderData(dataList);
                 }
