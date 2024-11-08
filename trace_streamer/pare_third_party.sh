@@ -102,7 +102,7 @@ if [ ! -d "perf_include/hiviewdfx/faultloggerd" ];then
    mkdir -p perf_include/hiviewdfx/faultloggerd/interfaces/innerkits
    git clone git@gitee.com:openharmony/hiviewdfx_faultloggerd.git
    cd hiviewdfx_faultloggerd
-   git reset --hard 7bd128c8fa91b79606c1bb21f20123879b351a4f
+   git reset --hard 7296f69c0d418cd9353638f3117296e4b494e4e5
    cd ..
    mv hiviewdfx_faultloggerd/common/ perf_include/hiviewdfx/faultloggerd
    mv hiviewdfx_faultloggerd/interfaces/common/ perf_include/hiviewdfx/faultloggerd/interfaces
@@ -140,35 +140,37 @@ if [ ! -f "hiperf/BUILD.gn" ];then
     rm -rf hiperf developtools_hiperf
     git clone git@gitee.com:openharmony/developtools_hiperf.git
     cd developtools_hiperf
-    git reset --hard 59eecf523796401740d02894f64b4d23f7d370a9
+    git reset --hard 9d189f41d76c1ae6e8e12238aef5ef5b8cdbc09f
     cd ..
     if [ -d "developtools_hiperf" ];then
         mv developtools_hiperf hiperf
         $cp ../prebuilts/patch_hiperf/BUILD.gn ../third_party/hiperf/BUILD.gn
         $sed -i "/FRIEND_TEST/s/^\(.*\)$/\/\/\1/g" hiperf/include/virtual_thread.h
-        $sed -i "s/HIPERF_DEBUG/ALWAYSTRUE/g" hiperf/include/virtual_thread.h
+        # $sed -i "s/HIPERF_DEBUG/ALWAYSTRUE/g" hiperf/include/virtual_thread.h
         $sed -i "/#include \"report_json_file.h\"/s/^\(.*\)$/\/\/\1/g" hiperf/include/report.h
         $sed -i "/#include <gtest\/gtest_prod.h>/s/^\(.*\)$/\/\/\1/g" hiperf/include/debug_logger.h
         $sed -i "/#include <gtest\/gtest_prod.h>/s/^\(.*\)$/\/\/\1/g" hiperf/include/utilities.h
         $sed -i "/FRIEND_TEST/s/^\(.*\)$/\/\/\1/g" hiperf/include/virtual_thread.h
         $sed -i "/FRIEND_TEST/s/^\(.*\)$/\/\/\1/g" hiperf/include/callstack.h
-        $sed -i '/unwinder.h/s/^/\/\/ /' hiperf/include/callstack.h
+        # $sed -i '/unwinder.h/s/^/\/\/ /' hiperf/include/callstack.h
         $sed -i "/FRIEND_TEST/s/^\(.*\)$/\/\/\1/g" hiperf/include/symbols_file.h
         $sed -i "/FRIEND_TEST/s/^\(.*\)$/\/\/\1/g" hiperf/include/virtual_runtime.h
         $sed -i "/FRIEND_TEST/s/^\(.*\)$/\/\/\1/g" hiperf/include/report.h
         $sed -i "s/HIPERF_DEBUG/ALWAYSTRUE/g" hiperf/include/virtual_thread.h
-        $sed -i "/using __s8 = char;/a #define unw_word_t uint64_t" hiperf/include/nonlinux/linux/types.h
-        $sed -i '/^void Report::PrepareConsole(/,/^}/ s/^.*$/\/\/&/; /^void Report::PrepareConsole(/,/return;/ s/^[[:blank:]]*/    /' hiperf/src/report.cpp
-        $sed -i '/namespace HiPerf {/avoid Report::PrepareConsole(){ return;}' hiperf/src/report.cpp
-        $sed -i '/HITRACE_METER_NAME/s/^/\/\/ /' hiperf/src/callstack.cpp
-        $sed -i '/hitrace_meter.h/s/^/\/\/ /' hiperf/src/callstack.cpp
-        $sed -i '/dlfcn.h/s/^/\/\/ /' hiperf/src/callstack.cpp
-        $sed -i '/dfx_ark.h/s/^/\/\/ /' hiperf/src/callstack.cpp
-        $sed -i '/dfx_regs.h/s/^/\/\/ /' hiperf/src/callstack.cpp
+        # $sed -i "/using __s8 = char;/a #define unw_word_t uint64_t" hiperf/include/nonlinux/linux/types.h
+        # $sed -i '/^void Report::PrepareConsole(/,/^}/ s/^.*$/\/\/&/; /^void Report::PrepareConsole(/,/return;/ s/^[[:blank:]]*/    /' hiperf/src/report.cpp
+        # $sed -i '/namespace HiPerf {/avoid Report::PrepareConsole(){ return;}' hiperf/src/report.cpp
+        # $sed -i '/HITRACE_METER_NAME/s/^/\/\/ /' hiperf/src/callstack.cpp
+        # $sed -i '/hitrace_meter.h/s/^/\/\/ /' hiperf/src/callstack.cpp
+        # $sed -i '/dlfcn.h/s/^/\/\/ /' hiperf/src/callstack.cpp
+        # $sed -i '/dfx_ark.h/s/^/\/\/ /' hiperf/src/callstack.cpp
+        # $sed -i '/dfx_regs.h/s/^/\/\/ /' hiperf/src/callstack.cpp
         $sed -i '/return DoUnwind2/s/^/\/\/ /' hiperf/src/callstack.cpp
-        $sed -i '/#if defined(is_ohos) && is_ohos/s/defined(is_ohos) && is_ohos/true/g' hiperf/src/virtual_runtime.cpp
-        $sed -i '/#if defined(is_ohos) && is_ohos/s/defined(is_ohos) && is_ohos/true/g' hiperf/include/virtual_runtime.h
-        $sed -i '/symbolsTable, elfFile_, elfPath/s/symbolsTable, elfFile_, elfPath/symbolsTable, elfFile_, filePath_/g' hiperf/src/symbols_file.cpp
+        # $sed -i '/#if defined(is_ohos) && is_ohos/s/defined(is_ohos) && is_ohos/true/g' hiperf/src/virtual_runtime.cpp
+        # $sed -i '/#if defined(is_ohos) && is_ohos/s/defined(is_ohos) && is_ohos/true/g' hiperf/include/virtual_runtime.h
+        # $sed -i '/symbolsTable, elfFile_, elfPath/s/symbolsTable, elfFile_, elfPath/symbolsTable, elfFile_, filePath_/g' hiperf/src/symbols_file.cpp
+        $sed -i '/spe_decoder.h/s/^/\/\/ /' hiperf/src/virtual_runtime.cpp
+        $sed -i '/spe_decoder.h/s/^/\/\/ /' hiperf/src/perf_event_record.cpp
     fi
 fi
 

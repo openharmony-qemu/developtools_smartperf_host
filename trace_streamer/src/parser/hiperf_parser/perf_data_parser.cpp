@@ -582,7 +582,7 @@ void PerfDataParser::UpdateReportWorkloadInfo() const
     if (featureSection) {
         TS_LOGI("found HIPERF_META_WORKLOAD_CMD");
         auto sectionString = static_cast<const PerfFileSectionString *>(featureSection);
-        workloader = sectionString->toString();
+        workloader = sectionString->ToString();
     } else {
         TS_LOGW("NOT found HIPERF_META_WORKLOAD_CMD");
     }
