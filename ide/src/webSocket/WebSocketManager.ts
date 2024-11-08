@@ -75,7 +75,7 @@ export class WebSocketManager {
         if (decode.type === TypeConstants.UPDATE_TYPE) {// 升级
             if (decode.cmd === Constants.GET_CMD) {
                 // 小于则升级
-                let targetVersion = '1.0.0';
+                let targetVersion = '1.0.1';
                 let currentVersion = new TextDecoder().decode(decode.data)
                 let result = this.compareVersion(currentVersion, targetVersion);
                 if (result === -1) {
@@ -129,9 +129,9 @@ export class WebSocketManager {
 
     // 更新扩展程序
     updateVersion() {
-        // 用户手动重装
+        // 扩展程序升级
         let url = `https://${window.location.host.split(':')[0]}:${window.location.port
-            }/application/extend/hi-smart-perf-host-extend.zip`;
+            }/application/extend/hi-smart-perf-host-extend-update.zip`;
         fetch(url).then(response => {
             if (!response.ok) {
                 throw new Error("No corresponding upgrade compression package found");
