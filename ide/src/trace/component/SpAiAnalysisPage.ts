@@ -541,7 +541,6 @@ export class SpAiAnalysisPage extends BaseElement {
                 this.abnormalPageTips(textStr, imgsrc, 0);
             }
             if (this.isJsonString(jsonRes.resultMessage)) {
-                SpStatisticsHttpUtil.generalRecord('AI_statistic', 'large_model_detect', []);
                 let dataList = JSON.parse(jsonRes.resultMessage) || [];
                 if (dataList && dataList.length === 0) {
                     this.isNodata = true;
