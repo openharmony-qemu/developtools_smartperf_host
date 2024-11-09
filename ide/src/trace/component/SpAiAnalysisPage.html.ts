@@ -74,6 +74,14 @@ export const SpAiAnalysisPageHtml = `
                             诊断报告
                         </h4>
                     </div>
+                    <lit-table id="tb-contents" style="height: auto">
+                        <lit-table-column class="cpu-fre-column" width="40px" title="序号" data-index="id" key="id" align="flex-start">
+                        </lit-table-column>
+                        <lit-table-column class="cpu-fre-column" width="1fr" title="类型" data-index="type" key="type" align="flex-start">
+                        </lit-table-column>
+                        <lit-table-column class="cpu-fre-column" width="1fr" title="原因" data-index="description" key="description" align="flex-start">
+                        </lit-table-column>
+                    </lit-table>
                     <div class="data-record"></div>
                     <div class="tips-content">
                         <div class="no-data">
@@ -178,6 +186,14 @@ export const SpAiAnalysisPageHtml = `
         height: 90%;
     }
 
+    #tb-contents {
+        box-shadow: 0px 2px 5px #bfbfbf;
+        margin-bottom: 5px;
+        margin-top: 1px;
+        border-radius: 7px;
+        font-size: 14px
+    }
+
     .systemSay {
         max-width: 70%;
         border-radius: 4px;
@@ -227,6 +243,13 @@ export const SpAiAnalysisPageHtml = `
     }
 
     .ask_question pre code {
+        white-space: pre-wrap; 
+        overflow-wrap: break-word;
+        max-width: 100%; 
+        font-family: auto;
+    }
+
+    .msgdiv pre code {
         white-space: pre-wrap; 
         overflow-wrap: break-word;
         max-width: 100%; 
@@ -447,13 +470,14 @@ export const SpAiAnalysisPageHtml = `
         padding-left: 10px;
         box-shadow: 1px 2px 5px #bfbfbf;
         border-radius: 8px;
+        position: relative;
     }
 
     .analysis-header {
         position: sticky;
         top: 0;
         background-color: white;
-        z-index: 1;
+        z-index: 2;
     }
 
     .analysisItem {
@@ -467,7 +491,7 @@ export const SpAiAnalysisPageHtml = `
     .title {
         font-size: 14px;
         font-weight: 700;
-        background-color: rgba(133, 111, 216, 0.8);
+        background-color: #8bbcdff7;
         padding: 10px 5px;
         color: #fff;
     }
@@ -475,6 +499,14 @@ export const SpAiAnalysisPageHtml = `
     .item-name {
         font-size: 14px;
         font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-right: 10px;
+    }
+
+    .item-name img {
+        width: 17px
     }
 
     .item {
@@ -493,7 +525,7 @@ export const SpAiAnalysisPageHtml = `
     .button {
         padding: 3px 35px;
         height: 26px;
-        background-color: #4290f2;
+        background-color: #35a1db;
         border-radius: 10px;
         text-align: center;
         line-height: 26px;

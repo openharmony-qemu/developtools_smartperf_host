@@ -14,7 +14,7 @@
  */
 
 import { BaseElement, element } from '../../base-ui/BaseElement';
-import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil';
+import { aiResponse, SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil';
 import { threadPool } from '../database/SqlLite';
 import { SpAiAnalysisPageHtml } from './SpAiAnalysisPage.html';
 import { getTimeString } from './trace/sheet/TabPaneCurrentSelection';
@@ -24,6 +24,10 @@ import { TraceRow } from './trace/base/TraceRow';
 import { SpSystemTrace } from './SpSystemTrace';
 import { SpApplication } from '../SpApplication';
 import { Utils } from './trace/base/Utils';
+import { LitTable } from '../../base-ui/table/lit-table';
+
+const TITLE_HEIGHT = 41;
+const TBODY_HEIGHT = 160;
 
 @element('sp-ai-analysis')
 export class SpAiAnalysisPage extends BaseElement {
@@ -46,6 +50,7 @@ export class SpAiAnalysisPage extends BaseElement {
     private loadingItem: HTMLDivElement | null | undefined;
     private startTimeEl: HTMLSpanElement | null | undefined;
     private endTimeEl: HTMLSpanElement | null | undefined;
+    private contentsTable: LitTable | null | undefined;
     private question: string = '';
     private token: string = '';
     // 是否点击了新建聊天
@@ -97,6 +102,8 @@ export class SpAiAnalysisPage extends BaseElement {
         this.tipsContent = this.shadowRoot?.querySelector('.tips-content');
         // 时间展示区域
         this.startTimeEl = this.shadowRoot?.querySelector('.startTime');
+        // 诊断信息汇总列表
+        this.contentsTable = this.shadowRoot?.querySelector('#tb-contents');
         this.startTimeEl!.innerHTML = getTimeString(TraceRow.range?.startNS!);
         this.endTimeEl = this.shadowRoot?.querySelector('.endTime');
         this.endTimeEl!.innerHTML = getTimeString(TraceRow.range?.endNS!);
@@ -174,6 +181,7 @@ export class SpAiAnalysisPage extends BaseElement {
 
         this.draftBtn?.addEventListener('click', async () => {
             this.draftList!.innerHTML = '';
+            this.contentsTable!.style.display = 'none';
             this.tipsContainer!.style.display = 'none';
             this.tipsContent!.style.display = 'none';
             this.downloadBtn!.style.display = 'none';
@@ -210,15 +218,9 @@ export class SpAiAnalysisPage extends BaseElement {
                     }
                 });
             };
-            // 加载中的loading模块
-            let loadingDiv = document.createElement('div');
-            loadingDiv.className = 'loadingBox';
-            loadingDiv.innerHTML = '<lit-loading style="position:absolute;top:45%;left:45%;z-index:999"></lit-loading>';
-            let loadingItem = document.createElement('div');
-            loadingItem.className = 'loadingItem';
-            this.loadingItem = loadingItem;
-            loadingItem!.appendChild(loadingDiv);
-            this.draftList?.appendChild(loadingItem);
+            // 点击一键诊断时先挂载loading
+            this.loadingItem = this.loading('style="position:absolute;top:45%;left:45%;z-index:999"');
+            this.draftList?.appendChild(this.loadingItem!);
         });
 
         // 侧边栏诊断点击事件 *************优化，考虑多个按钮
@@ -252,10 +254,41 @@ export class SpAiAnalysisPage extends BaseElement {
             reportDetails!.style.display = 'none';
             this.tipsContainer!.style.display = 'none';
         });
+
+        // 监听表格目录row点击事件，跳转至对应问题行
+        this.contentsTable!.addEventListener('row-click', (evt) => {
+            // @ts-ignore
+            let index = evt.detail.id;
+            let targets: any = this.draftList?.querySelectorAll('.title');
+            // 目录的(index - 1)对应诊断返回的问题数组下标
+            let target = targets[index - 1];
+            if (target) {
+                // 改变滚动条滚动高度，实现点击目录跳转到对应问题
+                this.shadowRoot!.querySelector('.analysisList')!.scrollTop = target.parentElement.offsetTop - TITLE_HEIGHT;
+            }
+        });
+    }
+
+    // 加载中的loading模块
+    loading(styleStr: string): HTMLDivElement {
+        let loadingDiv = document.createElement('div');
+        loadingDiv.className = 'loadingBox';
+        // 动态渲染Loading的样式
+        loadingDiv.innerHTML = `<lit-loading ${styleStr}></lit-loading>`;
+        let loadingItem = document.createElement('div');
+        loadingItem.className = 'loadingItem';
+        loadingItem!.appendChild(loadingDiv);
+        return loadingItem
     }
 
     // 重新导trace、db时，初始化诊断功能
-    clear() {
+    clear(): void {
+        // 判断是否有上一次未完成的优化建议请求，如果有则断掉
+        if (SpStatisticsHttpUtil.controllersMap.size > 0) {
+            SpStatisticsHttpUtil.isInterrupt = true;
+            this.breakRequest();
+        }
+        this.contentsTable!.style.display = 'none';
         this.draftList!.innerHTML = '';
         this.reportContent = '';
         this.downloadBtn!.style.display = 'none';
@@ -363,15 +396,24 @@ export class SpAiAnalysisPage extends BaseElement {
 
     // 页面渲染诊断结果
     async renderData(dataList: unknown): Promise<void> {
+        //生成表格导航
+        //@ts-ignore
+        this.renderTblNav(dataList);
         // @ts-ignore
         for (let i = 0; i < dataList.length; i++) {
             let itemDiv = document.createElement('div');
-            itemDiv!.style.visibility = 'hidden';
             itemDiv.className = 'analysisItem';
             // 生成标题
             let titleDiv = document.createElement('div');
             titleDiv.className = 'title item-name';
             titleDiv!.innerText = `问题${i + 1}`;
+            // 生成一键置顶
+            let topUp = document.createElement('img');
+            topUp.src = "img/top_up.png";
+            titleDiv.appendChild(topUp);
+            topUp.addEventListener('click', (e) => {
+                this.shadowRoot!.querySelector('.analysisList')!.scrollTop = 0;
+            })
             // 生成类型
             let typeDiv = document.createElement('div');
             typeDiv.className = 'item';
@@ -405,17 +447,41 @@ export class SpAiAnalysisPage extends BaseElement {
             // 生成优化建议
             let suggestonDiv = document.createElement('div');
             suggestonDiv.className = 'item two';
-            let suggestionText = '';
+            let suggestonTitle = document.createElement('span');
+            suggestonTitle.className = 'item-name';
+            suggestonTitle.textContent = '优化建议：';
+            suggestonDiv!.appendChild(suggestonTitle);
+            suggestonDiv!.appendChild(this.loading(''));
+            itemDiv!.appendChild(suggestonDiv);
             if (this.token === '') {
                 await this.getToken90Min(false);
             }
             // @ts-ignore
-            suggestionText = await this.getSuggestion(dataList[i], itemDiv, suggestonDiv);
+            this.getSuggestion(dataList, i, itemDiv, suggestonDiv, timeList);
             // @ts-ignore
-            this.reportContent += `问题${i + 1}:${dataList[i].type}\n\n时间：${timeList.join(',')}\n\n问题原因：${dataList[i].description}\n\n优化建议：${suggestionText}\n\n\n`;
         }
-        this.loadingItem!.style.display = 'none';
-        this.downloadBtn!.style.display = 'inline-block';
+        this.draftList?.removeChild(this.loadingItem!);
+    }
+
+    // Table数据渲染
+    renderTblNav(dataList: unknown): void {
+        this.contentsTable!.recycleDataSource = [];
+        this.contentsTable!.style.display = 'block';
+        // 修改Tbl样式
+        let th = this.contentsTable!.shadowRoot!.querySelector("div.table > div.thead > div")! as HTMLElement;
+        th.style.backgroundColor = '#8bbcdff7';
+        // @ts-ignore   
+        let source = dataList.map((item: unknown, index: number) => {
+            // @ts-ignore
+            return { ...item, id: index + 1 }
+        })
+        this.contentsTable!.recycleDataSource = source;
+    }
+
+    connectedCallback(): void {
+        super.connectedCallback();
+        let tbody = this.contentsTable!.shadowRoot!.querySelector('.table') as HTMLElement;
+        tbody.style.height = TBODY_HEIGHT + 'px';
     }
 
     async getToken(isChat?: boolean) {
@@ -467,27 +533,57 @@ export class SpAiAnalysisPage extends BaseElement {
     }
 
     // 发送请求获取优化建议并渲染页面
-    async getSuggestion(item: unknown, itemDiv: HTMLDivElement | null | undefined, suggestonDiv: HTMLDivElement | null | undefined): Promise<string> {
-        let suggestion = await SpStatisticsHttpUtil.askAi({
-            token: this.token,
-            // @ts-ignore
-            question: item.description + ',请问该怎么优化？',
+    getSuggestion(dataList: unknown, i: number, itemDiv: HTMLDivElement | null | undefined, suggestonDiv: HTMLDivElement | null | undefined, timeList: Array<string>): void {
+        SpStatisticsHttpUtil.askAi({
+            token: this.token,// @ts-ignore
+            question: dataList[i].description + ',请问该怎么优化？',
             collection: ''
-        });
+        }).then((suggestion) => {
+            this.appendMsg(dataList, i, suggestonDiv, timeList, suggestion);
+        }).catch((error) => {
+            this.appendMsg(dataList, i, suggestonDiv, timeList, error);
+        })
+        this.draftList!.appendChild(itemDiv!);
+        itemDiv!.style.animation = 'opcityliner 3s';
+    }
+
+    // 优化建议msg处理并渲染
+    appendMsg(dataList: unknown, i: number, suggestonDiv: HTMLDivElement | null | undefined, timeList: Array<string>, suggestion: aiResponse) {
+        // 保证controllersMap里面存的是未完成的请求，并规避重新打开trace时异步msg未请求完毕引入的问题
+        if (SpStatisticsHttpUtil.controllersMap.has(suggestion.time!)) {
+            SpStatisticsHttpUtil.controllersMap.delete(suggestion.time!); 
+        }
+        if (SpStatisticsHttpUtil.isInterrupt) {
+            if (SpStatisticsHttpUtil.controllersMap.size === 0) {
+                SpStatisticsHttpUtil.isInterrupt = false;
+            }
+            return;
+        }
         // @ts-ignore
-        suggestonDiv!.innerHTML = `<span class="item-name">优化建议：</span>${this.md!.render(suggestion.data)}`;
+        this.reportContent += `问题${i + 1}:${dataList[i].type}\n\n时间：${timeList.join(',')}\n\n问题原因：${dataList[i].description}\n\n优化建议：${suggestion.data}\n\n\n`;
+        let msgdiv = document.createElement('div');
+        msgdiv.className = 'msgdiv';
+        //@ts-ignore
+        msgdiv!.innerHTML = `${this.md!.render(suggestion.data)}`;
+        suggestonDiv?.removeChild(suggestonDiv.lastElementChild!);
         let likeDiv = document.createElement('div');
         likeDiv.className = 'likeDiv';
         // @ts-ignore
-        likeDiv.innerHTML = `<lit-like type = "detect" content = ${item.type}#${item.subtype}></lit-like>`;
-        this.aiAnswerBox?.appendChild(likeDiv);
+        likeDiv.innerHTML = `<lit-like type = "detect" content = ${dataList[i].type}#${dataList[i].subtype}></lit-like>`;
+        suggestonDiv!.appendChild(msgdiv);
         suggestonDiv!.appendChild(likeDiv);
-        itemDiv!.appendChild(suggestonDiv!);
-        // 吧loading放到最后面
-        this.draftList!.insertBefore(itemDiv!, this.loadingItem!);
-        itemDiv!.style.visibility = 'visible';
-        itemDiv!.style.animation = 'opcityliner 3s';
-        return suggestion.data;
+        // @ts-ignore
+        if ((dataList.length - 1) === i) {
+            this.draftBtn!.style.display = 'inline-block';
+            this.downloadBtn!.style.display = 'inline-block';
+        }
+    }
+
+    // 取消或中断请求
+    breakRequest() {
+        for (const controller of SpStatisticsHttpUtil.controllersMap.values()) {
+            controller.abort();
+        }
     }
 
     cacheDb(fileName: string | null): void {
@@ -535,27 +631,30 @@ export class SpAiAnalysisPage extends BaseElement {
             if (jsonRes.resultCode !== 0) {
                 this.isNodata = true;
                 this.draftList!.innerHTML = '';
+                this.contentsTable!.style.display = 'none';
                 let textStr = '服务异常';
                 let imgsrc = 'img/no-report.png';
                 this.tipsContent!.style.display = 'none';
                 this.abnormalPageTips(textStr, imgsrc, 0);
+                this.draftBtn!.style.display = 'inline-block';
             }
             if (this.isJsonString(jsonRes.resultMessage)) {
                 let dataList = JSON.parse(jsonRes.resultMessage) || [];
                 if (dataList && dataList.length === 0) {
                     this.isNodata = true;
                     this.draftList!.innerHTML = '';
+                    this.contentsTable!.style.display = 'none';
                     let textStr = '当前trace未诊断出问题';
                     let imgsrc = 'img/no-report.png';
                     this.tipsContent!.style.display = 'none';
                     this.abnormalPageTips(textStr, imgsrc, 0);
+                    this.draftBtn!.style.display = 'inline-block';
                 } else {
                     this.isNodata = false;
                     // 整理数据,渲染数据
                     await this.renderData(dataList);
                 }
             }
-            this.draftBtn!.style.display = 'inline-block';
         }
     }
 

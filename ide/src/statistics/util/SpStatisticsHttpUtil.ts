@@ -25,6 +25,8 @@ export class SpStatisticsHttpUtil {
   static pauseRetry: boolean = false;
   static retryRestTimeOut: boolean = false;
   static recordPlugin: Array<string> = [];
+  static controllersMap: Map<number, AbortController> = new Map<number, AbortController>();
+  static isInterrupt: boolean = false;
 
   static initStatisticsServerConfig(): void {
     if (SpStatisticsHttpUtil.requestServerInfo === '') {
@@ -246,45 +248,54 @@ export class SpStatisticsHttpUtil {
 
   // ai对话接口--问答
   // @ts-ignore
-  static async askAi(requestBody): aiResponse {
-    let controller = new AbortController();
-    let response: aiResponse = {
-      status: 0,
-      data: ''
-    };
-    setTimeout(() => {
-      controller.abort();
-    }, 60000);
-    await window.fetch(`https://${window.location.host}/ask`, {
-      method: 'post',
-      signal: controller.signal,
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestBody)
-    }).then(async res => {
-      response.status = res.status;
-      if (res.status === 200) {
-        let resp = await res.text();
-        let resj = await JSON.parse(resp);
-        response.data = resj.reason && resj.reason === 'ok' ? resj.chatbot_reply : '服务器异常，请稍后再试';
+  static askAi(requestBody): Promise<aiResponse> {
+    return new Promise((resolve, reject) => {
+      let controller = new AbortController();
+      let date = Date.now();
+      if (!SpStatisticsHttpUtil.controllersMap.has(date)) {
+        SpStatisticsHttpUtil.controllersMap.set(date, controller)
       }
-      else {
-        response.data = '服务器请求失败';
-      }
-    }).catch((err) => {
-      if (err.toString().indexOf('AbortError') > -1) {
-        response.data = '请求超时，已中断！';
-        response.status = 504;
-      } else {
-        response.data = '请求错误';
-      }
+      let response: aiResponse = {
+        status: 0,
+        data: '',
+        time: date,
+      };
+      setTimeout(() => {
+        controller.abort();
+      }, 60000);
+      window.fetch(`https://${window.location.host}/ask`, {
+        method: 'post',
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+      }).then(async res => {
+        response.status = res.status;
+        if (res.status === 200) {
+          let resp = await res.text();
+          let resj = await JSON.parse(resp);
+          response.data = resj.reason && resj.reason === 'ok' ? resj.chatbot_reply : '服务器异常，请稍后再试';
+        }
+        else {
+          response.data = '服务器请求失败';
+        }
+        resolve(response);
+      }).catch((err) => {
+        if (err.toString().indexOf('AbortError') > -1) {
+          response.data = '请求超时，已中断！';
+          response.status = 504;
+        } else {
+          response.data = '请求错误';
+        }
+        reject(response)
+      })
     })
-    return response;
   }
 }
 
-class aiResponse {
+export class aiResponse {
   status: number = 0;
-  data: string = ''
+  data: string = '';
+  time?: number = 0;
 }
