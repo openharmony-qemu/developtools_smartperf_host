@@ -400,7 +400,7 @@ export const SpAiAnalysisPageHtml = `
     }
 
     ::-webkit-scrollbar {
-        width: 2px;
+        width: 5px;
     }
 
     ::-webkit-scrollbar-track {
@@ -409,17 +409,17 @@ export const SpAiAnalysisPageHtml = `
     }
 
     ::-webkit-scrollbar-thumb {
-        background: #272624;
+        background: #635d5d;
         border-radius: 3px;
     }
 
     ::-webkit-scrollbar-thumb:hover {
-        background: #272624;
+        background: #4b4848;
         border-radius: 3px;
     }
 
     ::-webkit-scrollbar-thumb:active {
-        background: #272624;
+        background: #4b4848;
         border-radius: 3px;
     }
 
