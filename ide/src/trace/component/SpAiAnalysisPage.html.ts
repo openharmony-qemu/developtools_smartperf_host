@@ -496,6 +496,15 @@ export const SpAiAnalysisPageHtml = `
         color: #fff;
     }
 
+    .top-up-image {
+        width: 17px; 
+        height: 17px; 
+        background-image: url('img/top_up.png'); 
+        background-size: contain;
+        background-repeat: no-repeat;
+        border: 0;
+    }
+        
     .item-name {
         font-size: 14px;
         font-weight: 700;

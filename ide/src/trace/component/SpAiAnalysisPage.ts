@@ -409,8 +409,8 @@ export class SpAiAnalysisPage extends BaseElement {
             titleDiv.className = 'title item-name';
             titleDiv!.innerText = `问题${i + 1}`;
             // 生成一键置顶
-            let topUp = document.createElement('img');
-            topUp.src = "img/top_up.png";
+            let topUp = document.createElement('div');
+            topUp.className = 'top-up-image';
             titleDiv.appendChild(topUp);
             topUp.addEventListener('click', (e) => {
                 this.shadowRoot!.querySelector('.analysisList')!.scrollTop = 0;
