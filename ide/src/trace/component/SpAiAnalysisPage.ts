@@ -305,6 +305,7 @@ export class SpAiAnalysisPage extends BaseElement {
         reportDetails!.style.display = 'none';
         this.tipsContainer!.style.display = 'none';
         this.tipsContent!.style.display = 'flex';
+        this.isNodata = true;
     }
 
     // 发送消息
