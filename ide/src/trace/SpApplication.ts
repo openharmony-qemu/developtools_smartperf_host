@@ -2434,7 +2434,8 @@ export class SpApplication extends BaseElement {
       fetch(url)
         .then((res) => {
           res.arrayBuffer().then((arrayBuf) => {
-            let fileName = url.split('/').reverse()[0];
+            let urlParams = new URL(url).searchParams;
+            let fileName = urlParams.get('name') ? decodeURIComponent(urlParams.get('name')!) : url.split('/').reverse()[0];
             this.traceFileName = fileName;
             let showFileName =
               fileName.lastIndexOf('.') === -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'));
