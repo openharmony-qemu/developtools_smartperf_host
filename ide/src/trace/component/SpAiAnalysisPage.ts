@@ -645,7 +645,7 @@ export class SpAiAnalysisPage extends BaseElement {
                     this.isNodata = true;
                     this.draftList!.innerHTML = '';
                     this.contentsTable!.style.display = 'none';
-                    let textStr = '当前trace未诊断出问题';
+                    let textStr = '当前未诊断出问题';
                     let imgsrc = 'img/no-report.png';
                     this.tipsContent!.style.display = 'none';
                     this.abnormalPageTips(textStr, imgsrc, 0);
