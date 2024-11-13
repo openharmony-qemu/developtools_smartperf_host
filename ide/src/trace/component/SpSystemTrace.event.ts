@@ -439,7 +439,10 @@ export default function spSystemTraceOnClickHandler(
   if (!sp.loadTraceCompleted) {
     return;
   }
-  sp.queryAllTraceRow().forEach((it): boolean => (it.rangeSelect = false));
+  sp.queryAllTraceRow().forEach(it => {
+    it.checkType = '-1';
+    it.rangeSelect = false;
+  });
   sp.selectStructNull();
   sp._slicesList.forEach((slice: { selected: boolean }): void => {
     slice.selected = false;
