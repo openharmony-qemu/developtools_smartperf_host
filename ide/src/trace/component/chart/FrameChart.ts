@@ -18,6 +18,7 @@ import { Rect } from '../trace/timer-shaft/Rect';
 import { ChartMode, ChartStruct, draw, setFuncFrame } from '../../bean/FrameChartStruct';
 import { SpApplication } from '../../SpApplication';
 import { Utils } from '../trace/base/Utils';
+import { TabPaneFilter } from '../trace/sheet/TabPaneFilter';
 
 const scaleHeight = 30; // 刻度尺高度
 const depthHeight = 20; // 调用栈高度
@@ -67,6 +68,7 @@ export class FrameChart extends BaseElement {
   private isClickMode = false; //是否为点选模式
   _totalRootData: Array<ChartStruct> = [];//初始化顶部root的数据 
   private totalRootNode!: ChartStruct;
+  private tabPaneFilter: TabPaneFilter | undefined;
 
   /**
    * set chart mode
@@ -77,6 +79,7 @@ export class FrameChart extends BaseElement {
   }
 
   set data(val: Array<ChartStruct>) {
+    this.tabPaneFilter = document.querySelector("body > sp-application")?.shadowRoot?.querySelector("#sp-system-trace")?.shadowRoot?.querySelector("div > trace-sheet")?.shadowRoot?.querySelector("#box-native-calltree > tabpane-nm-calltree")?.shadowRoot?.querySelector("#nm-call-tree-filter") as TabPaneFilter;
     ChartStruct.lastSelectFuncStruct = undefined;
     this.setSelectStatusRecursive(ChartStruct.selectFuncStruct, true);
     ChartStruct.selectFuncStruct = undefined;
@@ -665,6 +668,7 @@ export class FrameChart extends BaseElement {
   private showTip(): void {
     this.floatHint!.innerHTML = this.hintContent;
     this.floatHint!.style.display = 'block';
+    let tipArea = this.tabPaneFilter?.getBoundingClientRect().top! - this.canvas.getBoundingClientRect().top - this.canvasScrollTop - scaleHeight;
     let x = this.canvasX;
     let y = this.canvasY - this.canvasScrollTop;
     //右边的函数块悬浮框显示在函数左边
@@ -674,7 +678,7 @@ export class FrameChart extends BaseElement {
       x += scaleHeight;
     }
     //顶部悬浮框显示在函数下边，下半部分悬浮框显示在函数上边
-    if (y > this.floatHint!.clientHeight) {
+    if (y > this.floatHint!.clientHeight || y + this.floatHint!.clientHeight > tipArea) {
       y -= this.floatHint!.clientHeight - 1;
     }
 

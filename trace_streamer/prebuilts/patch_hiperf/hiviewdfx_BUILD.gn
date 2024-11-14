@@ -26,6 +26,7 @@ config("faultloggerd_public_config") {
   include_dirs = [
     "faultloggerd/common/dfxlog",
     "faultloggerd/common/dfxutil",
+    "faultloggerd/common/trace/include",
     "faultloggerd/interfaces/common",
     "faultloggerd/interfaces/nonlinux",
     "faultloggerd/interfaces/innerkits/unwinder/include",
@@ -42,8 +43,10 @@ config("faultloggerd_public_config") {
 ohos_source_set("libfaultloggerd") {
   sources = [
     "faultloggerd/common/dfxutil/dfx_util.cpp",
+    "faultloggerd/common/trace/dfx_trace_dlsym.cpp",
     "faultloggerd/interfaces/innerkits/unwinder/dfx_elf.cpp",
     "faultloggerd/interfaces/innerkits/unwinder/dfx_elf_parser.cpp",
+    "faultloggerd/interfaces/innerkits/unwinder/dfx_hap.cpp",
     "faultloggerd/interfaces/innerkits/unwinder/dfx_map.cpp",
     "faultloggerd/interfaces/innerkits/unwinder/dfx_maps.cpp",
     "faultloggerd/interfaces/innerkits/unwinder/dfx_memory.cpp",

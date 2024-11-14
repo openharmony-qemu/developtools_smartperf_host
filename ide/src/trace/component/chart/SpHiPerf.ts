@@ -88,13 +88,6 @@ export class SpHiPerf {
     this.eventTypeId = -2; //@ts-ignore
     this.maxCpuId = this.cpuData.length > 0 ? this.cpuData[0].cpu_id : -Infinity;
     if (this.cpuData.length > 0) {
-      // 统计hiperf插件
-      let requestBody = {
-        eventData: {
-          plugin: ['hiperf-plugin']
-        }
-      };
-      SpStatisticsHttpUtil.recordPluginUsage(requestBody);
       await this.initFolder();
       await this.initCallChart();
       await this.initCpuMerge();

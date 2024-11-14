@@ -74,6 +74,10 @@ export class TabPaneSlices extends BaseElement {
     this.slicesTbl = this.shadowRoot?.querySelector<LitTable>('#tb-slices');
     this.slicesRange = this.shadowRoot?.querySelector('#time-range');
     let slicesInput = this.shadowRoot?.querySelector('#filterName');
+    let spApplication = document.querySelector('body > sp-application');
+    let spSystemTrace = spApplication?.shadowRoot?.querySelector(
+      'div > div.content > sp-system-trace'
+    ) as SpSystemTrace;
     this.slicesTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
@@ -204,7 +208,6 @@ export class TabPaneSlices extends BaseElement {
     let search = spApplication!.shadowRoot?.querySelector('#lit-search') as LitSearch;
     spSystemTrace?.visibleRows.forEach((it) => {
       it.highlight = false;
-      it.draw();
     });
     spSystemTrace?.timerShaftEL?.removeTriangle('inverted');
     // @ts-ignore
@@ -234,6 +237,9 @@ export class TabPaneSlices extends BaseElement {
         return;
       }
       this.slicesTblFreshSearchSelect(search, sliceRowList, data, spSystemTrace);
+      spSystemTrace?.visibleRows.forEach((it) => {
+        it.draw();
+      });
     });
   }
 

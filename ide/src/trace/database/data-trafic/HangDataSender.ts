@@ -57,7 +57,7 @@ function arrayBufferHandler(buffers: unknown, len: number): HangStruct[] {
   // @ts-ignore
   let id = new Int32Array(buffers.id);
   // @ts-ignore
-  let startNS = new Float64Array(buffers.startNS);
+  let startTime = new Float64Array(buffers.startTime);
   // @ts-ignore
   let dur = new Float64Array(buffers.dur);
   // @ts-ignore
@@ -67,7 +67,7 @@ function arrayBufferHandler(buffers: unknown, len: number): HangStruct[] {
   for (let i = 0; i < len; i += 1) {
     outArr.push({
       id: id[i],
-      startNS: startNS[i],
+      startTime: startTime[i],
       dur: dur[i],
       tid: tid[i],
       pid: pid[i],

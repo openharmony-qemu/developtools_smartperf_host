@@ -20,6 +20,7 @@ import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil
 
 @element('sp-bubble-ai')
 export class SpBubblesAI extends BaseElement {
+  static isAIHover: boolean = false;
   initElements(): void {
     const xiaoLubanEl: HTMLElement | undefined | null = this.shadowRoot?.querySelector('#xiao-luban-help');
     xiaoLubanEl?.addEventListener('click', () => {
@@ -29,13 +30,23 @@ export class SpBubblesAI extends BaseElement {
         event: 'AItrace'
       };
       SpStatisticsHttpUtil.addOrdinaryVisitAction(requestBody);
+      SpStatisticsHttpUtil.generalRecord('AI_statistic', 'smart_luban', []);
     });
-    let isShowXiaoLuban: boolean = FlagsConfig.getFlagsConfigEnableStatus('xiaoLuBan');
+    let isShowXiaoLuban: boolean = FlagsConfig.getFlagsConfigEnableStatus('AI');
     if (isShowXiaoLuban) {
       xiaoLubanEl?.setAttribute('enabled', '');
     } else {
       xiaoLubanEl?.removeAttribute('enabled');
     }
+    // 鼠标进入元素
+    xiaoLubanEl?.addEventListener('mouseenter', function () {
+      SpBubblesAI.isAIHover = true;
+    });
+
+    // 鼠标离开元素
+    xiaoLubanEl?.addEventListener('mouseleave', function () {
+      SpBubblesAI.isAIHover = false;
+    });
   }
 
   initHtml(): string {

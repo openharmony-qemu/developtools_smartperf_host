@@ -373,7 +373,7 @@ export class SelectionParam {
       // @ts-ignore
       let taskData = it.dataListCache.filter((taskData: FuncStruct) => {
         taskData!.tid = isNaN(Number(it.rowId!)) && typeof it.rowId! === 'string' ?  
-         (function() {  
+         (function(): number | undefined {  
            const match = (it.rowId!).match(/-(\d+)/);  
            return match ? parseInt(match[1]) : undefined; 
          })() :  
@@ -1154,8 +1154,17 @@ export class SelectionParam {
   }
 
   // @ts-ignore
-  pushXpower(it: TraceRow<unknown>, sp: SpSystemTrace): void {  
-    if (it.rowType === TraceRow.ROW_TYPE_XPOWER) {
+  pushXpower(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_XPOWER) { 
+      it.childrenList.forEach((it) => {
+        it.childrenList.forEach((item) => {
+          item.rangeSelect = true;
+          item.checkType = '2';
+          this.xpowerMapData.set(item.rowId || '', item.getCacheData);
+        })
+      });
+    }
+    if (it.rowType === TraceRow.ROW_TYPE_XPOWER_SYSTEM_GROUP) { 
       it.childrenList.forEach((it) => {
         it.rangeSelect = true;
         it.checkType = '2';

@@ -22,7 +22,7 @@ import { SportRuler } from './trace/timer-shaft/SportRuler';
 import { SelectionParam } from '../bean/BoxSelection';
 import { error, info } from '../../log/Log';
 import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil';
-import { queryEbpfSamplesCount } from '../database/sql/Memory.sql';
+import { queryEbpfSamplesCount, queryPlugins } from '../database/sql/Memory.sql';
 import { SpChartManager } from './chart/SpChartManager';
 import { ThreadStruct } from '../database/ui-worker/ProcedureWorkerThread';
 import { FlagsConfig } from './SpFlags';
@@ -36,6 +36,99 @@ import { SpChartList } from './trace/SpChartList';
 type HTMLElementAlias = HTMLElement | null | undefined;
 import { Utils } from './trace/base/Utils';
 import { fuzzyQueryFuncRowData, queryFuncRowData } from '../database/sql/Func.sql';
+import { convertTitle } from './chart/SpXpowerChart';
+
+// 所有插件以及对应的表
+const pluginArray = [
+  {
+    pluginName: 'ftrace-plugin',
+    tables: [
+      'animation', 'app_startup', 'args', 'callstack', 'clk_event_filter',
+      'clock_event_filter', 'cpu_measure_filter', 'device_info', 'dynamic_frame', 'frame_maps',
+      'frame_slice', 'gpu_slice', 'instant', 'irq', 'process_measure_filter', 'process_measure',
+      'sched_slice', 'static_initalize', 'symbols', 'syscall', 'task_pool', 'thread_state','dma_fence'
+    ]
+  },
+  {
+    pluginName: 'hiperf-plugin',
+    tables: [
+      'perf_callchain', 'perf_files', 'perf_report', 'perf_sample', 'perf_thread'
+    ]
+  },
+  {
+    pluginName: 'nativehook-plugin',
+    tables: [
+      'native_hook', 'native_hook_frame', 'native_hook_statistic'
+    ]
+  },
+  {
+    pluginName: 'arkTs-plugin',
+    tables: [
+      'js_config', 'js_cpu_profiler_node', 'js_cpu_profiler_sample', 'js_heap_files', 'js_heap_info', 'js_heap_location',
+      'js_heap_nodes', 'js_heap_sample', 'js_heap_string', 'js_heap_trace_function_info', 'js_heap_trace_node','js_heap_edges'
+    ]
+  },
+  {
+    pluginName: 'memory-plugin',
+    tables: [
+      'memory_ashmem', 'memory_cpu', 'memory_dma', 'memory_process_gpu', 'memory_profile,', 'memory_rs_image', 'memory_window_gpu','smaps','sys_event_filter','sys_mem_measure'
+    ]
+  },
+  {
+    pluginName: 'hisysevent-plugin',
+    tables: [
+      'app_name', 'device_state', 'hisys_all_event', 'hisys_event_measure'
+    ]
+  },
+  {
+    pluginName: 'ebpf-plugin',
+    tables: [
+      'bio_latency_sample', 'ebpf_callstack', 'file_system_sample', 'paged_memory_sample'
+    ]
+  },
+  {
+    pluginName: 'cpu-plugin',
+    tables: [
+      'cpu_usage'
+    ]
+  },
+  {
+    pluginName: 'diskio-plugin',
+    tables: [
+      'diskio'
+    ]
+  },
+  {
+    pluginName: 'hidump-plugin',
+    tables: [
+      'hidump'
+    ]
+  },
+  {
+    pluginName: 'process-plugin',
+    tables: [
+      'live_process'
+    ]
+  },
+  {
+    pluginName: 'hilog-plugin',
+    tables: [
+      'log'
+    ]
+  },
+  {
+    pluginName: 'network-plugin',
+    tables: [
+      'network'
+    ]
+  },
+  {
+    pluginName: 'xpower-plugin',
+    tables: [
+      'xpower_measure'
+    ]
+  }
+]
 
 function rightButtonOnClick(sp: SpSystemTrace, rightStar: HTMLElementAlias): unknown {
   Object.assign(sp, {
@@ -57,7 +150,7 @@ function rightButtonOnClick(sp: SpSystemTrace, rightStar: HTMLElementAlias): unk
       CpuStruct.selectCpuStruct!.ts = CpuStruct.selectCpuStruct!.startTime;
       CpuStruct.selectCpuStruct!.thread = CpuStruct.selectCpuStruct!.name;
       CpuStruct.selectCpuStruct!.pid = CpuStruct.selectCpuStruct!.processId;
-      CpuStruct.selectCpuStruct!.process = CpuStruct.selectCpuStruct!.displayProcess?.substring(0, startIndex).trim();
+      CpuStruct.selectCpuStruct!.process = CpuStruct.selectCpuStruct!.displayProcess?.substring(0, startIndex).trim() || CpuStruct.selectCpuStruct!.processName;
       CpuStruct.selectCpuStruct!.itid = CpuStruct.wakeupBean!.itid;
       sessionStorage.setItem('saveselectcpustruct', JSON.stringify(CpuStruct.selectCpuStruct));
     } else {
@@ -67,7 +160,7 @@ function rightButtonOnClick(sp: SpSystemTrace, rightStar: HTMLElementAlias): unk
       CpuStruct.selectCpuStruct!.ts = CpuStruct.selectCpuStruct!.startTime;
       CpuStruct.selectCpuStruct!.thread = CpuStruct.selectCpuStruct!.name;
       CpuStruct.selectCpuStruct!.pid = CpuStruct.selectCpuStruct!.processId;
-      CpuStruct.selectCpuStruct!.process = CpuStruct.selectCpuStruct!.displayProcess?.substring(0, startIndex).trim();
+      CpuStruct.selectCpuStruct!.process = CpuStruct.selectCpuStruct!.displayProcess?.substring(0, startIndex).trim() || CpuStruct.selectCpuStruct!.processName;
       CpuStruct.selectCpuStruct!.itid = CpuStruct.wakeupBean!.itid;
       sessionStorage.setItem('saveselectcpustruct', JSON.stringify(CpuStruct.selectCpuStruct));
     }
@@ -368,6 +461,13 @@ function collectHandlerNo(sp: SpSystemTrace, currentRow: unknown, event: unknown
   // 取消收藏时，删除父亲ID
   // @ts-ignore
   currentRow.name = currentRow.tampName;
+  //@ts-ignore  xpower转换名称
+  if (currentRow.rowType === 'xpower-system') {
+    //@ts-ignore
+    let titleEl = currentRow.shadowRoot?.querySelector('.name') as HTMLLabelElement;
+    //@ts-ignore
+    titleEl.title = convertTitle(currentRow.tampName);
+  }
   if (replaceRow !== null) {
     // @ts-ignore
     sp.rowsEL!.replaceChild(currentRow, replaceRow);
@@ -427,6 +527,13 @@ function collectHandlerYes(sp: SpSystemTrace, currentRow: unknown, event: unknow
   if (!currentRow.hasParentRowEl) {
     // @ts-ignore
     sp.rowsEL!.replaceChild(replaceRow, currentRow);
+  }
+  //@ts-ignore  xpower转换名称
+  if (currentRow.rowType === 'xpower-system') {
+    //@ts-ignore
+    let titleEl = currentRow.shadowRoot?.querySelector('.name') as HTMLLabelElement;
+    //@ts-ignore
+    titleEl.title = convertTitle(currentRow.tampName);
   }
   // @ts-ignore
   let group = currentRow.traceId || sp.currentCollectGroup;
@@ -517,6 +624,9 @@ function selectHandler(sp: SpSystemTrace): void {
         ...sp.favoriteChartListEL!.getAllSelectCollectRows(),
       ];
     }
+    checkRows = checkRows.filter((item, index, self) => {  //去重 
+      return self.findIndex(obj => obj.rowId === item.rowId && obj.rowType === item.rowType && obj.name === item.name) === index;
+    });
     selectHandlerRefreshCheckBox(sp, checkRows, refreshCheckBox);
     if (!sp.isSelectClick) {
       sp.rangeTraceRow = [];
@@ -759,6 +869,8 @@ export function spSystemTraceInitElement(sp: SpSystemTrace): void {
   sp.spacerEL = sp.shadowRoot.querySelector<HTMLDivElement>('.spacer');
   sp.timerShaftEL = sp.shadowRoot.querySelector<TimerShaftElement>('.timer-shaft');
   sp.favoriteChartListEL = sp.shadowRoot.querySelector<SpChartList>('#favorite-chart-list');
+  sp.collectEl1 = sp.favoriteChartListEL?.shadowRoot?.querySelector<HTMLDivElement>('#collect-group-1');
+  sp.groupTitle1 = sp.favoriteChartListEL?.shadowRoot?.querySelector<HTMLDivElement>('#group-1-title');
   if (!sp.traceSheetEL.shadowRoot) {
     return;
   }
@@ -828,7 +940,25 @@ export function cancelCurrentTraceRowHighlight(sp: SpSystemTrace, currentEntry: 
     if (!parentRow) {
       return;
     }
-    let filterRow = parentRow.childrenList.filter((child) => child.rowId === funcRowID && child.rowType === 'func')[0];
+    // @ts-ignore
+    let filterRow: TraceRow<unknown> | undefined;
+    parentRow.childrenList.forEach((item) => {
+      if (item.rowId === 'sameThreadProcess') {
+        filterRow = parentRow.childrenList.concat(item.childrenList).filter((child) => child.rowId === funcRowID && child.rowType === 'func')[0];
+      } else {
+        filterRow = parentRow.childrenList.filter((child) => child.rowId === funcRowID && child.rowType === 'func')[0];
+      }
+    });
+    if (!filterRow) {
+      let rowsPaneEL = document.querySelector("body > sp-application")?.shadowRoot?.querySelector("#sp-system-trace")?.shadowRoot?.querySelector("div > div.rows-pane")
+      // @ts-ignore
+      let funcRow = rowsPaneEL?.querySelector<TraceRow<unknown>>(`trace-row[row-id='${funcRowID}'][row-type='func']`);
+      if (funcRow) {
+        filterRow = funcRow;
+      } else {
+        return;
+      }
+    }
     filterRow.highlight = false;
     // @ts-ignore
   } else if (currentEntry?.type === 'sdk') {
@@ -1143,6 +1273,23 @@ export async function spSystemTraceInit(
     }
     sp.intersectionObserver?.observe(it);
   });
+
+  for (let i = 0; i < pluginArray.length; i++) {
+    let item = pluginArray[i];
+    for (let j = 0; j < item.tables.length; j++) {
+      let tableItem = item.tables[j]
+      let res = await queryPlugins(tableItem) || [];
+      if (res.length > 0) {
+        SpStatisticsHttpUtil.recordPlugin.push(item.pluginName);
+        break;
+      } else {
+        continue;
+      }
+    }
+  }
+
+  // 统计插件
+  SpStatisticsHttpUtil.recordPluginUsage();
   // trace文件加载完毕,将动效json文件读取并存入缓存
   let funDetailUrl = `https://${window.location.host.split(':')[0]}:${window.location.port
     }/application/doc/funDetail.json`;

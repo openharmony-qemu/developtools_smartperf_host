@@ -688,11 +688,6 @@ export let tabConfig: {
     type: TabPaneHiSysEventSummary,
     require: (param: SelectionParam) => param.hiSysEvents.length > 0,
   },
-  'tabpane-binders': {
-    title: 'Thread Binders',
-    type: TabPaneBinders,
-    require: (param: SelectionParam) => param.threadIds.length > 0,
-  },
   'tabpane-gpufreq': {
     title: 'Gpufreq Usage',
     type: TabPaneGpufreq,

@@ -97,19 +97,25 @@ TraceStreamer可以将trace数据源转化为易于理解和使用的数据库�
 |         ----         |    ----      |         ----      |           ----        |
 |animation             |    -         |ftrace-plugin      |记录动效的响应时延和完成时延   |
 |app_name              |    -         |hisysevent-plugin  |JSON数据源             |
+|app_startup           |    -         |ftrace-plugin      |记录应用启动的相关信息        |
 |args                  |    -         |ftrace-plugin      |配合callstack使用      |
-|bio_latency_sample    |    -         |    -              |IO操作相关方法调用，及调用栈数据 |
+|bio_latency_sample    |    -         |ebpf               |IO操作相关方法调用，及调用栈数据 |
 |callstack             |    -         |ftrace-plugin      |异步或非异步的调用     |
+|clk_event_filter      |    -         |ftrace-plugin      |记录时钟相关的信息        |
+|clock_event_filter    |    -         |ftrace-plugin      |维护时钟事件           |
+|clock_snapshot        |    -         |公共                |时钟号和时间           |      
 |cpu_measure_filter    |    -         |ftrace-plugin      |cpu跟踪器，cpu频率等   |
 |cpu_usage             |    -         |cpu-plugin         |cpu使用率              |
-|data_dict             |  通用的      |    -              |所有字符串的记录       |
-|data_type             |  通用的      |    -              |辅助表                 |
+|data_dict             |  通用的      |公共                |所有字符串的记录       |
+|data_type             |  通用的      |公共                |辅助表                 |
+|datasource_clockid    |  通用的      |公共                |数据源和时钟号的映射表|
 |device_info           |    -         |ftrace-plugin      |记录设备分辨率和帧率   |
 |device_state          |  通用的      |hisysevent-plugin  |记录设备屏幕亮度，蓝牙，位置等信息   |
+|diskio                |    -         |diskio-plugin      |记录磁盘读写数据            |
+|dma_fence             |    -         |ftrace-plugin      |dma_fence数据         |
 |dynamic_frame         |    -         |ftrace-plugin      |动效帧的分辨率和结束时间等   |
-|ebpf_callstack        |    -         |    -              |磁盘读写相关的数据      |
-|file_system_callstack |    -         |    -              |ebpf文件系统           |
-|file_system_sample    |    -         |    -              |ebpf文件系统           |
+|ebpf_callstack        |    -         |ebpf               |磁盘读写相关的数据      |
+|file_system_sample    |    -         |ebpf               |ebpf文件系统           |
 |frame_maps            |    -         |ftrace-plugin      |帧渲染数据，app到RS的映射           |
 |frame_slice           |    -         |ftrace-plugin      |帧渲染数据             |
 |gpu_slice             |    -         |ftrace-plugin      |gpu渲染时长            |
@@ -130,49 +136,47 @@ TraceStreamer可以将trace数据源转化为易于理解和使用的数据库�
 |js_heap_string       |    -         |arkts-plugin          | js内存数据            |
 |js_heap_trace_function_info | -     |arkts-plugin          | js内存数据            |
 |js_heap_trace_node   |    -         |arkts-plugin          | js内存数据            |
-|app_startup           |    -         |ftrace-plugin      | 应用启动数据           |
-|static_initalize      |    -         |ftrace-plugin      | so初始化数据           |
-|memory_cpu            |    -         |hidumper-plugin    | cpu内存数据           |
-|memory_profile        |    -         |hidumper-plugin    |/sys/kernel/debug/mali0/ctx/$(pidof xxx)/mem_profile节点相关数据|
-| memory_rs_image      |    -         |hidumper-plugin    |hidumper抓取的界面内存大小数据|
-|live_process          |    -         |process-plugin     |Monitor数据            |
-|network               |    -         |network-plugin     |Monitor数据            |
-|diskio                |    -         |diskio-plugin      |Monitor数据            |
+|live_process          |    -         |process-plugin     |实时进程执行数据            |
 |log                   |    -         |hilog-plugin       |系统日志               |
-|measure               |  通用的      |    -              |系统中的计量值（数值型）|
-|measure_filter        |  通用的      |    -              |计量值的查询辅助表      |
+|measure               |  通用的      |ftrace-plugin,memory-plugin      |系统中的计量值（数值型）|
+|measure_filter        |  通用的      |ftrace-plugin,memory-plugin                 |计量值的查询辅助表      |
 |memory_ashmem         |    -         |memory-plugin      |进程所占用ashmem相关信息 |
+|memory_cpu            |    -         |memory-plugin      |cpu内存数据           |
 |memory_dma            |    -         |memory-plugin      |进程占用的DMA内存相关信息 |
 |memory_process_gpu    |    -         |memory-plugin      |进程占用GPU内存相关信息 |
+|memory_profile        |    -         |memory-plugin      |/sys/kernel/debug/mali0/ctx/$(pidof xxx)/mem_profile节点相关数据|
+|memory_rs_image       |    -         |memory-plugin      |界面内存大小数据|
 |memory_window_gpu     |    -         |memory-plugin      |窗口占用GPU内存相关信息 |
-|meta                  |  通用的      |    -              |记录解析现场数据（解析时间，数据类型，解析工具等）|
+|meta                  |  通用的      |公共                |记录解析现场数据（解析时间，数据类型，解析工具等）|
 |native_hook           |    -         |nativehook/hookdaemon |malloc && mmap内存数据            |
 |native_hook_frame     |    -         |nativehook/hookdaemon |native_hook调用栈数据            |
 |native_hook_statistic |    -         |nativehook/hookdaemon |malloc && mmap统计数据 |
-|paged_memory_sample   |    -         |    -              |网络数据传输相关的信息 |
-|perf_callchain        |    -         |perf-plugin        |perf数据（非插件模式） |
-|perf_files            |    -         |    -              |perf数据（非插件模式） |
-|perf_report           |    -         |    -              |perf数据（非插件模式） |
-|perf_sample           |    -         |    -              |perf数据（非插件模式） |
-|perf_thread           |    -         |    -              |perf数据（非插件模式） |
-|process               |    -         |ftrace-plugin      |进程信息               |
+|network               |    -         |network-plugin        |记录网络数据传输相关的信息            |
+|paged_memory_sample   |    -         |hiperf-plugin         |网络数据传输相关的信息 |
+|perf_callchain        |    -         |hiperf-plugin         |perf数据           |
+|perf_files            |    -         |hiperf-plugin         |perf数据           |
+|perf_napi_async       |    -         |公共                  |perf数据           |
+|perf_report           |    -         |hiperf-plugin         |perf数据           |
+|perf_sample           |    -         |hiperf-plugin         |perf数据           |
+|perf_thread           |    -         |hiperf-plugin         |perf数据           |
+|process               |    -         |公共               |进程信息               |
 |process_measure       |    -         |ftrace-plugin      |进程内存               |
 |process_measure_filter|    -         |ftrace-plugin      |process_measure的辅助表|
 |raw                   |    -         |ftrace-plugin      |线程唤醒信息           |
 |sched_slice           |    -         |ftrace-plugin      |配合线程状态表使用，sched_switch的原始数据|
 |smaps                 |    -         |memory-plugin      |进程的内存消耗         |
-|stat                  |  通用的      |    -              |记录不同种类数据的数据量|
+|stat                  |  通用的       |公共                |记录不同种类数据的数据量|
+|static_initalize      |    -         |ftrace-plugin      |so初始化数据           |
 |symbols               |    -         |ftrace-plugin      |符号表（地址到字符串的映射）|
-|syscall               |    -         |ftrace-plugin      |系统调用 sys_enter/exit|
-|sys_event_filter      |    -         |ftrace-plugin      |                       |
+|sys_event_filter      |    -         |memory-plugin      |filter信息                      |
 |sys_mem_measure       |    -         |memory-plugin      |系统内存               |
-|thread                |  通用的      |    -              |线程信息（常用）        |
+|syscall               |    -         |ftrace-plugin      |系统调用 sys_enter/exit|
+|task_pool             |    -         |ftrace-plugin      |任务池数据              |
+|thread                |  通用的      |公共                |线程信息（常用）        |
 |thread_state          |  通用的      |ftrace-plugin      |线程调度图（常用）      |
-|trace_config          |  通用的      |hisysevent-plugin  |记录trace数据源         |
-|trace_range           |  通用的      |    -              |trace数据的时长         |
-|clock_snapshot        |  通用的      |通用的            |时钟号和时间，时钟名的映射表|
-|datasource_clockid    |  通用的      |通用的             |数据源和时钟号的映射表|
-|task_pool             |    -         |    -             |任务池数据              |
+|trace_config          |  通用的      |memory-plugin,hisysevent-plugin  |记录trace数据源         |
+|trace_range           |  通用的      |公共                |trace数据的时长         |
+|xpower_measure        |              |xpower             |设备信息                |  
 
 ## ___表格关系图___
 ---

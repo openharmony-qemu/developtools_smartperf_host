@@ -133,6 +133,7 @@ export class TabPaneCurrentSelection extends BaseElement {
   private bootTime: number = 0;
   private funcDetailMap: Map<string, Array<object>> = new Map();
   private topChainStr: string = '';
+  private fpsResult: Array<unknown> = [];
 
   set data(selection: unknown) {
     // @ts-ignore
@@ -413,6 +414,36 @@ export class TabPaneCurrentSelection extends BaseElement {
       } else {
         this.handleNonBinder(data, list, name, information);
       }
+    } else if (data.funName!.startsWith("H:Et") && (data.depth === 1 || data.depth === 0)) {
+      list.push({
+        name: 'StartTime(Relative)',
+        value: getTimeString(data.startTs || 0),
+      });
+      this.createStartTimeNode(list, data.startTs || 0, FUN_TRANSF_BTN_ID, FUN_STARTTIME_ABSALUTED_ID);
+      list.push({
+        name: 'Duration',
+        value: getTimeString(data.dur || 0),
+      });
+      data.funName!.split(',').map((item, index) => ({
+        name: [
+          'Sender tid',
+          'Send time',
+          'Expect handle time',
+          'Task name/ID',
+          'Prio',
+          'Sender'
+        ][index],
+        value: item,
+      })).forEach((item, index) => {
+        if (index === 0) {
+          item.value = item.value.split(':').at(-1)!;
+        }
+        list.push(item);
+      });
+      this.currentSelectionTbl!.dataSource = list;
+      // @ts-ignore
+      let startTimeAbsolute = (data.startTs || 0) + (window as unknown).recordStartNS;
+      this.addClickToTransfBtn(startTimeAbsolute, FUN_TRANSF_BTN_ID, FUN_STARTTIME_ABSALUTED_ID);
     } else {
       this.setTableHeight('auto');
       list.push({ name: 'Name', value: name });
@@ -839,9 +870,9 @@ export class TabPaneCurrentSelection extends BaseElement {
     let list: unknown[] = [];
     list.push({
       name: 'StartTime(Relative)',
-      value: getTimeString(data.startNS || 0),
+      value: getTimeString(data.startTime || 0),
     });
-    this.createStartTimeNode(list, data.startNS || 0, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
+    this.createStartTimeNode(list, data.startTime || 0, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
     list.push({ name: 'Duration', value: getTimeString(data.dur || 0) });
     list.push({
       name: 'Hang type',
@@ -869,7 +900,7 @@ export class TabPaneCurrentSelection extends BaseElement {
 
     this.currentSelectionTbl!.dataSource = list;
     // @ts-ignore
-    let startTimeAbsolute = (data.startNS || 0) + window.recordStartNS;
+    let startTimeAbsolute = (data.startTime || 0) + window.recordStartNS;
     this.addClickToTransfBtn(startTimeAbsolute, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
     this.hangScrollHandler(data, sp, scrollCallback);
   }
@@ -894,7 +925,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       }
       const findEntry = funcRow?.dataListCache.find((funcstruct: unknown) => {
         //@ts-ignore
-        return (funcstruct.startTs === data.startNS && funcstruct.funName === data.content);
+        return (funcstruct.startTs === data.startTime && funcstruct.funName === data.content);
       })
       scrollCallback({
         //@ts-ignore
@@ -1853,7 +1884,16 @@ export class TabPaneCurrentSelection extends BaseElement {
     });
     list.push({ name: 'Duration', value: `${Utils.getTimeString(data.dur || 0)}` });
     if (data.status === 'Completion delay') {
+      let queryJoinName = `${data.frameInfo?.split(':')[1]}: ${data.name?.split(':')![1]}`;
       let frameFpsMessage = data.frameInfo?.split(':');
+      await queryFpsSourceList(data.inputTime, data.endTime, queryJoinName).then((result) => {
+        if (result.length > 0) {
+          this.isFpsAvailable = true;
+          this.fpsResult = result;
+        } else {
+          this.isFpsAvailable = false;
+        }
+      });
       if (frameFpsMessage) {
         if (frameFpsMessage[1] !== '0') {
           if (this.isFpsAvailable) {
@@ -1879,33 +1919,25 @@ export class TabPaneCurrentSelection extends BaseElement {
   }
 
   private fpsClickEvent(data: FrameAnimationStruct, scrollCallback: Function): void {
-    let queryJoinName = `${data.frameInfo?.split(':')[1]}: ${data.name?.split(':')![1]}`;
     let recordNs: number = Utils.getInstance().getRecordStartNS();
-    this.currentSelectionTbl?.shadowRoot?.querySelector('#fps-jump')?.addEventListener('click', () => {
-      queryFpsSourceList(data.inputTime, data.endTime, queryJoinName).then((result) => {
-        if (result.length > 0) {
-          this.isFpsAvailable = true;
-          let pt: {
-            pid: number;
-            tid: number;
-            name: string;
-            ts: number;
-            dur: number;
-            depth: number;
-          } = result[0];
-          scrollCallback({
-            pid: pt.tid,
-            tid: pt.tid,
-            dur: pt.dur,
-            type: 'func',
-            depth: pt.depth,
-            funName: pt.name,
-            startTs: pt.ts - recordNs,
-            keepOpen: true,
-          });
-        } else {
-          this.isFpsAvailable = false;
-        }
+    this.currentSelectionTbl?.shadowRoot?.querySelector('#fps-jump')?.addEventListener('click', () => {// @ts-ignore
+      let pt: {
+        pid: number;
+        tid: number;
+        name: string;
+        ts: number;
+        dur: number;
+        depth: number;
+      } = this.fpsResult[0];
+      scrollCallback({
+        pid: pt.tid,
+        tid: pt.tid,
+        dur: pt.dur,
+        type: 'func',
+        depth: pt.depth,
+        funName: pt.name,
+        startTs: pt.ts - recordNs,
+        keepOpen: true,
       });
     });
   }

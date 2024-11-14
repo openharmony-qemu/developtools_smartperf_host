@@ -659,7 +659,8 @@
     html body[for='html-export']:not([dpm]) {
       position: relative;
       width: 99%;
-      height: 99%;;
+      height: 99%;
+      ;
       overflow: auto;
     }
 
@@ -1169,6 +1170,12 @@
           <td>JSON数据源</td>
         </tr>
         <tr>
+          <td>app_startup</td>
+          <td>-</td>
+          <td>ftrace-plugin</td>
+          <td>记录应用启动的相关信息</td>
+        </tr>
+        <tr>
           <td>args</td>
           <td>-</td>
           <td>ftrace-plugin</td>
@@ -1177,7 +1184,7 @@
         <tr>
           <td>bio_latency_sample</td>
           <td>-</td>
-          <td>-</td>
+          <td>ebpf</td>
           <td>IO操作相关方法调用，及调用栈数据</td>
         </tr>
         <tr>
@@ -1185,6 +1192,24 @@
           <td>-</td>
           <td>ftrace-plugin</td>
           <td>异步或非异步的调用</td>
+        </tr>
+        <tr>
+          <td>clk_event_filter</td>
+          <td>-</td>
+          <td>ftrace-plugin</td>
+          <td>记录时钟相关的信息</td>
+        </tr>
+        <tr>
+          <td>clock_event_filter</td>
+          <td>-</td>
+          <td>ftrace-plugin</td>
+          <td>维护时钟事件</td>
+        </tr>
+        <tr>
+          <td>clock_snapshot</td>
+          <td>-</td>
+          <td>公共</td>
+          <td>时钟号和时间</td>
         </tr>
         <tr>
           <td>cpu_measure_filter</td>
@@ -1201,14 +1226,20 @@
         <tr>
           <td>data_dict</td>
           <td>通用的</td>
-          <td>-</td>
+          <td>公共</td>
           <td>所有字符串的记录</td>
         </tr>
         <tr>
           <td>data_type</td>
           <td>通用的</td>
-          <td>-</td>
+          <td>公共</td>
           <td>辅助表</td>
+        </tr>
+        <tr>
+          <td>datasource_clockid</td>
+          <td>通用的</td>
+          <td>公共</td>
+          <td>数据源和时钟号的映射表</td>
         </tr>
         <tr>
           <td>device_info</td>
@@ -1223,6 +1254,18 @@
           <td>记录设备屏幕亮度，蓝牙，位置等信息</td>
         </tr>
         <tr>
+          <td>diskio</td>
+          <td>-</td>
+          <td>diskio-plugin</td>
+          <td>记录磁盘读写数据</td>
+        </tr>
+        <tr>
+          <td>dma_fence</td>
+          <td>-</td>
+          <td>ftrace-plugin</td>
+          <td>dma_fence数据</td>
+        </tr>
+        <tr>
           <td>dynamic_frame</td>
           <td>-</td>
           <td>ftrace-plugin</td>
@@ -1231,19 +1274,13 @@
         <tr>
           <td>ebpf_callstack</td>
           <td>-</td>
-          <td>-</td>
+          <td>ebpf</td>
           <td>磁盘读写相关的数据</td>
-        </tr>
-        <tr>
-          <td>file_system_callstack</td>
-          <td>-</td>
-          <td>-</td>
-          <td>ebpf文件系统</td>
         </tr>
         <tr>
           <td>file_system_sample</td>
           <td>-</td>
-          <td>-</td>
+          <td>ebpf</td>
           <td>ebpf文件系统</td>
         </tr>
         <tr>
@@ -1367,52 +1404,10 @@
           <td>js内存数据</td>
         </tr>
         <tr>
-          <td>app_startup</td>
-          <td>-</td>
-          <td>ftrace-plugin</td>
-          <td>应用启动数据</td>
-        </tr>
-        <tr>
-          <td>static_initalize</td>
-          <td>-</td>
-          <td>ftrace-plugin</td>
-          <td>so初始化数据</td>
-        </tr>
-        <tr>
-          <td>memory_cpu</td>
-          <td>-</td>
-          <td>hidumper-plugin</td>
-          <td>cpu内存数据</td>
-        </tr>
-        <tr>
-          <td>memory_profile</td>
-          <td>-</td>
-          <td>hidumper-plugin</td>
-          <td>/sys/kernel/debug/mali0/ctx/$(pidof xxx)/mem_profile节点相关数据</td>
-        </tr>
-        <tr>
-          <td>memory_rs_image</td>
-          <td>-</td>
-          <td>hidumper-plugin</td>
-          <td>hidumper抓取的界面内存大小数据</td>
-        </tr>
-        <tr>
           <td>live_process</td>
           <td>-</td>
           <td>process-plugin</td>
-          <td>Monitor数据</td>
-        </tr>
-        <tr>
-          <td>network</td>
-          <td>-</td>
-          <td>network-plugin</td>
-          <td>Monitor数据</td>
-        </tr>
-        <tr>
-          <td>diskio</td>
-          <td>-</td>
-          <td>diskio-plugin</td>
-          <td>Monitor数据</td>
+          <td>实时进程执行数据</td>
         </tr>
         <tr>
           <td>log</td>
@@ -1422,21 +1417,27 @@
         </tr>
         <tr>
           <td>measure</td>
-          <td>通用的</td>
           <td>-</td>
+          <td>ftrace-plugin,memory-plugin</td>
           <td>系统中的计量值（数值型）</td>
         </tr>
         <tr>
           <td>measure_filter</td>
-          <td>通用的</td>
           <td>-</td>
-          <td>计量值的查询辅助表</td>
+          <td>ftrace-plugin,memory-plugin</td>
+          <td>计量值的查询辅助表 </td>
         </tr>
         <tr>
           <td>memory_ashmem</td>
           <td>-</td>
           <td>memory-plugin</td>
           <td>进程所占用ashmem相关信息</td>
+        </tr>
+        <tr>
+          <td>memory_cpu</td>
+          <td>-</td>
+          <td>memory-plugin</td>
+          <td>cpu内存数据</td>
         </tr>
         <tr>
           <td>memory_dma</td>
@@ -1451,6 +1452,18 @@
           <td>进程占用GPU内存相关信息</td>
         </tr>
         <tr>
+          <td>memory_profile</td>
+          <td>-</td>
+          <td>memory-plugin</td>
+          <td>/sys/kernel/debug/mali0/ctx/$(pidof xxx)/mem_profile节点相关数据</td>
+        </tr>
+        <tr>
+          <td>memory_rs_image</td>
+          <td>-</td>
+          <td>memory-plugin</td>
+          <td>界面内存大小数据</td>
+        </tr>
+        <tr>
           <td>memory_window_gpu</td>
           <td>-</td>
           <td>memory-plugin</td>
@@ -1459,7 +1472,7 @@
         <tr>
           <td>meta</td>
           <td>通用的</td>
-          <td>-</td>
+          <td>公共</td>
           <td>记录解析现场数据（解析时间，数据类型，解析工具等）</td>
         </tr>
         <tr>
@@ -1481,45 +1494,57 @@
           <td>malloc &amp;&amp; mmap统计数据</td>
         </tr>
         <tr>
+          <td>network</td>
+          <td>-</td>
+          <td>network-plugin</td>
+          <td>记录网络数据传输相关的信息</td>
+        </tr>
+        <tr>
           <td>paged_memory_sample</td>
           <td>-</td>
-          <td>-</td>
-          <td>网络数据传输相关的信息</td>
+          <td>ebpf</td>
+          <td>调用栈信息</td>
         </tr>
         <tr>
           <td>perf_callchain</td>
           <td>-</td>
-          <td>perf-plugin</td>
-          <td>perf数据（非插件模式）</td>
+          <td>hiperf-plugin</td>
+          <td>perf数据</td>
         </tr>
         <tr>
           <td>perf_files</td>
           <td>-</td>
+          <td>hiperf-plugin</td>
+          <td>perf数据</td>
+        </tr>
+        <tr>
+          <td>perf_napi_async</td>
           <td>-</td>
-          <td>perf数据（非插件模式）</td>
+          <td>公共</td>
+          <td>perf数据</td>
         </tr>
         <tr>
           <td>perf_report</td>
           <td>-</td>
-          <td>-</td>
-          <td>perf数据（非插件模式）</td>
+          <td>hiperf-plugin</td>
+          <td>perf数据</td>
         </tr>
         <tr>
           <td>perf_sample</td>
           <td>-</td>
-          <td>-</td>
-          <td>perf数据（非插件模式）</td>
+          <td>hiperf-plugin</td>
+          <td>perf数据</td>
         </tr>
         <tr>
           <td>perf_thread</td>
           <td>-</td>
-          <td>-</td>
-          <td>perf数据（非插件模式）</td>
+          <td>hiperf-plugin</td>
+          <td>perf数据</td>
         </tr>
         <tr>
           <td>process</td>
           <td>-</td>
-          <td>ftrace-plugin</td>
+          <td>公共</td>
           <td>进程信息</td>
         </tr>
         <tr>
@@ -1555,8 +1580,14 @@
         <tr>
           <td>stat</td>
           <td>通用的</td>
-          <td>-</td>
+          <td>公共</td>
           <td>记录不同种类数据的数据量</td>
+        </tr>
+        <tr>
+          <td>static_initalize</td>
+          <td>-</td>
+          <td>ftrace-plugin</td>
+          <td>so初始化数据</td>
         </tr>
         <tr>
           <td>symbols</td>
@@ -1565,16 +1596,10 @@
           <td>符号表（地址到字符串的映射）</td>
         </tr>
         <tr>
-          <td>syscall</td>
-          <td>-</td>
-          <td>ftrace-plugin</td>
-          <td>系统调用 sys_enter/exit</td>
-        </tr>
-        <tr>
           <td>sys_event_filter</td>
           <td>-</td>
-          <td>ftrace-plugin</td>
-          <td></td>
+          <td>memory-plugin</td>
+          <td>filter信息</td>
         </tr>
         <tr>
           <td>sys_mem_measure</td>
@@ -1583,9 +1608,21 @@
           <td>系统内存</td>
         </tr>
         <tr>
+          <td>syscall</td>
+          <td>-</td>
+          <td>ftrace-plugin</td>
+          <td>系统调用 sys_enter/exit</td>
+        </tr>
+        <tr>
+          <td>task_pool</td>
+          <td>-</td>
+          <td>ftrace-plugin</td>
+          <td>任务池数据</td>
+        </tr>
+        <tr>
           <td>thread</td>
           <td>通用的</td>
-          <td>-</td>
+          <td>公共</td>
           <td>线程信息（常用）</td>
         </tr>
         <tr>
@@ -1597,32 +1634,20 @@
         <tr>
           <td>trace_config</td>
           <td>通用的</td>
-          <td>hisysevent-plugin</td>
+          <td>memory-plugin,hisysevent-plugin</td>
           <td>记录trace数据源</td>
         </tr>
         <tr>
           <td>trace_range</td>
           <td>通用的</td>
-          <td>-</td>
+          <td>公共</td>
           <td>trace数据的时长</td>
         </tr>
         <tr>
-          <td>clock_snapshot</td>
-          <td>通用的</td>
-          <td>通用的</td>
-          <td>时钟号和时间，时钟名的映射表</td>
-        </tr>
-        <tr>
-          <td>datasource_clockid</td>
-          <td>通用的</td>
-          <td>通用的</td>
-          <td>数据源和时钟号的映射表</td>
-        </tr>
-        <tr>
-          <td>task_pool</td>
+          <td>xpower_measure</td>
           <td>-</td>
-          <td>-</td>
-          <td>任务池数据</td>
+          <td>xpower-plugin</td>
+          <td>设备信息</td>
         </tr>
       </tbody>
     </table>
@@ -6086,9 +6111,9 @@
 
   <script>
     window.onload = () => {
-      let isDark = getURLParameter('dark'); 
-      let targetId = getURLParameter('targetId'); 
-      let isBack = getURLParameter('isBack'); 
+      let isDark = getURLParameter('dark');
+      let targetId = getURLParameter('targetId');
+      let isBack = getURLParameter('isBack');
       if (isDark === 'true') {
         document.getElementById('body').setAttribute('style', 'background-color:#272C34;');
         let header = document.getElementsByClassName('fontColor');
@@ -6100,11 +6125,11 @@
           lightBackGround[i].style.backgroundColor = '#32373F';
         }
       }
-      function getURLParameter(name) {  
-        return (new URL(document.location)).searchParams.get(name);  
-      }  
+      function getURLParameter(name) {
+        return (new URL(document.location)).searchParams.get(name);
+      }
 
-      if ( targetId !== null ) {
+      if (targetId !== null) {
         let targetElement = document.getElementById(targetId);
         targetElement.scrollIntoView({ behavior: 'smooth' });
       }

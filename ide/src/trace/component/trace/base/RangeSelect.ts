@@ -341,6 +341,7 @@ export class RangeSelect {
           }
         }
         TraceRow.rangeSelectObject = rangeSelect;
+        SpAiAnalysisPage.selectChangeListener(rangeSelect.startNS!, rangeSelect.endNS!);
         result = true;
       } else {
         result = false;

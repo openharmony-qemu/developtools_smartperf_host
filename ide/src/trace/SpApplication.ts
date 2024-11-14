@@ -16,7 +16,8 @@
 import { BaseElement, element } from '../base-ui/BaseElement';
 import '../base-ui/menu/LitMainMenu';
 import '../base-ui/icon/LitIcon';
-import '../base-ui/loading/LitLoading'
+import '../base-ui/loading/LitLoading';
+import '../base-ui/like/LitLike';
 import { SpMetrics } from './component/SpMetrics';
 import { SpHelp } from './component/SpHelp';
 import './component/SpHelp';
@@ -82,11 +83,11 @@ import './component/SpThirdParty';
 import { cancelCurrentTraceRowHighlight } from './component/SpSystemTrace.init';
 import './component/SpBubblesAI';
 import './component/SpAiAnalysisPage';
-import { shadowRootInput } from './component/trace/base/shadowRootInput';
 import { WebSocketManager } from '../webSocket/WebSocketManager';
 import { SpAiAnalysisPage } from './component/SpAiAnalysisPage';
-import './component/SpAdvertisement'
-import { toUSVString } from 'util';
+import './component/SpAdvertisement';
+import { shadowRootInput } from './component/trace/base/shadowRootInput';
+import { SpBubblesAI } from './component/SpBubblesAI';
 
 @element('sp-application')
 export class SpApplication extends BaseElement {
@@ -119,6 +120,7 @@ export class SpApplication extends BaseElement {
     | null;
   static skinChange: Function | null | undefined = null;
   static skinChange2: Function | null | undefined = null;
+  static isTraceLoaded: Boolean = false;
   skinChangeArray: Array<Function> = [];
   private rootEL: HTMLDivElement | undefined | null;
   private headerDiv: HTMLDivElement | undefined | null;
@@ -317,6 +319,7 @@ export class SpApplication extends BaseElement {
     this.contentLeftOption = this.shadowRoot?.querySelector<HTMLDivElement>('.content-left-option');
     this.contentCenterOption = this.shadowRoot?.querySelector<HTMLDivElement>('.content-center-option');
     this.spAiAnalysisPage = this.shadowRoot!.querySelector('#sp-ai-analysis') as SpAiAnalysisPage;
+    let xiaoLubanEl: HTMLElement | null = this.shadowRoot!.querySelector<HTMLElement>('#sp-bubbles');
     this.initElementsAttr();
     this.initEvents();
     this.initRecordEvents();
@@ -328,7 +331,26 @@ export class SpApplication extends BaseElement {
     this.initGlobalEvents();
     this.initDocumentListener();
     this.initElementsEnd();
+    this.dragXiaolubanEvents(xiaoLubanEl!);
     this.connectWebSocket();
+
+  }
+  private dragXiaolubanEvents(xiaoLubanEl: HTMLElement): void {
+    document.querySelector('body')!.addEventListener('dragover', function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    });
+    document.querySelector('body')!.addEventListener('drop', function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (!SpBubblesAI.isAIHover) {
+        return;
+      };
+      const x = event.clientX - 15 < 0 ? 0 : event.clientX - 15;
+      const y = event.clientY - 15 < 0 ? 0 : event.clientY - 15;
+      xiaoLubanEl!.style.left = `${x}px`;
+      xiaoLubanEl!.style.top = `${y}px`;
+    });
   }
   private connectWebSocket(): void {
     document.addEventListener('DOMContentLoaded', function () {//
@@ -605,6 +627,7 @@ export class SpApplication extends BaseElement {
   }
 
   private openTraceFile(ev: unknown, isClickHandle?: boolean): void {
+    SpApplication.isTraceLoaded = false;
     this.returnOriginalUrl();
     this.removeAttribute('custom-color');
     this.chartFilter!.setAttribute('hidden', '');
@@ -716,7 +739,7 @@ export class SpApplication extends BaseElement {
               if (urlParams.get('local')) {
                 URL.revokeObjectURL(localUrl);
               }
-              this.handleWasmMode(new File([arrayBuf], fileName), showFileName, arrayBuf.byteLength, fileName);
+              this.handleWasmMode(new File([arrayBuf], fileName), showFileName, arrayBuf.byteLength, fileName, jsonStr);
             });
           })
           .catch((e) => {
@@ -1230,6 +1253,7 @@ export class SpApplication extends BaseElement {
         (window as unknown).traceFileName = fileName;
       }
       this.showCurrentTraceMenu(fileSize, showFileName, fileName, isDistributed);
+      SpApplication.isTraceLoaded = true;
       if (!isDistributed) {
         this.importConfigDiv!.style.display = Utils.getInstance().getSchedSliceMap().size > 0 ? 'block' : 'none';
       }
@@ -1583,6 +1607,7 @@ export class SpApplication extends BaseElement {
   private openFileInit(multiTrace: boolean = false): void {
     clearTraceFileCache();
     this.litSearch!.clear();
+    this.spAiAnalysisPage!.clear();
     Utils.currentSelectTrace = undefined;
     this.markJson = undefined;
     if (!multiTrace) {
@@ -1963,8 +1988,11 @@ export class SpApplication extends BaseElement {
       this.croppingFile(this.progressEL!, this.litSearch!);
     });
 
-    this.aiAnalysis!.addEventListener('click', (ev) => {
-      if (this.spAiAnalysisPage!.style.visibility === 'hidden') {
+    let aiAnalysis = this.shadowRoot
+      ?.querySelector('lit-main-menu')!
+      .shadowRoot!.querySelector('.ai_analysis') as HTMLDivElement
+    aiAnalysis!.addEventListener('click', (ev) => {
+      if (this.spAiAnalysisPage!.style.visibility === 'hidden' || this.spAiAnalysisPage!.style.display === 'none') {
         this.spAiAnalysisPage!.style.display = 'block';
         this.spAiAnalysisPage!.style.visibility = 'visible';
       } else {
@@ -1973,11 +2001,15 @@ export class SpApplication extends BaseElement {
       }
     })
 
+    this.spAiAnalysisPage!.valueChangeHandler = (value: string, id: number) => {
+      this.litSearch!.valueChangeHandler!(this.litSearch!.trimSideSpace(value), id);
+    }
+
     // 鼠标拖动改变大小
-    this.aiPageResize()
+    this.aiPageResize();
   }
 
-  private aiPageResize() {
+  private aiPageResize(): void {
     const resizableDiv = this.spAiAnalysisPage!;
     let isResizing = false;
 
@@ -1998,12 +2030,13 @@ export class SpApplication extends BaseElement {
     });
 
 
-    function changeAiWidth(e: any) {
+    function changeAiWidth(e: unknown): void {
       resizableDiv.style.cursor = 'e-resize';
+      // @ts-ignore
       resizableDiv.style.width = window.innerWidth - e.clientX + 'px';
     }
 
-    function mouseUp() {
+    function mouseUp(): void {
       isResizing = false;
       document.removeEventListener('mousemove', changeAiWidth);
       document.removeEventListener('mouseup', mouseUp);
@@ -2033,7 +2066,7 @@ export class SpApplication extends BaseElement {
 
   private initSearchChangeEvents(): void {
     let timer: NodeJS.Timeout;
-    this.litSearch!.valueChangeHandler = (value: string): void => {
+    this.litSearch!.valueChangeHandler = (value: string, id: number = -1): void => {
       Utils.currentSelectTrace = this.litSearch?.getSearchTraceId();
       this.litSearch!.currenSearchValue = value;
       if (value.length > 0) {
@@ -2057,11 +2090,17 @@ export class SpApplication extends BaseElement {
             list = cpus;
             let asyncFuncArr = this.spSystemTrace!.seachAsyncFunc(value);
             this.spSystemTrace!.searchFunction(list, asyncFuncArr, value).then((mixedResults) => {
-              if (this.litSearch!.searchValue !== '') {
+              if (this.litSearch!.searchValue !== '' || id > -1) {
                 if (!Utils.isDistributedMode()) {
                   this.litSearch!.list = this.spSystemTrace!.searchSdk(mixedResults, value);
                 } else {
                   this.litSearch!.list = mixedResults;
+                }
+                if (id > -1) {
+                  this.litSearch!.list = this.litSearch!.list.filter((v: unknown) => {
+                    // @ts-ignore
+                    return v.id === id
+                  })
                 }
                 this.litSearch!.index = this.spSystemTrace!.showStruct(false, -1, this.litSearch!.list);
               }
@@ -2181,6 +2220,9 @@ export class SpApplication extends BaseElement {
         showNode.style.visibility = 'visible';
         let recordSetting = document.querySelector("body > sp-application")?.shadowRoot?.querySelector("#sp-record-trace")?.shadowRoot?.querySelector("#app-content > record-setting");
         shadowRootInput.preventBubbling(recordSetting!);
+        //@ts-ignore
+      } else if (node.id! === 'sp-ai-analysis' && node.style!.visibility! === 'visible') {
+        return;
       } else {
         (node! as HTMLElement).style.visibility = 'hidden';
       }
@@ -2392,7 +2434,8 @@ export class SpApplication extends BaseElement {
       fetch(url)
         .then((res) => {
           res.arrayBuffer().then((arrayBuf) => {
-            let fileName = url.split('/').reverse()[0];
+            let urlParams = new URL(url).searchParams;
+            let fileName = urlParams.get('name') ? decodeURIComponent(urlParams.get('name')!) : url.split('/').reverse()[0];
             this.traceFileName = fileName;
             let showFileName =
               fileName.lastIndexOf('.') === -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'));
@@ -2480,18 +2523,18 @@ export class SpApplication extends BaseElement {
       'download-db',
       '',
       {},
-      (reqBufferDB: ArrayBuffer) => {
+      async (reqBufferDB: ArrayBuffer) => {
         let a = document.createElement('a');
         a.href = URL.createObjectURL(new Blob([reqBufferDB]));
         a.download = fileName;
-        a.click();
-        this.itemIconLoading(mainMenu, 'Current Trace', 'Download Database', true);
-        let timer = setInterval(() => {
-          this.itemIconLoading(mainMenu, 'Current Trace', 'Download Database', false);
+        await a.click();
+        await this.itemIconLoading(mainMenu, 'Current Trace', 'Download Database', true);
+        let timer = setInterval(async () => {
+          await this.itemIconLoading(mainMenu, 'Current Trace', 'Download Database', false);
           clearInterval(timer);
         }, 4000);
         // 存入缓存
-        caches.open(`${fileName}`).then((cache) => {
+        await caches.open(`${fileName}`).then(async (cache) => {
           let headers = new Headers();
           headers.append('Content-type', 'application/octet-stream');
           headers.append('Content-Transfer-Encoding', 'binary');

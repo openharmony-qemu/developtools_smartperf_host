@@ -123,21 +123,22 @@ export class TabPaneXpowerCounter extends BaseElement {
       selectCounterData.count = `${list.length}`;
       // @ts-ignore
       selectCounterData.last = `${list[list.length - 1].value}`;
-      selectCounterData.delta = `${parseInt(selectCounterData.last) - parseInt(selectCounterData.first)}`;
-      selectCounterData.rate = (parseInt(selectCounterData.delta) / ((range * 1.0) / 1000000000)).toFixed(4);
+      selectCounterData.delta = `${(Number(selectCounterData.last) - Number(selectCounterData.first)).toFixed(4)}`; 
+      selectCounterData.rate = (Number(selectCounterData.delta) / ((range * 1.0) / 1000000000)).toFixed(4);
       // @ts-ignore
       selectCounterData.min = `${first.value}`;
-      selectCounterData.max = '0';
+      // @ts-ignore
+      selectCounterData.max = `${first.value}`;
       let weightAvg = 0.0;
       for (let i = 0; i < list.length; i++) {
         let counter = list[i];
         // @ts-ignore
-        if (counter.value < parseInt(selectCounterData.min)) {
+        if (counter.value < Number(selectCounterData.min)) {
           // @ts-ignore
           selectCounterData.min = counter.value.toString();
         }
         // @ts-ignore
-        if (counter.value > parseInt(selectCounterData.max)) {
+        if (counter.value > Number(selectCounterData.max)) {
           // @ts-ignore
           selectCounterData.max = counter.value.toString();
         }

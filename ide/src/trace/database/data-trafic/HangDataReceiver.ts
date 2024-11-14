@@ -18,7 +18,7 @@ import { Args } from './CommonArgs';
 export const chartHangDataSql = (args: Args): string => `
 SELECT
   c.id as id,
-  c.ts - r.start_ts as startNS,
+  c.ts - r.start_ts as startTime,
   c.dur as dur,
   t.tid as tid,
   t.name as tname,
@@ -39,7 +39,7 @@ WHERE
 
 export interface HangSQLStruct {
   id: number;
-  startNS: number;
+  startTime: number;
   dur: number;
   tid: number;
   pid: number;
@@ -68,7 +68,7 @@ export function hangDataReceiver(data: unknown, proc: Function): void {
     if (data.params.queryAll) {
       res = list.filter(
         //@ts-ignore
-        (it) => it.startNS + it.dur >= data.params.selectStartNS && it.startNS <= data.params.selectEndNS
+        (it) => it.startTime + it.dur >= data.params.selectStartNS && it.startTime <= data.params.selectEndNS
       );
     }
     else {
@@ -90,7 +90,7 @@ function arrayBufferHandler(data: unknown, res: HangSQLStruct[], transfer: boole
   // @ts-ignore
   let id = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.id);
   // @ts-ignore
-  let startNS = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startNS);
+  let startTime = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startTime);
   // @ts-ignore
   let dur = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.dur);
   // @ts-ignore
@@ -99,7 +99,7 @@ function arrayBufferHandler(data: unknown, res: HangSQLStruct[], transfer: boole
   let pid = new Int32Array(transfer ? res.length : data.params.sharedArrayBuffers.pid);
   res.forEach((it, i) => {
     id[i] = it.id;
-    startNS[i] = it.startNS;
+    startTime[i] = it.startTime;
     dur[i] = it.dur;
     tid[i] = it.tid;
     pid[i] = it.pid;
@@ -112,7 +112,7 @@ function arrayBufferHandler(data: unknown, res: HangSQLStruct[], transfer: boole
     action: data.action,
     results: {
       id: id.buffer,
-      startNS: startNS.buffer,
+      startTime: startTime.buffer,
       dur: dur.buffer,
       tid: tid.buffer,
       pid: pid.buffer,
@@ -122,7 +122,7 @@ function arrayBufferHandler(data: unknown, res: HangSQLStruct[], transfer: boole
   };
   let arg2 = [
     id.buffer,
-    startNS.buffer,
+    startTime.buffer,
     dur.buffer,
     tid.buffer,
     pid.buffer,

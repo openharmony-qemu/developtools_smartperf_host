@@ -670,7 +670,7 @@ export function createHiPerfConfig(
       }
     }
   } else {
-    recordArgs = `${recordArgs} -a `;
+    recordArgs = `${recordArgs} -a --exclude-hiperf`;
   }
   recordArgs = initHiPerfConfig(perfConfig, recordArgs);
   info('record config Args is: ', recordArgs);
@@ -914,10 +914,10 @@ export function createXPowerConfig(
   }
   let type = spXPower.getXpowerConfig();
   let typeList: Array<string> = [];
-  typeList = type!.split(",");
+  typeList = type!.split(',');
   let xPowerConfig = {
     messageType: typeList
-  }
+  };
   request.pluginConfigs.push({
     pluginName: 'xpower-plugin',
     sampleInterval: 1000,

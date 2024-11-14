@@ -1,5 +1,3 @@
-import { BaseElement } from "../../../../base-ui/BaseElement";
-
 /*
  * Copyright (C) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,16 +12,23 @@ import { BaseElement } from "../../../../base-ui/BaseElement";
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { BaseElement } from "../../../../base-ui/BaseElement";
+import { SpSystemTrace } from "../../SpSystemTrace";
 export class shadowRootInput {
     public static preventBubbling(page: BaseElement | Element) {
         let pageInputList = shadowRootInput.findInputListInShadowDOM(page);
+        let sp = document?.querySelector("body > sp-application")?.shadowRoot?.querySelector("#sp-system-trace") as SpSystemTrace;
         pageInputList.forEach(input => {
-            input.addEventListener('keydown', (e) => e.stopPropagation());
-            input.addEventListener('keyup', (e) => e.stopPropagation());
+            input.addEventListener('focus', (e) => {
+                sp.keyboardEnable = false;
+            });
+            input.addEventListener('blur', (e) => {
+                sp.keyboardEnable = true;
+            });
         });
     }
-    public static findInputListInShadowDOM(startNode: BaseElement | Element | null) {
-        let queue: (Element | null)[] = [startNode];
+    public static findInputListInShadowDOM(page: BaseElement | Element | null) {
+        let queue: (Element | null)[] = [page];
         let inputList: Element[] = [];
         while (queue.length > 0) {
             let currentNode = queue.shift(); // 从队列中取出一个节点  

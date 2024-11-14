@@ -16,6 +16,7 @@
 #include "codec_cov.h"
 
 #include <memory>
+#include <iostream>
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -114,6 +115,50 @@ std::string GbkToUtf8(const char *srcStr)
     std::unique_ptr<char[]> str = std::make_unique<char[]>(len + 1);
     WideCharToMultiByte(CP_UTF8, 0, wstr.get(), -1, str.get(), len, NULL, NULL);
     return std::string(str.get());
+}
+std::string Utf8ToGbk(const char *srcStr)
+{
+    int32_t len = MultiByteToWideChar(CP_UTF8, 0, srcStr, -1, NULL, 0);
+    std::unique_ptr<wchar_t[]> wstr = std::make_unique<wchar_t[]>(len + 1);
+    MultiByteToWideChar(CP_UTF8, 0, srcStr, -1, wstr.get(), len);
+    len = WideCharToMultiByte(CP_ACP, 0, wstr.get(), -1, NULL, 0, NULL, NULL);
+    std::unique_ptr<char[]> str = std::make_unique<char[]>(len + 1);
+    WideCharToMultiByte(CP_ACP, 0, wstr.get(), -1, str.get(), len, NULL, NULL);
+    return std::string(str.get());
+}
+/** @fn        std::wstring String2WString(const std::string& strInput)
+ *  @brief    string转换为wstring
+ *  @param    (IN) const std::string&
+ *  @return    std::wstring
+ */
+std::wstring String2WString(const std::string &strInput)
+{
+    auto codePage = IsGBK(reinterpret_cast<const uint8_t *>(strInput.c_str()), strInput.length()) ? CP_ACP : CP_UTF8;
+    if (strInput.empty()) {
+        std::cout << "strInput is empty" << std::endl;
+        return L"";
+    }
+
+    // 获取待转换的数据的长度
+    int len_in = MultiByteToWideChar(codePage, 0, (LPCSTR)strInput.c_str(), -1, NULL, 0);
+    if (len_in <= 0) {
+        std::cout << "The result of WideCharToMultiByte is Invalid!" << std::endl;
+        return L"";
+    }
+
+    // 为输出数据申请空间
+    std::wstring wstr_out;
+    wstr_out.resize(len_in - 1, L'\0');
+
+    // 数据格式转换
+    int to_result = MultiByteToWideChar(codePage, 0, (LPCSTR)strInput.c_str(), -1, (LPWSTR)wstr_out.c_str(), len_in);
+
+    // 判断转换结果
+    if (0 == to_result) {
+        std::cout << "Can't transfer String to WString" << std::endl;
+    }
+
+    return wstr_out;
 }
 #endif
 } // namespace base

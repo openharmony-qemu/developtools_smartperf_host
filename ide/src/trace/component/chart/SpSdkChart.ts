@@ -25,6 +25,7 @@ import { TabUtil } from '../trace/sheet/sdk/TabUtil';
 import { queryCounterMax, querySdkCount, querySdkCounterData, querySdkSliceData } from '../../database/sql/Sdk.sql';
 import { queryStartTime } from '../../database/sql/SqlLite.sql';
 import { NUM_7 } from '../../bean/NumBean';
+import { SpStatisticsHttpUtil } from '../../../statistics/util/SpStatisticsHttpUtil';
 
 export class SpSdkChart {
   trace: SpSystemTrace;

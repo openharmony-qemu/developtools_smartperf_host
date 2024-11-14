@@ -28,6 +28,8 @@ import {
   queryNativeHookStatisticsMalloc,
   queryNativeHookStatisticsSubType,
 } from '../../../../database/sql/NativeHook.sql';
+import { queryHeapSizeByIpid } from '../../../../database/sql/SqlLite.sql';
+
 
 @element('tabpane-native-statistics')
 export class TabPaneNMStatstics extends BaseElement {
@@ -48,23 +50,27 @@ export class TabPaneNMStatstics extends BaseElement {
     this.currentSelection = nativeStatisticsParam;
     this.allMax = 0;
     TabPaneNMSampleList.clearData();
-    SpNativeMemoryChart.EVENT_HEAP.map((heap) => {
-      this.allMax += heap.sumHeapSize;
-    });
+    this.recordEventHeap(nativeStatisticsParam.nativeMemoryCurrentIPid);
     if (nativeStatisticsParam.nativeMemory.length > 0) {
       Utils.getInstance().setCurrentSelectIPid(this.currentSelectIPid);
       Utils.getInstance().initResponseTypeList(nativeStatisticsParam);
     }
     if (this.nativeStatisticsTbl) {
       // @ts-ignore
-      this.nativeStatisticsTbl.shadowRoot.querySelector('.table').style.height = `${
-        this.parentElement!.clientHeight - 25
-      }px`;
+      this.nativeStatisticsTbl.shadowRoot.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 25
+        }px`;
       // @ts-ignore
       this.nativeStatisticsTbl.recycleDataSource = [];
     }
     this.nativeStatisticsTbl!.loading = true;
     this.queryData(nativeStatisticsParam);
+  }
+
+  async recordEventHeap(ipid: number) {
+    SpNativeMemoryChart.EVENT_HEAP = await queryHeapSizeByIpid(ipid);
+    SpNativeMemoryChart.EVENT_HEAP.map((heap) => {
+      this.allMax += heap.sumHeapSize;
+    });
   }
 
   queryData(nativeStatisticsParam: SelectionParam): void {
@@ -187,7 +193,7 @@ export class TabPaneNMStatstics extends BaseElement {
         this.processHookData(hook, anonymous);
       }
     }
-    if (all?.maxStr === '' && all?.max === 0) { 
+    if (all?.maxStr === '' && all?.max === 0) {
       all.maxStr = Utils.getByteWithUnit(all?.max);
     }
     if (heap?.maxStr === '' && heap?.max === 0) {

@@ -33,7 +33,7 @@ export class HangRender extends Render {
     let hangList = row.dataList;
     let hangFilter = row.dataListCache;
     let filterConfig = {
-      startKey: 'startNS',
+      startKey: 'startTime',
       durKey: 'dur',
       startNS: TraceRow.range?.startNS ?? 0,
       endNS: TraceRow.range?.endNS ?? 0,
@@ -79,7 +79,7 @@ export class HangStruct extends BaseStruct {
   static selectHangStruct: HangStruct | undefined;
   static index = 0;
   id: number | undefined;
-  startNS: number | undefined;
+  startTime: number | undefined;
   dur: number | undefined;
   tid: number | undefined;
   pid: number | undefined;
@@ -144,7 +144,7 @@ export class HangStruct extends BaseStruct {
       d1.pid === d2.pid &&
       d1.tid === d2.tid &&
       d1.pname === d2.pname &&
-      d1.startNS === d2.startNS &&
+      d1.startTime === d2.startTime &&
       d1.dur === d2.dur &&
       d1.type === d2.type &&
       d1.id === d2.id &&
