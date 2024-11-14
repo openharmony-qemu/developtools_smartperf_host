@@ -14,7 +14,7 @@
  */
 
 import { warn } from '../../log/Log';
-import { BurialPointRequestBody, pluginUsage, GeneralRecordRequest } from './SpStatisticsHttpBean';
+import { BurialPointRequestBody, GeneralRecordRequest, pluginUsage } from './SpStatisticsHttpBean';
 
 export class SpStatisticsHttpUtil {
   static requestServerInfo: string = '';
@@ -169,7 +169,7 @@ export class SpStatisticsHttpUtil {
   }
 
   // ai问答
-  static generalRecord(category: string, secondCat: string, thirdCat: Array<string>): void {
+  static generalRecord(category: string, secondCat: string, thirdCat: Array<string | number>): void {
     let requestBody: GeneralRecordRequest = {
       ts: SpStatisticsHttpUtil.getCorrectRequestTime(),
       category,

@@ -345,6 +345,10 @@ export class SpAiAnalysisPage extends BaseElement {
         if (!this.isNewChat) {
             // @ts-ignore
             this.aiAnswerBox!.firstElementChild!.innerHTML = this.md!.render(answer.data);
+            let likeDiv = document.createElement('div');
+            likeDiv.className = 'likeDiv';
+            likeDiv.innerHTML = '<lit-like type = "chat"></lit-like>';
+            this.aiAnswerBox?.appendChild(likeDiv);
             // 滚动条滚到底部
             this.q_a_window!.scrollTop = this.q_a_window!.scrollHeight;
         }
@@ -642,6 +646,7 @@ export class SpAiAnalysisPage extends BaseElement {
             if (this.isJsonString(jsonRes.resultMessage)) {
                 let dataList = JSON.parse(jsonRes.resultMessage) || [];
                 if (dataList && dataList.length === 0) {
+                    SpStatisticsHttpUtil.generalRecord('AI_statistic', 'large_model_detect', [0])
                     this.isNodata = true;
                     this.draftList!.innerHTML = '';
                     this.contentsTable!.style.display = 'none';
@@ -651,6 +656,7 @@ export class SpAiAnalysisPage extends BaseElement {
                     this.abnormalPageTips(textStr, imgsrc, 0);
                     this.draftBtn!.style.display = 'inline-block';
                 } else {
+                    SpStatisticsHttpUtil.generalRecord('AI_statistic', 'large_model_detect', [1]);
                     this.isNodata = false;
                     // 整理数据,渲染数据
                     await this.renderData(dataList);
