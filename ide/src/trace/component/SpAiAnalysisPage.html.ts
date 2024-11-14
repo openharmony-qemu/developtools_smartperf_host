@@ -18,57 +18,19 @@ export const SpAiAnalysisPageHtml = `
         <h3 class="chatTitle" style="color:#35a1db">
             HiSmartPerf AI助手
         </h3>
-        <div class="chatWindow">
+        <div class="contentWindow">
             <div class="ask_question">
-                <div class="aiMessage message">
-                    <div class="aiHeader headerDiv">
-                        <img src="img/logo.png" class="headerImg"/>
-                    </div>
-                    <div class="systemSay">
-                        有什么可以帮助您吗？
-                        <div class="aiTriangle"></div>
-                    </div>
-                    <div class="clear"></div>
-                </div>
-            </div>
-            <div class="report_details">
-                <div class="selectionBox">
-                    <div class="startBox">
-                        <div class="timeTip"></div>
-                        开始时间：
-                        <span class="startTime"></span>
-                    </div>
-                    <div class="endBox">
-                        <div class="timeTip"></div>
-                        结束时间：
-                        <span class="endTime"></span>
-                    </div>
-                </div>
-                <div class="analysisList" style="height: 84%;padding-right: 10px;">
-                    <div class="analysis-header">
-                        <h3
-                            style="text-align: center;background-color: #4894f3;padding: 10px 0px;color: #fff;border-radius:2px;margin:0">
-                            分析报告
-                        </h3>
-                    </div>
-                    <div class="no-data">
-                        <img src="../application/img/nodata.png" />
-                        <div>
-                            暂无数据
+                <div class="q_a_window">
+                    <div class="aiMessage message">
+                        <div class="aiHeader headerDiv">
+                            <img src="img/logo.png" class="headerImg"/>
                         </div>
+                        <div class="systemSay">
+                            有什么可以帮助您吗？
+                        </div>
+                        <div class="clear"></div>
                     </div>
-                    <div class="loginTip">
-                        <img src="img/sigh.png" style="margin-right: 8px;width: 18px;"/>未连接
-                    </div>
-                    <div class="data-record"></div>
                 </div>
-                <div class="report-button">
-                    <div class="analysisBtn button">
-                        一键诊断
-                    </div>
-                    <div class="downloadBtn button" style="display: none;">报告下载</div>
-                </div>
-            </div>
             <div class="chatInputBox">
                 <div class="chatConfig">
                     <div class="right-box">
@@ -91,9 +53,56 @@ export const SpAiAnalysisPageHtml = `
                     <img src="img/send.png" class="sendImg">
                 </div>
             </div>
+            </div>
+            <div class="report_details">
+                <div class="selectionBox">
+                     <div class="startBox">
+                        <div class="timeTip"></div>
+                        startTime:
+                        <span class="startTime"></span>
+                    </div>
+                    <div class="endBox">
+                        <div class="timeTip"></div>
+                        endTime:
+                        <span class="endTime"></span>
+                    </div>
+                </div>
+                <div class="analysisList">
+                    <div class="analysis-header">
+                        <h4
+                            style="text-align: center;background-color: white;padding: 10px 0px;color: #35a1db;border-radius:2px;margin:0">
+                            诊断报告
+                        </h4>
+                    </div>
+                    <lit-table id="tb-contents" style="height: auto">
+                        <lit-table-column class="cpu-fre-column" width="40px" title="序号" data-index="id" key="id" align="flex-start">
+                        </lit-table-column>
+                        <lit-table-column class="cpu-fre-column" width="1fr" title="类型" data-index="type" key="type" align="flex-start">
+                        </lit-table-column>
+                        <lit-table-column class="cpu-fre-column" width="1fr" title="原因" data-index="description" key="description" align="flex-start">
+                        </lit-table-column>
+                    </lit-table>
+                    <div class="data-record"></div>
+                    <div class="tips-content">
+                        <div class="no-data">
+                            <img src="img/nodata.png" />
+                            <div style="text-align: center;">
+                                暂无数据
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="report-button">
+                    <div class="analysisBtn button">
+                        一键诊断
+                    </div>
+                    <div class="downloadBtn button" style="display: none;">报告下载</div>
+                </div>
+            </div>
         </div>
     </div>
     <div class="rightTabBar">
+        <lit-icon name='close' size = '18' style='position: absolute; top: 12px; right: 17px; cursor: pointer;'></lit-icon>
         <div class="chatBar active">
             <img src="img/talk_active.png" class="chatInon"/>
             <div class="chatBarTitle">聊天</div>
@@ -103,9 +112,39 @@ export const SpAiAnalysisPageHtml = `
             <div class="chatBarTitle">诊断</div>
         </div>
     </div>
+    <div class="tipsContainer" style="display:none;"></div>
     <style>
+    .q_a_window{
+        height: 75%;
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+    .mixedText{
+        text-align: center;
+    }
+    .textTips{
+        font-size: 14px;
+        height: 45px;
+        line-height: 45px;
+        background-color: #dff4fd;
+        padding: 0 10px;
+        border: 1px solid #35a1db;
+        border-radius: 10px;
+    }
+    .tipsContainer{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 320px;
+        height: 50%;
+        position: absolute;
+        top: 23%;
+        left: 44%;
+        transform: translateX(-50%);
+        background-color: sky-blue;
+    }
     .report_details {
-        width: 98%;
+        width: 100%;
         height: 100%;
         display: none;
         position: relative;
@@ -119,7 +158,7 @@ export const SpAiAnalysisPageHtml = `
 
     .usersay {
         max-width: 70%;
-        background: #4baf50;
+        background: rgb(229,246,255);
         border-radius: 4px;
         float: right;
         line-height: 20px;
@@ -133,24 +172,32 @@ export const SpAiAnalysisPageHtml = `
         margin-right: 10px;
         position: relative;
         text-align: justify;
-        color: #fff;
+        color: #000;
+        border: 1px solid #c4ebf5;
+        border-radius: 9px;
+        border-top-right-radius: 0px;
     }
 
-    .userTriangle {
-        width: 0px;
-        height: 0px;
-        border-left: solid 8px #4baf50;
-        border-top: solid 5px rgba(255, 255, 255, 0);
-        border-bottom: solid 5px rgba(255, 255, 255, 0);
-        position: absolute;
-        right: -8px;
-        top: 8px;
+    .tips-content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 90%;
+    }
+
+    #tb-contents {
+        box-shadow: 0px 2px 5px #bfbfbf;
+        margin-bottom: 5px;
+        margin-top: 1px;
+        border-radius: 7px;
+        font-size: 14px
     }
 
     .systemSay {
         max-width: 70%;
         border-radius: 4px;
-        background-color: #fe7300;
+        background-color: rgb(249,250,252);
         float: left;
         line-height: 20px;
         text-overflow: ellipsis;
@@ -162,18 +209,9 @@ export const SpAiAnalysisPageHtml = `
         margin-top: 10px;
         position: relative;
         text-align: justify;
-        color: #fff;
-    }
-
-    .aiTriangle {
-        width: 0px;
-        height: 0px;
-        border-right: solid 8px #fe7300;
-        border-top: solid 5px rgba(255, 255, 255, 0);
-        border-bottom: solid 5px rgba(255, 255, 255, 0);
-        position: absolute;
-        left: -7px;
-        top: 8px;
+        color: #000;
+        border: 0.5px solid #eaeaea;
+        border-radius: 0 10px 10px 10px;
     }
 
     .chatBox {
@@ -189,9 +227,9 @@ export const SpAiAnalysisPageHtml = `
         line-height: 50px;
     }
 
-    .chatWindow {
+    .contentWindow {
         height: 92%;
-        padding: 0 10px 20px;
+        padding: 0 10px 20px 10px;
         border-radius: 10px;
         position: relative;
         background: rgba(235, 235, 235, 0)
@@ -199,16 +237,31 @@ export const SpAiAnalysisPageHtml = `
 
     .ask_question {
         overflow-y: auto;
+        position: relative;
         overflow-x:hidden;
-        height: 77%;
-        padding-right: 10px;
+        height: 100%;
+    }
+
+    .ask_question pre code {
+        white-space: pre-wrap; 
+        overflow-wrap: break-word;
+        max-width: 100%; 
+        font-family: auto;
+    }
+
+    .msgdiv pre code {
+        white-space: pre-wrap; 
+        overflow-wrap: break-word;
+        max-width: 100%; 
+        font-family: auto;
     }
 
     .chatConfig {
         width: 100%;
-        height: 24%;
+        height: 30px;
         position: relative;
         margin-top: 10px;
+        padding-bottom: 5px;
         border-top: 1px solid rgba(255, 255, 255, .3);
     }
 
@@ -223,7 +276,7 @@ export const SpAiAnalysisPageHtml = `
     .chatInput {
         position: relative;
         width: 100%;
-        height: 127px;
+        height: 125px;
         border-radius: 10px;
         text-align: justify;
     }
@@ -231,7 +284,7 @@ export const SpAiAnalysisPageHtml = `
     .right-box {
         position: absolute;
         display: flex;
-        right: 0;
+        right: 25px;
         top: 10px;
     }
 
@@ -269,14 +322,17 @@ export const SpAiAnalysisPageHtml = `
         border-radius: 10px;
         text-align: justify;
         box-sizing: border-box;
-        border: none;
+        border: 0.5px solid rgb(177, 205, 241);
         font-weight: 400;
         line-height: 20px;
+        box-shadow: -5px 5px 10px rgb(246, 246, 246);
     }
 
     .chatInputBox {
         padding-right: 10px;
-        height: 20%;
+        position: absolute;
+        width: 100%;
+        bottom: 5px;
     }
 
     .sendImg {
@@ -301,16 +357,19 @@ export const SpAiAnalysisPageHtml = `
         height: 100%;
         padding-top: 50px;
         font-size: 12px;
-        background-color: #fcfcfc;
+        background-color: rgb(246, 246, 246);
         color: #000;
         box-sizing:border-box;
+    }
+
+    .chatBar{
+        padding-top: 10px;
     }
 
     .chatBarTitle {
         font-size: 12px;
         height: 30px;
         line-height: 20px;
-        cursor: pointer;
     }
 
     .rightTabBar img {
@@ -356,8 +415,6 @@ export const SpAiAnalysisPageHtml = `
     .aiHeader {
         float: left;
         margin-right: 10px;
-        background-image: url('img/logo1.png');
-        background-size: cover;
     }
 
     .headerImg {
@@ -366,7 +423,7 @@ export const SpAiAnalysisPageHtml = `
     }
 
     ::-webkit-scrollbar {
-        width: 2px;
+        width: 5px;
     }
 
     ::-webkit-scrollbar-track {
@@ -375,17 +432,17 @@ export const SpAiAnalysisPageHtml = `
     }
 
     ::-webkit-scrollbar-thumb {
-        background: #272624;
+        background: #635d5d;
         border-radius: 3px;
     }
 
     ::-webkit-scrollbar-thumb:hover {
-        background: #272624;
+        background: #4b4848;
         border-radius: 3px;
     }
 
     ::-webkit-scrollbar-thumb:active {
-        background: #272624;
+        background: #4b4848;
         border-radius: 3px;
     }
 
@@ -408,13 +465,25 @@ export const SpAiAnalysisPageHtml = `
     .analysisList {
         overflow: hidden;
         overflow-y: auto;
+        height: 84%;
+        padding-right: 10px;
+        padding-left: 10px;
+        box-shadow: 1px 2px 5px #bfbfbf;
+        border-radius: 8px;
+        position: relative;
+    }
+
+    .analysis-header {
+        position: sticky;
+        top: 0;
+        background-color: white;
+        z-index: 2;
     }
 
     .analysisItem {
         width: 100%;
         letter-spacing: 1.5px;
         border-radius: 3px;
-        margin-top: 20px;
         line-height: 20px;
         position: relative;
     }
@@ -422,14 +491,31 @@ export const SpAiAnalysisPageHtml = `
     .title {
         font-size: 14px;
         font-weight: 700;
-        background-color: rgba(133, 111, 216, 0.8);
+        background-color: #8bbcdff7;
         padding: 10px 5px;
         color: #fff;
     }
 
+    .top-up-image {
+        width: 17px; 
+        height: 17px; 
+        background-image: url('img/top_up.png'); 
+        background-size: contain;
+        background-repeat: no-repeat;
+        border: 0;
+    }
+        
     .item-name {
         font-size: 14px;
         font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-right: 10px;
+    }
+
+    .item-name img {
+        width: 17px
     }
 
     .item {
@@ -448,7 +534,7 @@ export const SpAiAnalysisPageHtml = `
     .button {
         padding: 3px 35px;
         height: 26px;
-        background-color: #4290f2;
+        background-color: #35a1db;
         border-radius: 10px;
         text-align: center;
         line-height: 26px;
@@ -458,23 +544,33 @@ export const SpAiAnalysisPageHtml = `
         cursor: pointer;
     }
 
-    .no-data {
-        text-align: center;
-        margin-top: 20%;
+    .loginTip {
+        display: none;
+        font-size: 14px;
+        height: 45px;
+        line-height: 45px;
+        background-color: #dff4fd;
+        padding: 0 10px;
+        border: 1px solid #35a1db;
+        border-radius: 10px;
     }
 
-    .loginTip {
+    .importTraceTips{
+        width:203px;
         visibility: hidden;
         position: absolute;
-        top: 45%;
-        left: 38%;
+        top: 28%;
         padding: 5px 15px;
-        background-color: rgba(0, 0, 0, .8);
+        background-color: rgb(236, 239, 247);
         border-radius: 2px;
-        color: #fff;
+        color: #000;
         display: flex;
         align-items: center;
-        font-size: 12px;
+        font-size: 14px;
+        height: 50px;
+        line-height: 50px;
+        left: 50%;
+        transform: translateX(-50%);
     }
 
     .loadingItem {
@@ -495,6 +591,7 @@ export const SpAiAnalysisPageHtml = `
     }
 
     .selectionBox div {
+        font-size: 15px;
         display: flex;
         align-items: center;
         margin-bottom: 10px;
@@ -508,8 +605,27 @@ export const SpAiAnalysisPageHtml = `
         margin: 0 10px 0 0 !important;
     }
 
+    .timeText {
+        color:blue;
+        cursor: pointer;
+    }
+
+    .timeText[active]{
+        color:purple;
+    }
+
+    .timeText:not([active]) {
+        color:blue;
+    }
+
     p {
       margin:0;
     }
+
+    .likeDiv {
+        width:100%;
+        height:25px;
+        margin-top:10px;
+    }
 </style>
-`
+`;

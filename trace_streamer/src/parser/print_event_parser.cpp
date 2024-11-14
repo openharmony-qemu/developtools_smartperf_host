@@ -319,6 +319,10 @@ bool PrintEventParser::ReciveVsync(size_t callStackRow, std::string &args, const
         }
         ++it;
     }
+    if (now == 0 || expectEnd == 0 || vsyncId == 0) {
+        TS_LOGE("Now,expectedEnd or vsyncId should not be 0!");
+        return false;
+    }
     if (convertVsyncTs_ && traceType_ == TRACE_FILETYPE_H_TRACE) {
         if (now != INVALID_UINT64) {
             now = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_MONOTONIC, now);

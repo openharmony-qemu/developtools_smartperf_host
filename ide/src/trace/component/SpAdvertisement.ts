@@ -14,7 +14,7 @@
  */
 
 import { BaseElement, element } from '../../base-ui/BaseElement';
-import { SpAdvertisementHtml } from "./SpAdvertisement.html";
+import { SpAdvertisementHtml } from './SpAdvertisement.html';
 import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil';
 
 @element('sp-advertisement')
@@ -26,46 +26,56 @@ export class SpAdvertisement extends BaseElement {
 
     initElements(): void {
         // 整个广告
-        this.advertisementEL = document.querySelector("body > sp-application")?.shadowRoot?.
-            querySelector("#sp-advertisement")?.shadowRoot?.querySelector("#sp-advertisement");
+        this.advertisementEL = document.querySelector('body > sp-application')?.shadowRoot?.
+            querySelector('#sp-advertisement')?.shadowRoot?.querySelector('#sp-advertisement');
         // 关闭按钮
-        this.closeEL = document.querySelector("body > sp-application")?.shadowRoot?.
-            querySelector("#sp-advertisement")?.shadowRoot?.querySelector("#close");
+        this.closeEL = document.querySelector('body > sp-application')?.shadowRoot?.
+            querySelector('#sp-advertisement')?.shadowRoot?.querySelector('#close');
         // 公告内容
-        this.noticeEl = document.querySelector("body > sp-application")?.shadowRoot?.
-            querySelector("#sp-advertisement")?.shadowRoot?.querySelector("#notice");
+        this.noticeEl = document.querySelector('body > sp-application')?.shadowRoot?.
+            querySelector('#sp-advertisement')?.shadowRoot?.querySelector('.text');
         this.getMessage();
         setInterval(() => {
             this.getMessage();
-        }, 10000);
+        }, 300000);
         this.closeEL?.addEventListener('click', () => {
             this.advertisementEL!.style!.display = 'none';
+            localStorage.setItem('isdisplay', 'false');
         })
     }
 
-    private getMessage() {
+    private getMessage(): void {
         SpStatisticsHttpUtil.getNotice().then(res => {
-            res.text().then((it) => {
-                let resp = JSON.parse(it);
-                if (resp && resp.data && resp.data.data && resp.data.data !== this.message && resp.data.data !== '') {
-                    this.message = resp.data.data;
-                    if (this.message.startsWith('图片:')) {
-                        this.noticeEl!.style.display = "flex";
-                        this.noticeEl!.style.justifyContent = "center";
-                        this.noticeEl!.innerHTML = `<img src ="${this.message.substring(3, this.message.length)}" style="height:150px" 
-                    alt = "图片加载失败"></img>`
-                    } else if (this.message.startsWith('链接:')) {
-                        this.noticeEl!.style.height = "auto";
-                        this.noticeEl!.style.color = "#000";
-                        this.noticeEl!.innerHTML = `链接：<a href = "${this.message.substring(3, this.message.length)}" target = "black">
-                    ${this.message.substring(3, this.message.length)}</a>`
+            if (res.status === 200) {
+                res.text().then((it) => {
+                    let resp = JSON.parse(it);
+                    let publish = localStorage.getItem('message');
+                    if (resp && resp.data && resp.data.data && resp.data.data !== '') {
+                        this.message = resp.data.data;
+                        localStorage.setItem('message', this.message);
+                        let parts = this.message.split(';');
+                        let linkInfo = parts[2].match(/链接:([^\s]+)/)![1] || '';
+                        let link = `<a href="${linkInfo}" target="_blank">${parts[1]}</a>`;
+                        let finalString = `${parts[0]}<br>${link}`;
+                        this.noticeEl!.innerHTML = `<p>${finalString}</p>`;
+                        if (publish) {
+                            if (resp.data.data !== publish) {
+                                localStorage.setItem('isdisplay', 'true');
+                            }
+                        } else {
+                            localStorage.setItem('isdisplay', 'true');
+                        }
                     } else {
-                        this.noticeEl!.style.color = "red";
-                        this.noticeEl!.innerHTML = this.message;
+                        localStorage.setItem('isdisplay', 'false');
                     }
-                    this.advertisementEL!.style!.display = 'block';
-                }
-            });
+                    let isdisplay = localStorage.getItem('isdisplay');
+                    this.advertisementEL!.style!.display = isdisplay === 'true' ? 'block' : 'none';
+                });
+            } else {
+                this.advertisementEL!.style!.display = 'none';
+            }
+        }).catch(err => {
+            this.advertisementEL!.style!.display = 'none';
         })
     }
 

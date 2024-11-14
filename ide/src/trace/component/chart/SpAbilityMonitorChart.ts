@@ -48,7 +48,6 @@ const networkNameList: Array<string> = ['Bytes In/Sec', 'Bytes Out/Sec', 'Packet
 const memoryNameList: Array<string> = ['MemoryTotal', 'Cached', 'SwapTotal'];
 const diskIONameList: Array<string> = ['Bytes Read/Sec', 'Bytes Written/Sec', 'Read Ops/Sec', 'Written Ops/Sec'];
 const key = 'abilityMonitor';
-
 export class SpAbilityMonitorChart {
   private trace: SpSystemTrace;
   constructor(trace: SpSystemTrace) {
@@ -94,13 +93,6 @@ export class SpAbilityMonitorChart {
     }
     if (this.hasTable(result, 'trace_diskio')) {
       await this.initDiskAbility(processRow);
-      // 统计diskio插件
-      let requestBody = {
-        eventData: {
-          plugin: ['diskio-plugin']
-        }
-      };
-      SpStatisticsHttpUtil.recordPluginUsage(requestBody);
     }
     if (this.hasTable(result, 'trace_network')) {
       await this.initNetworkAbility(processRow);

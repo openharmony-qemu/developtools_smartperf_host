@@ -23,6 +23,7 @@ import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { xpowerDataSender } from '../../database/data-trafic/XpowerDataSender';
 import { queryXpowerData, queryXpowerMeasureData } from '../../database/sql/Xpower.sql';
 import { BaseStruct } from '../../bean/BaseStruct';
+import { SpStatisticsHttpUtil } from '../../../statistics/util/SpStatisticsHttpUtil';
 
 export class SpXpowerChart {
     private readonly trace: SpSystemTrace;
@@ -84,7 +85,7 @@ export class SpXpowerChart {
         systemFolder.rowId = 'system';
         systemFolder.rowParentId = 'Xpowers';
         systemFolder.rowHidden = !this.rowFolder.expansion;
-        systemFolder.rowType = TraceRow.ROW_TYPE_XPOWER_SYSTEM;
+        systemFolder.rowType = TraceRow.ROW_TYPE_XPOWER_SYSTEM_GROUP;
         systemFolder.folder = true;
         systemFolder.name = 'System';
         systemFolder.folderPaddingLeft = 20;
@@ -118,6 +119,7 @@ export class SpXpowerChart {
             name: string;
             num: number;
             maxValue?: number;
+            minValue?: number;
         },
     ): void {
         traceRow.supplierFrame = (): Promise<XpowerStruct[]> => {
@@ -131,11 +133,6 @@ export class SpXpowerChart {
                 // @ts-ignore
                 return promiseData.then((resultXpower: Array<unknown>) => {
                     for (let j = 0; j < resultXpower.length; j++) {
-                        // @ts-ignore
-                        if ((resultXpower[j].value || 0) > it.maxValue!) {
-                            // @ts-ignore
-                            it.maxValue = resultXpower[j].value || 0;
-                        }
                         if (j > 0) {
                             // @ts-ignore
                             resultXpower[j].delta = (resultXpower[j].value || 0) - (resultXpower[j - 1].value || 0);
@@ -156,6 +153,7 @@ export class SpXpowerChart {
             name: string;
             num: number;
             maxValue?: number;
+            minValue?: number;
         },
         xpowerId: number
     ): void {
@@ -173,6 +171,7 @@ export class SpXpowerChart {
                     useCache: useCache,
                     type: it.name,
                     maxValue: it.maxValue === 0 ? 1 : it.maxValue!,
+                    minValue: it.minValue || 0,
                     index: xpowerId,
                     maxName: it.maxValue!.toString()
                 },
@@ -185,13 +184,13 @@ export class SpXpowerChart {
     async initSystemData(folder: TraceRow<BaseStruct>, xpowerList: Array<{
         name: string;
         num: number;
-        maxValue?: number;
+        maxValue: number;
+        minValue: number;
     }>, traceId?: string): Promise<void> {
         info('xpowerList data size is: ', xpowerList!.length);
         XpowerStruct.maxValue = xpowerList.map((item) => item.num).reduce((a, b) => Math.max(a, b));
         for (let i = 0; i < xpowerList.length; i++) {
             const it = xpowerList[i];
-            it.maxValue = 0;
             let traceRow = TraceRow.skeleton<XpowerStruct>(traceId);
             traceRow.rowId = it.name;
             traceRow.rowType = TraceRow.ROW_TYPE_XPOWER_SYSTEM;
@@ -200,7 +199,10 @@ export class SpXpowerChart {
             traceRow.name = it.name;
             traceRow.rowHidden = !folder.expansion;
             traceRow.folderTextLeft = 40;
-            traceRow.xpowerRowTitle = this.convertTitle(it.name);
+            if (it.name === 'ThermalReport.ShellTemp') { 
+                it.maxValue = it.maxValue / 1000;
+            }
+            traceRow.xpowerRowTitle = convertTitle(it.name); 
             traceRow.setAttribute('children', '');
             traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
             traceRow.selectChangeHandler = this.trace.selectChangeHandler;
@@ -215,6 +217,7 @@ export class SpXpowerChart {
                     traceRow,
                     XpowerStruct.hoverXpowerStruct,
                     `<span>${it.name === 'ThermalReport.ShellTemp' ? XpowerStruct.hoverXpowerStruct?.value! :
+                        it.name === 'ThermalReport.ThermalLevel' ? convertHoverValue(String(XpowerStruct.hoverXpowerStruct?.value!)) : 
                         ColorUtils.formatNumberComma(XpowerStruct.hoverXpowerStruct?.value!)}</span>`
                 );
             };
@@ -225,28 +228,44 @@ export class SpXpowerChart {
             folder.addChildTraceRow(traceRow);
         }
     }
+}
 
-    convertTitle(title: string): string {
-        switch (title) {
-            case 'Battery.Capacity':
-                return '电池容量(单位mAh)';
-            case 'Battery.Charge':
-                return '充电状态(充电1,非充电0)';
-            case 'Battery.GasGauge':
-                return '电池剩余电量(单位mAh)';
-            case 'Battery.Level':
-                return '电池百分比';
-            case 'Battery.RealCurrent':
-                return '实时电流(单位mAh,充电时为正数,耗电时为负数)';
-            case 'Battery.Screen':
-                return '屏幕状态(亮屏1,灭屏0)';
-            case 'ThermalReport.ShellTemp':
-                return '外壳温度(单位℃)';
-            case 'ThermalReport.ThermalLevel':
-                return '温度等级';
-            default:
-                return title;
-        }
+// 鼠标悬浮时转换xpower泳道名
+export function convertTitle(title: string): string {
+    switch (title) {
+        case 'Battery.Capacity':
+            return '电池容量(单位mAh)';
+        case 'Battery.Charge':
+            return '充电状态(充电1,非充电0)';
+        case 'Battery.GasGauge':
+            return '电池剩余电量(单位mAh)';
+        case 'Battery.Level':
+            return '电池百分比';
+        case 'Battery.RealCurrent':
+            return '实时电流(单位mAh,充电时为正数,耗电时为负数)';
+        case 'Battery.Screen':
+            return '屏幕状态(亮屏1,灭屏0)';
+        case 'ThermalReport.ShellTemp':
+            return '外壳温度(单位℃)';
+        case 'ThermalReport.ThermalLevel':
+            return '温度等级';
+        default:
+            return title;
     }
+}
 
+// 鼠标悬浮ThermalReport.ThermalLevel泳道时转换悬浮框内容
+export function convertHoverValue(value: string): string { 
+    switch (value) {
+        case '0':
+            return 'COOL';
+        case '1':
+            return 'WARM';
+        case '2':
+            return 'HOT';
+        case '3':
+            return 'OVERHEATED';
+        default:
+            return value;
+    }
 }

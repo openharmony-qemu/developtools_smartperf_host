@@ -53,7 +53,7 @@ import { Utils } from './trace/base/Utils';
 import { BaseStruct } from '../bean/BaseStruct';
 import { GpuCounterStruct, gpuCounterStructOnClick } from '../database/ui-worker/ProcedureWorkerGpuCounter';
 import { HangStructOnClick } from '../database/ui-worker/ProcedureWorkerHang';
-import { XpowerStruct, XpowerStructOnClick } from '../database/ui-worker/ProcedureWorkerXpower'; 
+import { XpowerStruct, XpowerStructOnClick } from '../database/ui-worker/ProcedureWorkerXpower';
 import { SpAiAnalysisPage } from './SpAiAnalysisPage';
 
 function timeoutJudge(sp: SpSystemTrace): number {
@@ -419,7 +419,10 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
     })
     .catch((e): void => { });
   // @ts-ignore
-  SpAiAnalysisPage.selectChangeListener(entry.startTime || entry.startTs, (entry.startTime! || entry.startTs) + entry.dur)
+  if (entry && entry.dur && (entry.startTime! || entry.startTs)) {
+    // @ts-ignore
+    SpAiAnalysisPage.selectChangeListener(entry.startTime || entry.startTs, (entry.startTime! || entry.startTs) + entry.dur);
+  }
 }
 export default function spSystemTraceOnClickHandler(
   sp: SpSystemTrace,
@@ -436,7 +439,10 @@ export default function spSystemTraceOnClickHandler(
   if (!sp.loadTraceCompleted) {
     return;
   }
-  sp.queryAllTraceRow().forEach((it): boolean => (it.rangeSelect = false));
+  sp.queryAllTraceRow().forEach(it => {
+    it.checkType = '-1';
+    it.rangeSelect = false;
+  });
   sp.selectStructNull();
   sp._slicesList.forEach((slice: { selected: boolean }): void => {
     slice.selected = false;
@@ -495,7 +501,7 @@ function handleMouseInTimeShaft(sp: SpSystemTrace, ev: MouseEvent): boolean | un
 
 export function spSystemTraceDocumentOnMouseMove(sp: SpSystemTrace, ev: MouseEvent): void {
   //@ts-ignore
-  if (!sp.loadTraceCompleted || (window as unknown).flagInputFocus || !sp.mouseEventEnable) {
+  if (!sp.loadTraceCompleted || !sp.mouseEventEnable) {
     return;
   }
   //@ts-ignore
@@ -602,6 +608,9 @@ export function spSystemTraceDocumentOnMouseOut(sp: SpSystemTrace, ev: MouseEven
   CpuStruct.hoverCpuStruct = undefined;
   TraceRow.isUserInteraction = false;
   SpSystemTrace.isMouseLeftDown = false;
+  if(!sp.keyboardEnable){
+    return;
+  }
   if (sp.isMouseInSheet(ev)) {
     return;
   }
@@ -792,17 +801,23 @@ export function spSystemTraceDocumentOnMouseUp(sp: SpSystemTrace, ev: MouseEvent
 }
 
 export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEvent): void {
+  if (SpSystemTrace.isAiAsk) {
+    return;
+  }
   SpSystemTrace.isKeyUp = true;
   if (sp.times.size > 0) {
     for (let timerId of sp.times) {
       clearTimeout(timerId);
     }
   }
+  if(!sp.keyboardEnable){
+    return;
+  }
   let flag: boolean = sp.parentElement
     ?.querySelector('sp-record-trace')!
     .shadowRoot?.querySelector('lit-main-menu-item[icon="file-config"]')!
     .hasAttribute('back')!;
-  if (ev.key.toLocaleLowerCase() === String.fromCharCode(47) && !flag) {
+  if (ev.key.toLocaleLowerCase() === String.fromCharCode(47) && !flag && !SpSystemTrace.isAiAsk) {
     if (SpSystemTrace.keyboardFlar) {
       document
         .querySelector('body > sp-application')!
@@ -821,7 +836,7 @@ export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEven
   let flagsItem = window.localStorage.getItem(FlagsConfig.FLAGS_CONFIG_KEY);
   let flagsItemJson = JSON.parse(flagsItem!);
   if (flagsItemJson.VSync === 'Enabled') {
-    sp.keyboardEnable && enableVSync(false, ev, () => sp.refreshCanvas(true, 'sp key up'));
+    enableVSync(false, ev, () => sp.refreshCanvas(true, 'sp key up'));
   }
   let keyPress = ev.key.toLocaleLowerCase();
   if (keyPress === 'w' || keyPress === 'a' || keyPress === 's' || keyPress === 'd') {

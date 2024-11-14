@@ -49,6 +49,7 @@ import {
   queryisExistsGpuData,
   queryisExistsGpuResourceData,
 } from '../../database/sql/Gpu.sql';
+import { SpStatisticsHttpUtil } from '../../../statistics/util/SpStatisticsHttpUtil';
 
 export class VmTrackerChart {
   private trace: SpSystemTrace;

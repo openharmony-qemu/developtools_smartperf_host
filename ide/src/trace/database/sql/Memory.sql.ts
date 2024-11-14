@@ -471,6 +471,16 @@ where s.end_ts between $startTime + t.start_ts and $endTime + t.start_ts ${ipids
     { $startTime: startTime, $endTime: endTime }
   );
 
+// 查询是否使用插件插件
+export const queryPlugins = (
+  table: string
+): Promise<Array<unknown>> =>
+  query(
+    'queryPlugins',
+    `select 1 from ${table} limit 1`,
+    {}
+  );
+
 export const queryisExistsShmData = (
   iPid: number
 ): //@ts-ignore

@@ -62,6 +62,8 @@ export class TabPanePerfAnalysis extends BaseElement {
   private hideThreadCheckBox: LitCheckBox | undefined | null;
   private checkBoxs: NodeListOf<LitCheckBox> | undefined | null;
   private tableArray: NodeListOf<LitTable> | undefined | null;
+  private isComplete: boolean = true;
+  private currentSelectionParam: SelectionParam | undefined | null;
 
   set data(val: SelectionParam) {
     if (val === this.currentSelection) {
@@ -85,7 +87,9 @@ export class TabPanePerfAnalysis extends BaseElement {
     this.perfAnalysisRange!.textContent = `Selected range: ${parseFloat(
       ((val.rightNs - val.leftNs) / 1000000.0).toFixed(5)
     )} ms`;
-    if (!this.callChainMap) {
+    this.currentSelectionParam = val;
+    if (!this.callChainMap && this.isComplete) {
+      this.isComplete = false;
       this.getCallChainDataFromWorker(val);
     }
   }
@@ -1090,6 +1094,11 @@ export class TabPanePerfAnalysis extends BaseElement {
 
   private getCallChainDataFromWorker(val: SelectionParam): void {
     this.getDataByWorker(val, (results: unknown) => {
+      this.isComplete = true;
+      if (this.currentSelectionParam !== val) {
+        this.getCallChainDataFromWorker(this.currentSelectionParam!);
+        return;
+      }
       // @ts-ignore
       this.processData = results;
       if (this.processData.length === 0) {
@@ -1099,6 +1108,7 @@ export class TabPanePerfAnalysis extends BaseElement {
         this.hideProcessCheckBox?.removeAttribute('disabled');
         this.hideThreadCheckBox?.removeAttribute('disabled');
       }
+      this.progressEL!.loading = false;
       this.getHiperfProcess(val);
     });
   }
@@ -1121,7 +1131,6 @@ export class TabPanePerfAnalysis extends BaseElement {
     ];
     procedurePool.submitWithName('logic0', 'perf-action', args, undefined, (results: unknown) => {
       handler(results);
-      this.progressEL!.loading = false;
     });
   }
 

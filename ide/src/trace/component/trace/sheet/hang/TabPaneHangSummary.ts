@@ -54,8 +54,8 @@ export class TabPaneHangSummary extends BaseElement {
       const filter = new Set([...selectionParam.hangMapData.keys()].map(key => key.split(' ').at(-1)));
       ret = ret.filter(struct => (
         filter.has(`${struct.pid ?? 0}`) &&
-        ((struct.startNS ?? 0) <= selectionParam.rightNs) &&
-        (selectionParam.leftNs <= ((struct.startNS ?? 0) + (struct.dur ?? 0)))
+        ((struct.startTime ?? 0) <= selectionParam.rightNs) &&
+        (selectionParam.leftNs <= ((struct.startTime ?? 0) + (struct.dur ?? 0)))
       ));
       this.systemHangSource = ret;
       if (filter.size > 0 && selectionParam) {

@@ -157,6 +157,7 @@ export class TabPaneFrequencySample extends BaseElement {
 
   async queryDataByDB(frqSampleParam: SelectionParam | unknown): Promise<void> {
     let sampleMap = new Map<unknown, unknown>();
+    let weightMap = new Map<unknown, unknown>();
     let frqSampleList: unknown[] = [];
     this.frequencySampleTbl!.loading = true;
     if (this.frequencySampleClickType) {
@@ -176,6 +177,7 @@ export class TabPaneFrequencySample extends BaseElement {
     this.freqResult = result;
     // @ts-ignore
     frqSampleParam.cpuFreqFilterIds.forEach((a: number): void => {
+      weightMap.set(`${a}`, { counter: '', filterId: a });
       this.getInitTime(
         //@ts-ignore
         result.filter((f) => f.filterId === a),
@@ -184,9 +186,33 @@ export class TabPaneFrequencySample extends BaseElement {
         frqSampleParam
       );
     });
+    let tmpCpuArr = Array.from(sampleMap.entries());
+    let weightMapArr = Array.from(weightMap.entries());
+    console.log(tmpCpuArr, weightMap);
+    for (let j = 0; j < weightMapArr.length; j++) {
+      // @ts-ignore
+      let singleCpuArr = tmpCpuArr.filter((item) => item[1].filterId && item[1].filterId === Number(weightMapArr[j][1].filterId));
+      // console.log(singleCpuArr);
+      let tmpTotalTime = 0;
+      let tmpTotalCount = 0;
+      for (let i = 0; i < singleCpuArr.length; i++) {
+        // @ts-ignore
+        tmpTotalTime += singleCpuArr[i][1].time;
+        // @ts-ignore
+        tmpTotalCount += singleCpuArr[i][1].time / 1000000 * singleCpuArr[i][1].value;
+      }
+      // @ts-ignore
+      let tmpPosition = tmpCpuArr.findIndex(item => item[1].filterId === weightMapArr[j][1].filterId);
+      // @ts-ignore
+      tmpCpuArr.splice(tmpPosition, 0, [`${weightMapArr[j][1].filterId}-0`, { counter: `${singleCpuArr[0][1].counter}:( WA )`, time: tmpTotalTime, valueStr: ColorUtils.formatNumberComma(Math.round(tmpTotalCount / (tmpTotalTime / 1000000)))}]);
+    };
+    sampleMap = new Map(tmpCpuArr);
     sampleMap.forEach((a): void => {
       // @ts-ignore
-      a.timeStr = parseFloat((a.time / 1000000.0).toFixed(6));
+      if (a.time) {
+        // @ts-ignore
+        a.timeStr = parseFloat((a.time / 1000000.0).toFixed(6));
+      }
       frqSampleList.push(a);
     });
     this.frequencySampleSource = frqSampleList;
@@ -316,7 +342,13 @@ export class TabPaneFrequencySample extends BaseElement {
     if (this.freqBusyDataList.length > 0) {
       this.frequencySampleTbl!.recycleDataSource.forEach((value): void => {
         // @ts-ignore
-        value.busyTimeStr = type ? value.busyTime : '-';
+        if(value.counter.includes('( WA )')){
+          // @ts-ignore
+          value.busyTimeStr = '-'
+        }else {
+          // @ts-ignore
+          value.busyTimeStr = type ? value.busyTime : '-';
+        }
         res.push(value);
       });
       this.frequencySampleTbl!.recycleDataSource = res;

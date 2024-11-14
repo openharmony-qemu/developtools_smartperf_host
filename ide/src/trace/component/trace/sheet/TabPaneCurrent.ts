@@ -102,6 +102,10 @@ export class TabPaneCurrent extends BaseElement {
         if (this.slicesTimeList.length === 0) {
           return;
         }
+        // @ts-ignore
+        if((window as unknown).flagInputFocus){
+          return;
+        }
         let tr = this.panelTable!.shadowRoot!.querySelectorAll('.tr') as NodeListOf<HTMLDivElement>;
         //   第一个tr是移除全部，所以跳过，从第二个tr开始，和this.slicesTimeList数组的第一个对应……，所以i从1开始，在this.slicesTimeList数组中取值时用i-1
         for (let i = 1; i < tr.length; i++) {
@@ -218,9 +222,6 @@ export class TabPaneCurrent extends BaseElement {
           this.systemTrace!.slicesList = this.slicesTimeList || [];
           // @ts-ignore
           this.slicesTimeList[i - 1].text = event?.target.value;
-          window.publish(window.SmartEvent.UI.KeyboardEnable, {
-            enable: true,
-          });
           document.dispatchEvent(new CustomEvent('slices-change', { detail: this.slicesTimeList[i - 1] }));
 
           this.systemTrace?.refreshCanvas(true);

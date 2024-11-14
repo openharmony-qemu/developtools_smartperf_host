@@ -35,13 +35,6 @@ export class SpHiSysEventChart {
     }
     let eventRow = await this.initRow();
     this.trace.rowsEL?.appendChild(eventRow);
-    // 统计hiSysevent插件
-    let requestBody = {
-      eventData:{
-        plugin:['hisysevent']
-      }
-    };
-    SpStatisticsHttpUtil.recordPluginUsage(requestBody);
   }
 
   async initRow(): Promise<TraceRow<HiSysEventStruct>> {

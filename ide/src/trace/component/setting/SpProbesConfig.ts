@@ -62,7 +62,7 @@ export class SpProbesConfig extends BaseElement {
     if (this.ftraceBufferSizeResult?.hasAttribute('percent')) {
       return Number(this.ftraceBufferSizeResult?.getAttribute('percent'));
     }
-    return 20480;
+    return 204800;
   }
 
   get memoryConfig(): string[] {
@@ -235,10 +235,10 @@ export class SpProbesConfig extends BaseElement {
       if (this.ftraceBufferSizeResult!.hasAttribute('percent')) {
         buffSizeResult.value = Number(this.ftraceBufferSizeResult!.getAttribute('percent')).toString();
       } else {
-        buffSizeResult.value = '20480';
+        buffSizeResult.value = '204800';
       }
     });
-    bufferSizeSliderParent.setAttribute('percent', '20480');
+    bufferSizeSliderParent.setAttribute('percent', '204800');
     buffSizeResult.style.color = 'var(--dark-color1,#000000)';
     buffSizeResult.addEventListener('input', () => {
       this.ftraceBuffSizeResultInputHandler(buffSizeResult, bufferSizeSliderParent, bufferSizeSlider);
@@ -246,8 +246,8 @@ export class SpProbesConfig extends BaseElement {
     buffSizeResult.addEventListener('focusout', () => {
       if (buffSizeResult.value.trim() === '') {
         buffSizeResult.parentElement!.classList.remove('border-red');
-        bufferSizeSliderParent.setAttribute('percent', '20480');
-        buffSizeResult.value = '20480';
+        bufferSizeSliderParent.setAttribute('percent', '204800');
+        buffSizeResult.value = '204800';
         buffSizeResult.style.color = 'var(--dark-color,#6a6f77)';
         bufferSizeSliderParent.setAttribute('percent', buffSizeResult.value);
         bufferSizeSliderParent.setAttribute('percentValue', buffSizeResult.value);
@@ -271,7 +271,7 @@ export class SpProbesConfig extends BaseElement {
     buffSizeResultEl.style.backgroundColor = 'var(--dark-background5,#F2F2F2)';
     if (buffSizeResultEl.value.trim() === '') {
       buffSizeResultEl.style.color = 'red';
-      bufferSizeSliderParentEl.setAttribute('percent', '20480');
+      bufferSizeSliderParentEl.setAttribute('percent', '204800');
       return;
     }
     let ftraceBufferSize = Number(buffSizeResultEl.value);
@@ -280,7 +280,7 @@ export class SpProbesConfig extends BaseElement {
       ftraceBufferSize > bufferSizeSliderEl!.sliderStyle.maxRange
     ) {
       buffSizeResultEl.parentElement!.classList.add('border-red');
-      bufferSizeSliderParentEl.setAttribute('percent', '20480');
+      bufferSizeSliderParentEl.setAttribute('percent', '204800');
     } else {
       buffSizeResultEl.parentElement!.classList.remove('border-red');
       bufferSizeSliderEl!.percent = buffSizeResultEl.value;

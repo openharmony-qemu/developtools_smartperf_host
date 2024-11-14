@@ -61,6 +61,10 @@ export class TabPaneFlag extends BaseElement {
         if (this.flagList.length === 0) {
           return;
         }
+        // @ts-ignore
+        if((window as unknown).flagInputFocus){
+          return;
+        }
         let tr = this.panelTable!.shadowRoot!.querySelectorAll('.tr') as NodeListOf<HTMLDivElement>;
         //   第一个tr是移除全部，所以跳过，从第二个tr开始，和this.slicestimeList数组的第一个对应……，所以i从1开始，在this.slicestimeList数组中取值时用i-1
         for (let i = 1; i < tr.length; i++) {

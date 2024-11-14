@@ -14,7 +14,7 @@
  */
 
 import { warn } from '../../log/Log';
-import { BurialPointRequestBody, pluginUsage } from './SpStatisticsHttpBean';
+import { BurialPointRequestBody, GeneralRecordRequest, pluginUsage } from './SpStatisticsHttpBean';
 
 export class SpStatisticsHttpUtil {
   static requestServerInfo: string = '';
@@ -24,6 +24,9 @@ export class SpStatisticsHttpUtil {
   static retryMaxCount: number = 5;
   static pauseRetry: boolean = false;
   static retryRestTimeOut: boolean = false;
+  static recordPlugin: Array<string> = [];
+  static controllersMap: Map<number, AbortController> = new Map<number, AbortController>();
+  static isInterrupt: boolean = false;
 
   static initStatisticsServerConfig(): void {
     if (SpStatisticsHttpUtil.requestServerInfo === '') {
@@ -165,21 +168,46 @@ export class SpStatisticsHttpUtil {
       .then((resp) => { });
   }
 
-  static recordPluginUsage(requsetBody: pluginUsage) {
+  // ai问答
+  static generalRecord(category: string, secondCat: string, thirdCat: Array<string | number>): void {
+    let requestBody: GeneralRecordRequest = {
+      ts: SpStatisticsHttpUtil.getCorrectRequestTime(),
+      category,
+      secondCat,
+      thirdCat
+    };
+    fetch(`https://${SpStatisticsHttpUtil.requestServerInfo}/generalRecord`, {
+      method: 'post',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestBody)
+    }).then(
+      res => { }
+    ).catch(err => {
+
+    })
+  }
+
+  static recordPluginUsage(): void {
     fetch(`https://${SpStatisticsHttpUtil.requestServerInfo}/recordPluginUsage`, {
       method: 'post',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(requsetBody),
+      body: JSON.stringify({
+        eventData: {
+          plugin: SpStatisticsHttpUtil.recordPlugin
+        }
+      })
     }).then(res => {
     }).catch(err => {
-      this.handleRequestException();
     });
+    SpStatisticsHttpUtil.recordPlugin = [];
   }
 
-  static getNotice() {
-    return fetch(`${document.URL}messagePublish`);
+  static getNotice(): Promise<Response> {
+    return fetch(`https://${window.location.host}${window.location.pathname}messagePublish`);
   }
 
   static getCorrectRequestTime(): number {
@@ -190,37 +218,84 @@ export class SpStatisticsHttpUtil {
   }
 
   // ai对话接口--获取token
-  static async getAItoken() {
-    let token = ''
-    await window.fetch(`https://${window.location.host}/takeToken`, {
+  static async getAItoken(): Promise<aiResponse> {
+    let controller = new AbortController();
+    let response: aiResponse = {
+      status: 0,
+      data: ''
+    };
+    setTimeout(() => {
+      controller.abort();
+    }, 60000);
+    let res = await window.fetch(`https://${window.location.host}/takeToken`, {
       method: 'post',
+      signal: controller.signal,
       headers: {
         'Content-Type': 'application/json'
       }
-    }).then(async (res) => {
-      let resp = await res.text();
-      let resj = await JSON.parse(resp);
-      token = resj.token;
-    }).catch(() => { });
-    return token;
+    }).then(async res => {
+      response.status = res.status;
+      if (res.status === 200) {
+        let resp = await res.text();
+        let resj = await JSON.parse(resp);
+        response.data = resj.token;
+      }
+    }).catch(err => {
+      response.status = 700;
+    })
+    return response;
   }
 
   // ai对话接口--问答
   // @ts-ignore
-  static async askAi(requestBody) {
-    let answer = '';
-    let res = await window.fetch(`https://${window.location.host}/ask`, {
-      method: 'post',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestBody)
+  static askAi(requestBody): Promise<aiResponse> {
+    return new Promise((resolve, reject) => {
+      let controller = new AbortController();
+      let date = Date.now();
+      if (!SpStatisticsHttpUtil.controllersMap.has(date)) {
+        SpStatisticsHttpUtil.controllersMap.set(date, controller)
+      }
+      let response: aiResponse = {
+        status: 0,
+        data: '',
+        time: date,
+      };
+      setTimeout(() => {
+        controller.abort();
+      }, 60000);
+      window.fetch(`https://${window.location.host}/ask`, {
+        method: 'post',
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+      }).then(async res => {
+        response.status = res.status;
+        if (res.status === 200) {
+          let resp = await res.text();
+          let resj = await JSON.parse(resp);
+          response.data = resj.reason && resj.reason === 'ok' ? resj.chatbot_reply : '服务器异常，请稍后再试';
+        }
+        else {
+          response.data = '服务器请求失败';
+        }
+        resolve(response);
+      }).catch((err) => {
+        if (err.toString().indexOf('AbortError') > -1) {
+          response.data = '请求超时，已中断！';
+          response.status = 504;
+        } else {
+          response.data = '请求错误';
+        }
+        reject(response)
+      })
     })
-    // 用状态码判断statu = 200?
-    let resp = await res.text();
-    let resj = await JSON.parse(resp);
-    answer = resj.chatbot_reply;
-    return answer;
   }
 }
 
+export class aiResponse {
+  status: number = 0;
+  data: string = '';
+  time?: number = 0;
+}

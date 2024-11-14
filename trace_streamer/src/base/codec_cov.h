@@ -32,6 +32,8 @@ CODING GetCoding(const uint8_t *data, int32_t len);
 
 #ifdef _WIN32
 std::string GbkToUtf8(const char *srcStr);
+std::string Utf8ToGbk(const char *srcStr);
+std::wstring String2WString(const std::string &strInput);
 #endif
 } // namespace base
 } // namespace SysTuning

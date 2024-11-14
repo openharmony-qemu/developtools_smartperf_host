@@ -92,7 +92,7 @@ ohos_source_set("trace_data") {
   deps = [
     "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/smartperf_host:ts_all_sph_cpp",
   ]
-
+  public_deps = [ "${SRC}/base:base" ]
   public_configs = [
     "${SRC}/parser/ebpf_parser:ebpf_parser_cfg",
     "${SRC}/base/sqlite_ext:sqlite_ext_cfg",

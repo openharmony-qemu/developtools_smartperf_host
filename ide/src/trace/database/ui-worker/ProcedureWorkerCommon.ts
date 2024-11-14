@@ -555,6 +555,7 @@ export class PairPoint {
   hidden?: boolean = false;
   backrowEL?: TraceRow<BaseStruct>;
   rangeTime?: string;
+  sourcebackrowEL?: TraceRow<BaseStruct>;
 
   constructor(
     rowEL: TraceRow<BaseStruct>,

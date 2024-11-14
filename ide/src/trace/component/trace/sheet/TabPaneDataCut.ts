@@ -68,8 +68,8 @@ export class TabPaneDataCut extends BaseElement {
         this.tabContainer?.appendChild(this.currentTabPane);
         this.currentTabPane.data = this.currentSelection;
       }
-      let tabs = document.querySelector("body > sp-application")?.shadowRoot?.querySelector("#sp-system-trace")?.shadowRoot?.querySelector("div > trace-sheet")?.shadowRoot?.querySelector("#tabs") as LitTabs;
-      let pane = document.querySelector("body > sp-application")?.shadowRoot?.querySelector("#sp-system-trace")?.shadowRoot?.querySelector("div > trace-sheet")?.shadowRoot?.querySelector("#tabpane-datacut") as LitTabpane;
+      let tabs = document.querySelector('body > sp-application')?.shadowRoot?.querySelector('#sp-system-trace')?.shadowRoot?.querySelector('div > trace-sheet')?.shadowRoot?.querySelector('#tabs') as LitTabs;
+      let pane = document.querySelector('body > sp-application')?.shadowRoot?.querySelector('#sp-system-trace')?.shadowRoot?.querySelector('div > trace-sheet')?.shadowRoot?.querySelector('#tabpane-datacut') as LitTabpane;
       tabs.activeByKey(pane.key);
     }
   }

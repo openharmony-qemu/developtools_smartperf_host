@@ -15,15 +15,31 @@
 
 export const SpAdvertisementHtml = `<style>
         #sp-advertisement {
+          position: absolute;  
+          bottom: -200px;
+          transform: translateX(-50%);
+          opacity: 0;
+          animation: slideUpVerticalAndFadeIn 1.5s forwards ease-out;
           background-color:#fff;
           display:none;
-          max-width: 400px;
+          min-width: 400px;
           border-radius: 5px;
-          border:1px solid galy;
+          border:1px solid gray;
           box-shadow: 0px 0px 10px #d9d9d9;
           cursor: pointer;
           padding:15px 5px 5px 5px;
           font-family: "HarmonyOS Sans SC", "Arial", sans-serif;
+        }
+        @keyframes slideUpVerticalAndFadeIn  {  
+           0% {  
+             bottom: -200px;
+             opacity: 0;
+           }  
+           100% {  
+            bottom: 0;
+            transform: translateX(-100%);
+            opacity: 1;
+          }  
         }
         #close { 
           position:absolute;
@@ -39,15 +55,40 @@ export const SpAdvertisementHtml = `<style>
           font-weight:bold;
         }
         #notice {
-          color:red;
-          word-wrap: break-word;    
+          display: flex;  
+          align-items: center;
+          color:#000;
           overflow-wrap: break-word;
           line-height:30px;
           padding-right:15px;
+          overflow:hidden;
+        }
+        
+        img {
+          flex-grow: 1;  
+          flex-basis: 0;  
+          max-width: 20%; 
+          object-fit: cover;
+        }
+        .text {  
+            flex-grow: 2;  
+            padding-left: 10px;  
+        }
+        
+        span {
+            display:inline-block;
+        }
+
+        a {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
         </style>
         <div class="sp-advertisement" id="sp-advertisement">
             <lit-icon name="close" size="18px" id = "close"></lit-icon>
-            <div id="notice"></div>
+            <div id="notice">
+              <img src="img/logo.png" alt="Description" class="image" id="Image">
+              <div class="text"></div>
+            </div>
         </div>
     `;
