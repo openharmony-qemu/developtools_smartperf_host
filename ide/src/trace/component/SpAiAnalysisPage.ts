@@ -146,6 +146,7 @@ export class SpAiAnalysisPage extends BaseElement {
                     this.sendMessage();
                     // 禁止默认的回车换行
                     e.preventDefault();
+                    e.stopPropagation();
                 };
             };
         });
