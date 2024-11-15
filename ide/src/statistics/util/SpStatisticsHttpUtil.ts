@@ -169,7 +169,7 @@ export class SpStatisticsHttpUtil {
   }
 
   // ai问答
-  static generalRecord(category: string, secondCat: string, thirdCat: Array<string | number>): void {
+  static generalRecord(category: string, secondCat: string, thirdCat: Array<string>): void {
     let requestBody: GeneralRecordRequest = {
       ts: SpStatisticsHttpUtil.getCorrectRequestTime(),
       category,
