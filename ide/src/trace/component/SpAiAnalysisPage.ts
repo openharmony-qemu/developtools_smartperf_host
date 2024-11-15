@@ -64,6 +64,7 @@ export class SpAiAnalysisPage extends BaseElement {
     private isResultBack: boolean = true;
     static startTime: number = 0;
     static endTime: number = 0;
+    activeTime: Element | undefined | null;
     // 监听选中时间范围变化
     static selectChangeListener(startTime: number, endTime: number): void {
         SpAiAnalysisPage.startTime = startTime;
@@ -435,7 +436,8 @@ export class SpAiAnalysisPage extends BaseElement {
                 timeSpan.id = v.id;
                 timeSpan.className = 'timeItem';
                 timeSpan.setAttribute('name', v.name);
-                timeSpan.innerHTML = `[<span class = 'timeText'>${v.ts! / 1000000000}</span>s] ,`;
+                // @ts-ignore
+                timeSpan.innerHTML = `[<span class = 'timeText'>${v.ts! / 1000000000}</span>s]${index !== dataList[i].trace_info.length - 1 ? ' ,' : ''}`;
                 timeDiv.appendChild(timeSpan);
                 timeList.push(v.ts! / 1000000000 + 's');
             });
@@ -646,7 +648,7 @@ export class SpAiAnalysisPage extends BaseElement {
             if (this.isJsonString(jsonRes.resultMessage)) {
                 let dataList = JSON.parse(jsonRes.resultMessage) || [];
                 if (dataList && dataList.length === 0) {
-                    SpStatisticsHttpUtil.generalRecord('AI_statistic', 'large_model_detect', [0])
+                    SpStatisticsHttpUtil.generalRecord('AI_statistic', 'large_model_detect', ['0'])
                     this.isNodata = true;
                     this.draftList!.innerHTML = '';
                     this.contentsTable!.style.display = 'none';
@@ -656,7 +658,7 @@ export class SpAiAnalysisPage extends BaseElement {
                     this.abnormalPageTips(textStr, imgsrc, 0);
                     this.draftBtn!.style.display = 'inline-block';
                 } else {
-                    SpStatisticsHttpUtil.generalRecord('AI_statistic', 'large_model_detect', [1]);
+                    SpStatisticsHttpUtil.generalRecord('AI_statistic', 'large_model_detect', ['1']);
                     this.isNodata = false;
                     // 整理数据,渲染数据
                     await this.renderData(dataList);
@@ -681,16 +683,14 @@ export class SpAiAnalysisPage extends BaseElement {
         let timeElementList = timeDiv!.getElementsByClassName('timeItem');
         for (let i = 0; i < timeElementList.length; i++) {
             timeElementList[i].addEventListener('click', (e) => {
+                if (this.activeTime) {
+                    this.activeTime.removeAttribute('active');
+                }
+                this.activeTime = timeElementList[i].getElementsByClassName('timeText')[0];
                 // 点击项更换颜色
-                timeElementList[i].getElementsByClassName('timeText')[0].setAttribute('active', '')
+                this.activeTime.setAttribute('active', '')
                 let name = timeElementList[i].getAttribute('name');
                 let id = Number(timeElementList[i].getAttribute('id'));
-                // 其他项重置颜色
-                for (let j = 0; j < timeElementList.length; j++) {
-                    if (i !== j) {
-                        timeElementList[j].getElementsByClassName('timeText')[0].removeAttribute('active');
-                    }
-                }
                 // @ts-ignore
                 this.valueChangeHandler!(name, id);
             })

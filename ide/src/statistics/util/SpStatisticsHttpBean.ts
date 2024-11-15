@@ -43,5 +43,5 @@ export interface GeneralRecordRequest {
      'feedback_good,feedback_bad':诊断反馈
   */
   secondCat: string,
-  thirdCat: Array<string | number>
+  thirdCat: Array<string>
 }
