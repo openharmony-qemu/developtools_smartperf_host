@@ -56,7 +56,7 @@ bool LocalUnzip(const std::string &zipFile, const std::string &dstDir);
 
 class LocalZip {
 public:
-    LocalZip(const std::string &file);
+    explicit LocalZip(const std::string &file);
     bool Unzip(std::string &traceFile);
 
 private:
