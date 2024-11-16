@@ -127,9 +127,6 @@ import { TabPaneHiSysEventSummary } from '../sheet/hisysevent/TabPaneHiSysEventS
 import { TabPaneBinders } from '../sheet/binder/TabPaneBinders';
 import { TabPaneGpufreq } from '../sheet/gpufreq/TabPaneGpufreqUsage';
 import { TabPaneSampleInstruction } from '../sheet/bpftrace/TabPaneSampleInstruction';
-import { TabPaneSampleInstructionDistributions } from '../sheet/bpftrace/TabPaneSampleInstructionDistributions';
-import { TabPaneSampleInstructionTotalTime } from '../sheet/bpftrace/TabPaneSampleInstructionSelectionTotalTime';
-import { TabPaneSampleInstructionSelection } from '../sheet/bpftrace/TabPaneSampleInstructionSelection';
 import { TabPaneDataCut } from '../sheet/TabPaneDataCut';
 import { TabPaneGpuCounterSelection } from '../sheet/gpu-counter/TabPaneGpuCounterSelection';
 import { TabPaneGpuCounter } from '../sheet/gpu-counter/TabPaneGpuCounter';
@@ -698,21 +695,6 @@ export let tabConfig: {
     type: TabPaneDataCut,
     require: (param: SelectionParam) => param.threadIds.length > 0 ||
       (param.clockMapData.size > 0 && param.clockMapData.has('gpufreq Frequency') === true),
-  },
-  'box-sample-instruction-selection': {
-    title: 'Data Selection',
-    type: TabPaneSampleInstructionSelection,
-    require: (param: SelectionParam) => param.sampleData.length > 0,
-  },
-  'box-sample-instruction-distribution-selection': {
-    title: 'Data Distribution',
-    type: TabPaneSampleInstructionDistributions,
-    require: (param: SelectionParam) => param.sampleData.length > 0,
-  },
-  'box-sample-instruction-totaltime-selection': {
-    title: 'Total Duration',
-    type: TabPaneSampleInstructionTotalTime,
-    require: (param: SelectionParam) => param.sampleData.length > 0,
   },
   'box-sample-instruction': {
     title: 'Data Flow',
