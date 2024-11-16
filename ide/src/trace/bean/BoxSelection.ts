@@ -1161,7 +1161,7 @@ export class SelectionParam {
           item.rangeSelect = true;
           item.checkType = '2';
           this.xpowerMapData.set(item.rowId || '', item.getCacheData);
-        })
+        });
       });
     }
     if (it.rowType === TraceRow.ROW_TYPE_XPOWER_SYSTEM_GROUP) { 

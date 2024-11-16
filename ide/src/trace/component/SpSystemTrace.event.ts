@@ -608,7 +608,7 @@ export function spSystemTraceDocumentOnMouseOut(sp: SpSystemTrace, ev: MouseEven
   CpuStruct.hoverCpuStruct = undefined;
   TraceRow.isUserInteraction = false;
   SpSystemTrace.isMouseLeftDown = false;
-  if(!sp.keyboardEnable){
+  if (!sp.keyboardEnable) {
     return;
   }
   if (sp.isMouseInSheet(ev)) {
@@ -810,7 +810,7 @@ export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEven
       clearTimeout(timerId);
     }
   }
-  if(!sp.keyboardEnable){
+  if (!sp.keyboardEnable) {
     return;
   }
   let flag: boolean = sp.parentElement

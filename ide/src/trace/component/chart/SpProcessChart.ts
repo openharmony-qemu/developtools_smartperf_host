@@ -742,9 +742,13 @@ export class SpProcessChart {
         ThreadStruct.selectThreadStruct = selectProcessStruct; //@ts-ignore
         ThreadStruct.hoverThreadStruct = selectProcessStruct;
       }
-    });//@ts-ignore
-    linkItem[0].backrowEL = linkItem[0].sourcebackrowEL!.parentRowEl?.expansion ? linkItem[0].sourcebackrowEL! : linkItem[0].sourcebackrowEL!.parentRowEl;//@ts-ignore
-    linkItem[1].backrowEL = linkItem[1].sourcebackrowEL!.parentRowEl?.expansion ? linkItem[1].sourcebackrowEL! : linkItem[1].sourcebackrowEL!.parentRowEl;
+    });
+    //@ts-ignore
+    linkItem[0].backrowEL = linkItem[0].sourcebackrowEL!.parentRowEl?.expansion ?
+      linkItem[0].sourcebackrowEL! : linkItem[0].sourcebackrowEL!.parentRowEl;
+    //@ts-ignore
+    linkItem[1].backrowEL = linkItem[1].sourcebackrowEL!.parentRowEl?.expansion ?
+      linkItem[1].sourcebackrowEL! : linkItem[1].sourcebackrowEL!.parentRowEl;
     if (linkItem[0].rowEL.expansion && linkItem[0].backrowEL) {
       this.updatePairPointTranslateY(linkItem[0]);
       linkItem[0].x = ns2xByTimeShaft(linkItem[0].ns, this.trace.timerShaftEL!);
@@ -1149,7 +1153,12 @@ export class SpProcessChart {
     }
   }
 
-  initSameThreadFolder(it: { pid: number | null; processName: string | null }, pRow: TraceRow<ProcessStruct>, list: Array<unknown>, traceId?: string): TraceRow<ProcessStruct> {
+  initSameThreadFolder(
+    it: { pid: number | null; processName: string | null },
+    pRow: TraceRow<ProcessStruct>,
+    list: Array<unknown>,
+    traceId?: string
+  ): TraceRow<ProcessStruct> {
     let sameThreadRow = TraceRow.skeleton<ProcessStruct>();
     sameThreadRow.rowId = 'sameThreadProcess';
     sameThreadRow.rowParentId = `${it.pid}`;
@@ -1388,7 +1397,7 @@ export class SpProcessChart {
   ): void {
     //@ts-ignore
     if (this.threadFuncMaxDepthMap.get(`${thread.upid}-${thread.tid}`) !== undefined) {
-      this.addHangRow(process, processRow, threadRow,thread);
+      this.addHangRow(process, processRow, threadRow, thread);
       //@ts-ignore
       let max = this.threadFuncMaxDepthMap.get(`${thread.upid}-${thread.tid}`) || 1;
       let maxHeight = max * 18 + 6;

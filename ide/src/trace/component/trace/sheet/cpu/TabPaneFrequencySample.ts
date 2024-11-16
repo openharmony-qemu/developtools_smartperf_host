@@ -49,9 +49,7 @@ export class TabPaneFrequencySample extends BaseElement {
     this.selectionParam = frequencySampleValue;
     if (this.frequencySampleTbl) {
       // @ts-ignore
-      this.frequencySampleTbl.shadowRoot.querySelector('.table').style.height = `${
-        this.parentElement!.clientHeight - 25
-      }px`;
+      this.frequencySampleTbl.shadowRoot.querySelector('.table').style.height = `${this.parentElement!.clientHeight - 25}px`;
     }
     this.queryDataByDB(frequencySampleValue);
   }
@@ -109,7 +107,7 @@ export class TabPaneFrequencySample extends BaseElement {
               freqFilter[i].value === data.value && // @ts-ignore
               freqFilter[i].cpu === data.cpu && // @ts-ignore
               Math.max(TraceRow.rangeSelectObject?.startNS!, freqFilter[i].startNS!) < // @ts-ignore
-                Math.min(TraceRow.rangeSelectObject?.endNS!, freqFilter[i].startNS! + freqFilter[i].dur!)
+              Math.min(TraceRow.rangeSelectObject?.endNS!, freqFilter[i].startNS! + freqFilter[i].dur!)
             ) {
               // @ts-ignore
               CpuFreqStruct.hoverCpuFreqStruct = freqFilter[i];
@@ -192,7 +190,6 @@ export class TabPaneFrequencySample extends BaseElement {
     for (let j = 0; j < weightMapArr.length; j++) {
       // @ts-ignore
       let singleCpuArr = tmpCpuArr.filter((item) => item[1].filterId && item[1].filterId === Number(weightMapArr[j][1].filterId));
-      // console.log(singleCpuArr);
       let tmpTotalTime = 0;
       let tmpTotalCount = 0;
       for (let i = 0; i < singleCpuArr.length; i++) {
@@ -204,7 +201,7 @@ export class TabPaneFrequencySample extends BaseElement {
       // @ts-ignore
       let tmpPosition = tmpCpuArr.findIndex(item => item[1].filterId === weightMapArr[j][1].filterId);
       // @ts-ignore
-      tmpCpuArr.splice(tmpPosition, 0, [`${weightMapArr[j][1].filterId}-0`, { counter: `${singleCpuArr[0][1].counter}:( WA )`, time: tmpTotalTime, valueStr: ColorUtils.formatNumberComma(Math.round(tmpTotalCount / (tmpTotalTime / 1000000)))}]);
+      tmpCpuArr.splice(tmpPosition, 0, [`${weightMapArr[j][1].filterId}-0`, { counter: `${singleCpuArr[0][1].counter}:( WA )`, time: tmpTotalTime, valueStr: ColorUtils.formatNumberComma(Math.round(tmpTotalCount / (tmpTotalTime / 1000000))) }]);
     };
     sampleMap = new Map(tmpCpuArr);
     sampleMap.forEach((a): void => {
@@ -342,10 +339,10 @@ export class TabPaneFrequencySample extends BaseElement {
     if (this.freqBusyDataList.length > 0) {
       this.frequencySampleTbl!.recycleDataSource.forEach((value): void => {
         // @ts-ignore
-        if(value.counter.includes('( WA )')){
+        if (value.counter.includes('( WA )')) {
           // @ts-ignore
-          value.busyTimeStr = '-'
-        }else {
+          value.busyTimeStr = '-';
+        } else {
           // @ts-ignore
           value.busyTimeStr = type ? value.busyTime : '-';
         }
