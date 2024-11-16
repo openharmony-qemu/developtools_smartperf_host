@@ -714,7 +714,6 @@ export class TabPaneFilter extends BaseElement {
         this.value = this.value.replace(/\D/g, '');
       };
       e.addEventListener('keyup', (event: unknown): void => {
-        SpSystemTrace.isKeyUp = true;
         // @ts-ignore
         event.stopPropagation();
         // @ts-ignore

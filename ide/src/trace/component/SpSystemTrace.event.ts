@@ -621,7 +621,6 @@ export function spSystemTraceDocumentOnMouseOut(sp: SpSystemTrace, ev: MouseEven
 }
 
 export function spSystemTraceDocumentOnKeyPress(this: unknown, sp: SpSystemTrace, ev: KeyboardEvent): void {
-  SpSystemTrace.isKeyUp = false;
   if (!sp.loadTraceCompleted || SpSystemTrace.isAiAsk) {
     return;
   }
@@ -771,6 +770,10 @@ export function spSystemTraceDocumentOnMouseUp(sp: SpSystemTrace, ev: MouseEvent
   if (!sp.loadTraceCompleted || !sp.mouseEventEnable) {
     return;
   }
+  //@ts-ignore
+  if ((window as unknown).isSheetMove) {
+    return;
+  }
   if (sp.isWASDKeyPress()) {
     ev.preventDefault();
     ev.stopPropagation();
@@ -786,10 +789,6 @@ export function spSystemTraceDocumentOnMouseUp(sp: SpSystemTrace, ev: MouseEvent
   }
   TraceRow.isUserInteraction = false;
   sp.rangeSelect.isMouseDown = false;
-  //@ts-ignore
-  if ((window as unknown).isSheetMove) {
-    return;
-  }
   if (sp.isMouseInSheet(ev)) {
     return;
   }
@@ -804,7 +803,6 @@ export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEven
   if (SpSystemTrace.isAiAsk) {
     return;
   }
-  SpSystemTrace.isKeyUp = true;
   if (sp.times.size > 0) {
     for (let timerId of sp.times) {
       clearTimeout(timerId);

@@ -427,9 +427,6 @@ export class TraceSheet extends BaseElement {
     let that = this;
     // 节点挂载时给Tab面板绑定鼠标按下事件
     this.nav!.onmousedown = (event): void => {
-      if (SpSystemTrace.isKeyUp === false) {
-        return;
-      }
       // @ts-ignore
       (window as unknown).isSheetMove = true;
       // 获取所有标签页的节点数组

@@ -154,7 +154,6 @@ type SlicesTimeAlias = SlicesTime | undefined | null;
 @element('sp-system-trace')
 export class SpSystemTrace extends BaseElement {
   mouseCurrentPosition = 0;
-  static isKeyUp: boolean = true;
   offsetMouse = 0;
   static isMouseLeftDown = false;
   static scrollViewWidth = 0;
@@ -899,7 +898,7 @@ export class SpSystemTrace extends BaseElement {
     // @ts-ignore
     context!.moveTo(x0!, y0!);
     // @ts-ignore
-    if (SpSystemTrace.isKeyUp || curveDrawList.length < 90) {
+    if (curveDrawList.length < 90) {
       // @ts-ignore
       for (let i = 0; i < curveDrawList.length - 1; i++) {
         // @ts-ignore
@@ -912,7 +911,7 @@ export class SpSystemTrace extends BaseElement {
       // @ts-ignore
       context.closePath();
       // @ts-ignore
-    } else if (!SpSystemTrace.isKeyUp && curveDrawList.length >= 90) {
+    } else if (curveDrawList.length >= 90) {
       let x;
       let y;
       // @ts-ignore
