@@ -76,7 +76,7 @@ export class WebSocketManager {
             if (decode.cmd === Constants.GET_CMD) {
                 // 小于则升级
                 let targetVersion = '1.0.1';
-                let currentVersion = new TextDecoder().decode(decode.data)
+                let currentVersion = new TextDecoder().decode(decode.data);
                 let result = this.compareVersion(currentVersion, targetVersion);
                 if (result === -1) {
                     this.updateVersion();
@@ -101,13 +101,13 @@ export class WebSocketManager {
     }
 
     // get版本
-    getVersion() {
+    getVersion(): void {
         // 获取扩展程序版本
         this.send(TypeConstants.UPDATE_TYPE, Constants.GET_CMD);
     }
 
     //check版本
-    compareVersion(currentVersion: string, targetVersion: string) {
+    compareVersion(currentVersion: string, targetVersion: string): number {
         // 将版本字符串分割成数组
         let parts1 = currentVersion.split('.');
         let parts2 = targetVersion.split('.');
@@ -128,7 +128,7 @@ export class WebSocketManager {
     }
 
     // 更新扩展程序
-    updateVersion() {
+    updateVersion(): void {
         // 扩展程序升级
         let url = `https://${window.location.host.split(':')[0]}:${window.location.port
             }/application/extend/hi-smart-perf-host-extend-update.zip`;
@@ -136,12 +136,12 @@ export class WebSocketManager {
             if (!response.ok) {
                 throw new Error("No corresponding upgrade compression package found");
             }
-            return response.arrayBuffer()
+            return response.arrayBuffer();
         }).then((arrayBuffer) => {
             this.send(TypeConstants.UPDATE_TYPE, Constants.UPDATE_CMD, new Uint8Array(arrayBuffer));
         }).catch((error) => {
             console.error(error);
-        })
+        });
     }
 
     // 登录
@@ -182,10 +182,10 @@ export class WebSocketManager {
         if (!this.ready) {// 改判断条件 ready
             return;
         }
-        this.send(type, cmd, data)
+        this.send(type, cmd, data);
     }
 
-    send(type: number, cmd?: number, data?: Uint8Array) {
+    send(type: number, cmd?: number, data?: Uint8Array): void {
         let message: MessageParam = {
             type: type,
             cmd: cmd,

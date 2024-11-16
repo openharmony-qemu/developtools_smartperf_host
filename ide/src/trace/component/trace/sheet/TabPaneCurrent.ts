@@ -103,7 +103,7 @@ export class TabPaneCurrent extends BaseElement {
           return;
         }
         // @ts-ignore
-        if((window as unknown).flagInputFocus){
+        if ((window as unknown).flagInputFocus) {
           return;
         }
         let tr = this.panelTable!.shadowRoot!.querySelectorAll('.tr') as NodeListOf<HTMLDivElement>;

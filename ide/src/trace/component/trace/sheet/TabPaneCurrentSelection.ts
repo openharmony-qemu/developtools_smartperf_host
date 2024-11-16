@@ -414,7 +414,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       } else {
         this.handleNonBinder(data, list, name, information);
       }
-    } else if (data.funName!.startsWith("H:Et") && (data.depth === 1 || data.depth === 0)) {
+    } else if (data.funName!.startsWith('H:Et') && (data.depth === 1 || data.depth === 0)) {
       list.push({
         name: 'StartTime(Relative)',
         value: getTimeString(data.startTs || 0),
