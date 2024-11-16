@@ -186,7 +186,13 @@ toolchain("gcc_like") {
   }
 
   tool("link") {
-    command = "$cxx -o {{output}} {{ldflags}} {{inputs}} {{solibs}} {{libs}}"
+    if (is_mac) {
+      command = "$cxx -o {{output}} {{ldflags}} {{inputs}} {{solibs}} {{libs}}"
+    } else if (is_win) {
+      command = "$cxx -o {{output}} --static {{ldflags}} {{inputs}} {{solibs}} {{libs}}"
+    } else {
+      command = "$cxx -o {{output}} -static-libstdc++ {{ldflags}} {{inputs}} {{solibs}} {{libs}}"
+    }
     outputsfiles = "{{root_out_dir}}/{{target_output_name}}{{output_extension}}"
     outputs = [ outputsfiles ]
     description = "step: link {{output}}"

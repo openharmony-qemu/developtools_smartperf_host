@@ -57,7 +57,7 @@ if [ ! -f "bzip2/BUILD.gn" ];then
         mv third_party_bzip2 bzip2
         $cp ../prebuilts/patch_bzip2/bzip2build.gn bzip2/BUILD.gn
         cd bzip2
-        ./install.sh `pwd`
+        ./install.sh $(pwd)
         cd ..
     fi
 fi
