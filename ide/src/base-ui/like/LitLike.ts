@@ -54,7 +54,7 @@ export class LitLike extends BaseElement {
             if (!this.isFeedBacked) {
                 this.likeEl!.style.backgroundImage = 'url("img/like-active.png")';
                 let secondCat = this.type === 'chat' ? 'user_feedback' : 'feedback_good';
-                let thirdCat = this.type === 'chat' ? [1] : [this.content];
+                let thirdCat = this.type === 'chat' ? ['1'] : [this.content];
                 SpStatisticsHttpUtil.generalRecord('AI_statistic', secondCat, thirdCat);
                 this.isFeedBacked = true;
             } else {
@@ -66,7 +66,7 @@ export class LitLike extends BaseElement {
             if (!this.isFeedBacked) {
                 this.dislikeEl!.style.backgroundImage = 'url("img/dislike-active.png")';
                 let secondCat = this.type === 'chat' ? 'user_feedback' : 'feedback_bad';
-                let thirdCat = this.type === 'chat' ? [0] : [this.content];
+                let thirdCat = this.type === 'chat' ? ['0'] : [this.content];
                 SpStatisticsHttpUtil.generalRecord('AI_statistic', secondCat, thirdCat);
                 this.isFeedBacked = true;
             } else {

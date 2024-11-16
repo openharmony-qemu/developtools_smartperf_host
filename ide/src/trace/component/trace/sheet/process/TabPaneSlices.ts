@@ -32,7 +32,7 @@ export class TabPaneSlices extends BaseElement {
   private slicesSource: Array<SelectionData> = [];
   private currentSelectionParam: SelectionParam | undefined;
   private sliceSearchCount: Element | undefined | null;
-
+  private isDbClick: boolean = false;
   set data(slicesParam: SelectionParam) {
     if (this.currentSelectionParam === slicesParam) {
       return;
@@ -89,9 +89,12 @@ export class TabPaneSlices extends BaseElement {
       data = evt.detail.data;
     });
     this.slicesTbl!.addEventListener('click', () => {
-      FuncStruct.funcSelect = false;
+      if(!this.isDbClick){
+        this.isDbClick = true;
+        FuncStruct.funcSelect = false;
       // @ts-ignore
       data && this.orgnazitionData(data);
+      }
     });
     this.slicesTbl!.addEventListener('contextmenu', () => {
       FuncStruct.funcSelect = true;
@@ -239,6 +242,7 @@ export class TabPaneSlices extends BaseElement {
       this.slicesTblFreshSearchSelect(search, sliceRowList, data, spSystemTrace);
       spSystemTrace?.visibleRows.forEach((it) => {
         it.draw();
+        this.isDbClick = false;
       });
     });
   }
