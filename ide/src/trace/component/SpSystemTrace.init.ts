@@ -46,7 +46,7 @@ const pluginArray = [
       'animation', 'app_startup', 'args', 'callstack', 'clk_event_filter',
       'clock_event_filter', 'cpu_measure_filter', 'device_info', 'dynamic_frame', 'frame_maps',
       'frame_slice', 'gpu_slice', 'instant', 'irq', 'process_measure_filter', 'process_measure',
-      'sched_slice', 'static_initalize', 'symbols', 'syscall', 'task_pool', 'thread_state','dma_fence'
+      'sched_slice', 'static_initalize', 'symbols', 'syscall', 'task_pool', 'thread_state', 'dma_fence'
     ]
   },
   {
@@ -65,13 +65,13 @@ const pluginArray = [
     pluginName: 'arkTs-plugin',
     tables: [
       'js_config', 'js_cpu_profiler_node', 'js_cpu_profiler_sample', 'js_heap_files', 'js_heap_info', 'js_heap_location',
-      'js_heap_nodes', 'js_heap_sample', 'js_heap_string', 'js_heap_trace_function_info', 'js_heap_trace_node','js_heap_edges'
+      'js_heap_nodes', 'js_heap_sample', 'js_heap_string', 'js_heap_trace_function_info', 'js_heap_trace_node', 'js_heap_edges'
     ]
   },
   {
     pluginName: 'memory-plugin',
     tables: [
-      'memory_ashmem', 'memory_cpu', 'memory_dma', 'memory_process_gpu', 'memory_profile,', 'memory_rs_image', 'memory_window_gpu','smaps','sys_event_filter','sys_mem_measure'
+      'memory_ashmem', 'memory_cpu', 'memory_dma', 'memory_process_gpu', 'memory_profile,', 'memory_rs_image', 'memory_window_gpu', 'smaps', 'sys_event_filter', 'sys_mem_measure'
     ]
   },
   {
@@ -128,7 +128,7 @@ const pluginArray = [
       'xpower_measure'
     ]
   }
-]
+];
 
 function rightButtonOnClick(sp: SpSystemTrace, rightStar: HTMLElementAlias): unknown {
   Object.assign(sp, {
@@ -624,7 +624,7 @@ function selectHandler(sp: SpSystemTrace): void {
         ...sp.favoriteChartListEL!.getAllSelectCollectRows(),
       ];
     }
-    checkRows = checkRows.filter((item, index, self) => {  //去重 
+    checkRows = checkRows.filter((item, index, self) => {
       return self.findIndex(obj => obj.rowId === item.rowId && obj.rowType === item.rowType && obj.name === item.name) === index;
     });
     selectHandlerRefreshCheckBox(sp, checkRows, refreshCheckBox);
@@ -950,7 +950,7 @@ export function cancelCurrentTraceRowHighlight(sp: SpSystemTrace, currentEntry: 
       }
     });
     if (!filterRow) {
-      let rowsPaneEL = document.querySelector("body > sp-application")?.shadowRoot?.querySelector("#sp-system-trace")?.shadowRoot?.querySelector("div > div.rows-pane")
+      let rowsPaneEL = document.querySelector('body > sp-application')?.shadowRoot?.querySelector('#sp-system-trace')?.shadowRoot?.querySelector('div > div.rows-pane');
       // @ts-ignore
       let funcRow = rowsPaneEL?.querySelector<TraceRow<unknown>>(`trace-row[row-id='${funcRowID}'][row-type='func']`);
       if (funcRow) {
@@ -1277,7 +1277,7 @@ export async function spSystemTraceInit(
   for (let i = 0; i < pluginArray.length; i++) {
     let item = pluginArray[i];
     for (let j = 0; j < item.tables.length; j++) {
-      let tableItem = item.tables[j]
+      let tableItem = item.tables[j];
       let res = await queryPlugins(tableItem) || [];
       if (res.length > 0) {
         SpStatisticsHttpUtil.recordPlugin.push(item.pluginName);

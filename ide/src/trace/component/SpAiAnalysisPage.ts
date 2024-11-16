@@ -14,7 +14,7 @@
  */
 
 import { BaseElement, element } from '../../base-ui/BaseElement';
-import { aiResponse, SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil';
+import { AiResponse, SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil';
 import { threadPool } from '../database/SqlLite';
 import { SpAiAnalysisPageHtml } from './SpAiAnalysisPage.html';
 import { getTimeString } from './trace/sheet/TabPaneCurrentSelection';
@@ -78,9 +78,9 @@ export class SpAiAnalysisPage extends BaseElement {
             html: true,
             typographer: true
         });
-        let aiAssistant = document.querySelector("body > sp-application")!.shadowRoot!.querySelector("#sp-ai-analysis");
+        let aiAssistant = document.querySelector('body > sp-application')!.shadowRoot!.querySelector('#sp-ai-analysis');
         let chatBar = this.shadowRoot?.querySelector('.chatBar');
-        let closeBtn = document.querySelector("body > sp-application")!.shadowRoot!.querySelector("#sp-ai-analysis")!.shadowRoot!.querySelector("div.rightTabBar > lit-icon")!.shadowRoot!.querySelector("#icon");
+        let closeBtn = document.querySelector('body > sp-application')!.shadowRoot!.querySelector('#sp-ai-analysis')!.shadowRoot!.querySelector('div.rightTabBar > lit-icon')!.shadowRoot!.querySelector('#icon');
         this.askQuestion = this.shadowRoot?.querySelector('.ask_question');
         this.reportBar = this.shadowRoot?.querySelector('.report');
         this.q_a_window = this.shadowRoot?.querySelector('.q_a_window');
@@ -91,7 +91,7 @@ export class SpAiAnalysisPage extends BaseElement {
         this.chatImg = this.shadowRoot?.querySelector('.chatBar')?.getElementsByTagName('img')[0];
         this.reportImg = this.shadowRoot?.querySelector('.report')?.getElementsByTagName('img')[0];
         this.sendImg = document.querySelector('body > sp-application')!.shadowRoot!.querySelector('#sp-ai-analysis')!.shadowRoot?.querySelector('div.chatInputBox > div.chatInput > img');
-        this.newChatEl = document.querySelector("body > sp-application")!.shadowRoot!.querySelector("#sp-ai-analysis")!.shadowRoot?.querySelector("div.chatBox > div > div.ask_question > div.chatInputBox > div.chatConfig > div > div.newChat > img");
+        this.newChatEl = document.querySelector('body > sp-application')!.shadowRoot!.querySelector('#sp-ai-analysis')!.shadowRoot?.querySelector('div.chatBox > div > div.ask_question > div.chatInputBox > div.chatConfig > div > div.newChat > img');
         // 诊断按钮
         this.draftBtn = this.shadowRoot?.querySelector('.analysisBtn');
         // 下载报告按钮
@@ -190,7 +190,7 @@ export class SpAiAnalysisPage extends BaseElement {
                 this.tipsContent!.style.display = 'flex';
                 let guideSrc = `https://${window.location.host.split(':')[0]}:${window.location.port
                     }/application/?action=help_27`;
-                let linkNodeTips = `<span>未连接，请启动本地扩展程序再试！[</span><a href=${guideSrc} style="color: blue;" target="_blank">指导</a><span>]</span>`;
+                let linkNodeTips = `<span>未连接，请启动本地扩展程序再试！[</span><a href=${guideSrc} style='color: blue;' target='_blank'>指导</a><span>]</span>`;
                 this.abnormalPageTips(linkNodeTips, '', 4000);
                 return;
             }
@@ -259,8 +259,9 @@ export class SpAiAnalysisPage extends BaseElement {
         this.contentsTable!.addEventListener('row-click', (evt) => {
             // @ts-ignore
             let index = evt.detail.id;
-            let targets: any = this.draftList?.querySelectorAll('.title');
+            let targets: unknown = this.draftList?.querySelectorAll('.title');
             // 目录的(index - 1)对应诊断返回的问题数组下标
+            // @ts-ignore
             let target = targets[index - 1];
             if (target) {
                 // 改变滚动条滚动高度，实现点击目录跳转到对应问题
@@ -278,7 +279,7 @@ export class SpAiAnalysisPage extends BaseElement {
         let loadingItem = document.createElement('div');
         loadingItem.className = 'loadingItem';
         loadingItem!.appendChild(loadingDiv);
-        return loadingItem
+        return loadingItem;
     }
 
     // 重新导trace、db时，初始化诊断功能
@@ -418,25 +419,29 @@ export class SpAiAnalysisPage extends BaseElement {
             titleDiv.appendChild(topUp);
             topUp.addEventListener('click', (e) => {
                 this.shadowRoot!.querySelector('.analysisList')!.scrollTop = 0;
-            })
+            });
             // 生成类型
             let typeDiv = document.createElement('div');
             typeDiv.className = 'item';
             // @ts-ignore
-            typeDiv.innerHTML = `<span class="item-name">问题类型：</span>${dataList[i].type}`
+            typeDiv.innerHTML = `<span class='item-name'>问题类型：</span>${dataList[i].type}`;
             // 生成时间
             let timeDiv = document.createElement('div');
             timeDiv.className = 'item two timeDiv';
             timeDiv!.innerHTML = `<span class='item-name'>发生时间：</span>`;
             let timeList = new Array();
             // @ts-ignore
-            dataList[i].trace_info.forEach((v: any, index: number) => {
+            dataList[i].trace_info.forEach((v: unknown, index: number) => {
                 let timeSpan = document.createElement('span');
+                // @ts-ignore
                 timeSpan.id = v.id;
                 timeSpan.className = 'timeItem';
+                // @ts-ignore
                 timeSpan.setAttribute('name', v.name);
+                // @ts-ignore
                 timeSpan.innerHTML = `[<span class = 'timeText'>${v.ts! / 1000000000}</span>s] ,`;
                 timeDiv.appendChild(timeSpan);
+                // @ts-ignore
                 timeList.push(v.ts! / 1000000000 + 's');
             });
             // 生成问题原因
@@ -473,13 +478,13 @@ export class SpAiAnalysisPage extends BaseElement {
         this.contentsTable!.recycleDataSource = [];
         this.contentsTable!.style.display = 'block';
         // 修改Tbl样式
-        let th = this.contentsTable!.shadowRoot!.querySelector("div.table > div.thead > div")! as HTMLElement;
+        let th = this.contentsTable!.shadowRoot!.querySelector('div.table > div.thead > div')! as HTMLElement;
         th.style.backgroundColor = '#8bbcdff7';
         // @ts-ignore   
         let source = dataList.map((item: unknown, index: number) => {
             // @ts-ignore
-            return { ...item, id: index + 1 }
-        })
+            return { ...item, id: index + 1 };
+        });
         this.contentsTable!.recycleDataSource = source;
     }
 
@@ -489,7 +494,7 @@ export class SpAiAnalysisPage extends BaseElement {
         tbody.style.height = TBODY_HEIGHT + 'px';
     }
 
-    async getToken(isChat?: boolean) {
+    async getToken(isChat?: boolean): Promise<void> {
         let data = await SpStatisticsHttpUtil.getAItoken();
         if (data.status !== 200) {
             if (isChat) {
@@ -530,7 +535,7 @@ export class SpAiAnalysisPage extends BaseElement {
     }
 
     // 每90min重新获取token
-    async getToken90Min(isChat: boolean) {
+    async getToken90Min(isChat: boolean): Promise<void> {
         await this.getToken(isChat);
         await setInterval(async () => {
             await this.getToken(isChat);
@@ -538,25 +543,31 @@ export class SpAiAnalysisPage extends BaseElement {
     }
 
     // 发送请求获取优化建议并渲染页面
-    getSuggestion(dataList: unknown, i: number, itemDiv: HTMLDivElement | null | undefined, suggestonDiv: HTMLDivElement | null | undefined, timeList: Array<string>): void {
+    getSuggestion(
+        dataList: unknown,
+        i: number,
+        itemDiv: HTMLDivElement | null | undefined,
+        suggestonDiv: HTMLDivElement | null | undefined,
+        timeList: Array<string>
+    ): void {
         SpStatisticsHttpUtil.askAi({
-            token: this.token,// @ts-ignore
+            token: this.token, // @ts-ignore
             question: dataList[i].description + ',请问该怎么优化？',
             collection: ''
         }).then((suggestion) => {
             this.appendMsg(dataList, i, suggestonDiv, timeList, suggestion);
         }).catch((error) => {
             this.appendMsg(dataList, i, suggestonDiv, timeList, error);
-        })
+        });
         this.draftList!.appendChild(itemDiv!);
         itemDiv!.style.animation = 'opcityliner 3s';
     }
 
     // 优化建议msg处理并渲染
-    appendMsg(dataList: unknown, i: number, suggestonDiv: HTMLDivElement | null | undefined, timeList: Array<string>, suggestion: aiResponse) {
+    appendMsg(dataList: unknown, i: number, suggestonDiv: HTMLDivElement | null | undefined, timeList: Array<string>, suggestion: AiResponse): void {
         // 保证controllersMap里面存的是未完成的请求，并规避重新打开trace时异步msg未请求完毕引入的问题
         if (SpStatisticsHttpUtil.controllersMap.has(suggestion.time!)) {
-            SpStatisticsHttpUtil.controllersMap.delete(suggestion.time!); 
+            SpStatisticsHttpUtil.controllersMap.delete(suggestion.time!);
         }
         if (SpStatisticsHttpUtil.isInterrupt) {
             if (SpStatisticsHttpUtil.controllersMap.size === 0) {
@@ -585,7 +596,7 @@ export class SpAiAnalysisPage extends BaseElement {
     }
 
     // 取消或中断请求
-    breakRequest() {
+    breakRequest(): void {
         for (const controller of SpStatisticsHttpUtil.controllersMap.values()) {
             controller.abort();
         }
@@ -646,7 +657,7 @@ export class SpAiAnalysisPage extends BaseElement {
             if (this.isJsonString(jsonRes.resultMessage)) {
                 let dataList = JSON.parse(jsonRes.resultMessage) || [];
                 if (dataList && dataList.length === 0) {
-                    SpStatisticsHttpUtil.generalRecord('AI_statistic', 'large_model_detect', [0])
+                    SpStatisticsHttpUtil.generalRecord('AI_statistic', 'large_model_detect', [0]);
                     this.isNodata = true;
                     this.draftList!.innerHTML = '';
                     this.contentsTable!.style.display = 'none';
@@ -677,12 +688,12 @@ export class SpAiAnalysisPage extends BaseElement {
     }
 
     // 点击时间跳转
-    timeClickHandler(timeDiv: HTMLDivElement) {
+    timeClickHandler(timeDiv: HTMLDivElement): void {
         let timeElementList = timeDiv!.getElementsByClassName('timeItem');
         for (let i = 0; i < timeElementList.length; i++) {
             timeElementList[i].addEventListener('click', (e) => {
                 // 点击项更换颜色
-                timeElementList[i].getElementsByClassName('timeText')[0].setAttribute('active', '')
+                timeElementList[i].getElementsByClassName('timeText')[0].setAttribute('active', '');
                 let name = timeElementList[i].getAttribute('name');
                 let id = Number(timeElementList[i].getAttribute('id'));
                 // 其他项重置颜色
@@ -693,12 +704,12 @@ export class SpAiAnalysisPage extends BaseElement {
                 }
                 // @ts-ignore
                 this.valueChangeHandler!(name, id);
-            })
+            });
         }
     }
 
     // 判断是否为json
-    isJsonString(str: string) {
+    isJsonString(str: string): boolean {
         try {
             JSON.parse(str);
         } catch (e) {

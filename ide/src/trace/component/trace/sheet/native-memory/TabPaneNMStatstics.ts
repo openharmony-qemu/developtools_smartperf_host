@@ -66,7 +66,7 @@ export class TabPaneNMStatstics extends BaseElement {
     this.queryData(nativeStatisticsParam);
   }
 
-  async recordEventHeap(ipid: number) {
+  async recordEventHeap(ipid: number): Promise<void> {
     SpNativeMemoryChart.EVENT_HEAP = await queryHeapSizeByIpid(ipid);
     SpNativeMemoryChart.EVENT_HEAP.map((heap) => {
       this.allMax += heap.sumHeapSize;

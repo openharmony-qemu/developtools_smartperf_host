@@ -218,9 +218,9 @@ export class SpStatisticsHttpUtil {
   }
 
   // ai对话接口--获取token
-  static async getAItoken(): Promise<aiResponse> {
+  static async getAItoken(): Promise<AiResponse> {
     let controller = new AbortController();
-    let response: aiResponse = {
+    let response: AiResponse = {
       status: 0,
       data: ''
     };
@@ -248,14 +248,14 @@ export class SpStatisticsHttpUtil {
 
   // ai对话接口--问答
   // @ts-ignore
-  static askAi(requestBody): Promise<aiResponse> {
+  static askAi(requestBody): Promise<AiResponse> {
     return new Promise((resolve, reject) => {
       let controller = new AbortController();
       let date = Date.now();
       if (!SpStatisticsHttpUtil.controllersMap.has(date)) {
-        SpStatisticsHttpUtil.controllersMap.set(date, controller)
+        SpStatisticsHttpUtil.controllersMap.set(date, controller);
       }
-      let response: aiResponse = {
+      let response: AiResponse = {
         status: 0,
         data: '',
         time: date,
@@ -288,13 +288,13 @@ export class SpStatisticsHttpUtil {
         } else {
           response.data = '请求错误';
         }
-        reject(response)
+        reject(response);
       })
     })
   }
 }
 
-export class aiResponse {
+export class AiResponse {
   status: number = 0;
   data: string = '';
   time?: number = 0;

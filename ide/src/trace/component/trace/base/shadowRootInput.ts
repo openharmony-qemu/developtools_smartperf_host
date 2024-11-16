@@ -12,12 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BaseElement } from "../../../../base-ui/BaseElement";
-import { SpSystemTrace } from "../../SpSystemTrace";
+import { BaseElement } from '../../../../base-ui/BaseElement';
+import { SpSystemTrace } from '../../SpSystemTrace';
 export class shadowRootInput {
     public static preventBubbling(page: BaseElement | Element) {
         let pageInputList = shadowRootInput.findInputListInShadowDOM(page);
-        let sp = document?.querySelector("body > sp-application")?.shadowRoot?.querySelector("#sp-system-trace") as SpSystemTrace;
+        let sp = document?.querySelector('body > sp-application')?.shadowRoot?.querySelector('#sp-system-trace') as SpSystemTrace;
         pageInputList.forEach(input => {
             input.addEventListener('focus', (e) => {
                 sp.keyboardEnable = false;
@@ -27,7 +27,7 @@ export class shadowRootInput {
             });
         });
     }
-    public static findInputListInShadowDOM(page: BaseElement | Element | null) {
+    public static findInputListInShadowDOM(page: BaseElement | Element | null): Element[] {
         let queue: (Element | null)[] = [page];
         let inputList: Element[] = [];
         while (queue.length > 0) {

@@ -71,7 +71,7 @@ export class SpChartList extends BaseElement {
   private spSystemTrace: SpSystemTrace | undefined | null;
 
   initElements(): void {
-    this.spSystemTrace = document?.querySelector("body > sp-application")?.shadowRoot?.querySelector("#sp-system-trace");
+    this.spSystemTrace = document?.querySelector('body > sp-application')?.shadowRoot?.querySelector('#sp-system-trace');
     this.collectEl1 = this.shadowRoot?.querySelector<HTMLDivElement>('#collect-group-1');
     this.collectEl2 = this.shadowRoot?.querySelector<HTMLDivElement>('#collect-group-2');
     this.groupTitle1 = this.shadowRoot?.querySelector<HTMLDivElement>('#group-1-title');

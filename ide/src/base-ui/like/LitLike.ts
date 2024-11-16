@@ -14,7 +14,7 @@
  */
 
 import { BaseElement, element } from '../BaseElement';
-import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil'
+import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil';
 
 @element('lit-like')
 export class LitLike extends BaseElement {
@@ -60,7 +60,7 @@ export class LitLike extends BaseElement {
             } else {
                 return;
             }
-        })
+        });
 
         this.dislikeEl?.addEventListener('click', (e) => {
             if (!this.isFeedBacked) {
@@ -68,11 +68,11 @@ export class LitLike extends BaseElement {
                 let secondCat = this.type === 'chat' ? 'user_feedback' : 'feedback_bad';
                 let thirdCat = this.type === 'chat' ? [0] : [this.content];
                 SpStatisticsHttpUtil.generalRecord('AI_statistic', secondCat, thirdCat);
-                this.isFeedBacked = true
+                this.isFeedBacked = true;
             } else {
                 return;
             }
-        })
+        });
     }
 
 
