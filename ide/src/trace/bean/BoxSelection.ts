@@ -1346,6 +1346,7 @@ export class SelectionData {
   maxDuration: number = 0;
   maxDurationFormat: string = '';
   occurrences: number = 0;
+  selfTime: number = 0;
   state: string = '';
   trackId: number = 0;
   delta: string = '';
