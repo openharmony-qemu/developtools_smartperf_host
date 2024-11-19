@@ -168,7 +168,6 @@ export class SpChartManager {
     }
     if (FlagsConfig.getFlagsConfigEnableStatus('UserPluginsRow')) {
       await this.spUserFileChart.init(null)
-      await this.spImportUserPluginsChart.init();
     }
     if (FlagsConfig.getFlagsConfigEnableStatus('GpuCounter')) {
       await this.spGpuCounterChart.init([]);

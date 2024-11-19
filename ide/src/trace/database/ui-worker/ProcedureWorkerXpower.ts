@@ -102,7 +102,7 @@ export class XpowerStruct extends BaseStruct {
       let width = data.frame.width || 0;
       xpowerContext.fillStyle = ColorUtils.colorForTid(XpowerStruct.index);
       xpowerContext.strokeStyle = ColorUtils.colorForTid(XpowerStruct.index);
-      if ((data.value || 0)  < 0) { //数据为负数时显示不同颜色
+      if ((data.value || 0) < 0) { //数据为负数时显示不同颜色
         xpowerContext.fillStyle = ColorUtils.colorForTid(XpowerStruct.index + 6);
         xpowerContext.strokeStyle = ColorUtils.colorForTid(XpowerStruct.index + 6);
       }

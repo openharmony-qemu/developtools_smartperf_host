@@ -280,7 +280,7 @@ export class TabPaneHang extends BaseElement {
     } else {
       let arr = Array.from(this.filterData);
       arr.sort((a, b): number => {
-        if (key === "startTime") {
+        if (key === 'startTime') {
           if (type === 1) {
             // @ts-ignore
             return a.startTime - b.startTime;

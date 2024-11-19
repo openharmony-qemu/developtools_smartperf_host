@@ -1990,7 +1990,7 @@ export class SpApplication extends BaseElement {
 
     let aiAnalysis = this.shadowRoot
       ?.querySelector('lit-main-menu')!
-      .shadowRoot!.querySelector('.ai_analysis') as HTMLDivElement
+      .shadowRoot!.querySelector('.ai_analysis') as HTMLDivElement;
     aiAnalysis!.addEventListener('click', (ev) => {
       if (this.spAiAnalysisPage!.style.visibility === 'hidden' || this.spAiAnalysisPage!.style.display === 'none') {
         this.spAiAnalysisPage!.style.display = 'block';
@@ -2001,9 +2001,9 @@ export class SpApplication extends BaseElement {
       }
     })
 
-    this.spAiAnalysisPage!.valueChangeHandler = (value: string, id: number) => {
+    this.spAiAnalysisPage!.valueChangeHandler = (value: string, id: number): void => {
       this.litSearch!.valueChangeHandler!(this.litSearch!.trimSideSpace(value), id);
-    }
+    };
 
     // 鼠标拖动改变大小
     this.aiPageResize();
@@ -2099,8 +2099,8 @@ export class SpApplication extends BaseElement {
                 if (id > -1) {
                   this.litSearch!.list = this.litSearch!.list.filter((v: unknown) => {
                     // @ts-ignore
-                    return v.id === id
-                  })
+                    return v.id === id;
+                  });
                 }
                 this.litSearch!.index = this.spSystemTrace!.showStruct(false, -1, this.litSearch!.list);
               }
@@ -2539,7 +2539,7 @@ export class SpApplication extends BaseElement {
           headers.append('Content-type', 'application/octet-stream');
           headers.append('Content-Transfer-Encoding', 'binary');
           return cache.put(`${fileName}`, new Response(reqBufferDB, { status: 200 }));
-        })
+        });
       },
       'download-db'
     );
