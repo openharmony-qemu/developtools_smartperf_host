@@ -179,7 +179,6 @@ bool RpcServer::ReadAndParseData(const std::string &filePath)
             break;
         }
     }
-    ts_->WaitForParserEnd();
     inputFile.close();
     return true;
 }

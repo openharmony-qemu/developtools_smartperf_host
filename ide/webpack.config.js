@@ -89,7 +89,7 @@ function buildMultiPlatform() {
       path.normalize(path.join(outPath, '/', `main.exe`)) :
       path.normalize(path.join(outPath, '/', `main_${platform}`));
     setEnv = '';
-    if (os.type() === "Windows_NT") {
+    if (os.type() === 'Windows_NT') {
       setEnv += `SET CGO_ENABLED=0&&SET GOOS=${platform}&&SET GOARCH=amd64&&`;
     } else {
       setEnv += `CGO_ENABLED=0 GOOS=${platform} GOARCH=amd64`;
