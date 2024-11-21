@@ -239,6 +239,10 @@ export class TabPaneSlices extends BaseElement {
     });
   }
   async orgnazitionData(data: Object): Promise<void> {
+    // @ts-ignore
+    if (data!.tabTitle === 'Summary') {
+      FuncStruct.funcSelect = true;
+    }
     let spApplication = document.querySelector('body > sp-application');
     let spSystemTrace = spApplication?.shadowRoot?.querySelector(
       'div > div.content > sp-system-trace'
