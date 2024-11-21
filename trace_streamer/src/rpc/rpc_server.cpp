@@ -174,7 +174,9 @@ bool RpcServer::ReadAndParseData(const std::string &filePath)
         std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(G_CHUNK_SIZE);
         inputFile.read(reinterpret_cast<char *>(buf.get()), G_CHUNK_SIZE);
         auto readSize = inputFile.gcount();
-        ts_->ParseTraceDataSegment(std::move(buf), readSize, false, inputFile.eof());
+        if (!ts_->ParseTraceDataSegment(std::move(buf), readSize, false, inputFile.eof())) {
+            return false;
+        }
         if (inputFile.eof()) {
             break;
         }
