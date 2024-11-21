@@ -62,6 +62,7 @@ export class SpAiAnalysisPage extends BaseElement {
     private isNodata: boolean = true;
     private md: unknown;
     private isResultBack: boolean = true;
+    private timerId: unknown = undefined;
     static startTime: number = 0;
     static endTime: number = 0;
     activeTime: Element | undefined | null;
@@ -187,15 +188,6 @@ export class SpAiAnalysisPage extends BaseElement {
             this.tipsContainer!.style.display = 'none';
             this.tipsContent!.style.display = 'none';
             this.downloadBtn!.style.display = 'none';
-            // 没有登陆，弹窗提示，退出逻辑
-            if (!WebSocketManager.getInstance()?.isReady()) {
-                this.tipsContent!.style.display = 'flex';
-                let guideSrc = `https://${window.location.host.split(':')[0]}:${window.location.port
-                    }/application/?action=help_27`;
-                let linkNodeTips = `<span>未连接，请启动本地扩展程序再试！[</span><a href=${guideSrc} style='color: blue;' target='_blank'>指导</a><span>]</span>`;
-                this.abnormalPageTips(linkNodeTips, '', 4000);
-                return;
-            }
             // 清空诊断报告的内容
             this.reportContent = '';
             // 隐藏诊断按钮
@@ -205,7 +197,7 @@ export class SpAiAnalysisPage extends BaseElement {
                 this.initiateDiagnosis();
             } else {
                 // 首次诊断
-                WebSocketManager.getInstance()!.registerMessageListener(TypeConstants.DIAGNOSIS_TYPE, this.webSocketCallBack);
+                WebSocketManager.getInstance()!.registerMessageListener(TypeConstants.DIAGNOSIS_TYPE, this.webSocketCallBack, this.eventCallBack);
                 // 看缓存中有没有db，没有的话拿一个进行诊断并存缓存
                 let fileName = sessionStorage.getItem('fileName');
                 caches.match(`${fileName}.db`).then(async (res) => {
@@ -510,6 +502,11 @@ export class SpAiAnalysisPage extends BaseElement {
 
     //控制页面异常场景的显示
     abnormalPageTips(tipStr: string, imgSrc: string, setTimeoutTime: number): void {
+        // 清除延时器，防止弹窗重叠互相影响
+        if (this.timerId) {
+            // @ts-ignore
+            clearTimeout(this.timerId);
+        }
         this.tipsContainer!.style.display = 'flex';
         this.tipsContainer!.innerHTML = '';
         if (imgSrc !== '') {
@@ -531,7 +528,7 @@ export class SpAiAnalysisPage extends BaseElement {
         }
         if (setTimeoutTime) {
             setTimeout(() => {
-                this.tipsContainer!.style.display = 'none';
+                this.timerId = this.tipsContainer!.style.display = 'none';
             }, setTimeoutTime);
         }
     }
@@ -562,7 +559,7 @@ export class SpAiAnalysisPage extends BaseElement {
         }).catch((error) => {
             this.appendMsg(dataList, i, suggestonDiv, timeList, error);
         });
-        this.draftList!.appendChild(itemDiv!);
+        this.draftList!.insertBefore(itemDiv!, this.loadingItem!);
         itemDiv!.style.animation = 'opcityliner 3s';
     }
 
@@ -651,7 +648,7 @@ export class SpAiAnalysisPage extends BaseElement {
                 this.isNodata = true;
                 this.draftList!.innerHTML = '';
                 this.contentsTable!.style.display = 'none';
-                let textStr = '服务异常';
+                let textStr = '服务异常，请重新导trace！';
                 let imgsrc = 'img/no-report.png';
                 this.tipsContent!.style.display = 'none';
                 this.abnormalPageTips(textStr, imgsrc, 0);
@@ -677,6 +674,15 @@ export class SpAiAnalysisPage extends BaseElement {
                 }
             }
         }
+    }
+
+    // eventCallBack
+    eventCallBack = async (result: string) => {
+        this.draftList!.innerHTML = '';
+        this.tipsContent!.style.display = 'flex';
+        // @ts-ignore
+        this.abnormalPageTips(this.getStatusesPrompt()[result].prompt, '', 4000);
+        this.draftBtn!.style.display = 'inline-block';
     }
 
     // 发起诊断
@@ -717,6 +723,35 @@ export class SpAiAnalysisPage extends BaseElement {
             return false;
         }
         return true;
+    }
+
+    // 获取提示语
+    getStatusesPrompt(): unknown {
+        let guideSrc = `https://${window.location.host.split(':')[0]}:${window.location.port
+            }/application/?action=help_27`;
+        return {
+            unconnected: {
+                prompt: `未连接，请启动本地扩展程序再试！[</span><a href=${guideSrc} style="color: blue;" target="_blank">指导</a><span>]`
+            },// 重连
+            connected: {
+                prompt: '扩展程序连接中，请稍后再试！'
+            }, // 中间
+            logined: {
+                prompt: '扩展程序连接中，请稍后再试！'
+            }, // 中间
+            loginFailedByLackSession: {
+                prompt: '当前所有会话都在使用中，请释放一些会话再试！'
+            }, // 重连
+            upgrading: {
+                prompt: '扩展程序连接中，请稍后再试！'
+            }, // 中间
+            upgradeSuccess: {
+                prompt: '扩展程序已完成升级，重启中，请稍后再试！'
+            }, // 重连
+            upgradeFailed: {
+                prompt: '刷新页面触发升级，或卸载扩展程序重装！' 
+            },// 重连
+        }
     }
 
     initHtml(): string {

@@ -17,8 +17,12 @@ export class Constants {
     static INTERVAL_TIME = 30000;
     static LOGIN_PARAM = { type: 0, cmd: 1 };
     static LOGIN_CMD = 2;// cmd 2 有效 3无效
+    static SESSION_EXCEED = 3; // session满了
     static GET_CMD = 1;
     static UPDATE_CMD = 3;
+    static GET_VERSION_CMD = 1;
+    static UPDATE_SUCCESS_CMD = 2; // 升级成功
+    static UPDATE_FAIL_CMD = 4; // 升级失败
 }
 
 export class TypeConstants {

@@ -135,11 +135,11 @@ export const SpAiAnalysisPageHtml = `
         display: flex;
         justify-content: center;
         align-items: center;
-        width: 320px;
+        width: 90%;
         height: 50%;
         position: absolute;
         top: 23%;
-        left: 44%;
+        left: 45%;
         transform: translateX(-50%);
         background-color: sky-blue;
     }
