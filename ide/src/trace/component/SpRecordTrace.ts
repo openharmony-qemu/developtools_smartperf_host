@@ -196,10 +196,10 @@ export class SpRecordTrace extends BaseElement {
           let option = document.createElement('option');
           option.className = 'select';
           if (typeof dev.serialNumber === 'string') {
-              optionNum++;
-              option.value = dev.serialNumber;
-              option.textContent = dev!.serialNumber ? dev!.serialNumber!.toString() : 'hdc Device';
-              this.deviceSelect!.appendChild(option);
+            optionNum++;
+            option.value = dev.serialNumber;
+            option.textContent = dev!.serialNumber ? dev!.serialNumber!.toString() : 'hdc Device';
+            this.deviceSelect!.appendChild(option);
             if (dev.serialNumber === sn) {
               option.selected = true;
               this.recordButton!.hidden = false;
@@ -501,7 +501,19 @@ export class SpRecordTrace extends BaseElement {
       // @ts-ignore
       HdcDeviceManager.findDevice().then((usbDevices): void => {
         log(usbDevices);
-        this.refreshDeviceList(usbDevices.serialNumber);
+        HdcDeviceManager.connect(usbDevices.serialNumber).then((res) => {
+          if (res) {
+            this.refreshDeviceList(usbDevices.serialNumber);
+          } else {
+            this.recordButton!.hidden = true;
+            this.disconnectButton!.hidden = true;
+            this.devicePrompt!.innerText = 'Device not connected';
+            this.hintEl!.innerHTML = DEVICE_NOT_CONNECT;
+            if (!this.showHint) {
+              this.showHint = true;
+            }
+          }
+        })
       });
     }
   };
@@ -794,7 +806,7 @@ export class SpRecordTrace extends BaseElement {
         this.MenuItemEbpfHtml = th;
       }
       this.menuGroup!.appendChild(th);
-      if (item.title === 'Ark Ts') { 
+      if (item.title === 'Ark Ts') {
         this.menuGroup!.removeChild(th);
       }
     });
@@ -901,7 +913,7 @@ export class SpRecordTrace extends BaseElement {
       this.buildMenuItem('Ark Ts', 'file-config', this.spArkTs!),
       this.buildMenuItem('FFRT', 'file-config', this.spFFRTConfig!),
       this.buildMenuItem('Hilog', 'realIntentionBulb', this.spHiLog!),
-      this.buildMenuItem('Xpower', 'externaltools', this.spXPower!), 
+      this.buildMenuItem('Xpower', 'externaltools', this.spXPower!),
     ];
   }
 
