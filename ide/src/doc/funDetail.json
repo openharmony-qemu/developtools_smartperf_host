@@ -177,37 +177,37 @@
         },
         {
             "slice": "OnVsyncEvent now",
-            "CN": "收到Vsync信号,渲染流程开始(框架trace,)不用验证",
+            "CN": "收到Vsync信号,渲染流程开始",
             "EN": "this is an english translate for CN",
             "flag": "0"
         },
         {
             "slice": "UITaskScheduler::FlushTask",
-            "CN": "刷新UI界面，包括布局、渲染和动画等（框架trace，不用验证）",
+            "CN": "刷新UI界面，包括布局、渲染和动画等",
             "EN": "this is an english translate for CN",
             "flag": "0"
         },
         {
             "slice": "FlushMessages",
-            "CN": "发送消息通知图形侧进行渲染（框架trace，不用验证）",
+            "CN": "发送消息通知图形侧进行渲染",
             "EN": "this is an english translate for CN",
             "flag": "0"
         },
         {
             "slice": "FlushRenderTask",
-            "CN": "总渲染任务执行（框架trace，不用验证）",
+            "CN": "总渲染任务执行",
             "EN": "this is an english translate for CN",
             "flag": "0"
         },
         {
             "slice": "Layout",
-            "CN": "节点布局（框架trace，不用验证）",
+            "CN": "节点布局",
             "EN": "this is an english translate for CN",
             "flag": "0"
         },
         {
             "slice": "FrameNode::RenderTask",
-            "CN": "单个渲染任务执行（框架trace，不用验证）",
+            "CN": "单个渲染任务执行",
             "EN": "this is an english translate for CN",
             "flag": "0"
         },
