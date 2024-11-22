@@ -2534,12 +2534,11 @@ export class SpApplication extends BaseElement {
           clearInterval(timer);
         }, 4000);
         // 存入缓存
-        await caches.open(`${fileName}`).then(async (cache) => {
-          let headers = new Headers();
-          headers.append('Content-type', 'application/octet-stream');
-          headers.append('Content-Transfer-Encoding', 'binary');
-          return cache.put(`${fileName}`, new Response(reqBufferDB, { status: 200 }));
-        });
+        const blob = new Blob([reqBufferDB]);
+        const response = new Response(blob)
+        caches.open('DB-file').then(cache => {
+          return cache.put(`/${fileName}`, response);
+        })
       },
       'download-db'
     );

@@ -200,17 +200,28 @@ export class SpAiAnalysisPage extends BaseElement {
                 WebSocketManager.getInstance()!.registerMessageListener(TypeConstants.DIAGNOSIS_TYPE, this.webSocketCallBack, this.eventCallBack);
                 // 看缓存中有没有db，没有的话拿一个进行诊断并存缓存
                 let fileName = sessionStorage.getItem('fileName');
-                caches.match(`${fileName}.db`).then(async (res) => {
-                    if (!res) {
-                        this.cacheDb(fileName);
+                await caches.match(`/${fileName}.db`).then(response => {
+                    if (response) {
+                        response.blob().then(blob => {
+                            const reader = new FileReader();
+                            reader.readAsArrayBuffer(blob);
+                            reader.onloadend = () => {
+                                const dbBuffer = reader.result;
+                                // @ts-ignore
+                                const reqBufferDB = new Uint8Array(dbBuffer);
+                                // 使用uint8Array
+                                WebSocketManager.getInstance()!.sendMessage(
+                                    TypeConstants.DIAGNOSIS_TYPE,
+                                    TypeConstants.SENDDB_CMD,
+                                    reqBufferDB
+                                );
+                            };
+                        });
                     } else {
-                        WebSocketManager.getInstance()!.sendMessage(
-                            TypeConstants.DIAGNOSIS_TYPE,
-                            TypeConstants.SENDDB_CMD,
-                            new TextEncoder().encode(await res!.text())
-                        );
+                        // 如果缓存中没有，从网络获取并存储
+                        this.cacheDb(fileName);
                     }
-                });
+                })
             };
             // 点击一键诊断时先挂载loading
             this.loadingItem = this.loading('style="position:absolute;top:45%;left:45%;z-index:999"');
@@ -550,7 +561,7 @@ export class SpAiAnalysisPage extends BaseElement {
         timeList: Array<string>
     ): void {
         SpStatisticsHttpUtil.askAi({
-            token: this.token, 
+            token: this.token,
             // @ts-ignore
             question: dataList[i].description + ',请问该怎么优化？',
             collection: ''
@@ -610,18 +621,11 @@ export class SpAiAnalysisPage extends BaseElement {
             (reqBufferDB: Uint8Array) => {
                 WebSocketManager.getInstance()!.sendMessage(TypeConstants.DIAGNOSIS_TYPE, TypeConstants.SENDDB_CMD, reqBufferDB);
                 // 存入缓存
-                caches.open(`${fileName}.db`).then((cache) => {
-                    let headers = new Headers();
-                    headers.append('Content-Type', 'application/octet-stream');
-                    headers.append('Content-Transfer-Encoding', 'binary');
-                    return cache
-                        .put(
-                            `${fileName}.db`,
-                            new Response(reqBufferDB, {
-                                status: 200,
-                            })
-                        );
-                });
+                const blob = new Blob([reqBufferDB]);
+                const response = new Response(blob)
+                caches.open('DB-file').then(cache => {
+                    return cache.put(`/${fileName}.db`, response);
+                })
             },
             'download-db'
         );

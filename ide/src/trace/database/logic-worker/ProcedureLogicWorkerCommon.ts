@@ -264,7 +264,7 @@ class MerageBeanDataSplit {
           */
           //@ts-ignore
           let parentNode = item.parentNode;
-          while (parentNode !== undefined && !(parentNode.isStore === 0 && parentNode.searchShow)) {
+          while (parentNode !== undefined && !(parentNode.isStore === 0 && parentNode.searchShow) && parentNode.addr) {
             parentNode = parentNode.parentNode;
           }
           if (parentNode) {
