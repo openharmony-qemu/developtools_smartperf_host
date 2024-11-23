@@ -91,33 +91,55 @@ export class WebSocketManager {
      * 其他业务数据分发
      */
     onmessage(decode: MessageParam): void {
-        // 解码event  调decode
-        if (decode.type === TypeConstants.UPDATE_TYPE) {// 升级
-            if (decode.cmd === Constants.GET_CMD) {
-                // 小于则升级
-                let targetVersion = '1.0.2';
-                let currentVersion = new TextDecoder().decode(decode.data);
-                let result = this.compareVersion(currentVersion, targetVersion);
-                if (result === -1) {
-                    this.updateVersion();
-                } else {
-                    // 连接后登录
-                    this.login();
-                }
-            }
-        } else if (decode.type === TypeConstants.LOGIN_TYPE) {// 登录
-            if (decode.cmd === Constants.LOGIN_CMD) {
-                this.ready = true;
-                this.sessionId = decode.session_id;
-                this.session = decode.session;
-            }
+        if (decode.type === TypeConstants.LOGIN_TYPE) { // 先登录
+            this.loginMessage(decode);
+        } else if (decode.type === TypeConstants.UPDATE_TYPE) {// 升级
+            this.updateMessage(decode);
         } else {// type其他
-            for (let [key, callback] of this.distributeMap.entries()) {
-                if (key === decode.type) {
-                    callback(decode.cmd, decode.data);
-                }
-            };
+            this.businessMessage(decode)
         }
+    }
+    
+    // 登录
+    loginMessage(decode: MessageParam): void {
+        if (decode.cmd === Constants.LOGIN_CMD) {
+            this.status = GetStatuses.LOGINED;
+            this.sessionId = decode.session_id;
+            this.session = decode.session;
+            //检查版本
+            this.getVersion();
+        } else if (decode.cmd === Constants.SESSION_EXCEED) { // session满了
+            this.status = GetStatuses.LOGINFAILEDBYLACKSESSION;
+            this.finalStatus();
+        }
+    }
+
+    // 升级
+    updateMessage(decode: MessageParam): void {
+        if (decode.cmd === Constants.GET_VERSION_CMD) {
+            // 小于则升级
+            let targetVersion = '1.0.2';
+            let currentVersion = new TextDecoder().decode(decode.data);
+            let result = this.compareVersion(currentVersion, targetVersion);
+            if (result === -1) {
+                this.status = GetStatuses.UPFRADING;
+                this.updateVersion();
+                return;
+            }
+            this.status = GetStatuses.READY;
+            this.finalStatus();
+        } else if (decode.cmd === Constants.UPDATE_SUCCESS_CMD) { // 升级成功
+            this.status = GetStatuses.UPGRADESUCCESS;
+            this.finalStatus();
+        } else if (decode.cmd === Constants.UPDATE_FAIL_CMD) { // 升级失败
+            this.status = GetStatuses.UPGRADEFAILED;
+            this.finalStatus();            
+        }
+    }
+
+    // 业务
+    businessMessage(decode: MessageParam): void {
+        this.distributeMap.get(decode.type!)?.messageCallback(decode.cmd, decode.data);
     }
 
     // get版本
