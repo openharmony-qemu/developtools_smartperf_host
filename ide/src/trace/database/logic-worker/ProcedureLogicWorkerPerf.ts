@@ -586,10 +586,12 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
             //@ts-ignore
             symbolName = perfCallChains[topIndex].name;
           }
-          let perfRootNode = this.currentTreeMapData[symbolName + perfSample.pid];
+          // 只展示内核栈合并进程栈
+          const usePidAsKey = this.isOnlyKernel ? '': perfSample.pid;
+          let perfRootNode = this.currentTreeMapData[symbolName + usePidAsKey];
           if (perfRootNode === undefined) {
             perfRootNode = new PerfCallChainMerageData();
-            this.currentTreeMapData[symbolName + perfSample.pid] = perfRootNode;
+            this.currentTreeMapData[symbolName + usePidAsKey] = perfRootNode;
             this.currentTreeList.push(perfRootNode);
           }
           PerfCallChainMerageData.merageCallChainSample(perfRootNode, perfCallChains[topIndex], perfSample, false);
@@ -602,6 +604,11 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     this.allProcess = Object.values(rootMerageMap);
   }
   private mergeNodeData(totalEventCount: number, totalSamplesCount: number): MergeMap {
+    // 只展示内核栈不添加进程这一级的结构
+    if (this.isOnlyKernel){
+      return this.currentTreeMapData;
+    }
+    // 添加进程级结构
     let rootMerageMap: MergeMap = {};
     // @ts-ignore
     Object.values(this.currentTreeMapData).forEach((merageData: PerfCallChainMerageData): void => {
