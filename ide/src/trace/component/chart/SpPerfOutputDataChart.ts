@@ -44,7 +44,7 @@ export class SpPerfOutputDataChart {
       this.dur = 3000000000;
     }
     // @ts-ignore
-    this.perfOutputArr = perfOutputData[0].name.split(':')[2].split(',');
+    this.perfOutputArr = perfOutputData[0].name.includes(':') ? perfOutputData[0].name.split(':')[2].includes(',') ? perfOutputData[0].name.split(':')[2].split(',') : [] : [];
     // @ts-ignore
     let endTime: number = perfOutputData[0].ts;
     this.startTime = endTime - window.recordStartNS - this.dur!;
