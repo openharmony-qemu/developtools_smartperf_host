@@ -289,7 +289,10 @@ void TraceStreamerSelector::InitializeParser()
     }
 }
 
-void TraceStreamerSelector::ProcessTraceData(std::unique_ptr<uint8_t[]> data, size_t size, int32_t isFinish)
+void TraceStreamerSelector::ProcessTraceData(std::unique_ptr<uint8_t[]> data,
+                                             size_t size,
+                                             int32_t isFinish,
+                                             bool isWasmReadFile)
 {
     if (fileType_ == TRACE_FILETYPE_H_TRACE) {
         pbreaderParser_->ParseTraceDataSegment(std::move(data), size);
@@ -303,6 +306,11 @@ void TraceStreamerSelector::ProcessTraceData(std::unique_ptr<uint8_t[]> data, si
 #endif
     } else if (fileType_ == TRACE_FILETYPE_RAW_TRACE) {
 #ifdef ENABLE_RAWTRACE
+#ifdef IS_WASM
+        if (isWasmReadFile && !rawTraceParser_->IsWasmReadFile()) {
+            rawTraceParser_->SetWasmReadFile(true);
+        }
+#endif
         rawTraceParser_->ParseTraceDataSegment(std::move(data), size, isFinish);
 #endif
     }
@@ -313,7 +321,8 @@ void TraceStreamerSelector::ProcessTraceData(std::unique_ptr<uint8_t[]> data, si
 bool TraceStreamerSelector::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> data,
                                                   size_t size,
                                                   bool isSplitFile,
-                                                  int32_t isFinish)
+                                                  int32_t isFinish,
+                                                  bool isWasmReadFile)
 {
     if (size == 0) {
         return true;
@@ -344,7 +353,7 @@ bool TraceStreamerSelector::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> dat
     traceDataCache_->SetSplitFileMinTime(minTs_);
     traceDataCache_->SetSplitFileMaxTime(maxTs_);
     traceDataCache_->isSplitFile_ = isSplitFile;
-    ProcessTraceData(std::move(data), size, isFinish);
+    ProcessTraceData(std::move(data), size, isFinish, isWasmReadFile);
 
 #if !IS_WASM
     // in the linux,isFinish = 1,clear markinfo

@@ -38,7 +38,6 @@ using namespace SysTuning::TraceStreamer;
 using namespace SysTuning::base;
 constexpr int G_MIN_PARAM_NUM = 2;
 constexpr size_t G_FILE_PERMISSION = 664;
-constexpr uint8_t RAW_TRACE_PARSE_MAX = 2;
 constexpr uint8_t PARSER_THREAD_MAX = 16;
 constexpr uint8_t PARSER_THREAD_MIN = 1;
 std::regex traceInvalidStr("\\\\");

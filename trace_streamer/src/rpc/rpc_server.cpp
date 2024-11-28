@@ -170,14 +170,20 @@ bool RpcServer::ReadAndParseData(const std::string &filePath)
         TS_LOGE("can not open %s.", filePath.c_str());
         return false;
     }
+    uint8_t curParseCnt = 1;
     while (true) {
         std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(G_CHUNK_SIZE);
         inputFile.read(reinterpret_cast<char *>(buf.get()), G_CHUNK_SIZE);
         auto readSize = inputFile.gcount();
-        if (!ts_->ParseTraceDataSegment(std::move(buf), readSize, false, inputFile.eof())) {
+        if (!ts_->ParseTraceDataSegment(std::move(buf), readSize, false, inputFile.eof(), true)) {
             return false;
         }
-        if (inputFile.eof()) {
+        // for rawtrace next parse.the first parse is for last comm data;
+        if (inputFile.eof() && ts_->GetFileType() == TRACE_FILETYPE_RAW_TRACE && curParseCnt < RAW_TRACE_PARSE_MAX) {
+            ++curParseCnt;
+            inputFile.clear();
+            inputFile.seekg(0, std::ios::beg);
+        } else if (inputFile.eof()) {
             break;
         }
     }

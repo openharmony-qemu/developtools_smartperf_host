@@ -26,6 +26,7 @@ namespace SysTuning {
 using ClockId = uint32_t;
 constexpr size_t G_CHUNK_SIZE = 1024 * 1024;
 constexpr size_t FLUSH_CHUNK_THRESHOLD = G_CHUNK_SIZE - 10000;
+constexpr uint8_t RAW_TRACE_PARSE_MAX = 2;
 const std::string INVALID_STRING = "INVALID_STRING";
 const uint64_t INVALID_ITID = std::numeric_limits<uint32_t>::max();
 const uint64_t INVALID_IPID = std::numeric_limits<uint32_t>::max();

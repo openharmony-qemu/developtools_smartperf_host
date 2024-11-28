@@ -32,7 +32,11 @@ class TraceStreamerSelector {
 public:
     TraceStreamerSelector();
     ~TraceStreamerSelector();
-    bool ParseTraceDataSegment(std::unique_ptr<uint8_t[]> data, size_t size, bool isSplitFile, int32_t isFinish);
+    bool ParseTraceDataSegment(std::unique_ptr<uint8_t[]> data,
+                               size_t size,
+                               bool isSplitFile,
+                               int32_t isFinish,
+                               bool isWasmReadFile = false);
     void EnableMetaTable(bool enabled);
     void EnableFileSave(bool enabled);
     static void SetCleanMode(bool cleanMode);
@@ -95,7 +99,7 @@ public:
         return streamFilters_.get();
     }
     void InitializeParser();
-    void ProcessTraceData(std::unique_ptr<uint8_t[]> data, size_t size, int32_t isFinish);
+    void ProcessTraceData(std::unique_ptr<uint8_t[]> data, size_t size, int32_t isFinish, bool isWasmReadFile);
 
     // Used to obtain markinfo,skip under Linux
     void ClearMarkPositionInfo()

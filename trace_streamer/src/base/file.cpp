@@ -215,7 +215,12 @@ bool LocalZip::Unzip(std::string &traceFile)
 #ifdef _WIN32
         auto fileName = std::filesystem::path(tmpDir_).append(String2WString(filenameInZip));
 #else
-        auto fileName = std::filesystem::path(tmpDir_).append(filenameInZip);
+        std::string tempFileName = filenameInZip;
+        if (base::GetCoding(reinterpret_cast<const uint8_t *>(tempFileName.c_str()), tempFileName.length()) !=
+            base::CODING::UTF8) {
+            tempFileName = "temp_" + std::to_string(i);
+        }
+        auto fileName = std::filesystem::path(tmpDir_).append(tempFileName);
 #endif
         // 是目录，则创建目录; 是文件，打开 -> 读取 -> 写入解压文件 -> 关闭
         auto isDir = fileName.string().back() == '/' || fileName.string().back() == '\\';
