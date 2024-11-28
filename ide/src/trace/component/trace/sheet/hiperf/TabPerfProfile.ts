@@ -111,8 +111,13 @@ export class TabpanePerfProfile extends BaseElement {
     this.perfProfilerFilter!.initializeFilterTree(true, true, true);
     this.perfProfilerFilter!.filterValue = '';
     this.perfProfileProgressEL!.loading = true; // @ts-ignore
-    this.perfProfileLoadingPage.style.visibility = 'visible'; // @ts-ignore
-    this.getDataByWorkAndUpDateCanvas(perfProfilerSelection);
+    this.perfProfileLoadingPage.style.visibility = 'visible'; 
+    const newPerfProfilerSelection = Object.fromEntries(// @ts-ignore
+      Object.entries(perfProfilerSelection).filter(([key, value]) =>
+        !['clockMapData', 'xpowerMapData', 'hangMapData'].includes(key)
+      )
+    ) as Partial<SelectionParam>;// @ts-ignore
+    this.getDataByWorkAndUpDateCanvas(newPerfProfilerSelection);
   }
 
   getDataByWorkAndUpDateCanvas(perfProfilerSelection: SelectionParam): void {
