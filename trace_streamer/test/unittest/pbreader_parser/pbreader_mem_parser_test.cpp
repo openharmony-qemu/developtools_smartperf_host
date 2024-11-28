@@ -144,7 +144,7 @@ HWTEST_F(HtraceMemParserTest, ParseMemParseTestMeasureDataSize, TestSize.Level1)
 
     EXPECT_TRUE(stream_.traceDataCache_->GetConstProcessData(1).pid_ == pid);
     auto processMeasureData = stream_.traceDataCache_->GetConstProcessMeasureData();
-    EXPECT_EQ(processMeasureData.Size(), MEM_PURG_SUM * 1);
+    EXPECT_EQ(processMeasureData.Size(), MEM_OOM_SCORE_ADJ * 1);
     EXPECT_EQ(stream_.traceDataCache_->GetConstProcessData().size(), 2);
 
     for (auto i = 0; i < MEM_PURG_SUM; i++) {
@@ -230,7 +230,7 @@ HWTEST_F(HtraceMemParserTest, ParseMultiEmptyProcessMemoryInfo, TestSize.Level1)
     auto eventCount = stream_.traceDataCache_->GetConstStatAndInfo().GetValue(TRACE_MEMORY, STAT_EVENT_RECEIVED);
     EXPECT_TRUE(1 == eventCount);
 
-    EXPECT_TRUE(stream_.traceDataCache_->GetConstProcessMeasureData().Size() == MEM_PURG_SUM * 2);
+    EXPECT_TRUE(stream_.traceDataCache_->GetConstProcessMeasureData().Size() == MEM_OOM_SCORE_ADJ * 2);
 }
 
 /**

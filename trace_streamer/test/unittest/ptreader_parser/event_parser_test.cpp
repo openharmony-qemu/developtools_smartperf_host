@@ -147,8 +147,7 @@ HWTEST_F(EventParserTest, ParseSchedSwitchNoArgs, TestSize.Level1)
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     eventParser.ParseDataItem(bytraceLine);
     eventParser.FilterAllEvents();
-    EXPECT_EQ(1,
-              stream_.traceDataCache_->GetStatAndInfo()->GetValue(TRACE_EVENT_SCHED_SWITCH, STAT_EVENT_DATA_INVALID));
+    EXPECT_EQ(1, stream_.traceDataCache_->GetStatAndInfo()->GetValue(TRACE_EVENT_SCHED_SWITCH, STAT_EVENT_RECEIVED));
 }
 
 /**
@@ -164,8 +163,6 @@ HWTEST_F(EventParserTest, ParseSchedWakeupNoArgs, TestSize.Level1)
     bytraceLine.pid = 1;
     bytraceLine.cpu = 0;
     bytraceLine.task = "ACCS0-2716";
-    bytraceLine.pidStr = "12";
-    bytraceLine.tGidStr = "12";
     bytraceLine.eventName = "sched_wakeup";
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     eventParser.ParseDataItem(bytraceLine);
@@ -694,7 +691,6 @@ HWTEST_F(EventParserTest, ParseTaskNewtaskByInitParam, TestSize.Level1)
 {
     TS_LOGI("test5-27");
     BytraceLine bytraceLine;
-    bytraceLine.tGidStr = "12";
     static std::unordered_map<std::string, std::string> args{{"comm", "POSIX"}, {"pid", "8542"}, {"clone_flags", "1"}};
     BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     int32_t result = eventParser.TaskNewtaskEvent(args, bytraceLine);

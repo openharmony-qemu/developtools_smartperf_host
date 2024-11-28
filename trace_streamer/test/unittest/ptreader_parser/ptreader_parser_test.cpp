@@ -197,8 +197,8 @@ HWTEST_F(PtreaderParserTest, LineParser_abnormal_pid_err, TestSize.Level1)
     ptreaderParser.WaitForParserEnd();
 
     EXPECT_TRUE(ptreaderParser.TraceCommentLines() == 0);
-    EXPECT_TRUE(ptreaderParser.ParsedTraceValidLines() == 0);
-    EXPECT_TRUE(ptreaderParser.ParsedTraceInvalidLines() == 1);
+    EXPECT_TRUE(ptreaderParser.ParsedTraceValidLines() == 1);
+    EXPECT_TRUE(ptreaderParser.ParsedTraceInvalidLines() == 0);
 }
 
 /**

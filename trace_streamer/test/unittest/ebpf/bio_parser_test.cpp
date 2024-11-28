@@ -26,6 +26,7 @@ using namespace testing::ext;
 using namespace SysTuning::TraceStreamer;
 using namespace SysTuning::EbpfStdtype;
 namespace SysTuning ::TraceStreamer {
+namespace BioParserUnitTest {
 const std::string COMMAND_LINE = "hiebpf --events ptrace --duration 50";
 const uint64_t EPBF_ERROR_MAGIC = 0x12345678;
 const uint32_t EPBF_ERROR_HEAD_SIZE = 0;
@@ -232,4 +233,5 @@ HWTEST_F(EbpfBioParserTest, EbpfBioParserCorrectWithMultipleCallback, TestSize.L
     auto ips1 = stream_.traceDataCache_->GetConstEbpfCallStackData().Ips()[0];
     EXPECT_EQ(ips1, ExpectIps1);
 }
+} // namespace BioParserUnitTest
 } // namespace SysTuning::TraceStreamer

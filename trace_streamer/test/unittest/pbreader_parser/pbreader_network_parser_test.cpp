@@ -30,6 +30,7 @@ using namespace SysTuning::TraceStreamer;
 
 namespace SysTuning {
 namespace TraceStreamer {
+namespace PbReaderNetworkParserTest {
 const uint64_t TS = 100;
 const uint64_t DURS_01 = 1999632781;
 const uint64_t TX_01 = 712921;
@@ -223,5 +224,6 @@ HWTEST_F(HtraceNetworkParserTest, ParseHtraceNetworkWithMultipleNetworkData, Tes
     EXPECT_EQ(netDetailData.PacketOut()[1], PACKETOUT_03);
     EXPECT_EQ(netDetailData.PacketOut()[2], PACKETOUT_04);
 }
+} // namespace PbReaderNetworkParserTest
 } // namespace TraceStreamer
 } // namespace SysTuning

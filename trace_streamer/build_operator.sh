@@ -62,6 +62,6 @@ else
     echo "begin to build ..."
     prebuilts/"$gn_path"/"$ninja" -C "$out_dir"
 fi
-if [ "$out_dir" == "macx" ];then
+if [ "$out_dir" == "out/macx" ];then
     ./mac_depend.sh
 fi

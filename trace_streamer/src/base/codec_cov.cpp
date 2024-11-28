@@ -138,21 +138,26 @@ std::wstring String2WString(const std::string &strInput)
         std::cout << "strInput is empty" << std::endl;
         return L"";
     }
+
     // 获取待转换的数据的长度
     int len_in = MultiByteToWideChar(codePage, 0, (LPCSTR)strInput.c_str(), -1, NULL, 0);
     if (len_in <= 0) {
         std::cout << "The result of WideCharToMultiByte is Invalid!" << std::endl;
         return L"";
     }
+
     // 为输出数据申请空间
     std::wstring wstr_out;
     wstr_out.resize(len_in - 1, L'\0');
+
     // 数据格式转换
     int to_result = MultiByteToWideChar(codePage, 0, (LPCSTR)strInput.c_str(), -1, (LPWSTR)wstr_out.c_str(), len_in);
+
     // 判断转换结果
     if (0 == to_result) {
         std::cout << "Can't transfer String to WString" << std::endl;
     }
+
     return wstr_out;
 }
 #endif

@@ -30,6 +30,7 @@ using namespace SysTuning::TraceStreamer;
 
 namespace SysTuning {
 namespace TraceStreamer {
+namespace HilogUnitTest {
 const uint32_t PID = 2716;
 const uint32_t TID = 1532;
 const uint64_t LOG_ID = 1;
@@ -359,6 +360,6 @@ HWTEST_F(HilogParserTest, ParseTxtHilogInfoWithTimeFormat, TestSize.Level1)
 
     EXPECT_TRUE(ta->traceDataCache_->GetConstHilogData().HilogLineSeqs().size() == 5);
 }
-
+} // namespace HilogUnitTest
 } // namespace TraceStreamer
 } // namespace SysTuning

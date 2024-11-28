@@ -248,7 +248,9 @@ EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerParseDataEx(int32_t dataLen, bool isFi
         return g_wasmTraceStreamer.SaveAndParseFfrtData(g_reqBuf, dataLen, &FfrtConvertedResultCallback, isFinish);
 #endif
     } else if (g_isZipTrace) {
+#if IS_WASM
         return g_wasmTraceStreamer.SaveAndParseZipTraceData(g_reqBuf, dataLen, &FfrtConvertedResultCallback, isFinish);
+#endif
     } else if (g_wasmTraceStreamer.ParseData(g_reqBuf, dataLen, nullptr, isFinish)) {
         return 0;
     }

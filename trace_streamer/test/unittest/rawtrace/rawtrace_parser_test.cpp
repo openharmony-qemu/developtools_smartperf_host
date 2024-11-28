@@ -33,7 +33,6 @@ using namespace SysTuning::base;
 
 namespace SysTuning {
 namespace TraceStreamer {
-bool ParseTraceFile(TraceStreamerSelector &ts, const std::string &tracePath);
 
 constexpr uint64_t PRINTK_VALID_ADDR = 0xffffffc011bdd3ea;
 class RawTraceParserTest : public ::testing::Test {
