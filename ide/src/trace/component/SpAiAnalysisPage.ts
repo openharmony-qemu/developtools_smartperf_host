@@ -51,6 +51,10 @@ export class SpAiAnalysisPage extends BaseElement {
     private startTimeEl: HTMLSpanElement | null | undefined;
     private endTimeEl: HTMLSpanElement | null | undefined;
     private contentsTable: LitTable | null | undefined;
+    private chatBar: HTMLDivElement | null | undefined;
+    private reportDetails: HTMLDivElement | null | undefined;
+    private showPageFlag: string = 'chat';
+    private tipContentArr: Array<string> = [];
     private question: string = '';
     private token: string = '';
     // 是否点击了新建聊天
@@ -81,12 +85,12 @@ export class SpAiAnalysisPage extends BaseElement {
             typographer: true
         });
         let aiAssistant = document.querySelector('body > sp-application')!.shadowRoot!.querySelector('#sp-ai-analysis');
-        let chatBar = this.shadowRoot?.querySelector('.chatBar');
+        this.chatBar = this.shadowRoot?.querySelector('.chatBar');
         let closeBtn = document.querySelector('body > sp-application')!.shadowRoot!.querySelector('#sp-ai-analysis')!.shadowRoot!.querySelector('div.rightTabBar > lit-icon')!.shadowRoot!.querySelector('#icon');
         this.askQuestion = this.shadowRoot?.querySelector('.ask_question');
         this.reportBar = this.shadowRoot?.querySelector('.report');
         this.q_a_window = this.shadowRoot?.querySelector('.q_a_window');
-        let reportDetails = this.shadowRoot?.querySelector('.report_details');
+        this.reportDetails = this.shadowRoot?.querySelector('.report_details');
         this.contentWindow = this.shadowRoot?.querySelector('.ask_question');
         this.tipsContainer = this.shadowRoot?.querySelector('.tipsContainer');
         this.inputEl = this.shadowRoot?.querySelector('.inputText');
@@ -109,6 +113,57 @@ export class SpAiAnalysisPage extends BaseElement {
         this.startTimeEl!.innerHTML = getTimeString(TraceRow.range?.startNS!);
         this.endTimeEl = this.shadowRoot?.querySelector('.endTime');
         this.endTimeEl!.innerHTML = getTimeString(TraceRow.range?.endNS!);
+
+        let rightBarGroup: any = [
+            {
+                barName: '聊天',
+                barEl: this.chatBar,
+                imgEl: this.chatImg,
+                barFlag: 'chat',
+                img: 'img/talk.png',
+                activeImg: 'img/talk_active.png',
+                showPage: this.askQuestion,
+                isMustLoadedTrace: false
+            },
+            {
+                barName: '诊断',
+                barEl: this.reportBar,
+                imgEl: this.reportImg,
+                barFlag: 'detect',
+                img: 'img/report.png',
+                activeImg: 'img/report_active.png',
+                showPage: this.reportDetails,
+                isMustLoadedTrace: true
+            }
+        ]
+
+        // 给右边栏添加点击事件
+        rightBarGroup.forEach((barItem: any, index: number) => {
+            barItem.barEl.addEventListener('click', (ev: Event) => {
+                if (barItem.isMustLoadedTrace && !SpApplication.isTraceLoaded) {
+                    let importTraceTips = '请先导入trace，再使用诊断功能';
+                    this.tipContentArr = ['chat'];
+                    this.abnormalPageTips(importTraceTips, '', 4000, this.tipContentArr);
+                    return;
+                }
+                // this.tipsContent!.style.display = this.isNodata && barItem.barFlag === 'detect' ? 'flex' : 'none';
+                this.tipsContainer!.style.display = 'none';
+                this.showPageFlag = barItem.barFlag;
+                barItem.imgEl.src = barItem.activeImg;
+                barItem.barEl.classList.add('active');
+                barItem.showPage.style.display = 'block';
+                if (this.tipContentArr.indexOf(barItem.barFlag) > -1) {
+                    this.tipsContainer!.style.display = 'flex';
+                }
+                for (let i = 0; i < rightBarGroup.length; i++) {
+                    if (i !== index) {
+                        rightBarGroup[i].barEl.classList.remove('active');
+                        rightBarGroup[i].imgEl.src = rightBarGroup[i].img;
+                        rightBarGroup[i].showPage.style.display = 'none';
+                    }
+                }
+            })
+        })
 
         // 发送消息图标点击事件
         this.sendImg?.addEventListener('click', () => {
@@ -226,38 +281,6 @@ export class SpAiAnalysisPage extends BaseElement {
             // 点击一键诊断时先挂载loading
             this.loadingItem = this.loading('style="position:absolute;top:45%;left:45%;z-index:999"');
             this.draftList?.appendChild(this.loadingItem!);
-        });
-
-        // 侧边栏诊断点击事件 *************优化，考虑多个按钮
-        this.reportBar!.addEventListener('click', () => {
-            if (!SpApplication.isTraceLoaded) {
-                let importTraceTips = '请先导入trace，再使用诊断功能';
-                this.abnormalPageTips(importTraceTips, '', 4000);
-                return;
-            }
-            this.reportImg!.src = 'img/report_active.png';
-            this.chatImg!.src = 'img/talk.png';
-            this.reportBar!.classList.add('active');
-            chatBar!.classList.remove('active');
-            //@ts-ignore
-            this.askQuestion!.style.display = 'none';
-            //@ts-ignore
-            reportDetails!.style.display = 'block';
-            this.tipsContent!.style.display = this.isNodata ? 'flex' : 'none';
-            this.tipsContainer!.style.display = 'none';
-        });
-
-        // 侧边栏聊天点击事件
-        chatBar!.addEventListener('click', () => {
-            this.reportImg!.src = 'img/report.png';
-            this.chatImg!.src = 'img/talk_active.png';
-            this.reportBar!.classList.remove('active');
-            chatBar!.classList.add('active');
-            //@ts-ignore
-            this.askQuestion!.style.display = 'block';
-            //@ts-ignore
-            reportDetails!.style.display = 'none';
-            this.tipsContainer!.style.display = 'none';
         });
 
         // 监听表格目录row点击事件，跳转至对应问题行
@@ -490,13 +513,14 @@ export class SpAiAnalysisPage extends BaseElement {
             // @ts-ignore
             return { ...item, id: index + 1 };
         });
+        let tbody = this.contentsTable!.shadowRoot!.querySelector('.table') as HTMLElement;
+        tbody.style.height = 30 + 25 * source.length + 'px';
+        tbody.style.maxHeight = TBODY_HEIGHT + 'px';
         this.contentsTable!.recycleDataSource = source;
     }
 
     connectedCallback(): void {
         super.connectedCallback();
-        let tbody = this.contentsTable!.shadowRoot!.querySelector('.table') as HTMLElement;
-        tbody.style.height = TBODY_HEIGHT + 'px';
     }
 
     async getToken(isChat?: boolean): Promise<void> {
@@ -512,13 +536,12 @@ export class SpAiAnalysisPage extends BaseElement {
     }
 
     //控制页面异常场景的显示
-    abnormalPageTips(tipStr: string, imgSrc: string, setTimeoutTime: number): void {
+    abnormalPageTips(tipStr: string, imgSrc: string, setTimeoutTime: number, flag: Array<string>): void {
         // 清除延时器，防止弹窗重叠互相影响
         if (this.timerId) {
             // @ts-ignore
             clearTimeout(this.timerId);
         }
-        this.tipsContainer!.style.display = 'flex';
         this.tipsContainer!.innerHTML = '';
         if (imgSrc !== '') {
             let mixedTipsBox = document.createElement('div');
@@ -531,15 +554,20 @@ export class SpAiAnalysisPage extends BaseElement {
             mixedTipsBox.appendChild(mixedImg);
             mixedTipsBox.appendChild(mixedText);
             this.tipsContainer!.appendChild(mixedTipsBox);
+            this.tipsContainer!.style.display = 'none';
         } else {
             let textTipsBox = document.createElement('div');
             textTipsBox.className = 'textTips';
             textTipsBox!.innerHTML = tipStr;
             this.tipsContainer!.appendChild(textTipsBox);
         }
+        if (flag.indexOf(this.showPageFlag) > -1) {
+            this.tipsContainer!.style.display = 'flex';
+        }
         if (setTimeoutTime) {
             setTimeout(() => {
                 this.timerId = this.tipsContainer!.style.display = 'none';
+                this.tipContentArr = [];
             }, setTimeoutTime);
         }
     }
@@ -655,7 +683,8 @@ export class SpAiAnalysisPage extends BaseElement {
                 let textStr = '服务异常，请重新导trace！';
                 let imgsrc = 'img/no-report.png';
                 this.tipsContent!.style.display = 'none';
-                this.abnormalPageTips(textStr, imgsrc, 0);
+                this.tipContentArr = ['detect'];
+                this.abnormalPageTips(textStr, imgsrc, 0, this.tipContentArr);
                 this.draftBtn!.style.display = 'inline-block';
             }
             if (this.isJsonString(jsonRes.resultMessage)) {
@@ -668,9 +697,11 @@ export class SpAiAnalysisPage extends BaseElement {
                     let textStr = '当前未诊断出问题';
                     let imgsrc = 'img/no-report.png';
                     this.tipsContent!.style.display = 'none';
-                    this.abnormalPageTips(textStr, imgsrc, 0);
+                    this.tipContentArr = ['detect'];
+                    this.abnormalPageTips(textStr, imgsrc, 0, this.tipContentArr);
                     this.draftBtn!.style.display = 'inline-block';
                 } else {
+                    this.tipContentArr = [];
                     SpStatisticsHttpUtil.generalRecord('AI_statistic', 'large_model_detect', ['1']);
                     this.isNodata = false;
                     // 整理数据,渲染数据
@@ -684,8 +715,9 @@ export class SpAiAnalysisPage extends BaseElement {
     eventCallBack = async (result: string) => {
         this.draftList!.innerHTML = '';
         this.tipsContent!.style.display = 'flex';
+        this.tipContentArr = ['detect'];
         // @ts-ignore
-        this.abnormalPageTips(this.getStatusesPrompt()[result].prompt, '', 4000);
+        this.abnormalPageTips(this.getStatusesPrompt()[result].prompt, '', 4000, ['detect']);
         this.draftBtn!.style.display = 'inline-block';
     }
 
@@ -753,7 +785,7 @@ export class SpAiAnalysisPage extends BaseElement {
                 prompt: '扩展程序已完成升级，重启中，请稍后再试！'
             }, // 重连
             upgradeFailed: {
-                prompt: '刷新页面触发升级，或卸载扩展程序重装！' 
+                prompt: '刷新页面触发升级，或卸载扩展程序重装！'
             },// 重连
         }
     }

@@ -599,7 +599,7 @@ export class SpSystemTrace extends BaseElement {
         )
       );
     }
-    if (!TraceRow.rangeSelectObject && !this.isSlectStruct()) {
+    if (!TraceRow.rangeSelectObject) {
       SpAiAnalysisPage.selectChangeListener(TraceRow.range?.startNS!, TraceRow.range?.endNS!);
     }
     //在rowsEL显示范围内的 trace-row组件将收到时间区间变化通知
@@ -1105,7 +1105,7 @@ export class SpSystemTrace extends BaseElement {
 
   // 一直按着回车键的时候执行搜索功能
   continueSearch = (ev: KeyboardEvent): void => {
-    if(!this.keyboardEnable){
+    if (!this.keyboardEnable) {
       return;
     }
     if (ev.key === 'Enter') {
@@ -1657,14 +1657,14 @@ export class SpSystemTrace extends BaseElement {
     let startParentRow = startRow ? this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(`trace-row[row-id='${startRow.rowParentId}'][folder]`) : this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
       `trace-row[row-id='${pid}'][folder]`
     );
-    if (startParentRow && startParentRow.expansion){
-      let filterRow = startParentRow?.childrenList.filter((item)=>item.rowId === tid)[0];
-      !filterRow && startParentRow?.childrenList.forEach((i)=>{
-       if(i.rowId === 'sameThreadProcess'){// @ts-ignore
-        filterRow = startParentRow?.childrenList.concat(i.childrenList).filter((item)=>item.rowId === String(tid))[0];
+    if (startParentRow && startParentRow.expansion) {
+      let filterRow = startParentRow?.childrenList.filter((item) => item.rowId === tid)[0];
+      !filterRow && startParentRow?.childrenList.forEach((i) => {
+        if (i.rowId === 'sameThreadProcess') {// @ts-ignore
+          filterRow = startParentRow?.childrenList.concat(i.childrenList).filter((item) => item.rowId === String(tid))[0];
           // @ts-ignore
           startParentRow = filterRow!.parentRowEl!;
-       }
+        }
       });
     }
     const expansionFlag = this.collectionHasThread(startRow);

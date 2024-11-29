@@ -74,12 +74,12 @@ export const SpAiAnalysisPageHtml = `
                             诊断报告
                         </h4>
                     </div>
-                    <lit-table id="tb-contents" style="height: auto">
+                    <lit-table id="tb-contents">
                         <lit-table-column class="cpu-fre-column" width="40px" title="序号" data-index="id" key="id" align="flex-start">
                         </lit-table-column>
-                        <lit-table-column class="cpu-fre-column" width="1fr" title="类型" data-index="type" key="type" align="flex-start">
+                        <lit-table-column class="cpu-fre-column" width="1fr" title="问题类型" data-index="type" key="type" align="flex-start">
                         </lit-table-column>
-                        <lit-table-column class="cpu-fre-column" width="1fr" title="原因" data-index="description" key="description" align="flex-start">
+                        <lit-table-column class="cpu-fre-column" width="1fr" title="问题原因" data-index="description" key="description" align="flex-start">
                         </lit-table-column>
                     </lit-table>
                     <div class="data-record"></div>

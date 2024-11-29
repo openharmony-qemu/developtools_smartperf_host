@@ -418,11 +418,7 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
       }
     })
     .catch((e): void => { });
-  // @ts-ignore
-  if (entry && entry.dur && (entry.startTime! || entry.startTs)) {
-    // @ts-ignore
-    SpAiAnalysisPage.selectChangeListener(entry.startTime || entry.startTs, (entry.startTime! || entry.startTs) + entry.dur);
-  }
+  SpAiAnalysisPage.selectChangeListener(TraceRow.range?.startNS!, TraceRow.range?.endNS!);
 }
 export default function spSystemTraceOnClickHandler(
   sp: SpSystemTrace,
