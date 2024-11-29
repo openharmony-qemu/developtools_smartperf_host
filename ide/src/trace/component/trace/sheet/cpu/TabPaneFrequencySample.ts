@@ -281,7 +281,7 @@ export class TabPaneFrequencySample extends BaseElement {
       return;
     }
     // @ts-ignore
-    let includeData = initFreqResult.findIndex((a) => a.ts >= leftStartNs);
+    let includeData = initFreqResult.findIndex((a) => a.ts > leftStartNs);
     if (includeData !== 0) {
       initFreqResult = initFreqResult.slice(
         includeData === -1 ? initFreqResult.length - 1 : includeData - 1,
