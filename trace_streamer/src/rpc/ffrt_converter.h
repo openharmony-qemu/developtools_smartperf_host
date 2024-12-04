@@ -14,93 +14,119 @@
  */
 #ifndef FFRT_CONVERTER_H
 #define FFRT_CONVERTER_H
-#include <cstdio>
-#include <cstring>
-#include <fstream>
-#include <iostream>
-#include <memory>
-#include <regex>
-#include <securec.h>
-#include <sstream>
 #include <string>
-#include <unordered_map>
 #include <vector>
+#include <regex>
+#include <fstream>
+#include <set>
+#include <unordered_map>
 #include "ts_common.h"
 namespace SysTuning {
 namespace TraceStreamer {
-using namespace std;
-constexpr int32_t WAKE_EVENT_DEFAULT_VALUE = -1;
-constexpr int32_t STR_LEGH = 2;
-constexpr int32_t STR_LEN = 8;
-constexpr int32_t MAX_LEN = 256;
-struct FfrtContent {
-    std::string name;
-    std::vector<int> indices;
+
+    using ConStr = const std::string;
+
+struct tidInfo {
+    std::vector<int> begin;
+    int end;
+    int gid;
+    int qid;
 };
-struct WakeEvent {
-    std::string state = "none";
-    int prevWakLine = WAKE_EVENT_DEFAULT_VALUE;
-    std::string prevWakeLog;
-};
-struct ThreadInfo {
+
+using PidMap = std::unordered_map<int, std::set<int>>;
+using FfrtTidMap = std::unordered_map<int, std::pair<std::string, std::vector<int>>>;
+using FfrtPids = std::unordered_map<int, FfrtTidMap>;
+using WakeLogs = std::unordered_map<int, std::vector<int>>;
+using FfrtWakeLogs = std::unordered_map<int, WakeLogs>;
+using QueueTaskInfo = std::unordered_map<int, std::unordered_map<int, tidInfo>>;
+using FfrtQueueTasks = std::unordered_map<int, std::unordered_map<int, std::vector<tidInfo>>>;
+using TaskLabels = std::unordered_map<int, std::unordered_map<int, std::string>>;
+
+struct LogInfo {
+    ConStr &log;
+    int lineno;
     int pid;
     int tid;
-    std::string name;
+    LogInfo(ConStr &log, int lineno, int pid, int tid) : log(log), lineno(lineno), pid(pid), tid(tid) {}
 };
+
+struct FakeLogArgs {
+    int pid;
+    int tid;
+    int &taskRunning;
+    int prio;
+    int lineno;
+    bool &switchInFakeLog;
+    bool &switchOutFakeLog;
+    std::string &log;
+    std::string &tname;
+    std::string &taskLabel;
+    std::string &cpuId;
+    std::string &timestamp;
+};
+
+struct ContextUpdate {
+    size_t position;
+    std::vector<std::string> new_logs;
+};
+
 class FfrtConverter {
 public:
     FfrtConverter() = default;
     ~FfrtConverter() = default;
-    bool RecoverTraceAndGenerateNewFile(const std::string &ffrtFileName, std::ofstream &outFile);
+
+    bool RecoverTraceAndGenerateNewFile(ConStr &ffrtFileName, std::ofstream &outFile);
 
 private:
-    void Clear();
-    using TypeFfrtPid = std::unordered_map<int, std::unordered_map<int, FfrtContent>>;
-    int ExtractProcessId(const size_t index);
-    std::string ExtractTimeStr(const std::string &log);
-    std::string ExtractCpuId(const std::string &log);
-    void ClassifyContextForFfrtWorker();
-    void FindFfrtProcessAndClassify(const size_t index, std::unordered_map<int, std::vector<int>> &traceMap);
-    void ClassifySchedSwitchData(const size_t index, std::unordered_map<int, std::vector<int>> &traceMap);
-    int FindIntNumberAfterStr(const size_t index, const string &str);
-    std::string FindSubStrAfterStr(const size_t index, const string &str);
-    std::string GetLabel(const std::string &line);
-    void ConvertFfrtThreadToFfrtTask();
-    void ProcessMarkWithSchedSwitch(const int tid, int &prio, const size_t index);
-    bool ProcessMarkWithFFRT(const int index, int &prio, int32_t &gid, const ThreadInfo &threadInfo);
-    bool DeleteRedundance(bool &switchInFakeLog, bool &switchOutFakeLog, const int index);
-    std::string MakeBeginFakeLog(const std::string &mark,
-                                 const long long gid,
-                                 const int prio,
-                                 const ThreadInfo &threadInfo);
-    std::string MakeEndFakeLog(const std::string &mark,
-                               const long long gid,
-                               const int prio,
-                               const ThreadInfo &threadInfo);
-    std::string ReplaceSchedSwitchLog(std::string &fakeLog,
-                                      const std::string &mark,
-                                      const int pid,
-                                      const long long gid,
-                                      const int tid);
-    std::string ReplaceSchedWakeLog(std::string &fakeLog, const std::string &label, const int pid, const long long gid);
-    std::string ReplaceSchedBlockLog(std::string &fakeLog, const int pid, const long long gid);
-    std::string ReplaceTracingMarkLog(std::string &fakeLog,
-                                      const std::string &label,
-                                      const int pid,
-                                      const long long gid);
-    std::string ConvertWorkerLogToTask(const std::string &mark, const int pid, const long long gid, const int tid);
-    std::string GetTaskId(int pid, long long gid);
-    bool IsDigit(const std::string &str);
-    void InitTracingMarkerKey();
 
-private:
-    const std::regex indexPattern_ = std::regex(R"(\(.+\)\s+\[\d)");
-    const std::regex matchPattern_ = std::regex(R"( \(.+\)\s+\[\d)");
-    const int uint32MaxLength_ = 10;
-    std::string tracingMarkerKey_ = "tracing_mark_write: ";
+    void SetOSPlatformKey(const std::unordered_map<int, std::pair<std::string, std::vector<int>>> &ffrt_tid_map);
+    void FindFfrtProcClassifyLogs(LogInfo logInfo, WakeLogs &traceMap, PidMap &pidMap,
+                                                  FfrtTidMap &ffrtTidMap, FfrtWakeLogs &ffrtWakeLogs);
+    void ClassifyLogsForFfrtWorker(FfrtPids &ffrt_pids, FfrtWakeLogs &ffrt_wake_logs);
+
+    void ConvertFrrtThreadToFfrtTaskOhos(FfrtPids &ffrtPids, FfrtWakeLogs& ffrtWakeLogs);
+    void ConvertFrrtThreadToFfrtTaskNohos(FfrtPids &ffrtPids, FfrtWakeLogs &ffrtWakeLogs);
+
+    // trace content
     std::vector<std::string> context_ = {};
-    TypeFfrtPid ffrtPidMap_ = {};
-    std::unordered_map<int, std::unordered_map<int, std::string>> taskLabels_ = {};
+    std::string tracingMarkerKey_;
+    std::string osPlatformKet_ = "ohos";
+
+    void FindQueueTaskInfo(FfrtPids &ffrtPids, QueueTaskInfo &queueTaskInfo);
+
+    void HandleFfrtQueueTasks(FfrtQueueTasks &ffrtQueueTasks, FfrtWakeLogs& ffrtWakeLogs);
+
+    void HandleMarks(ConStr &log, int lineno, int pid);
+
+    bool HandleFfrtTaskCo(ConStr &log, int lineno, bool &switchInFakeLog, bool &switchOutFakeLog);
+
+    bool HandleFfrtTaskExecute(FakeLogArgs &fakLogArg, WakeLogs &wakeLogs,
+                               TaskLabels &taskLabels, std::string &label);
+
+    void GenTaskLabelsOhos(FfrtPids &ffrtPids, FfrtWakeLogs& ffrtWakeLogs, TaskLabels &taskLabels);
+
+    bool HandlePreLineno(FakeLogArgs &fakArg, WakeLogs &wakeLogs,
+                         TaskLabels &taskLabels, ConStr traceBeginMark, ConStr traceEndMark);
+
+    void SetTracingMarkerKey(LogInfo logInfo);
+
+    void ExceQueTaskInfoPreLog(std::vector<int> &linenos, int pid, QueueTaskInfo &queueTaskInfo);
+
+    void ExceTaskGroups(std::vector<tidInfo> &group, WakeLogs &wakeLogs, int firstGid);
+
+    void HandleTaskGroups(std::vector<std::vector<tidInfo>> &taskGroups, WakeLogs &wakeLogs);
+
+    void ExceTaskLabelOhos(TaskLabels &taskLabels, FfrtWakeLogs &ffrtWakeLogs, std::pair<int, FfrtTidMap> pidItem,
+                           std::string traceBeginMark, std::string traceEndMark);
+
+    bool HandleHFfrtTaskExecute(FakeLogArgs &fakeArgs, WakeLogs &wakeLogs, TaskLabels &taskLabels,
+                                std::string label, std::unordered_map<int, int> &schedWakeFlag);
+
+    bool HandlePreLinenoNohos(FakeLogArgs &fakArg, WakeLogs &wakeLogs,
+                             TaskLabels &taskLabels, std::unordered_map<int, int> &schedWakeFlag);
+
+    void ExceTaskLabelNohos(TaskLabels &taskLabels, FfrtWakeLogs &ffrtWakeLogs,
+                           std::pair<int, FfrtTidMap> pidItem, std::unordered_map<int, int> &schedWakeFlag);
 };
 } // namespace TraceStreamer
 } // namespace SysTuning
