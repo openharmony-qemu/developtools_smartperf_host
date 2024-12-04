@@ -731,7 +731,7 @@ bool RpcServer::WriteToFile(const std::string &fileName, const uint8_t *data, si
     return false;
 }
 
-bool RpcServer::ClearPathFile(string &symbolsPath, int32_t finish, ParseELFFileCallBack &parseELFFile)
+bool RpcServer::ClearPathFile(std::string &symbolsPath, int32_t finish, ParseELFFileCallBack &parseELFFile)
 {
     if (finish) {
         if (!ts_->ReloadSymbolFiles(symbolsPath, symbolsPathFiles_)) {
