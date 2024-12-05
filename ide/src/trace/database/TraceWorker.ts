@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+import {WebSocketManager} from "../../webSocket/WebSocketManager";
+
 importScripts('trace_streamer_builtin.js');
 import { execProtoForWorker } from './data-trafic/utils/ExecProtoForWorker';
 import { QueryEnum, TraficEnum } from './data-trafic/utils/QueryEnum';
@@ -20,6 +22,7 @@ import { QueryEnum, TraficEnum } from './data-trafic/utils/QueryEnum';
 import { temp_init_sql_list } from './TempSql';
 // @ts-ignore
 import { BatchSphData } from '../proto/SphBaseData';
+import {Constants, TypeConstants} from "../../webSocket/Constants";
 
 enum TsLogLevel {
   DEBUG = 0,
@@ -1328,6 +1331,9 @@ const uploadSoFile = async (file: File | null): Promise<void> => {
     wasmModule.HEAPU8.set(fileNameBuffer, addr);
     let writeSize = 0;
     let upRes = -1;
+    let wsInstance = WebSocketManager.getInstance()
+    const fileName = file.name;
+    let bufferIndex = 0;
     while (writeSize < file.size) {
       let sliceLen = Math.min(file.size - writeSize, REQ_BUF_SIZE);
       let blob: Blob | null = file.slice(writeSize, writeSize + sliceLen);
@@ -1339,6 +1345,30 @@ const uploadSoFile = async (file: File | null): Promise<void> => {
       writeSize += sliceLen;
       //@ts-ignore
       upRes = wasmModule._TraceStreamerDownloadELFEx(size, fileNameLength, sliceLen, 1);
+      if (wsInstance) {
+        // 构造包含元数据和文件内容的对象
+        const dataObject = {
+          file_name: fileName,
+          buffer_index: bufferIndex,
+          buffer_size: sliceLen,
+          total_size: size,
+          is_last: writeSize >= file.size,
+          buffer: Array.from(data), // 将 Uint8Array 转换为普通数组，以便可以序列化为 JSON
+        };
+
+        // 将对象序列化为 JSON 字符串
+        const dataString = JSON.stringify(dataObject);
+
+        // 使用 TextEncoder 将字符串编码为 Uint8Array
+        const textEncoder = new TextEncoder();
+        const encodedData = textEncoder.encode(dataString);
+
+        // 通过 WebSocket 发送数据
+        wsInstance.sendMessage(TypeConstants.DISASSEMBLY_TYPE, Constants.DISASSEMBLY_SAVE_CMD, encodedData);
+      }
+
+      // 更新当前片段索引
+      bufferIndex++;
       data = null;
       buffer = null;
       blob = null;

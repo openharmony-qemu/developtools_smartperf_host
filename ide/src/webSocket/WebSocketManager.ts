@@ -56,7 +56,7 @@ export class WebSocketManager {
         this.websocket.binaryType = 'arraybuffer';
         this.websocket.onopen = (): void => {
             this.status = GetStatuses.CONNECTED;
-            // 设置心跳定时器  
+            // 设置心跳定时器
             this.sendHeartbeat();
             // 连接后登录
             this.login();
@@ -83,6 +83,7 @@ export class WebSocketManager {
             this.initLoginInfo();
             this.clearHeartbeat();
         };
+        WebSocketManager.getInstance()!.registerMessageListener(TypeConstants.DISASSEMBLY_TYPE, this.webSocketCallBack, () => {});
     }
 
     /**
@@ -99,7 +100,7 @@ export class WebSocketManager {
             this.businessMessage(decode);
         }
     }
-    
+
     // 登录
     loginMessage(decode: MessageParam): void {
         if (decode.cmd === Constants.LOGIN_CMD) {
@@ -133,7 +134,7 @@ export class WebSocketManager {
             this.finalStatus();
         } else if (decode.cmd === Constants.UPDATE_FAIL_CMD) { // 升级失败
             this.status = GetStatuses.UPGRADEFAILED;
-            this.finalStatus();            
+            this.finalStatus();
         }
     }
 
@@ -280,7 +281,7 @@ export class WebSocketManager {
             obj.data = data;
         }
     }
-    
+
     // 检查状态 中间状态，最终失败状态，最终成功状态
     checkStatus(reconnect: number): void {
         // @ts-ignore
@@ -330,5 +331,17 @@ export class WebSocketManager {
                 type: FAILED_STATE,
             }, // 重连
         };
+    }
+    // 汇编、源码展开接口回调函数
+    // @ts-ignore
+    webSocketCallBack = async (cmd: number, result: Uint8Array): unknown => {
+        const decoder = new TextDecoder();
+        const jsonString = decoder.decode(result);
+        let jsonRes = JSON.parse(jsonString);
+        if (cmd === Constants.DISASSEMBLY_SAVE_BACK_CMD) {
+            return
+        }else if (cmd === Constants.DISASSEMBLY_QUERY_BACK_CMD) {
+            return
+        }
     }
 }

@@ -23,6 +23,10 @@ export class Constants {
     static GET_VERSION_CMD = 1;
     static UPDATE_SUCCESS_CMD = 2; // 升级成功
     static UPDATE_FAIL_CMD = 4; // 升级失败
+    static DISASSEMBLY_SAVE_CMD = 1;
+    static DISASSEMBLY_SAVE_BACK_CMD = 2;
+    static DISASSEMBLY_QUERY_CMD = 3;
+    static DISASSEMBLY_QUERY_BACK_CMD = 4;
 }
 
 export class TypeConstants {
@@ -41,4 +45,5 @@ export class TypeConstants {
     static USB_GET_EVENT = 4;
     static USB_GET_APP = 5;
     static USB_GET_VERSION = 6;
+    static DISASSEMBLY_TYPE = 10;
 }
