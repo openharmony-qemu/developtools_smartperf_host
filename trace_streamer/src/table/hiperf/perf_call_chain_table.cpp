@@ -17,7 +17,17 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-enum class Index : int32_t { ID = 0, CALLCHAIN_ID, DEPTH, IP, VADDR_IN_FILE, FILE_ID, SYMBOL_ID, NAME };
+enum class Index : int32_t {
+    ID = 0,
+    CALLCHAIN_ID,
+    DEPTH,
+    IP,
+    VADDR_IN_FILE,
+    OFFSET_TO_VADDR,
+    FILE_ID,
+    SYMBOL_ID,
+    NAME
+};
 PerfCallChainTable::PerfCallChainTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
@@ -25,6 +35,7 @@ PerfCallChainTable::PerfCallChainTable(const TraceDataCache *dataCache) : TableB
     tableColumn_.push_back(TableBase::ColumnInfo("depth", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("ip", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("vaddr_in_file", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("offset_to_vaddr", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("file_id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("symbol_id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("name", "INTEGER"));
@@ -137,6 +148,9 @@ int32_t PerfCallChainTable::Cursor::Column(int32_t column) const
             break;
         case Index::VADDR_IN_FILE:
             sqlite3_result_int64(context_, static_cast<uint64_t>(perfCallChainObj_.VaddrInFiles()[CurrentRow()]));
+            break;
+        case Index::OFFSET_TO_VADDR:
+            sqlite3_result_int64(context_, static_cast<uint64_t>(perfCallChainObj_.OffsetToVaddrs()[CurrentRow()]));
             break;
         case Index::FILE_ID:
             sqlite3_result_int64(context_, static_cast<uint64_t>(perfCallChainObj_.FileIds()[CurrentRow()]));

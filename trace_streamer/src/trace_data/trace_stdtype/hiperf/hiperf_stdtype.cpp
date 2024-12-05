@@ -23,6 +23,7 @@ size_t PerfCallChain::AppendNewPerfCallChain(const PerfCallChainRow &context)
     depths_.emplace_back(context.depth);
     ips_.emplace_back(context.ip);
     vaddrInFiles_.emplace_back(context.vaddrInFile);
+    offsetToVaddrs_.emplace_back(context.offsetToVaddr);
     fileIds_.emplace_back(context.fileId);
     symbolIds_.emplace_back(context.symbolId);
     names_.emplace_back(INVALID_UINT64);
@@ -43,6 +44,11 @@ const std::deque<uint64_t> &PerfCallChain::Ips() const
 const std::deque<uint64_t> &PerfCallChain::VaddrInFiles() const
 {
     return vaddrInFiles_;
+}
+
+const std::deque<uint64_t> &PerfCallChain::OffsetToVaddrs() const
+{
+    return offsetToVaddrs_;
 }
 const std::deque<uint64_t> &PerfCallChain::FileIds() const
 {
@@ -68,6 +74,7 @@ void PerfCallChain::Clear()
     depths_.clear();
     ips_.clear();
     vaddrInFiles_.clear();
+    offsetToVaddrs_.clear();
     fileIds_.clear();
     symbolIds_.clear();
     names_.clear();
@@ -78,10 +85,15 @@ void PerfCallChain::UpdateSymbolId(size_t index, DataIndex symbolId)
         symbolIds_[index] = symbolId;
     }
 }
-void PerfCallChain::UpdateSymbolRelatedData(size_t index, uint64_t vaddrInFile, uint64_t symbolId, DataIndex nameIndex)
+void PerfCallChain::UpdateSymbolRelatedData(size_t index,
+                                            uint64_t vaddrInFile,
+                                            uint64_t offsetToVaddr,
+                                            uint64_t symbolId,
+                                            DataIndex nameIndex)
 {
     if (index < Size()) {
         vaddrInFiles_[index] = vaddrInFile;
+        offsetToVaddrs_[index] = offsetToVaddr;
         symbolIds_[index] = symbolId;
         names_[index] = nameIndex;
     }

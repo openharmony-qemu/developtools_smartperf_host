@@ -466,7 +466,8 @@ void PerfDataParser::ReloadPerfCallChain(const std::unique_ptr<SymbolsFile> &sym
             auto vaddr = symbolsFile->GetVaddrInSymbols(perfCallChainData->Ips()[row], dfxMap->begin, dfxMap->offset);
             auto dfxSymbol = symbolsFile->GetSymbolWithVaddr(vaddr);
             auto nameIndex = traceDataCache_->GetDataIndex(dfxSymbol.GetName());
-            perfCallChainData->UpdateSymbolRelatedData(row, dfxSymbol.funcVaddr_, dfxSymbol.index_, nameIndex);
+            perfCallChainData->UpdateSymbolRelatedData(row, dfxSymbol.funcVaddr_, dfxSymbol.offsetToVaddr_,
+                                                       dfxSymbol.index_, nameIndex);
         }
     }
 }
@@ -688,7 +689,8 @@ uint32_t PerfDataParser::UpdateCallChainUnCompressed(const std::unique_ptr<PerfR
         if (fileDataDictIdToFileId_.count(fileDataIndex) != 0) {
             fileId = fileDataDictIdToFileId_.at(fileDataIndex);
         }
-        PerfCallChainRow perfCallChainRow = {callChainId, depth++, frame->pc, frame->funcOffset, fileId, frame->index};
+        PerfCallChainRow perfCallChainRow = {callChainId,      depth++, frame->pc,   frame->funcOffset,
+                                             frame->mapOffset, fileId,  frame->index};
         traceDataCache_->GetPerfCallChainData()->AppendNewPerfCallChain(perfCallChainRow);
     }
     return callChainId;
