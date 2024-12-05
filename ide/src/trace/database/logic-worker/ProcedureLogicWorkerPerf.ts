@@ -68,6 +68,8 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   private symbol: object | undefined;
   private dataCache = DataCache.getInstance();
   private isTopDown: boolean = true;
+  // 应对当depth为0是的结构变化后的数据还原
+  private forkAllProcess: PerfCallChainMerageData[] = [];
 
   handle(data: unknown): void {
     //@ts-ignore
@@ -602,10 +604,12 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     let rootMerageMap = this.mergeNodeData(totalEventCount, totalSamplesCount);
     this.handleCurrentTreeList(totalEventCount, totalSamplesCount);
     this.allProcess = Object.values(rootMerageMap);
+    // 浅拷贝
+    this.forkAllProcess = this.allProcess.slice();
   }
   private mergeNodeData(totalEventCount: number, totalSamplesCount: number): MergeMap {
     // 只展示内核栈不添加进程这一级的结构
-    if (this.isOnlyKernel){
+    if (this.isOnlyKernel) {
       return this.currentTreeMapData;
     }
     // 添加进程级结构
@@ -786,33 +790,15 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     });
   }
 
-  onlyKernel(): void {
-    this.allProcess.forEach((item: PerfCallChainMerageData): void => {
-      item.children = [];
-
-      function recursionHideChildren(
-        sample: PerfCallChainMerageData,
-        rule: (node: PerfCallChainMerageData) => boolean
-      ): void {
-        if (sample.initChildren.length > 0) {
-          sample.initChildren.forEach((child): void => {
-            if (rule(child)) {
-              child.isStore++;
-            }
-            recursionHideChildren(child, rule);
-          });
-        }
-      }
-      recursionHideChildren(item, (node: PerfCallChainMerageData): boolean => {
-        return node.libName !== '[kernel.kallsyms]';
-      });
-    });
-  }
-
   hideNumMaxAndMin(startNum: number, endNum: string): void {
     let max = endNum === '∞' ? Number.POSITIVE_INFINITY : parseInt(endNum);
     this.allProcess.forEach((item: PerfCallChainMerageData): void => {
       item.children = [];
+      // only kernel模式下第0层结构为调用栈，也需要变化
+      if (this.isOnlyKernel && (item.dur < startNum || item.dur > max)){
+        (this.splitMapData[numRuleName] = this.splitMapData[numRuleName] || []).push(item);
+        item.isStore++;
+      }
       this.recursionChargeByRule(item, numRuleName, (node: PerfCallChainMerageData): boolean => {
         return node.dur < startNum || node.dur > max;
       });
@@ -826,6 +812,8 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   }
 
   resetAllSymbol(symbols: string[]): void {
+    // 浅拷贝取出备份数据
+    this.allProcess = this.forkAllProcess.slice();
     symbols.forEach((symbol: string): void => {
       let list = this.splitMapData[symbol];
       if (list !== undefined) {
@@ -849,6 +837,13 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     }
   }
 
+  /**
+   * 重置所有节点的子节点列表，并根据条件重新构建子节点列表
+   * 此函数旨在清理和重新组织 PerfCallChainMerageData 类型的样本数组中的节点关系
+   * 它通过移除某些节点并重新分配子节点来更新树结构
+   * 
+   * @param sampleArray - allProcess
+   */
   resetNewAllNode(sampleArray: PerfCallChainMerageData[]): void {
     sampleArray.forEach((process: PerfCallChainMerageData): void => {
       process.children = [];
@@ -857,20 +852,63 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       item.children = [];
       return item;
     });
+    // 记录待删除的节点索引
+    const removeList : number[] = [];
+    // 用于记录所有有效的子节点
+    const effectChildList : PerfCallChainMerageData[] = [];
     values.forEach((sample: PerfCallChainMerageData): void => {
-      if (sample.parentNode !== undefined) {
-        if (sample.isStore === 0 && sample.searchShow) {
-          let parentNode = sample.parentNode;
-          while (parentNode !== undefined && !(parentNode.isStore === 0 && parentNode.searchShow)) {
-            parentNode = parentNode.parentNode!;
-          }
-          if (parentNode) {
-            sample.parent = parentNode;
-            parentNode.children.push(sample);
+      if (sample.parentNode !== undefined && sample.isStore === 0 && sample.searchShow) {
+        let parentNode = sample.parentNode;
+        while (parentNode !== undefined && !(parentNode.isStore === 0 && parentNode.searchShow)) {
+          parentNode = parentNode.parentNode!;
+        }
+        if (parentNode) {
+          sample.parent = parentNode;
+          parentNode.children.push(sample);
+        }
+      } else {
+        // 如果节点没有父节点且是存储节点，则将其标记为待删除，并检查其子节点中是否有需要保留的
+        if (!sample.parentNode && sample.isStore > 0){
+          removeList.push(sampleArray.indexOf(sample));
+          const effectChildren = this.findChildrenNotStore(sample.initChildren);
+          if (effectChildren.length > 0) {
+            effectChildList.push(...effectChildren);
           }
         }
       }
     });
+    // 删除标记为待删除的节点
+    removeList.sort((a, b) => b - a).forEach(index => {
+      if (index >= 0 && index < values.length) {
+        this.allProcess.splice(index, 1);
+      }
+    });
+    // 将所有有效的子节点添加到返回的列表中
+    this.allProcess.push(...effectChildList);
+  }
+
+  /**
+   * 递归查找调用链中非存储且标记为显示的子节点
+   * 
+   * 本函数旨在筛选出调用链数据中，所有非存储（isStore为0）且被标记为需要显示（searchShow为true）的节点
+   * 它通过递归遍历每个节点的子节点（initChildren），确保所有符合条件的节点都被找出
+   * 
+   * @param children 调用链的子节点数组，这些子节点是待筛选的数据
+   * @returns 返回一个新数组，包含所有非存储且标记为显示的子节点
+   */
+  private findChildrenNotStore(children: PerfCallChainMerageData[]): PerfCallChainMerageData[]{
+    let result: PerfCallChainMerageData[] = [];
+    for(let child of children){
+      // 如果当前节点非存储且需要显示，则直接添加到结果数组中
+      if (child.isStore === 0 && child.searchShow) {
+        result.push(child);
+      } else {
+        // 如果当前节点不符合条件，递归查找其子节点中符合条件的节点
+        result.push(...this.findChildrenNotStore(child.initChildren));
+      }
+    }
+    // 返回结果数组
+    return result;
   }
 
   kernelCombination(): void {
@@ -956,9 +994,13 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
           }
         }
       }
-      this.dataSource = this.allProcess.filter((process: PerfCallChainMerageData): boolean => {
-        return process.children && process.children.length > 0;
-      });
+      if (this.isOnlyKernel){
+        return this.allProcess;
+      } else {
+        this.dataSource = this.allProcess.filter((process: PerfCallChainMerageData): boolean => {
+          return process.children && process.children.length > 0;
+        });
+      }
     }
     return this.dataSource;
   }
