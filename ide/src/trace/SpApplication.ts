@@ -72,6 +72,7 @@ import {
   findFreeSizeAlgorithm,
   getCurrentDataTime,
   indexedDataToBufferData,
+  isZipFile,
   postLog,
   readTraceFileBuffer,
   TraceMode,
@@ -175,6 +176,7 @@ export class SpApplication extends BaseElement {
   private currentPageNum: number = 1;
   private currentDataTime: string[] = [];
   static traceType: String = '';
+  private isZipFile: boolean = false;
 
   static get observedAttributes(): Array<string> {
     return ['server', 'sqlite', 'wasm', 'dark', 'vs', 'query-sql', 'subsection'];
@@ -675,6 +677,8 @@ export class SpApplication extends BaseElement {
         } else {
           info('Parse trace using wasm mode ');
           this.wasm = true;
+          this.isZipFile = isZipFile(headerStr);
+          this.cutTraceFile!.style.display = this.isZipFile ? 'none' : 'block';
           //@ts-ignore
           this.handleWasmMode(ev, showFileName, ev.size, fileName);
         }
@@ -1229,7 +1233,7 @@ export class SpApplication extends BaseElement {
         if (headerStr.indexOf('OHOSPROF') !== 0 && rowTraceStr.indexOf('49df') !== 0) {
           isAllowTrace = false;
         }
-        this.cutTraceFile!.style.display = 'block';
+        this.cutTraceFile!.style.display = this.isZipFile ? 'none' : 'block';
         this.exportRecord!.style.display = 'block';
         setThreadPoolTraceBuffer('1', null);
       }

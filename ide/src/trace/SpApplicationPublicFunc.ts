@@ -529,3 +529,12 @@ export function getCurrentDataTime(): string[] {
   let seconds = ('0' + current.getSeconds()).slice(-2);
   return [year, month, day, hours, minutes, seconds];
 }
+
+const ZIP_MAGIC_NUMBER = 'PK\x03\x04';
+export function isZipFile(headerStr: string): boolean {
+  if (headerStr.length < 4) {
+    return false;
+  }
+  return headerStr.startsWith(ZIP_MAGIC_NUMBER);
+}
+
