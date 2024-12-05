@@ -17,7 +17,7 @@ import { processFrameList } from './utils/AllMemoryCache';
 import { Args } from './CommonArgs';
 
 export const frameJankDataSql = (args: Args, configure: unknown): string => {
-  let timeLimit: string = '';
+  let condition: string = '';
   let flag: string = '';
   let fsType: number = -1;
   let fsFlag: string = '';
@@ -31,11 +31,12 @@ export const frameJankDataSql = (args: Args, configure: unknown): string => {
     case 'ExepectMemory':
       fsType = 1;
       flag = 'fs.flag as jankTag,';
+      condition = 'AND t.tid = pro.pid'
       break;
     case 'ExpectedData':
       fsType = 1;
       flag = 'fs.flag as jankTag,';
-      timeLimit = `
+      condition = `
        AND (fs.ts - ${recordStartNS} + fs.dur) >= ${Math.floor(startNS)}
        AND (fs.ts - ${recordStartNS}) <= ${Math.floor(endNS)}`;
       break;
@@ -50,13 +51,13 @@ export const frameJankDataSql = (args: Args, configure: unknown): string => {
       flag =
         '(case when (sf.flag == 1 or fs.flag == 1 ) then 1 when (sf.flag == 3 or fs.flag == 3 ) then 3 else 0 end) as jankTag,';
       fsFlag = 'AND fs.flag <> 2';
-      timeLimit = `AND (fs.ts - ${recordStartNS} + fs.dur) >= ${Math.floor(startNS)}
+      condition = `AND (fs.ts - ${recordStartNS} + fs.dur) >= ${Math.floor(startNS)}
        AND (fs.ts - ${recordStartNS}) <= ${Math.floor(endNS)}`;
       break;
     default:
       break;
   }
-  let sql = setFrameJanksSql(args, timeLimit, flag, fsType, fsFlag);
+  let sql = setFrameJanksSql(args, condition, flag, fsType, fsFlag);
   return sql;
 };
 function setFrameJanksSql(args: Args, timeLimit: string, flag: string, fsType: number, fsFlag: string): string {
@@ -72,6 +73,7 @@ function setFrameJanksSql(args: Args, timeLimit: string, flag: string, fsType: n
             fs.type,
             ${flag}
             pro.pid,
+            t.tid,
             pro.name as cmdline,
             (sf.ts - ${recordStartNS}) AS rsTs,
             sf.vsync AS rsVsync,
@@ -83,6 +85,7 @@ function setFrameJanksSql(args: Args, timeLimit: string, flag: string, fsType: n
         LEFT JOIN process AS pro ON pro.id = fs.ipid
         LEFT JOIN frame_slice AS sf ON fs.dst = sf.id
         LEFT JOIN process AS proc ON proc.id = sf.ipid
+        LEFT JOIN thread as t on fs.itid = t.id
         WHERE fs.dst IS NOT NULL
         AND fs.type = ${fsType}
         ${fsFlag} ${timeLimit}
@@ -97,9 +100,11 @@ function setFrameJanksSql(args: Args, timeLimit: string, flag: string, fsType: n
             fs.type,
             fs.flag as jankTag,
             pro.pid,
+            t.tid,
             pro.name as cmdline,
             NULL AS rsTs, NULL AS rsVsync, NULL AS rsDur, NULL AS rsIpid, NULL AS rsPid, NULL AS rsName
         FROM frame_slice AS fs LEFT JOIN process AS pro ON pro.id = fs.ipid
+        LEFT JOIN thread as t on fs.itid = t.id
         WHERE fs.dst IS NULL
         AND pro.name NOT LIKE '%render_service%'
         AND fs.type = 1
@@ -204,6 +209,8 @@ function setFrameJanks(frameJanks: FrameJanks, itemData: unknown, index: number)
   // @ts-ignore
   frameJanks.pid[index] = itemData.pid;
   // @ts-ignore
+  frameJanks.tid[index] = itemData.tid;
+  // @ts-ignore
   frameJanks.rsTs[index] = itemData.rsTs;
   // @ts-ignore
   frameJanks.rsVsync[index] = itemData.rsVsync;
@@ -229,6 +236,7 @@ function setResults(transfer: boolean, frameJanks: FrameJanks): unknown {
         ts: frameJanks.ts.buffer,
         jank_tag: frameJanks.jankTag.buffer,
         pid: frameJanks.pid.buffer,
+        tid: frameJanks.tid.buffer,
         rs_ts: frameJanks.rsTs.buffer,
         rs_vsync: frameJanks.rsVsync.buffer,
         rs_dur: frameJanks.rsDur.buffer,
@@ -261,6 +269,7 @@ function postFrameJanksMessage(data: unknown, transfer: boolean, frameJanks: Fra
           frameJanks.ts.buffer,
           frameJanks.jankTag.buffer,
           frameJanks.pid.buffer,
+          frameJanks.tid.buffer,
           frameJanks.rsTs.buffer,
           frameJanks.rsVsync.buffer,
           frameJanks.rsDur.buffer,
@@ -280,12 +289,13 @@ class FrameJanks {
   dur: Float64Array;
   ts: Float64Array;
   jankTag: Uint16Array;
-  pid: Uint16Array;
+  pid: Uint32Array;
+  tid: Uint32Array;
   rsTs: Float64Array;
   rsVsync: Int32Array;
   rsDur: Float64Array;
   rsIpId: Uint16Array;
-  rsPid: Uint16Array;
+  rsPid: Uint32Array;
   rsName: Int32Array;
   depth: Uint16Array;
   constructor(data: unknown, transfer: boolean, len: number) {
@@ -304,7 +314,9 @@ class FrameJanks {
     // @ts-ignore
     this.jankTag = new Uint16Array(transfer ? len : data.params.sharedArrayBuffers.jank_tag);
     // @ts-ignore
-    this.pid = new Uint16Array(transfer ? len : data.params.sharedArrayBuffers.pid);
+    this.pid = new Uint32Array(transfer ? len : data.params.sharedArrayBuffers.pid);
+    // @ts-ignore
+    this.tid = new Uint32Array(transfer ? len : data.params.sharedArrayBuffers.tid);
     // @ts-ignore
     this.rsTs = new Float64Array(transfer ? len : data.params.sharedArrayBuffers.rs_ts);
     // @ts-ignore
@@ -314,7 +326,7 @@ class FrameJanks {
     // @ts-ignore
     this.rsIpId = new Uint16Array(transfer ? len : data.params.sharedArrayBuffers.rs_ipid);
     // @ts-ignore
-    this.rsPid = new Uint16Array(transfer ? len : data.params.sharedArrayBuffers.rs_pid);
+    this.rsPid = new Uint32Array(transfer ? len : data.params.sharedArrayBuffers.rs_pid);
     // @ts-ignore
     this.rsName = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.rs_name);
     // @ts-ignore

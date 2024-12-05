@@ -108,6 +108,7 @@ export const queryAllJankProcess = (): Promise<
         SELECT DISTINCT p.pid
         FROM frame_slice AS a
         LEFT JOIN process AS p ON a.ipid = p.ipid
+        WHERE a.flag <> 2;
         `
   );
 export const queryAllActualData = (): //@ts-ignore

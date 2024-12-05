@@ -28,12 +28,13 @@ export function frameJanksSender(queryEnum: number, row: TraceRow<JanksStruct>):
       dur: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
       ts: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
       jank_tag: new SharedArrayBuffer(Uint16Array.BYTES_PER_ELEMENT * MAX_COUNT),
-      pid: new SharedArrayBuffer(Uint16Array.BYTES_PER_ELEMENT * MAX_COUNT),
+      pid: new SharedArrayBuffer(Uint32Array.BYTES_PER_ELEMENT * MAX_COUNT),
+      tid: new SharedArrayBuffer(Uint32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       rs_ts: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
       rs_vsync: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       rs_dur: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
       rs_ipid: new SharedArrayBuffer(Uint16Array.BYTES_PER_ELEMENT * MAX_COUNT),
-      rs_pid: new SharedArrayBuffer(Uint16Array.BYTES_PER_ELEMENT * MAX_COUNT),
+      rs_pid: new SharedArrayBuffer(Uint32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       rs_name: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       depth: new SharedArrayBuffer(Uint16Array.BYTES_PER_ELEMENT * MAX_COUNT),
     };
@@ -77,7 +78,9 @@ function arrayBufferHandler(res: unknown, len: number): unknown[] {
   // @ts-ignore
   let jank_tag = new Uint16Array(res.jank_tag);
   // @ts-ignore
-  let pid = new Uint16Array(res.pid);
+  let pid = new Uint32Array(res.pid);
+  // @ts-ignore
+  let tid = new Uint32Array(res.tid);
   // @ts-ignore
   let rsTs = new Float64Array(res.rs_ts);
   // @ts-ignore
@@ -87,7 +90,7 @@ function arrayBufferHandler(res: unknown, len: number): unknown[] {
   // @ts-ignore
   let rs_ipId = new Uint16Array(res.rs_ipid);
   // @ts-ignore
-  let rs_pid = new Uint16Array(res.rs_pid);
+  let rs_pid = new Uint32Array(res.rs_pid);
   // @ts-ignore
   let rs_name = new Int32Array(res.rs_name);
   // @ts-ignore
@@ -102,6 +105,7 @@ function arrayBufferHandler(res: unknown, len: number): unknown[] {
       ts: ts[index],
       jank_tag: jank_tag[index],
       pid: pid[index],
+      tid: tid[index],
       rs_ts: rsTs[index],
       rs_vsync: rs_vsync[index],
       rs_dur: rs_dur[index],

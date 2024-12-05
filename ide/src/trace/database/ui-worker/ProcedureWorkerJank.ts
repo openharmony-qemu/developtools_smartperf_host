@@ -205,8 +205,10 @@ export class JankStruct extends JanksStruct {
         ctx.globalAlpha = 1;
         ctx.fillStyle = ColorUtils.JANK_COLOR[0];
         if (data.jank_tag === 1) {
+          // orange
           ctx.fillStyle = ColorUtils.JANK_COLOR[2];
         } else if (data.jank_tag === 3) {
+          // yellow
           ctx.fillStyle = ColorUtils.JANK_COLOR[3];
         }
         let miniHeight = 20;
@@ -271,9 +273,9 @@ export class JankStruct extends JanksStruct {
   private static drawActualFrame(ctx: CanvasRenderingContext2D, data: JankStruct, miniHeight: number): void {
     ctx.fillStyle = ColorUtils.JANK_COLOR[0];
     if (data.jank_tag === 1) {
-      ctx.fillStyle = ColorUtils.JANK_COLOR[2];
+      ctx.fillStyle = data.tid === data.pid ? ColorUtils.JANK_COLOR[2] : ColorUtils.JANK_COLOR[5];
     } else if (data.jank_tag === 3) {
-      ctx.fillStyle = ColorUtils.JANK_COLOR[3];
+      ctx.fillStyle = data.tid === data.pid ? ColorUtils.JANK_COLOR[3] : ColorUtils.JANK_COLOR[1];
     }
     if (data.frame) {
       ctx.fillRect(data.frame.x, data.frame.y, data.frame.width, miniHeight - padding * 2);
