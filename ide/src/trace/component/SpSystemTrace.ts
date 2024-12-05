@@ -645,6 +645,7 @@ export class SpSystemTrace extends BaseElement {
   top: number = 0;
   handler: number = -1;
   rowsElOnScroll = (e: unknown): void => {
+    this.rangeSelect.isMouseDown = false;
     // @ts-ignore
     const currentScrollY = e.target.scrollTop;
     const deltaY = currentScrollY - this.prevScrollY;
