@@ -41,6 +41,8 @@ public:
     void SetDst(uint64_t row, uint64_t dst);
     void SetSrcs(uint64_t row, const std::vector<uint64_t> &fromSlices);
     void SetFlags(uint64_t row, const uint32_t flags);
+    void SetVsync(uint64_t row, uint32_t vsync);
+    uint64_t GetExpectEndByItidAndVsyncId(uint32_t mainThreadId, uint32_t vsyncId) const;
     void UpdateDepth();
     const std::deque<uint32_t> Ipids() const;
     const std::deque<uint32_t> VsyncIds() const;
@@ -54,7 +56,7 @@ public:
     const std::deque<uint32_t> FrameNos() const;
     const std::deque<std::string> &Srcs() const;
     void UpdateCallStackSliceId(uint64_t row, uint64_t callStackSliceId);
-    void SetEndTimeAndFlag(uint64_t row, uint64_t ts, uint64_t expectDur, uint64_t expectEnd);
+    void SetEndTimeAndFlag(uint64_t row, uint64_t ts, uint64_t expectEnd);
     void Erase(uint64_t row);
     static uint32_t GetAbnormalStartEndTimeState()
     {

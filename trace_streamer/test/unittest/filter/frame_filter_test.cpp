@@ -73,8 +73,8 @@ HWTEST_F(FrameFilterTest, AppVsyncNoFrameNum, TestSize.Level1)
     EXPECT_EQ(stream_.traceDataCache_->GetFrameSliceData()->Flags()[0], 2);                // actural frame, no frameNum
     EXPECT_EQ(stream_.traceDataCache_->GetFrameSliceData()->Flags()[1], 2);                // expect frame, no frameNum
     EXPECT_EQ(stream_.traceDataCache_->GetFrameSliceData()->TimeStampData()[0], START_TS); // actural frame
-    EXPECT_EQ(stream_.traceDataCache_->GetFrameSliceData()->TimeStampData()[1], EXPECTED_START); // expect frame
-    EXPECT_EQ(stream_.traceDataCache_->GetFrameSliceData()->Durs()[0], END_TS - START_TS);       // actural frame
+    EXPECT_EQ(stream_.traceDataCache_->GetFrameSliceData()->TimeStampData()[1], EXPECTED_START);       // expect frame
+    EXPECT_EQ(stream_.traceDataCache_->GetFrameSliceData()->Durs()[0], END_TS - START_TS);             // actural frame
     EXPECT_EQ(stream_.traceDataCache_->GetFrameSliceData()->Durs()[1], EXPECTED_END - EXPECTED_START); // expect frame
 }
 

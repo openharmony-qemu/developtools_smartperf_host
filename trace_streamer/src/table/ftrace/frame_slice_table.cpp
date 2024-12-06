@@ -169,7 +169,7 @@ int32_t FrameSliceTable::Cursor::Column(int32_t column) const
             SetTypeColumnInt64(frameSliceObj_.TimeStampData()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::VSYNC:
-            sqlite3_result_int64(context_, static_cast<int32_t>(frameSliceObj_.VsyncIds()[CurrentRow()]));
+            SetTypeColumnInt32(frameSliceObj_.VsyncIds()[CurrentRow()], INVALID_UINT32);
             break;
         case Index::IPID:
             sqlite3_result_int64(context_, static_cast<int32_t>(frameSliceObj_.Ipids()[CurrentRow()]));

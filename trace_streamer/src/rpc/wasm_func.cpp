@@ -52,6 +52,7 @@ uint8_t *g_fileNameBuf;
 uint32_t g_fileNameSize;
 bool g_isSystrace = false;
 bool g_isZipTrace = false;
+bool g_isZlibTrace = false;
 bool g_hasDeterminedSystrace = false;
 
 void ResultCallback(const std::string &jsonResult, int32_t finish)
@@ -241,6 +242,7 @@ EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerParseDataEx(int32_t dataLen, bool isFi
     if (!g_hasDeterminedSystrace) {
         g_isSystrace = g_wasmTraceStreamer.DetermineSystrace(g_reqBuf, dataLen);
         g_isZipTrace = g_wasmTraceStreamer.DetermineZipTrace(g_reqBuf, dataLen);
+        g_isZlibTrace = g_wasmTraceStreamer.DetermineZlibTrace(g_reqBuf, dataLen);
         g_hasDeterminedSystrace = true;
     }
     if (g_wasmTraceStreamer.GetFfrtConvertStatus() && g_isSystrace) {
@@ -249,7 +251,11 @@ EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerParseDataEx(int32_t dataLen, bool isFi
 #endif
     } else if (g_isZipTrace) {
 #if IS_WASM
-        return g_wasmTraceStreamer.SaveAndParseZipTraceData(g_reqBuf, dataLen, &FfrtConvertedResultCallback, isFinish);
+        return g_wasmTraceStreamer.SaveAndParseZipTraceData(g_reqBuf, dataLen, nullptr, isFinish) ? 0 : -1;
+#endif
+    } else if (g_isZlibTrace) {
+#if IS_WASM
+        return g_wasmTraceStreamer.SaveAndParseZlibTraceData(g_reqBuf, dataLen, nullptr, isFinish) ? 0 : -1;
 #endif
     } else if (g_wasmTraceStreamer.ParseData(g_reqBuf, dataLen, nullptr, isFinish)) {
         return 0;

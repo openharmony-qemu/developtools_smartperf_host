@@ -140,6 +140,40 @@ bool RpcServer::SaveAndParseZipTraceData(const uint8_t *data, size_t len, Result
     std::filesystem::remove_all(outTraceName);
     return true;
 }
+bool RpcServer::DetermineZlibTrace(const uint8_t *data, size_t len)
+{
+    if (len < ZLIB_MAGIC_NUM_LEN) {
+        return false;
+    }
+    return data[0] == ZLIB_CMF && data[1] == ZLIB_FLG;
+}
+bool RpcServer::SaveAndParseZlibTraceData(const uint8_t *data, size_t len, ResultCallBack resultCallBack, bool isFinish)
+{
+    auto zlibFileName = "zlibFile.zlib";
+    static std::ofstream zlibFile(zlibFileName, std::ios::binary | std::ios::app);
+    if (!zlibFile.is_open()) {
+        TS_LOGE("zlibFile open filed!");
+        return false;
+    }
+    zlibFile.write(reinterpret_cast<const char *>(data), len);
+    if (zlibFile.fail() || zlibFile.bad()) {
+        TS_LOGE("Failed to write data!");
+        zlibFile.close();
+        return false;
+    }
+    if (!isFinish) {
+        return true;
+    }
+    zlibFile.close();
+    std::string outTraceName;
+    UnZlibFile(zlibFileName, outTraceName);
+    if (!ReadAndParseData(outTraceName)) {
+        std::filesystem::remove_all(outTraceName);
+        return false;
+    }
+    std::filesystem::remove_all(outTraceName);
+    return true;
+}
 bool RpcServer::SendConvertedFfrtFile(const std::string &fileName, ResultCallBack resultCallBack)
 {
     if (!resultCallBack) {

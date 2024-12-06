@@ -81,6 +81,8 @@ public:
 #ifdef IS_WASM
     bool SaveAndParseFfrtData(const uint8_t *data, size_t len, ResultCallBack resultCallBack, bool isFinish);
     bool SaveAndParseZipTraceData(const uint8_t *data, size_t len, ResultCallBack resultCallBack, bool isFinish);
+    bool DetermineZlibTrace(const uint8_t *data, size_t len);
+    bool SaveAndParseZlibTraceData(const uint8_t *data, size_t len, ResultCallBack resultCallBack, bool isFinish);
     bool ReadAndParseData(const std::string &filePath);
     bool SendConvertedFfrtFile(const std::string &fileName, ResultCallBack resultCallBack);
     void CreateFilePath(const std::string &filePath);

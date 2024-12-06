@@ -38,7 +38,9 @@ PrintEventParser::PrintEventParser(TraceDataCache *dataCache, const TraceStreame
         {marshRwTransactionData_, bind(&PrintEventParser::OnRwTransaction, this, std::placeholders::_1,
                                        std::placeholders::_2, std::placeholders::_3)},
         {rsMainThreadProcessCmd_, bind(&PrintEventParser::OnMainThreadProcessCmd, this, std::placeholders::_1,
-                                       std::placeholders::_2, std::placeholders::_3)}};
+                                       std::placeholders::_2, std::placeholders::_3)},
+        {uvTrace_, bind(&PrintEventParser::DealUvTraceEvent, this, std::placeholders::_1, std::placeholders::_2,
+                        std::placeholders::_3)}};
 }
 
 bool PrintEventParser::ParsePrintEvent(const std::string &comm,
@@ -105,10 +107,8 @@ void PrintEventParser::ParseBeginEvent(const std::string &comm,
         // add distributed data
         traceDataCache_->GetInternalSlicesData()->SetDistributeInfo(index, point.chainId_, point.spanId_,
                                                                     point.parentSpanId_, point.flag_);
-        if (pid == point.tgid_) {
-            if (HandleFrameSliceBeginEvent(point.funcPrefixId_, index, point.funcArgs_, line)) {
-                return;
-            }
+        if (HandleFrameSliceBeginEvent(point.funcPrefixId_, index, point.funcArgs_, line)) {
+            return;
         }
         bool isDiscontinued = false;
         if (traceDataCache_->TaskPoolTraceEnabled()) {
@@ -124,9 +124,7 @@ void PrintEventParser::ParseBeginEvent(const std::string &comm,
 void PrintEventParser::ParseEndEvent(uint64_t ts, uint32_t pid, const TracePoint &point)
 {
     uint32_t index = streamFilters_->sliceFilter_->EndSlice(ts, pid, point.tgid_);
-    if (pid == point.tgid_) {
-        HandleFrameSliceEndEvent(ts, point.tgid_, pid, index);
-    }
+    HandleFrameSliceEndEvent(ts, point.tgid_, pid, index);
     if (traceDataCache_->AnimationTraceEnabled()) {
         streamFilters_->animationFilter_->EndDynamicFrameEvent(ts, index);
     }
@@ -294,6 +292,8 @@ bool PrintEventParser::HandleFrameSliceBeginEvent(DataIndex eventName,
     } else if (StartWith(traceDataCache_->GetDataFromDict(eventName), rsOnDoCompositionStr_)) {
         RSReciveOnDoComposition(callStackRow, args, line);
         return true;
+    } else if (StartWith(traceDataCache_->GetDataFromDict(eventName), uiVsyncTaskStr_)) {
+        DealUIVsyncTaskEvent(eventName, line);
     }
     return false;
 }
@@ -340,6 +340,39 @@ bool PrintEventParser::ReciveVsync(size_t callStackRow, std::string &args, const
     }
     return true;
 }
+
+bool PrintEventParser::DealUvTraceEvent(size_t callStackRow, std::string &args, const BytraceLine &line)
+{
+    Unused(args);
+    // deal H:UV_TRACE event, this event's thread is not main thread.
+    // this event do not has expect now and end.
+    streamFilters_->frameFilter_->BeginUVTraceEvent(line, callStackRow);
+    auto iTid = streamFilters_->processFilter_->GetInternalTid(line.pid);
+    if (vsyncSliceMap_.count(iTid)) {
+        vsyncSliceMap_[iTid].push_back(callStackRow);
+    } else {
+        vsyncSliceMap_[iTid] = {callStackRow};
+    }
+    return true;
+}
+
+bool PrintEventParser::DealUIVsyncTaskEvent(DataIndex eventName, const BytraceLine &line)
+{
+    auto eventNameStr = traceDataCache_->GetDataFromDict(eventName);
+    std::sregex_iterator it(eventNameStr.begin(), eventNameStr.end(), uiVsyncTaskPattern_);
+    std::sregex_iterator end;
+    while (it != end) {
+        std::smatch match = *it;
+        std::string key = match.str(1);
+        std::string value = match.str(2);
+        if (key == "vsyncID") {
+            (void)streamFilters_->frameFilter_->UpdateVsyncId(line, base::StrToInt<uint32_t>(value).value());
+            return true;
+        }
+        ++it;
+    }
+    return false;
+}
 bool PrintEventParser::OnVsyncEvent(size_t callStackRow, std::string &args, const BytraceLine &line)
 {
     Unused(args);
@@ -366,10 +399,15 @@ bool PrintEventParser::OnRwTransaction(size_t callStackRow, std::string &args, c
     // H:MarshRSTransactionData cmdCount:20 transactionFlag:[3799,8] isUni:1
     std::smatch match;
     if (std::regex_search(args, match, transFlagPattern_)) {
+        std::string mainTheadId = match.str(1);
         std::string flag2 = match.str(2);
-        auto iTid = streamFilters_->processFilter_->GetInternalTid(line.pid);
-        return streamFilters_->frameFilter_->BeginRSTransactionData(line.ts, iTid,
-                                                                    base::StrToInt<uint32_t>(flag2).value());
+        // use to update dstRenderSlice_
+        auto mainThreadId =
+            streamFilters_->processFilter_->GetInternalTid(base::StrToInt<uint32_t>(mainTheadId).value());
+        // use to update vsyncRenderSlice_
+        auto currentThreadId = streamFilters_->processFilter_->GetInternalTid(line.pid);
+        return streamFilters_->frameFilter_->BeginRSTransactionData(
+            line.ts, currentThreadId, base::StrToInt<uint32_t>(flag2).value(), mainThreadId);
     }
     return true;
 }
