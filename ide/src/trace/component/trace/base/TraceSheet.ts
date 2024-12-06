@@ -103,6 +103,9 @@ import { XpowerThreadInfoStruct } from '../../../database/ui-worker/ProcedureWor
 import { TabPaneXpowerThreadInfoSelection } from '../sheet/xpower/TabPaneXpowerThreadInfoSelection';
 import { TabPaneXpowerGpuFreqSelection } from '../sheet/xpower/TabPaneXpowerGpuFreqSelection';
 import { XpowerGpuFreqStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerGpuFreq';
+import {WebSocketManager} from "../../../../webSocket/WebSocketManager";
+import {Constants, TypeConstants} from "../../../../webSocket/Constants";
+import {SpStatisticsHttpUtil} from "../../../../statistics/util/SpStatisticsHttpUtil";
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -127,6 +130,9 @@ export class TraceSheet extends BaseElement {
   private optionsDiv: LitPopover | undefined | null;
   private optionsSettingTree: LitTree | undefined | null;
   private tabPaneHeight: string = '';
+  private enc = new TextEncoder();
+  private dec = new TextDecoder();
+  private REQ_BUF_SIZE = 4 * 1024 * 1024;
 
   static get observedAttributes(): string[] {
     return ['mode'];
@@ -547,7 +553,7 @@ export class TraceSheet extends BaseElement {
 
   private importClickEvent(): void {
     let importFileBt: HTMLInputElement | undefined | null =
-      this.shadowRoot?.querySelector<HTMLInputElement>('#import-file');
+        this.shadowRoot?.querySelector<HTMLInputElement>('#import-file');
     importFileBt!.addEventListener('change', (event): void => {
       let files = importFileBt?.files;
       if (files) {
@@ -558,29 +564,128 @@ export class TraceSheet extends BaseElement {
         if (fileList.length > 0) {
           importFileBt!.disabled = true;
           window.publish(window.SmartEvent.UI.Loading, { loading: true, text: 'Import So File' });
-          threadPool.submit(
-            'upload-so',
-            '',
-            fileList,
-            (res: unknown) => {
-              importFileBt!.disabled = false; // @ts-ignore
-              if (res.result === 'ok') {
-                window.publish(window.SmartEvent.UI.UploadSOFile, {});
-              } else {
-                // @ts-ignore
-                const failedList = res.failedArray.join(',');
-                window.publish(window.SmartEvent.UI.Error, `parse so file ${failedList} failed!`);
-              }
-            },
-            'upload-so'
-          );
+          this.uploadSoOrAN(fileList).then(r =>
+              threadPool.submit(
+                  'upload-so',
+                  '',
+                  fileList,
+                  (res: unknown) => {
+                    importFileBt!.disabled = false; // @ts-ignore
+                    if (res.result === 'ok') {
+                      window.publish(window.SmartEvent.UI.UploadSOFile, {});
+                    } else {
+                      // @ts-ignore
+                      const failedList = res.failedArray.join(',');
+                      window.publish(window.SmartEvent.UI.Error, `parse so file ${failedList} failed!`);
+                    }
+                  },
+                  'upload-so'
+              )).finally(() => {
+                fileList.length = 0;
+              })
         }
-        fileList.length = 0;
       }
       importFileBt!.files = null;
       importFileBt!.value = '';
     });
   }
+
+  private async uploadSoOrAN(fileList: Array<File>): Promise<void> {
+    if (fileList) {
+      fileList.sort((a, b) => b.size - a.size);
+      await this.uploadAllFiles(fileList);
+    }
+  }
+
+
+  // 上传文件
+  private async uploadAllFiles(fileList: Array<File>): Promise<void> {
+    // 创建一个副本，避免修改原始的 fileList
+    const filesToUpload = [...fileList];
+
+    for (let i = 0; i < filesToUpload.length; i++) {
+      const file = filesToUpload[i];
+      try {
+        await this.uploadSingleFile(file);
+        console.log('File ${file.name} uploaded successfully.');
+      } catch (error) {
+        console.error('Failed to upload file: ${file.name}, error');
+      }
+    }
+    console.log("All files have been uploaded.");
+  }
+
+
+  private uploadSingleFile = async (file: File | null): Promise<void> => {
+    if (file) {
+      let writeSize = 0;
+      let wsInstance = WebSocketManager.getInstance();
+      const fileName = file.name;
+      let bufferIndex = 0;
+
+      // 定义一个 ACK 回调函数的等待机制
+      const waitForAck = (): Promise<void> => {
+        return new Promise<void>((resolve, reject) => {
+          wsInstance!.registerCallback(TypeConstants.DISASSEMBLY_TYPE, onAckReceived);
+          // 定义超时定时器
+          const timeout = setTimeout(() => {
+            // 超时后注销回调并拒绝 Promise
+            wsInstance!.unregisterCallback(TypeConstants.DISASSEMBLY_TYPE, onAckReceived);
+            reject(new Error('等待 ACK 超时：文件 ${fileName}，索引 ${bufferIndex})'));
+          }, 10000);
+          function onAckReceived(cmd: number, result: Uint8Array) {
+            const decoder = new TextDecoder();
+            const jsonString = decoder.decode(result);
+            let jsonRes = JSON.parse(jsonString);
+            if (cmd === Constants.DISASSEMBLY_SAVE_BACK_CMD) {
+              if (jsonRes.fileName === fileName && jsonRes.bufferIndex === bufferIndex) {
+                wsInstance!.unregisterCallback(TypeConstants.DISASSEMBLY_TYPE, onAckReceived)
+                clearTimeout(timeout);
+                if (jsonRes.resultCode == 0) {
+                  console.log('ACK received for file: ${jsonRes.fileName}, index: ${jsonRes.bufferIndex}');
+                  bufferIndex++;
+                  // 当收到对应分片的 ACK 时，resolve Promise，继续上传下一个分片
+                  resolve();
+                }else{
+                  // 上传失败，拒绝 Promise 并返回
+                  reject(new Error('Upload failed for file: ${fileName}, index: ${jsonRes.bufferIndex})'));
+                }
+              }
+            }
+          }
+        });
+      };
+
+      while (writeSize < file.size) {
+        let sliceLen = Math.min(file.size - writeSize, this.REQ_BUF_SIZE);
+        let blob: Blob | null = file.slice(writeSize, writeSize + sliceLen);
+        let buffer: ArrayBuffer | null = await blob.arrayBuffer();
+        let data: Uint8Array | null = new Uint8Array(buffer);
+
+        const dataObject = {
+          file_name: fileName,
+          buffer_index: bufferIndex,
+          buffer_size: sliceLen,
+          total_size: file.size,
+          is_last: writeSize + sliceLen >= file.size,
+          buffer: Array.from(data),
+        };
+
+
+        const dataString = JSON.stringify(dataObject);
+        const textEncoder = new TextEncoder();
+        const encodedData = textEncoder.encode(dataString);
+        wsInstance!.sendMessage(TypeConstants.DISASSEMBLY_TYPE, Constants.DISASSEMBLY_SAVE_CMD, encodedData);
+        writeSize += sliceLen;
+        // 等待服务器端确认当前分片的 ACK
+        await waitForAck();
+        data = null;
+        buffer = null;
+        blob = null;
+      }
+      console.log('Upload complete for file: ${fileName}');
+    }
+  };
 
   private exportClickEvent(): void {
     this.exportBt!.onclick = (): void => {
