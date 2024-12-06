@@ -85,7 +85,7 @@ public:
     bool SendConvertedFfrtFile(const std::string &fileName, ResultCallBack resultCallBack);
     void CreateFilePath(const std::string &filePath);
     bool WriteToFile(const std::string &fileName, const uint8_t *data, size_t len);
-    bool ClearPathFile(string &symbolsPath, int32_t finish, ParseELFFileCallBack &parseELFFile);
+    bool ClearPathFile(std::string &symbolsPath, int32_t finish, ParseELFFileCallBack &parseELFFile);
     bool DownloadELFCallback(const std::string &fileName,
                              size_t totalLen,
                              const uint8_t *data,
