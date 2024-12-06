@@ -133,7 +133,6 @@ export class SpApplication extends BaseElement {
   private spKeyboard: SpKeyboard | undefined | null;
   private spFlags: SpFlags | undefined | null;
   private spRecordTrace: SpRecordTrace | undefined | null;
-  private spRecordTemplate: SpRecordTrace | undefined | null;
   private spSchedulingAnalysis: SpSchedulingAnalysis | undefined | null;
   private mainMenu: LitMainMenu | undefined | null;
   private menu: HTMLDivElement | undefined | null;
@@ -293,7 +292,6 @@ export class SpApplication extends BaseElement {
     this.spKeyboard = this.shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard') as SpKeyboard;
     this.spFlags = this.shadowRoot!.querySelector<SpFlags>('#sp-flags') as SpFlags;
     this.spRecordTrace = this.shadowRoot!.querySelector<SpRecordTrace>('#sp-record-trace');
-    this.spRecordTemplate = this.shadowRoot!.querySelector<SpRecordTrace>('#sp-record-template');
     this.spSchedulingAnalysis = this.shadowRoot!.querySelector<SpSchedulingAnalysis>('#sp-scheduling-analysis');
     this.mainMenu = this.shadowRoot?.querySelector('#main-menu') as LitMainMenu;
     this.menu = this.mainMenu.shadowRoot?.querySelector('.menu-button') as HTMLDivElement;
@@ -401,7 +399,6 @@ export class SpApplication extends BaseElement {
       this.spSchedulingAnalysis,
       this.spInfoAndStats,
       this.spHelp,
-      this.spRecordTemplate,
       this.spFlags,
       this.spKeyboard,
       this.spThirdParty,
@@ -999,18 +996,20 @@ export class SpApplication extends BaseElement {
   private clickHandleByRecordNewTrace(): void {
     this.returnOriginalUrl();
     this.spRecordTrace!.synchronizeDeviceList();
-    this.spRecordTemplate!.record_template = false;
+    this.spRecordTrace!.record_template = 'false';
+    this.spRecordTrace!.reConfigPage();
     this.spRecordTrace!.refreshConfig(true);
     this.showContent(this.spRecordTrace!);
   }
 
   private clickHandleByRecordTemplate(): void {
     this.returnOriginalUrl();
-    this.spRecordTemplate!.refreshHint();
-    this.spRecordTemplate!.record_template = true;
-    this.spRecordTemplate!.refreshConfig(false);
-    this.spRecordTemplate!.synchronizeDeviceList();
-    this.showContent(this.spRecordTemplate!);
+    this.spRecordTrace!.refreshHint();
+    this.spRecordTrace!.record_template = 'true';
+    this.spRecordTrace!.reConfigPage();
+    this.spRecordTrace!.refreshConfig(false);
+    this.spRecordTrace!.synchronizeDeviceList();
+    this.showContent(this.spRecordTrace!);
   }
 
   private changeUrl(): void {

@@ -35,7 +35,7 @@ export class SpArkTs extends BaseElement {
   private interval: HTMLInputElement | undefined | null;
   private memorySwitch: LitSwitch | undefined | null;
   private cpuSwitch: LitSwitch | undefined | null;
-  private litSwitch: LitSwitch | undefined | null;
+  public litSwitch: LitSwitch | undefined | null;
 
   set startSamp(jsHeapStart: boolean) {
     if (jsHeapStart) {
@@ -110,6 +110,18 @@ export class SpArkTs extends BaseElement {
     }
   }
 
+  get isStartArkts(): boolean {
+    return this.litSwitch!.checked;
+  }
+
+  get isStartCpuProfiler(): boolean {
+    return this.cpuSwitch!.checked;
+  }
+
+  get isStartMemoryProfiler(): boolean {
+    return this.memorySwitch!.checked;
+  }
+
   initElements(): void {
     this.interval = this.shadowRoot?.querySelector('#interval');
     this.processInput = this.shadowRoot?.querySelector<LitSelectV>('lit-select-v');
@@ -125,13 +137,23 @@ export class SpArkTs extends BaseElement {
         if (SpRecordTrace.serialNumber === '') {
           this.processInput!.dataSource([], '');
         } else {
-          Cmd.getDebugProcess().then((processList) => {
-            if (processList.length > 0) {
-              this.processInput!.dataSource(processList, '', true);
-            } else {
-              this.processInput!.dataSource([], '');
-            }
-          });
+          if (SpRecordTrace.useExtend) {
+            Cmd.getPackage().then((processList) => {
+              if (processList.length > 0) {
+                this.processInput!.dataSource(processList, '', true);
+              } else {
+                this.processInput!.dataSource([], '');
+              }
+            })
+          } else {
+            Cmd.getDebugProcess().then((processList) => {
+              if (processList.length > 0) {
+                this.processInput!.dataSource(processList, '', true);
+              } else {
+                this.processInput!.dataSource([], '');
+              }
+            });
+          }
         }
         processInput!.removeAttribute('readonly');
       } else {
@@ -155,6 +177,16 @@ export class SpArkTs extends BaseElement {
   litSwitchChangeHandler = (event: Event): void => {
     // @ts-ignore
     let detail = event.detail;
+    this.dispatchEvent(new CustomEvent('showTip', {}));
+    if (!SpRecordTrace.useExtend) {
+      setTimeout(() => {
+        this.litSwitch!.checked = false;
+        this.disable();
+        this.memoryDisable();
+      }, 500);
+      return;
+    }
+
     if (detail.checked) {
       this.unDisable();
       this.unMemoryDisable();
@@ -201,7 +233,7 @@ export class SpArkTs extends BaseElement {
     }
   };
 
-  private memoryDisable(): void {
+  public memoryDisable(): void {
     let interval = this.shadowRoot?.querySelectorAll<HTMLInputElement>('#interval');
     interval!.forEach((item) => {
       item.disabled = true;
@@ -234,7 +266,7 @@ export class SpArkTs extends BaseElement {
     });
   }
 
-  private disable(): void {
+  public disable(): void {
     this.startSamp = false;
     this.processInput!.setAttribute('disabled', '');
     let heapConfigs = this.shadowRoot?.querySelectorAll<HTMLInputElement>('.select');

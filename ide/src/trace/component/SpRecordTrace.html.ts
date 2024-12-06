@@ -31,7 +31,7 @@ export const SpRecordTraceHtml = `
       display: flex;
       background-color: var(--dark-background3,#FFFFFF);
       width: 100%;
-      height: 90px;
+      height: 100px;
     }
 
     .span-col-2{
@@ -131,7 +131,8 @@ export const SpRecordTraceHtml = `
     }
     :host([show_hint]) #hint {
       color: #DB5860;
-      font-weight: 700;
+      font-weight: 600;
+      font-size: 14px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -152,7 +153,7 @@ export const SpRecordTraceHtml = `
         }
     }
     .cancel {
-      visibility: hidden;
+      display: none;
     }
     .prompt {
       position: absolute;
@@ -165,33 +166,44 @@ export const SpRecordTraceHtml = `
     </style>
     <div class="vessel">
      <div class="header">
-       <div style="display: flex;margin-left:20px;align-items: center; flex: 1;">
-         <span class="target">Target Platform:</span>
-           <div id="device-prompt">
+       <div style="display: flex;flex-direction:column;margin-left:20px;flex: 1;">
+        <div style="display: flex;align-items: center; flex: 1;">
+            <span class="target">Target Platform:</span>
+            <div id="device-prompt">
               <span class="prompt"></span>
               <select class="select" id = "device-select"></select>
-           </div>
-           <select class="device_version" id = "device-version">
-           </select>
-          <lit-button style="width: 180px; height:32px" class="add" height="32px" width="164px" color="#0A59F7" 
-          font_size="14px" border="1px solid #0A59F7" 
-          padding="0 0 0 12px" justify_content="left" icon="add" margin_icon="0 10px 0 8px">Add HDC Device</lit-button>
-          <div class="header-right">
-          <lit-button class="disconnect" style="margin-right: 30px" height="32px" width="96px" font_size="14px" 
-          justify_content="center" color="#FFFFFF"
-          border_radius="16px" back='#0A59F7' opacity="0.6" border="0 solid">Disconnect</lit-button>
-          <lit-button class="record" style="margin-right: 30px" height="32px" width="96px" font_size="14px" 
-          justify_content="center" color="#FFFFFF"
-          border_radius="16px" back='#0A59F7' opacity="0.6" border="0 solid">
-            <span class="record_text">Record</span>
-          </lit-button>
-          <lit-button class="cancel" height="32px" width="96px" font_size="14px" justify_content="center" 
-          color="#FFFFFF" border_radius="16px" back='#0A59F7' opacity="0.6" border="0 solid">
-            <span class="record_text">Cancel</span>
-          </lit-button>
+            </div>
+            <select class="device_version" id = "device-version">
+            </select>
+            <lit-button style="width: 180px; height:32px" class="add" height="32px" width="164px" color="#0A59F7" 
+            font_size="14px" border="1px solid #0A59F7" 
+            padding="0 0 0 12px" justify_content="left" icon="add" margin_icon="0 10px 0 8px">Add HDC Device</lit-button>
+            <div style="display:flex;align-items:center">
+              <lit-check-box id="use-extend-check" not-close></lit-check-box>&nbsp;&nbsp;
+              <span style="font-family: Helvetica;font-size: 16px;color:#000000;">use localhdc</span>
+            </div>
+            <div class="header-right">
+              <lit-button class="disconnect" style="margin-right: 30px" height="32px" width="96px" font_size="14px" 
+              justify_content="center" color="#FFFFFF"
+              border_radius="16px" back='#0A59F7' opacity="0.6" border="0 solid">Disconnect</lit-button>
+              <lit-button class="record" style="margin-right: 30px" height="32px" width="96px" font_size="14px" 
+              justify_content="center" color="#FFFFFF"
+              border_radius="16px" back='#0A59F7' opacity="0.6" border="0 solid">
+                <span class="record_text">Record</span>
+              </lit-button>
+              <lit-button class="cancel" height="32px" width="96px" font_size="14px" justify_content="center" 
+              color="#FFFFFF" border_radius="16px" back='#0A59F7' opacity="0.6" border="0 solid">
+                <span class="record_text">Cancel</span>
+              </lit-button>
+            </div>
+          </div>
+          <div  style="height:21px;">
+            <span id="record_tip" style="display:none;height:21px;font-size: 16px;color:red;">
+              若要抓取arkts插件，请勾选 use-extend 开关，选择后台扩展服务进行抓取，相关指导请查看: 《xxx》
+            </span>
           </div>
          </div>
-          <div class="span-col-2" >
+          <div class="span-col-2">
              <span class="header-des" id="hint">It looks like you didn't add any probes. Please add at least one</span>
           </div>
      </div>

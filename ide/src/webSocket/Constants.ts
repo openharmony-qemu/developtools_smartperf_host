@@ -32,4 +32,13 @@ export class TypeConstants {
     static DIAGNOSIS_TYPE = 8;
     static SENDDB_CMD = 1;
     static DIAGNOSIS_CMD = 3;
+    static ARKTS_TYPE = 9;
+    static PROCESS_TYPE = 3;
+    static USB_TYPE = 10;
+    static USB_SN_CMD = 1;
+    static USB_GET_PROCESS = 2;
+    static USB_GET_CPU_COUNT = 3;
+    static USB_GET_EVENT = 4;
+    static USB_GET_APP = 5;
+    static USB_GET_VERSION = 6;
 }
