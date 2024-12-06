@@ -355,7 +355,10 @@ export class SpAiAnalysisPage extends BaseElement {
             if (this.token === '') {
                 await this.getToken90Min(true);
             }
-            this.answer();
+            if (this.token !== '') {
+                this.answer();
+            }
+            this.isResultBack = true;
         }
     }
 
@@ -367,13 +370,21 @@ export class SpAiAnalysisPage extends BaseElement {
             collection: 'smart_perf_test',
             scope: 'smartperf'
         };
-        let answer = await (await SpStatisticsHttpUtil.askAi(requestBody));
-        if (answer.status === 200) {
-            SpStatisticsHttpUtil.generalRecord('AI_statistic', 'large_model_q&a', []);
-        }
+
+        await SpStatisticsHttpUtil.askAi(requestBody).then(res => {
+            if (res.status === 200) {
+                SpStatisticsHttpUtil.generalRecord('AI_statistic', 'large_model_q&a', []);
+            }
+            this.appendChatContent(res);
+        }).catch(error => {
+            this.appendChatContent(error);
+        });
+    }
+
+    appendChatContent(response: AiResponse) {
         if (!this.isNewChat) {
             // @ts-ignore
-            this.aiAnswerBox!.firstElementChild!.innerHTML = this.md!.render(answer.data);
+            this.aiAnswerBox!.firstElementChild!.innerHTML = this.md!.render(response.data);
             let likeDiv = document.createElement('div');
             likeDiv.className = 'likeDiv';
             likeDiv.innerHTML = '<lit-like type = "chat"></lit-like>';
@@ -381,7 +392,6 @@ export class SpAiAnalysisPage extends BaseElement {
             // 滚动条滚到底部
             this.q_a_window!.scrollTop = this.q_a_window!.scrollHeight;
         }
-        this.isResultBack = true;
     }
 
     // 创建用户聊天对话气泡
@@ -433,6 +443,9 @@ export class SpAiAnalysisPage extends BaseElement {
         //生成表格导航
         //@ts-ignore
         this.renderTblNav(dataList);
+        if (this.token === '') {
+            await this.getToken90Min(false);
+        }
         // @ts-ignore
         for (let i = 0; i < dataList.length; i++) {
             let itemDiv = document.createElement('div');
@@ -491,9 +504,6 @@ export class SpAiAnalysisPage extends BaseElement {
             suggestonDiv!.appendChild(suggestonTitle);
             suggestonDiv!.appendChild(this.loading(''));
             itemDiv!.appendChild(suggestonDiv);
-            if (this.token === '') {
-                await this.getToken90Min(false);
-            }
             // @ts-ignore
             this.getSuggestion(dataList, i, itemDiv, suggestonDiv, timeList);
             // @ts-ignore
