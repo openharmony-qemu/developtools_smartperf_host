@@ -66,6 +66,9 @@ export class TabPanePerfAnalysis extends BaseElement {
   private currentSelectionParam: SelectionParam | undefined | null;
   static tabLoadingList: Array<string> = [];
   private vaddrList: Array<unknown> = [];
+  private selectedTabProcessId: number = 0;
+  private selectedTabThreadId: number = 0;
+  private selectedTabfileName: string = '';
   private clickFuncVaddrList: Array<unknown> = [];
 
   set data(val: SelectionParam) {
@@ -409,6 +412,8 @@ export class TabPanePerfAnalysis extends BaseElement {
     // @ts-ignore
     this.processName = it.tableName;
     this.perfAnalysisPie?.hideTip();
+    // @ts-ignore
+    this.selectedTabProcessId = it.pid;
   }
 
   private threadPieChart(val: SelectionParam): void {
@@ -480,6 +485,8 @@ export class TabPanePerfAnalysis extends BaseElement {
     // @ts-ignore
     this.threadName = it.tableName;
     this.perfAnalysisPie?.hideTip();
+    // @ts-ignore
+    this.selectedTabThreadId = it.tid;
   }
 
   private initPerfAnalysisPieConfig(): void {
@@ -562,12 +569,20 @@ export class TabPanePerfAnalysis extends BaseElement {
     }
     this.titleEl!.textContent = title;
     this.perfAnalysisPie?.hideTip();
+    // @ts-ignore
+    this.selectedTabfileName = it.tableName;
   }
 
   private functionClickEvent(it: unknown) {
     this.clickFuncVaddrList = this.vaddrList.filter((item: unknown) => {
       // @ts-ignore
-      return item.symbolName === it.tableName
+      return item.process_id === this.selectedTabProcessId &&
+        // @ts-ignore
+        item.thread_id === this.selectedTabThreadId &&
+        // @ts-ignore
+        item.libName === this.selectedTabfileName &&
+        // @ts-ignore
+        item.symbolName === it.tableName
     })
   }
 

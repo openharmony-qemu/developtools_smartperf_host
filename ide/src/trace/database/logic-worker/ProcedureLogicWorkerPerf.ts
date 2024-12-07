@@ -307,7 +307,13 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       funcVaddrLastItem.vaddrInFile = lastCallChain.vaddrInFile;
       // @ts-ignore
       funcVaddrLastItem.offsetToVaddr = lastCallChain.offsetToVaddr;
-      // @ts-ignores
+      // @ts-ignore
+      funcVaddrLastItem.process_id = vaddrCallchainList[i].process_id;
+      // @ts-ignore
+      funcVaddrLastItem.thread_id = vaddrCallchainList[i].thread_id;
+      // @ts-ignore
+      funcVaddrLastItem.libName = lastCallChain.fileName;
+      // @ts-ignore
       sampleCallChainList.push(funcVaddrLastItem);
     }
 
@@ -1232,8 +1238,11 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     this.queryData(
       this.currentEventId,
       'perf-vaddr-back',
-      `select s.callchain_id
+      `select s.callchain_id,
+            s.thread_id,
+            thread.process_id
             from perf_sample s, trace_range t
+            left join perf_thread thread on s.thread_id = thread.thread_id
             where timestamp_trace between ${selectionParam.leftNs} + t.start_ts
             and ${selectionParam.rightNs} + t.start_ts
             and s.callchain_id != -1
