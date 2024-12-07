@@ -1126,8 +1126,6 @@ export class TraceSheet extends BaseElement {
   tdClickHandler(e: unknown, isDependCpu?: boolean): void {
     // @ts-ignore
     this.currentPaneID = e.target.parentElement.id;
-    // @ts-ignore
-    e.target.parentElement.tab
     //隐藏除了当前Tab页的其他Tab页
     this.shadowRoot!.querySelectorAll<LitTabpane>('lit-tabpane').forEach((it): boolean =>
       it.id !== this.currentPaneID ? (it.hidden = true) : (it.hidden = false)
