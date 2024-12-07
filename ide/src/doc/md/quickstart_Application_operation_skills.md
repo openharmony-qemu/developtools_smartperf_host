@@ -116,3 +116,30 @@ CPU 负载颜色的亮度，负载越大颜色更深，负载越小颜色越浅�
 -     SpanId：当前节点id。
 -     ParentSpanId：当前节点的父节点id。
 -     ChainFlag：当前节点在调用链中的flag类型，C(Client)、S(Server)。
+
+### 用户自定义序列导入说明
+
+自定义序列导入功能支持查看自定义序列泳道及Tab页信息。
+
+#### 自定义插件使用步骤
+#### 打开UserPluginsRow开关
+进入Flags页面，将UserPluginsRow开关置为Enable。
+![GitHub Logo](../../figures/OperationSkills/userpluginsrowFlag.JPG)
+
+#### 导入trace文件，可以看到UserPluginRow泳道
+![GitHub Logo](../../figures/OperationSkills/uerspluginrow.jpg)
+#### 点击上传按钮，上传配置好的json文件，根据json文件内容进行泳道绘制
+注意：重复导入文件会清空泳道。
+![GitHub Logo](../../figures/OperationSkills/Importjsonbutton.jpg)
+![GitHub Logo](../../figures/OperationSkills/afterimportjson.jpg)
+
+#### 点选功能
+点击泳道的trace点，Tab页 User Plugin展示json文件相关信息。
+#### json文件格式
+![GitHub Logo](../../figures/OperationSkills/jsondata.jpg)
+![GitHub Logo](../../figures/OperationSkills/jsonrelation.jpg)
+#### 注意：
+-     relation为泳道结构，泳道名为relation下的detail与function_name的拼接；
+-     data为relation里各层级的对应信息；
+-     data下的begin和end应该在trace的持续时间范围之内，其它数据可根据需要自行配置；
+-     data下的func_name、begin以及end为必选配置。

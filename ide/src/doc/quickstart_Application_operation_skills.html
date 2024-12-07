@@ -922,6 +922,49 @@
         <pre class="smartperf-text fontColor light">ChainFlag：当前节点在调用链中的flag类型，C(Client)、S(Server)。</pre>
       </li>
     </ul>
+
+    <h3 class="mume-header fontColor" id="header-index-18">用户自定义序列导入说明</h3>
+
+    <p class="fontColor">
+      自定义序列导入功能支持查看自定义序列泳道及Tab页信息。
+    </p>
+    <h4 class="mume-header fontColor">自定义插件使用步骤</h4>
+    <h4 class="mume-header fontColor">打开UserPluginsRow开关</h4>
+    <p class="fontColor">进入Flags页面，将UserPluginsRow开关置为Enable。<br>
+      <img src="../figures/OperationSkills/userpluginsrowFlag.JPG" alt="GitHub Logo">
+    </p>
+    <h4 class="mume-header fontColor">导入trace文件，可以看到UserPluginRow泳道</h4>
+    <img src="../figures/OperationSkills/uerspluginrow.jpg" alt="GitHub Logo">
+    <h4 class="mume-header fontColor">点击上传按钮，上传配置好的json文件，根据json文件内容进行泳道绘制</h4>
+    <p class="fontColor">注意：重复导入文件会清空泳道。<br>
+      <img src="../figures/OperationSkills/Importjsonbutton.jpg" alt="GitHub Logo"><br>
+      <img src="../figures/OperationSkills/afterimportjson.jpg" alt="GitHub Logo">
+    </p>
+
+    <h4 class="mume-header fontColor">点选功能</h4>
+    <p class="fontColor">点击泳道的trace点，Tab页 User Plugin展示json文件相关信息。<br>
+      <img src="../figures/OperationSkills/jsontab.jpg" alt="GitHub Logo">
+    </p>
+
+    <h4 class="mume-header fontColor">json文件格式</h4>
+    <img src="../figures/OperationSkills/jsondata.jpg" alt="GitHub Logo"><br>
+    <img src="../figures/OperationSkills/jsonrelation.jpg" alt="GitHub Logo">
+
+    <h4 class="mume-header fontColor">注意：</h4>
+    <ul class="fontColor">
+      <li>
+        <pre class="smartperf-text fontColor light">relation为泳道结构，泳道名为relation下的detail与function_name的拼接；</pre>
+      </li>
+      <li>
+        <pre class="smartperf-text fontColor light">data为relation里各层级的对应信息；</pre>
+      </li>
+      <li>
+        <pre class="smartperf-text fontColor light">data下的begin和end应该在trace的持续时间范围之内，其它数据可根据需要自行配置；</pre>
+      </li>
+      <li>
+        <pre class="smartperf-text fontColor light">data下的func_name、begin以及end为必选配置。</pre>
+      </li>
+    </ul>
   </div>
 
   <script>
