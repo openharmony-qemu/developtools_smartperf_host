@@ -269,7 +269,7 @@ export class TraceSheet extends BaseElement {
     });
     // @ts-ignore
     this.getComponentByID<unknown>('box-thread-states')?.addEventListener('td-click', (evt: unknown) => {
-      this.tdClickHandler(evt);
+      this.tdClickHandler(evt, false);
     });
     // @ts-ignore
     this.getComponentByID<unknown>('box-slices')?.addEventListener('td-click', (evt: unknown) => {
@@ -1123,9 +1123,11 @@ export class TraceSheet extends BaseElement {
     window.publish(window.SmartEvent.UI.ShowBottomTab, { show: show, delta: delta });
   }
 
-  tdClickHandler(e: unknown): void {
+  tdClickHandler(e: unknown, isDependCpu?: boolean): void {
     // @ts-ignore
     this.currentPaneID = e.target.parentElement.id;
+    // @ts-ignore
+    e.target.parentElement.tab
     //隐藏除了当前Tab页的其他Tab页
     this.shadowRoot!.querySelectorAll<LitTabpane>('lit-tabpane').forEach((it): boolean =>
       it.id !== this.currentPaneID ? (it.hidden = true) : (it.hidden = false)
@@ -1140,7 +1142,7 @@ export class TraceSheet extends BaseElement {
     param.traceId = this.selection!.traceId;
     param.leftNs = this.selection!.leftNs;
     param.rightNs = this.selection!.rightNs;
-    param.cpus = this.selection!.cpus;
+    param.cpus = isDependCpu ? this.selection!.cpus : [];
     // @ts-ignore
     param.state = e.detail.summary ? '' : e.detail.state;
     // @ts-ignore
