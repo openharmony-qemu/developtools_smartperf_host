@@ -25,6 +25,8 @@ import { LitCheckBox } from '../../../../../base-ui/checkbox/LitCheckBox';
 import { initSort } from '../SheetUtils';
 import { TabpanePerfProfile } from './TabPerfProfile';
 import { TabPanePerfAnalysisHtml } from './TabPanePerfAnalysis.html';
+import { WebSocketManager } from '../../../../../webSocket/WebSocketManager';
+import { Constants, TypeConstants } from '../../../../../webSocket/Constants';
 
 @element('tabpane-perf-analysis')
 export class TabPanePerfAnalysis extends BaseElement {
@@ -70,6 +72,8 @@ export class TabPanePerfAnalysis extends BaseElement {
   private selectedTabThreadId: number = 0;
   private selectedTabfileName: string = '';
   private clickFuncVaddrList: Array<unknown> = [];
+  private functionListener!: Function | undefined | null;
+  private currentSoName: string = '';
 
   set data(val: SelectionParam) {
     if (val === this.currentSelection) {
@@ -554,6 +558,8 @@ export class TabPanePerfAnalysis extends BaseElement {
   private perfSoLevelClickEvent(it: unknown): void {
     this.reset(this.tableFunction!, true);
     this.showAssignLevel(this.tableFunction!, this.perfTableSo!, 3, this.functionData);
+    // @ts-ignore
+    this.currentSoName = it.tableName;
     this.getHiperfFunction(it);
     let title = '';
     if (this.processName.length > 0) {
@@ -584,7 +590,19 @@ export class TabPanePerfAnalysis extends BaseElement {
         // @ts-ignore
         item.symbolName === it.tableName
     })
-  }
+    if (this.clickFuncVaddrList.length > 0) {
+      const textEncoder = new TextEncoder();
+      const queryData = {
+        elf_name: this.currentSoName,  //@ts-ignore
+        vaddr: this.clickFuncVaddrList[0].vaddrInFile,  //@ts-ignore
+        func: it.tableName
+      };
+      const dataString = JSON.stringify(queryData);
+      const encodedData = textEncoder.encode(dataString);
+      WebSocketManager.getInstance()?.sendMessage(TypeConstants.DISASSEMBLY_TYPE, Constants.DISASSEMBLY_QUERY_CMD, encodedData);
+    }
+    this.functionListener!(it, this.clickFuncVaddrList);
+ }
 
   private sortByColumn(): void {
     let currentTable: LitTable | null | undefined;
@@ -1186,6 +1204,10 @@ export class TabPanePerfAnalysis extends BaseElement {
         this.filterEl!.style.display = 'flex';
       }
     }).observe(this.parentElement!);
+  }
+
+  public addFunctionRowClickEventListener(clickEvent: Function): void {
+    this.functionListener = clickEvent;
   }
 
   initHtml(): string {

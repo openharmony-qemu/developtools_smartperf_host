@@ -221,6 +221,8 @@ export class TraceSheet extends BaseElement {
       this.perfAnalysisListener(evt);
     });
     // @ts-ignore
+    this.getComponentByID<unknown>('box-perf-analysis')?.addFunctionRowClickEventListener(this.functionAnalysisListener.bind(this));
+    // @ts-ignore
     this.getComponentByID<unknown>('box-native-statistic-analysis')?.addEventListener('row-click', (e: MouseEvent) => {
       this.nativeAnalysisListener(e);
     });
@@ -300,6 +302,21 @@ export class TraceSheet extends BaseElement {
       let pane = this.getPaneByID('box-perf-profile');
       this.litTabs!.activeByKey(pane.key);
     }
+  }
+
+  private functionAnalysisListener(evt: unknown, vaddrList: Array<unknown>): void {
+    // @ts-ignore
+    this.currentPaneID = 'box-perf-analysis';
+    //隐藏除了当前Tab页的其他Tab页
+    this.shadowRoot!.querySelectorAll<LitTabpane>('lit-tabpane').forEach((it): boolean =>
+      it.id !== this.currentPaneID ? (it.hidden = true) : (it.hidden = false)
+    );
+    let pane = this.getPaneByID('tab-perf-func-asm');//通过Id找到需要展示的Tab页
+    pane.closeable = true;
+    pane.hidden = false;
+    this.litTabs!.activeByKey(pane.key); //显示key值（sheetconfig里面对应的index是一个数字）对应的Tab页
+    // @ts-ignore
+    pane.tab = evt.tableName;//设置Tab页标题
   }
 
   private nativeAnalysisListener(e: MouseEvent): void {

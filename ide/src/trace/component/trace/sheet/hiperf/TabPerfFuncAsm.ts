@@ -7,6 +7,9 @@ import {
   PerfFunctionAsmStruct,
   PerfFunctionSelfCountPerAssembler,
 } from "../../../../bean/PerfAnalysis";
+import { WebSocketManager } from "../../../../../webSocket/WebSocketManager";
+import { ConstructorType } from "../../../../../js-heap/model/UiStruct";
+import { TypeConstants } from "../../../../../webSocket/Constants";
 
 @element("tab-perf-func-asm")
 export class TabPerfFuncAsm extends BaseElement {
@@ -21,6 +24,7 @@ export class TabPerfFuncAsm extends BaseElement {
   private asmInstruction: AsmInstruction[] = [];
   private showUpData: PerfFunctionAsmShowUpData[] = [];
   private originalShowUpData: PerfFunctionAsmShowUpData[] = [];
+  private currentAsmList: Array<unknown> = [];
 
   initHtml(): string {
     return TabPerfFuncAsmHtml;
@@ -74,6 +78,16 @@ export class TabPerfFuncAsm extends BaseElement {
         }
       }
     }) as EventListener);
+    // 注册汇编代码请求回调函数
+    WebSocketManager.getInstance()?.registerCallback(TypeConstants.DISASSEMBLY_TYPE, this.receiveAsmData.bind(this));
+  }
+
+  private receiveAsmData(cmd: unknown, e: unknown): void {
+    // @ts-ignore
+    const result = JSON.parse(new TextDecoder().decode(e));
+    if (result.resultCode === 0) {
+      this.currentAsmList = JSON.parse(result.resultMessage);
+    }
   }
 
   private updateTitle(): void {
