@@ -54,7 +54,12 @@ import { BaseStruct } from '../bean/BaseStruct';
 import { GpuCounterStruct, gpuCounterStructOnClick } from '../database/ui-worker/ProcedureWorkerGpuCounter';
 import { HangStructOnClick } from '../database/ui-worker/ProcedureWorkerHang';
 import { XpowerStruct, XpowerStructOnClick } from '../database/ui-worker/ProcedureWorkerXpower';
+import { XpowerStatisticStruct, XpowerStatisticStructOnClick } from '../database/ui-worker/ProcedureWorkerXpowerStatistic';
 import { SpAiAnalysisPage } from './SpAiAnalysisPage';
+import { XpowerAppDetailStruct, XpowerAppDetailStructOnClick } from '../database/ui-worker/ProcedureWorkerXpowerAppDetail';
+import { XpowerWifiBytesStructOnClick, XpowerWifiPacketsStructOnClick, XpowerWifiStruct } from '../database/ui-worker/ProcedureWorkerXpowerWifi';
+import { XpowerThreadInfoStruct, XpowerThreadInfoStructOnClick } from '../database/ui-worker/ProcedureWorkerXpowerThreadInfo';
+import { XpowerGpuFreqStruct, XpowerGpuFreqStructOnClick } from '../database/ui-worker/ProcedureWorkerXpowerGpuFreq';
 
 function timeoutJudge(sp: SpSystemTrace): number {
   let timeoutJudge = window.setTimeout((): void => {
@@ -384,6 +389,12 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
     .then(() => CpuFreqLimitsStructOnClick(clickRowType, sp, entry as CpuFreqLimitsStruct))
     .then(() => ClockStructOnClick(clickRowType, sp, entry as ClockStruct))
     .then(() => XpowerStructOnClick(clickRowType, sp, entry as XpowerStruct))
+    .then(() => XpowerStatisticStructOnClick(clickRowType, sp, row as TraceRow<XpowerStatisticStruct>, entry as XpowerStatisticStruct))
+    .then(() => XpowerAppDetailStructOnClick(clickRowType, sp, entry as XpowerAppDetailStruct))
+    .then(() => XpowerWifiBytesStructOnClick(clickRowType, sp, entry as XpowerWifiStruct))
+    .then(() => XpowerWifiPacketsStructOnClick(clickRowType, sp, entry as XpowerWifiStruct))
+    .then(() => XpowerThreadInfoStructOnClick(clickRowType, sp, entry as XpowerThreadInfoStruct))
+    .then(() => XpowerGpuFreqStructOnClick(clickRowType, sp, entry as XpowerGpuFreqStruct))
     .then(() => HangStructOnClick(clickRowType, sp, scrollToFunc(sp)))
     .then(() => DmaFenceStructOnClick(clickRowType, sp, entry as DmaFenceStruct))
     .then(() => SnapshotStructOnClick(clickRowType, sp, row as TraceRow<SnapshotStruct>, entry as SnapshotStruct))
@@ -952,8 +963,18 @@ function handleClickActions(sp: SpSystemTrace, x: number, y: number, ev: MouseEv
       strict = false;
       offset = true;
     }
+    let skip = false;
+    if (
+      rows[0].rowType === TraceRow.ROW_TYPE_XPOWER_WIFI_BYTES ||
+      rows[0].rowType === TraceRow.ROW_TYPE_XPOWER_WIFI_PACKETS ||
+      rows[0].rowType === TraceRow.ROW_TYPE_XPOWER_APP_DETAIL_DISPLAY ||
+      rows[0].rowType === TraceRow.ROW_TYPE_XPOWER_STATISTIC
+    ) {
+      skip = true;
+    }
     if (rows && rows[0] && (rows[0].getHoverStruct(strict, offset) ||
-      (rows[0].rowType === TraceRow.ROW_TYPE_GPU_COUNTER && rows[0].getHoverStruct(false)))) {
+      (rows[0].rowType === TraceRow.ROW_TYPE_GPU_COUNTER && rows[0].getHoverStruct(false) || skip))
+      ) {
       sp.onClickHandler(rows[0]!.rowType!, rows[0], rows[0].getHoverStruct(strict, offset));
       sp.documentOnMouseMove(ev);
     } else {

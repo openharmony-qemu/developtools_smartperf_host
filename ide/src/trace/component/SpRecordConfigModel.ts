@@ -905,7 +905,7 @@ export function createTraceEvents(traceConfig: Array<string>): Array<string> {
   return ftraceEventsArray;
 }
 
-export function createXPowerConfig( 
+export function createXPowerConfig(
   spXPower: SpXPowerRecord,
   request: CreateSessionRequest
 ): void {
@@ -915,7 +915,9 @@ export function createXPowerConfig(
   let type = spXPower.getXpowerConfig();
   let typeList: Array<string> = [];
   typeList = type!.split(',');
+  let bundleName = spXPower.process || '';
   let xPowerConfig = {
+    bundle_name: bundleName,
     messageType: typeList
   };
   request.pluginConfigs.push({

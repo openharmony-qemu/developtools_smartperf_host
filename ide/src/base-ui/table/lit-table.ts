@@ -94,7 +94,7 @@ export class LitTable extends HTMLElement {
   }
 
   set loading(value: boolean) {
-    this.exportProgress!.loading = value;
+    this.exportProgress && (this.exportProgress.loading = value);
   }
 
   get hideDownload(): boolean {

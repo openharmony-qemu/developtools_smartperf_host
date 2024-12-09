@@ -11,10 +11,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { TraficEnum } from './utils/QueryEnum';
-import { filterDataByGroup } from './utils/DataFilter';
-import { xpowerList } from './utils/AllMemoryCache';
-import { Args } from './CommonArgs';
+import { TraficEnum } from '../utils/QueryEnum';
+import { filterDataByGroup } from '../utils/DataFilter';
+import { xpowerList } from '../utils/AllMemoryCache';
+import { Args } from '../CommonArgs';
 
 export const chartXpowerDataSql = (args: Args): string => {
   return `

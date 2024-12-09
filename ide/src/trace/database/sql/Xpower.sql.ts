@@ -43,23 +43,40 @@ export const queryXpowerData = (traceId?: string): Promise<
   query(
     'queryXpowerData',
     `
-      select 
+      select
         name,
         COUNT(*) num,
-				max(value) maxValue,
-				min(value) minValue
-      from     
+                max(value) maxValue,
+                min(value) minValue
+      from
         measure_filter mf
       left join
         xpower_measure xm
       on
         mf.id = xm.filter_id
-      where 
+      where
         mf.type = 'xpower_filter'
       group by name
 ;
 `, {}, { traceId: traceId }
   );
 
-
-
+  export const queryTraceConfig = (traceId?: string): Promise<
+  Array<{
+    traceSource: string;
+    key: string;
+    value: string;
+  }>
+> =>
+  query(
+    'queryTraceConfig',
+    `
+    select
+      trace_source as traceSource,
+      key,
+      value
+    from
+      trace_config;
+;
+`, {}, { traceId: traceId }
+  );

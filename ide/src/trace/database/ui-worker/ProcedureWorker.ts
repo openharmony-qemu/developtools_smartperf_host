@@ -42,6 +42,8 @@ import { CpuFreqLimitRender } from './cpu/ProcedureWorkerCpuFreqLimits';
 import { HangRender } from './ProcedureWorkerHang';
 import { ClockRender } from './ProcedureWorkerClock';
 import { XpowerRender } from './ProcedureWorkerXpower';
+import { XpowerThreadCountRender } from './ProcedureWorkerXpowerThreadCount';
+import { XpowerThreadInfoRender } from './ProcedureWorkerXpowerThreadInfo';
 import { IrqRender } from './ProcedureWorkerIrq';
 import { JankRender } from './ProcedureWorkerJank';
 import { HeapTimelineRender } from './ProcedureWorkerHeapTimeline';
@@ -70,6 +72,11 @@ import { PerfToolRender } from './ProcedureWorkerPerfTool';
 import { GpuCounterRender } from './ProcedureWorkerGpuCounter';
 import { AllStatesRender } from './ProcedureWorkerAllStates';
 import { DmaFenceRender } from './ProcedureWorkerDmaFence';
+import { XpowerStatisticRender } from './ProcedureWorkerXpowerStatistic';
+import { XpowerAppDetailRender } from './ProcedureWorkerXpowerAppDetail';
+import { XpowerWifiRender } from './ProcedureWorkerXpowerWifi';
+import { XpowerGpuFreqCountRender } from './ProcedureWorkerXpowerGpuFreqCount';
+import { XpowerGpuFreqRender } from './ProcedureWorkerXpowerGpuFreq';
 
 let dataList: unknown = {};
 let dataList2: unknown = {};
@@ -120,7 +127,14 @@ export let renders = {
   energyState: new EnergyStateRender(),
   hang: new HangRender(),
   clock: new ClockRender(),
-  xpower: new XpowerRender(), 
+  xpower: new XpowerRender(),
+  xpowerStatistic: new XpowerStatisticRender(),
+  xpowerAppDetail: new XpowerAppDetailRender(),
+  xpowerWifi: new XpowerWifiRender(),
+  xpowerThreadCount: new XpowerThreadCountRender(),
+  xpowerThreadInfo: new XpowerThreadInfoRender(),
+  xpowerGpuFreqCount: new XpowerGpuFreqCountRender(),
+  xpowerGpuFreq: new XpowerGpuFreqRender(),
   irq: new IrqRender(),
   jank: new JankRender(),
   frameDynamicCurve: new FrameDynamicRender(),

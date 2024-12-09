@@ -11,30 +11,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from './utils/QueryEnum';
-import { getThreadPool } from '../SqlLite';
-import { TraceRow } from '../../component/trace/base/TraceRow';
-import { XpowerStruct } from '../ui-worker/ProcedureWorkerXpower';
-import { Utils } from '../../component/trace/base/Utils';
+import { CHART_OFFSET_LEFT, MAX_COUNT, QueryEnum, TraficEnum } from '../utils/QueryEnum';
+import { getThreadPool } from '../../SqlLite';
+import { TraceRow } from '../../../component/trace/base/TraceRow';
+import { Utils } from '../../../component/trace/base/Utils';
+import { XpowerWifiStruct } from '../../ui-worker/ProcedureWorkerXpowerWifi';
 
-export function xpowerDataSender(
+export function xpowerWifiDataSender(
+  row: TraceRow<XpowerWifiStruct>,
   xpowerName: string = '',
-  row: TraceRow<XpowerStruct>,
-  args?: unknown,
-): Promise<XpowerStruct[]> {
+  args?: unknown
+): Promise<XpowerWifiStruct[]> {
   let trafic: number = TraficEnum.Memory;
   let width = row.clientWidth - CHART_OFFSET_LEFT;
   if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
-      filterId: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
-      value: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
-      startNS: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
-      dur: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
+      startTime: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
+      tx: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
+      rx: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
     };
   }
   return new Promise((resolve, reject): void => {
     getThreadPool(row.traceId).submitProto(
-      QueryEnum.XpowerData,
+      QueryEnum.XpowerWifiData,
       {
         xpowerName: xpowerName,
         startNS: TraceRow.range?.startNS || 0,
@@ -62,23 +61,20 @@ export function xpowerDataSender(
   });
 }
 
-function arrayBufferHandler(buffers: unknown, len: number): XpowerStruct[] {
-  let outArr: XpowerStruct[] = [];
+function arrayBufferHandler(buffers: unknown, len: number): XpowerWifiStruct[] {
+  let outArr: XpowerWifiStruct[] = [];
   // @ts-ignore
-  let filterId = new Int32Array(buffers.filterId);
+  let startTime = new Float64Array(buffers.startTime);
   // @ts-ignore
-  let value = new Float64Array(buffers.value);
+  let tx = new Float64Array(buffers.tx);
   // @ts-ignore
-  let startNS = new Float64Array(buffers.startNS);
-  // @ts-ignore
-  let dur = new Float64Array(buffers.dur);
+  let rx = new Float64Array(buffers.rx);
   for (let i = 0; i < len; i++) {
     outArr.push({
-      filterId: filterId[i],
-      value: value[i],
-      startNS: startNS[i],
-      dur: dur[i],
-    } as unknown as XpowerStruct);
+      startTime: startTime[i],
+      tx: tx[i],
+      rx: rx[i],
+    } as unknown as XpowerWifiStruct);
   }
   return outArr;
 }

@@ -92,6 +92,14 @@ export enum QueryEnum {
   SliceChildBoxData = 302,
   ThreadNearData = 303,
   XpowerData = 304,
+  XpowerThreadCountData = 305,
+  XpowerThreadInfoData = 306,
+  XpowerGpuFreqCountData = 307,
+  XpowerGpuFreqData = 308,
+  XpowerStatisticData = 309,
+  XpowerWifiData = 310,
+  XpowerAppDetailData = 311
+
 }
 export const MAX_COUNT = 2000;
 export enum TraficEnum {

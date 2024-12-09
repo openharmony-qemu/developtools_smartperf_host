@@ -73,6 +73,7 @@ import {
   getCurrentDataTime,
   indexedDataToBufferData,
   isZipFile,
+  isZlibFile,
   postLog,
   readTraceFileBuffer,
   TraceMode,
@@ -407,11 +408,10 @@ export class SpApplication extends BaseElement {
     ];
   }
 
-  private openLongTraceFile(ev: unknown, isRecordTrace: boolean = false): void {
+  private openLongTraceFile(ev: CustomEvent, isRecordTrace: boolean = false): void {
     this.returnOriginalUrl();
     this.wasm = true;
     this.openFileInit(true);
-    // @ts-ignore
     let detail = ev.detail;
     let initRes = this.longTraceFileInit(isRecordTrace, detail);
     if (!isRecordTrace && initRes) {
@@ -625,7 +625,7 @@ export class SpApplication extends BaseElement {
     }
   }
 
-  private openTraceFile(ev: unknown, isClickHandle?: boolean): void {
+  private openTraceFile(ev: File): void {
     SpApplication.isTraceLoaded = false;
     this.returnOriginalUrl();
     this.removeAttribute('custom-color');
@@ -643,13 +643,11 @@ export class SpApplication extends BaseElement {
       this.importConfigDiv.style.display = 'none';
       this.closeKeyPath.style.display = 'none';
     }
-    //@ts-ignore
     let fileName = ev.name;
     this.traceFileName = fileName;
     let showFileName = fileName.lastIndexOf('.') === -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'));
     window.sessionStorage.setItem('fileName', showFileName);
     TraceRow.rangeSelectObject = undefined;
-    //@ts-ignore
     let typeStr = ev.slice(0, 100);
     let reader: FileReader | null = new FileReader();
     reader.readAsText(typeStr);
@@ -658,30 +656,41 @@ export class SpApplication extends BaseElement {
       let typeHeader;
       if (isIncludeMark) {
         let markLength = `${reader?.result}`.split('->')[0].replace('MarkPositionJSON', '');
-        //@ts-ignore
         typeHeader = ev.slice(markLength.length + parseInt(markLength), markLength.length + parseInt(markLength) + 6);
       } else {
-        //@ts-ignore
         typeHeader = ev.slice(0, 6);
       }
-      let fileReader: FileReader | null = new FileReader();
-      fileReader.readAsText(typeHeader);
-      fileReader.onload = (event): void => {
-        let headerStr: string = `${fileReader?.result}`;
-        SpApplication.traceType = headerStr;
-        if (headerStr.indexOf('SQLite') === 0) {
-          info('Parse trace headerStr sql mode');
-          this.wasm = false;
-          //@ts-ignore
-          this.handleSqliteMode(ev, showFileName, ev.size, fileName);
-        } else {
-          info('Parse trace using wasm mode ');
-          this.wasm = true;
-          this.isZipFile = isZipFile(headerStr);
-          this.cutTraceFile!.style.display = this.isZipFile ? 'none' : 'block';
-          //@ts-ignore
-          this.handleWasmMode(ev, showFileName, ev.size, fileName);
-        }
+      this.judgeDBOrWasm(ev, typeHeader, showFileName);
+      this.judgeZip(typeHeader);
+    };
+  }
+
+  private judgeDBOrWasm(ev: File, typeHeader: Blob, showFileName: string) {
+    let fileReader: FileReader | null = new FileReader();
+    fileReader.readAsText(typeHeader);
+    fileReader.onload = (event): void => {
+      let headerStr: string = `${fileReader?.result}`;
+      SpApplication.traceType = headerStr;
+      if (headerStr.indexOf('SQLite') === 0) {
+        info('Parse trace headerStr sql mode');
+        this.wasm = false;
+        this.handleSqliteMode(ev, showFileName, ev.size, ev.name);
+      } else {
+        info('Parse trace using wasm mode ');
+        this.wasm = true;
+        this.handleWasmMode(ev, showFileName, ev.size, ev.name);
+      }
+    }
+  }
+
+  private judgeZip(typeHeader: Blob) {
+    const fileReader = new FileReader();
+    fileReader.readAsArrayBuffer(typeHeader);
+    fileReader.onload = (event):void => {
+      const uint8Array = new Uint8Array(event.target!.result as ArrayBuffer);
+      this.isZipFile = isZipFile(uint8Array) || isZlibFile(uint8Array);
+      if (this.isZipFile) {
+        this.cutTraceFile!.style.display = this.isZipFile ? 'none' : 'block';
       }
     };
   }
@@ -780,7 +789,7 @@ export class SpApplication extends BaseElement {
           //@ts-ignore
           let item = e.dataTransfer.items[0];
           if (item.webkitGetAsEntry()?.isFile) {
-            this.openTraceFile(item.getAsFile());
+            this.openTraceFile(item.getAsFile()!);
           } else if (item.webkitGetAsEntry()?.isDirectory) {
             this.litSearch!.setPercent('This File is not supported!', -1);
             this.progressEL!.loading = false;
@@ -885,7 +894,7 @@ export class SpApplication extends BaseElement {
             title: 'Open trace file',
             icon: 'folder',
             fileChoose: true,
-            fileHandler: (ev: InputEvent): void => {
+            fileHandler: (ev: CustomEvent): void => {
               Utils.currentTraceMode = TraceMode.NORMAL;
               this.openTraceFile(ev.detail);
             },
@@ -913,11 +922,11 @@ export class SpApplication extends BaseElement {
             title: 'Open long trace',
             icon: 'folder',
             fileChoose: true,
-            clickHandler: (ev: InputEvent): void => {
+            clickHandler: (ev: CustomEvent): void => {
               Utils.currentTraceMode = TraceMode.LONG_TRACE;
               this.openLongTraceFile(ev, true);
             },
-            fileHandler: (ev: InputEvent): void => {
+            fileHandler: (ev: CustomEvent): void => {
               Utils.currentTraceMode = TraceMode.LONG_TRACE;
               this.openLongTraceFile(ev);
             },

@@ -419,6 +419,10 @@ export class LitPopover extends BaseElement {
     return this.getAttribute('haveRadio');
   }
 
+  get haveCheckbox(): string | null {
+    return this.getAttribute('haveCheckbox');
+  }
+
   initElements(): void {}
 
   initHtml(): string {
@@ -452,10 +456,17 @@ export class LitPopover extends BaseElement {
         this.focus();
       } // @ts-ignore
       checkbox.checked = !checkbox.checked; // @ts-ignore
-      this.visible = checkbox.checked;
+      if (!this.haveCheckbox) {
+        // @ts-ignore
+        this.visible = checkbox.checked;
+      }
     }; // @ts-ignore
     popover.onmouseleave = (): void => {
       this.focus();
+      if(this.haveCheckbox){
+        // @ts-ignore
+        this.visible = false;
+      }
     };
     this.onblur = (ev: unknown): void => {
       // @ts-ignore
@@ -469,6 +480,10 @@ export class LitPopover extends BaseElement {
           // @ts-ignore
           this.visible = false;
         }
+      // @ts-ignore
+      } else if (this.haveCheckbox) {
+        this.focus();
+        // @ts-ignore
       } else {
         // @ts-ignore
         this.visible = false;

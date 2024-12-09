@@ -76,6 +76,9 @@ export const SpXPowerRecordHtml = `
   font-size: 14px;
   text-align: center;
 }
+.xpower-config-package-title{
+  line-height: 40px;
+}
 .xpower-config-top-title{
   margin-bottom: 15px;
 }
@@ -90,7 +93,11 @@ export const SpXPowerRecordHtml = `
 }
 .record-type-select {
   border-radius: 15px;
-    width: 100%;
+  width: 100%;
+}
+.select{
+  width: 100%;
+  height: 27px;
 }
 </style>
 
@@ -101,6 +108,14 @@ export const SpXPowerRecordHtml = `
             <lit-switch class="xpower-switch"></lit-switch>
         </div>
         <div class="xpower-config-top">
+            <div class="xpower-config-package-title">
+                <span class="xpower-title">Package</span>
+                <span class="config-title-des">Record package</span>
+            </div>
+            <lit-select-v rounded="" default-value=""
+            class="record-type-select select config" placement="bottom" title="Package" placeholder="please select package"></lit-select-v>
+        </div>
+        <div class="xpower-config-top">
             <div class="xpower-config-top-title">
                 <span class="xpower-title config-title">MessageType</span>
                 <span class="config-title-des">Record MessageType</span>
@@ -109,4 +124,3 @@ export const SpXPowerRecordHtml = `
     </div>
 </div>
         `;
-

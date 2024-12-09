@@ -95,6 +95,15 @@ import { PerfToolStruct } from '../../../database/ui-worker/ProcedureWorkerPerfT
 import { GpuCounterStruct } from '../../../database/ui-worker/ProcedureWorkerGpuCounter';
 import { TabPaneGpuCounter } from '../sheet/gpu-counter/TabPaneGpuCounter';
 import { TabPaneSliceChild } from '../sheet/process/TabPaneSliceChild';
+import { XpowerStatisticStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerStatistic';
+import { XpowerAppDetailStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerAppDetail';
+import { XpowerWifiStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerWifi';
+import { TabPaneXpowerStatisticCurrentData } from '../sheet/xpower/TabPaneXpowerStatisticCurrentData';
+import { XpowerThreadInfoStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerThreadInfo';
+import { TabPaneXpowerThreadInfoSelection } from '../sheet/xpower/TabPaneXpowerThreadInfoSelection';
+import { TabPaneXpowerGpuFreqSelection } from '../sheet/xpower/TabPaneXpowerGpuFreqSelection';
+import { XpowerGpuFreqStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerGpuFreq';
+
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -685,6 +694,20 @@ export class TraceSheet extends BaseElement {
     this.displayTab<TabPaneCurrentSelection>('current-selection').setDmaFenceData(data, rowData);
   displayXpowerData = (data: XpowerStruct): Promise<void> =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setXpowerData(data);
+  displayXpowerDisplayData = (data: XpowerAppDetailStruct): Promise<void> =>
+    this.displayTab<TabPaneCurrentSelection>('current-selection').setXpowerDisplayData(data);
+  displayXpowerWifiPacketsData = (data: XpowerWifiStruct): Promise<void> =>
+    this.displayTab<TabPaneCurrentSelection>('current-selection').setXpowerWifiPacketsData(data);
+  displayXpowerBytesWifiData = (data: XpowerWifiStruct): Promise<void> =>
+    this.displayTab<TabPaneCurrentSelection>('current-selection').setXpowerWifiBytesData(data);
+  displayXpowerStatisticData = (data: XpowerStatisticStruct): void =>
+    this.displayTab<TabPaneXpowerStatisticCurrentData>('box-xpower-statistic-current-data').setXpowerStatisticCurrentData(data);
+  displayXpowerThreadInfoData = (dataList: Array<XpowerThreadInfoStruct>): void => {
+    this.displayTab<TabPaneXpowerThreadInfoSelection>('box-xpower-thread-info-selection').setThreadInfoData(dataList);
+  };
+  displayXpowerGpuFreqData = (dataList: Array<XpowerGpuFreqStruct>): void => {
+    this.displayTab<TabPaneXpowerGpuFreqSelection>('box-xpower-gpu-freq-selection').setGpuFreqData(dataList);
+  };
   displayPerfToolsData = (data: PerfToolStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setPerfToolsData(data);
   displayIrqData = (data: IrqStruct): void =>

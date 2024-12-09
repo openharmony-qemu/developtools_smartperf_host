@@ -74,10 +74,23 @@ export class SpAiAnalysisPage extends BaseElement {
     static selectChangeListener(startTime: number, endTime: number): void {
         SpAiAnalysisPage.startTime = startTime;
         SpAiAnalysisPage.endTime = endTime;
-        let startEl = document.querySelector('body > sp-application')!.shadowRoot!.querySelector('#sp-ai-analysis')!.shadowRoot?.querySelector('div.chatBox > div > div.report_details > div.selectionBox > div.startBox > span');
-        startEl!.innerHTML = getTimeString(startTime).toString();
-        let endEl = document.querySelector('body > sp-application')!.shadowRoot!.querySelector('#sp-ai-analysis')!.shadowRoot?.querySelector('div.chatBox > div > div.report_details > div.selectionBox > div.endBox > span');
-        endEl!.innerHTML = getTimeString(endTime).toString();
+        if (
+            document.querySelector('body > sp-application') &&
+            document.querySelector('body > sp-application')!.shadowRoot &&
+            document.querySelector('body > sp-application')!.shadowRoot!.querySelector('#sp-ai-analysis') &&
+            document.querySelector('body > sp-application')!.shadowRoot!.querySelector('#sp-ai-analysis')!.shadowRoot
+        ) {
+            let startEl = document
+                .querySelector('body > sp-application')!
+                .shadowRoot!.querySelector('#sp-ai-analysis')!
+                .shadowRoot!.querySelector('div.chatBox > div > div.report_details > div.selectionBox > div.startBox > span');
+            startEl && (startEl.innerHTML = getTimeString(startTime).toString());
+            let endEl = document
+                .querySelector('body > sp-application')!
+                .shadowRoot!.querySelector('#sp-ai-analysis')!
+                .shadowRoot!.querySelector('div.chatBox > div > div.report_details > div.selectionBox > div.endBox > span');
+            endEl && (endEl.innerHTML = getTimeString(endTime).toString());
+        }
     }
     initElements(): void {
         this.md = require('markdown-it')({

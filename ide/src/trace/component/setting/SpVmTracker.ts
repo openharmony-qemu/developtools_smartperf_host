@@ -34,7 +34,7 @@ export class SpVmTracker extends BaseElement {
     } else {
       this.removeAttribute('startSamp');
       let input = this.vmTrackerProcessInput?.shadowRoot?.querySelector<HTMLInputElement>('#singleInput');
-      input!.value = '';
+      input && (input.value = '');
     }
   }
 

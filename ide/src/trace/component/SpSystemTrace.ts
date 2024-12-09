@@ -137,6 +137,11 @@ import { LitSearch } from './trace/search/Search';
 import { LitTable } from '../../base-ui/table/lit-table';
 import { HangStruct } from '../database/ui-worker/ProcedureWorkerHang';
 import { SpAiAnalysisPage } from './SpAiAnalysisPage';
+import { XpowerAppDetailStruct } from '../database/ui-worker/ProcedureWorkerXpowerAppDetail';
+import { XpowerStatisticStruct } from '../database/ui-worker/ProcedureWorkerXpowerStatistic';
+import { XpowerWifiStruct } from '../database/ui-worker/ProcedureWorkerXpowerWifi';
+import { XpowerThreadInfoStruct } from '../database/ui-worker/ProcedureWorkerXpowerThreadInfo';
+import { XpowerGpuFreqStruct } from '../database/ui-worker/ProcedureWorkerXpowerGpuFreq';
 
 function dpr(): number {
   return window.devicePixelRatio || 1;
@@ -642,7 +647,9 @@ export class SpSystemTrace extends BaseElement {
       SampleStruct.selectSampleStruct ||
       PerfToolStruct.selectPerfToolStruct ||
       GpuCounterStruct.selectGpuCounterStruct ||
-      DmaFenceStruct.selectDmaFenceStruct;
+      DmaFenceStruct.selectDmaFenceStruct ||
+      XpowerThreadInfoStruct.selectXpowerStruct ||
+      XpowerGpuFreqStruct.selectXpowerStruct
   }
   top: number = 0;
   handler: number = -1;
@@ -1400,6 +1407,12 @@ export class SpSystemTrace extends BaseElement {
     PerfToolStruct.selectPerfToolStruct = undefined;
     GpuCounterStruct.selectGpuCounterStruct = undefined;
     DmaFenceStruct.selectDmaFenceStruct = undefined;//清空选中slice
+    XpowerAppDetailStruct.selectXpowerStruct = undefined;
+    XpowerStatisticStruct.selectXpowerStruct = undefined;
+    XpowerWifiStruct.selectBytesXpowerStruct = undefined;
+    XpowerWifiStruct.selectPacketsXpowerStruct = undefined;
+    XpowerThreadInfoStruct.selectXpowerStruct = undefined;
+    XpowerGpuFreqStruct.selectXpowerStruct = undefined;
     return this;
   }
 
@@ -2790,7 +2803,19 @@ export class SpSystemTrace extends BaseElement {
         }
       } else {
         this.tipEL.style.display = 'flex';
-        this.tipEL.style.height = row.style.height;
+        if (
+          row.rowType === TraceRow.ROW_TYPE_XPOWER_STATISTIC ||
+          row.rowType === TraceRow.ROW_TYPE_XPOWER_WIFI_BYTES ||
+          row.rowType === TraceRow.ROW_TYPE_XPOWER_WIFI_PACKETS ||
+          row.rowType === TraceRow.ROW_TYPE_XPOWER_APP_DETAIL_DISPLAY ||
+          row.rowType === TraceRow.ROW_TYPE_XPOWER_THREAD_INFO ||
+          row.rowType === TraceRow.ROW_TYPE_XPOWER_GPU_FREQUENCY
+        ) {
+          this.tipEL.style.height = 'unset';
+          y = row.hoverY + row.getBoundingClientRect().top - this.getBoundingClientRect().top - this.tipEL.clientHeight;
+        } else {
+          this.tipEL.style.height = row.style.height;
+        }
       }
       if (x + this.tipEL.clientWidth > (this.canvasPanel!.clientWidth ?? 0)) {
         this.tipEL.style.transform = `translateX(${x - this.tipEL.clientWidth - 1}px) translateY(${y}px)`;

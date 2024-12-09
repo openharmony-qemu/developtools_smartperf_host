@@ -34,8 +34,9 @@ import { processStartupDataReceiver } from '../process//ProcessStartupDataReceiv
 import { processSoInitDataReceiver } from '../process//ProcessSoInitDataReceiver';
 import { processDeliverInputEventDataReceiver } from '../process//ProcessDeliverInputEventDataReceiver';
 import { processTouchEventDispatchDataReceiver } from '../process//ProcessTouchEventDispatchDataReceiver';
-import { xpowerDataReceiver } from '../XpowerDataReceiver';
-
+import { xpowerDataReceiver } from '../xpower/XpowerDataReceiver';
+import { xpowerWifiDataReceiver } from '../xpower/XpowerWifiDataReceiver';
+import { xpowerAppDetailDataReceiver } from '../xpower/XpowerAppDetailDataReceiver';
 import {
   dmaDataReceiver,
   gpuDataReceiver,
@@ -83,6 +84,9 @@ import { lostFrameReceiver } from './../LostFrameReceiver';
 import { sliceReceiver, sliceSPTReceiver } from '../SliceReceiver';
 import { dmaFenceReceiver } from './../dmaFenceReceiver';
 import { hangDataReceiver } from '../HangDataReceiver';
+import { xpowerStatisticDataReceiver } from '../xpower/XpowerStatisticDataReceiver';
+import { xpowerDataGpuFreqCountReceiver, xpowerDataGpuFreqReceiver } from '../xpower/XpowerGpuFrequencyRecevier';
+import { xpowerDataThreadCountReceiver, xpowerDataThreadInfoReceiver } from '../xpower/XpowerThreadReceiver';
 
 // @ts-ignore
 const traficHandlers: Map<number, unknown> = new Map<number, unknown>([]); // @ts-ignore
@@ -162,3 +166,10 @@ traficHandlers.set(QueryEnum.dmaFenceData, dmaFenceReceiver);
 traficHandlers.set(QueryEnum.SliceChildBoxData, sliceSPTReceiver);
 traficHandlers.set(QueryEnum.ThreadNearData, sliceSPTReceiver);
 traficHandlers.set(QueryEnum.XpowerData, xpowerDataReceiver);
+traficHandlers.set(QueryEnum.XpowerWifiData, xpowerWifiDataReceiver);
+traficHandlers.set(QueryEnum.XpowerAppDetailData, xpowerAppDetailDataReceiver);
+traficHandlers.set(QueryEnum.XpowerStatisticData, xpowerStatisticDataReceiver);
+traficHandlers.set(QueryEnum.XpowerThreadCountData, xpowerDataThreadCountReceiver);
+traficHandlers.set(QueryEnum.XpowerThreadInfoData, xpowerDataThreadInfoReceiver);
+traficHandlers.set(QueryEnum.XpowerGpuFreqCountData, xpowerDataGpuFreqCountReceiver);
+traficHandlers.set(QueryEnum.XpowerGpuFreqData, xpowerDataGpuFreqReceiver);

@@ -57,7 +57,7 @@ export class TabPaneXpowerCounter extends BaseElement {
     dataSource.splice(0, 0, sumData);
     this.xpowerCounterTbl!.loading = false;
     this.xpowerCounterSource = dataSource;
-    this.xpowerCounterTbl!.recycleDataSource = dataSource;   
+    this.xpowerCounterTbl!.recycleDataSource = dataSource;
   }
 
   initElements(): void {
