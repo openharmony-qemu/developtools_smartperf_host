@@ -16,6 +16,8 @@
 import { SpRecordTrace } from '../trace/component/SpRecordTrace';
 import { CmdConstant } from './CmdConstant';
 import { HdcDeviceManager } from '../hdc/HdcDeviceManager';
+import { TypeConstants } from '../webSocket/Constants';
+import { WebSocketManager } from '../webSocket/WebSocketManager';
 
 export class Cmd {
   static CmdSendPostUtils(uri: string, callback: Function, requestData: unknown): void {
@@ -231,6 +233,14 @@ export class Cmd {
         Cmd.execHdcCmd(cmd, (res: string): void => {
           resolve(Cmd.convertOutProcessList(res));
         });
+      } else if (SpRecordTrace.useExtend) {
+        WebSocketManager.getInstance()!.sendMessage(TypeConstants.USB_TYPE, TypeConstants.USB_GET_PROCESS, new TextEncoder().encode(SpRecordTrace.serialNumber));
+        setTimeout(() => {
+          if (SpRecordTrace.allProcessListStr) {
+            console.log(SpRecordTrace.allProcessListStr);
+            resolve(Cmd.convertOutProcessList(SpRecordTrace.allProcessListStr));
+          }
+        }, 1000)
       } else {
         HdcDeviceManager.connect(SpRecordTrace.serialNumber).then((conn): void => {
           if (conn) {
@@ -244,17 +254,28 @@ export class Cmd {
       }
     });
   }
+
   static getPackage(): Promise<string[]> {
     return new Promise((resolve, reject): void => {
-      HdcDeviceManager.connect(SpRecordTrace.serialNumber).then((conn) => {
-        if (conn) {
-          HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_PACKAGE, false).then((res): void => {
-            resolve(Cmd.convertOutPackageList(res));
-          });
-        } else {
-          reject(-1);
-        }
-      });
+      if (SpRecordTrace.useExtend) {
+        //@ts-ignore
+        WebSocketManager.getInstance()!.sendMessage(TypeConstants.USB_TYPE, TypeConstants.USB_GET_APP, new TextEncoder().encode(SpRecordTrace.serialNumber));
+        setTimeout(() => {
+          if (SpRecordTrace.usbGetApp) {
+            resolve(Cmd.convertOutPackageList(SpRecordTrace.usbGetApp));
+          }
+        }, 1000);
+      } else {
+        HdcDeviceManager.connect(SpRecordTrace.serialNumber).then((conn) => {
+          if (conn) {
+            HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_PACKAGE, false).then((res): void => {
+              resolve(Cmd.convertOutPackageList(res));
+            });
+          } else {
+            reject(-1);
+          }
+        });
+      }
     });
   }
 }
