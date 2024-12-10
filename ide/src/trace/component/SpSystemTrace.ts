@@ -2034,7 +2034,7 @@ export class SpSystemTrace extends BaseElement {
         // 底部 tab 为 最小化 或者隐藏 时候
         if (this.rowsEL!.scrollHeight > this.scrollH) {
           heightTimeOut = setTimeout(() => {
-            let litTab = this.traceSheetEL?.shadowRoot?.querySelector<LitTabs>("#tabs");
+            let litTab = this.traceSheetEL?.shadowRoot?.querySelector<LitTabs>('#tabs');
             if (this.traceSheetEL?.getAttribute('mode') === 'hidden') {
               this.rowsEL!.scrollTop = this.rowsEL!.scrollTop - data.delta;
             }

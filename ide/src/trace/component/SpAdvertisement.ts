@@ -41,8 +41,8 @@ export class SpAdvertisement extends BaseElement {
         this.closeEL?.addEventListener('click', () => {
             this.advertisementEL!.style!.display = 'none';
             localStorage.setItem('isdisplay', 'false');
-        })
-    }
+        });
+    };
 
     private getMessage(): void {
         SpStatisticsHttpUtil.getNotice().then(res => {
@@ -78,7 +78,7 @@ export class SpAdvertisement extends BaseElement {
             }
         }).catch(err => {
             this.advertisementEL!.style!.display = 'none';
-        })
+        });
     }
 
     initHtml(): string {

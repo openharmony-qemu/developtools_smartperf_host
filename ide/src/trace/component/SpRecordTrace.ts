@@ -67,10 +67,8 @@ import {
 } from './SpRecordConfigModel';
 import { SpRecordTraceHtml } from './SpRecordTrace.html';
 import { SpFFRTConfig } from './setting/SpFFRTConfig';
-import { shadowRootInput } from '../../trace/component/trace/base/shadowRootInput';
-import { WebSocketManager } from '../../webSocket/WebSocketManager';
-import { TypeConstants } from '../../webSocket/Constants';
-import { LitCheckBox } from '../../base-ui/checkbox/LitCheckBox';
+import { ShadowRootInput } from './trace/base/ShadowRootInput';
+
 const DEVICE_NOT_CONNECT =
   '<div>1.请确认抓取设备上是否已勾选并确认总是允许smartPerf-Host调试的弹窗</div>' +
   '<div>2.请关闭DevEco Studio,DevEco Testing等会占用hdc端口的应用</div>' +
@@ -1161,7 +1159,7 @@ export class SpRecordTrace extends BaseElement {
       clickHandler: (): void => {
         this.appContent!.innerHTML = '';
         this.appContent!.append(configPage);
-        shadowRootInput.preventBubbling(configPage);
+        ShadowRootInput.preventBubbling(configPage);
         this.freshMenuItemsStatus(title);
         if (clickHandlerFun) {
           clickHandlerFun(this);

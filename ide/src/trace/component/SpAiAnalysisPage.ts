@@ -199,7 +199,7 @@ export class SpAiAnalysisPage extends BaseElement {
             aiAssistant?.style.visibility = 'hidden';
             //@ts-ignore
             aiAssistant?.style.display = 'none';
-        })
+        });
 
         // 输入框发送消息
         this.inputEl?.addEventListener('keydown', (e) => {
@@ -383,18 +383,10 @@ export class SpAiAnalysisPage extends BaseElement {
             collection: 'smart_perf_test',
             scope: 'smartperf'
         };
-
-        await SpStatisticsHttpUtil.askAi(requestBody).then(res => {
-            if (res.status === 200) {
-                SpStatisticsHttpUtil.generalRecord('AI_statistic', 'large_model_q&a', []);
-            }
-            this.appendChatContent(res);
-        }).catch(error => {
-            this.appendChatContent(error);
-        });
-    }
-
-    appendChatContent(response: AiResponse) {
+        let answer = await SpStatisticsHttpUtil.askAi(requestBody);
+        if (answer.status === 200) {
+            SpStatisticsHttpUtil.generalRecord('AI_statistic', 'large_model_q&a', []);
+        }
         if (!this.isNewChat) {
             // @ts-ignore
             this.aiAnswerBox!.firstElementChild!.innerHTML = this.md!.render(response.data);
@@ -408,7 +400,7 @@ export class SpAiAnalysisPage extends BaseElement {
     }
 
     // 创建用户聊天对话气泡
-    createChatBox() {
+    createChatBox(): void {
         // 生成头像
         let headerDiv = document.createElement('div');
         headerDiv.className = 'userHeader headerDiv';
@@ -622,7 +614,7 @@ export class SpAiAnalysisPage extends BaseElement {
     // 每90min重新获取token
     async getToken90Min(isChat: boolean): Promise<void> {
         await this.getToken(isChat);
-        await setInterval(async () => {
+        setInterval(async () => {
             await this.getToken(isChat);
         }, 5400000);
     }
@@ -749,19 +741,9 @@ export class SpAiAnalysisPage extends BaseElement {
                     this.draftBtn!.style.display = 'inline-block';
                     this.downloadBtn!.style.display = 'inline-block';
                 }
-            }
-        }
-    }
-
-    // eventCallBack
-    eventCallBack = async (result: string) => {
-        this.draftList!.innerHTML = '';
-        this.tipsContent!.style.display = 'flex';
-        this.tipContentArr = ['detect'];
-        // @ts-ignore
-        this.abnormalPageTips(this.getStatusesPrompt()[result].prompt, '', 4000, ['detect']);
-        this.draftBtn!.style.display = 'inline-block';
-    }
+            };
+        };
+    };
 
     // 发起诊断
     initiateDiagnosis(): void {
