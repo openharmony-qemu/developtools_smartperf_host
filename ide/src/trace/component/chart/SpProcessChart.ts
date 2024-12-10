@@ -1144,7 +1144,7 @@ export class SpProcessChart {
 
     differentThreadList.length && this.addDifferentThread(it, pRow, expectedRow, actualRow, soRow, startupRow, differentThreadList, traceId!);
     if (sameThreadList.length) {
-      let sameThreadFolder = await this.initSameThreadFolder(it, pRow, sameThreadList, traceId!);
+      let sameThreadFolder = this.initSameThreadFolder(it, pRow, sameThreadList, traceId!);
       if (sameThreadFolder) {
         pRow.addChildTraceRow(this.sameThreadFolder);
         this.addProcessRowListener(this.sameThreadFolder, actualRow);

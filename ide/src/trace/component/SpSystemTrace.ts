@@ -1106,7 +1106,7 @@ export class SpSystemTrace extends BaseElement {
 
   // 一直按着回车键的时候执行搜索功能
   continueSearch = (ev: KeyboardEvent): void => {
-    if(!this.keyboardEnable){
+    if (!this.keyboardEnable) {
       return;
     }
     if (ev.key === 'Enter') {
@@ -1658,14 +1658,14 @@ export class SpSystemTrace extends BaseElement {
     let startParentRow = startRow ? this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(`trace-row[row-id='${startRow.rowParentId}'][folder]`) : this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
       `trace-row[row-id='${pid}'][folder]`
     );
-    if (startParentRow && startParentRow.expansion){
-      let filterRow = startParentRow?.childrenList.filter((item)=>item.rowId === tid)[0];
-      !filterRow && startParentRow?.childrenList.forEach((i)=>{
-       if(i.rowId === 'sameThreadProcess'){// @ts-ignore
-        filterRow = startParentRow?.childrenList.concat(i.childrenList).filter((item)=>item.rowId === String(tid))[0];
+    if (startParentRow && startParentRow.expansion) {
+      let filterRow = startParentRow?.childrenList.filter((item) => item.rowId === tid)[0];
+      !filterRow && startParentRow?.childrenList.forEach((i) => {
+        if (i.rowId === 'sameThreadProcess') {// @ts-ignore
+          filterRow = startParentRow?.childrenList.concat(i.childrenList).filter((item) => item.rowId === String(tid))[0];
           // @ts-ignore
           startParentRow = filterRow!.parentRowEl!;
-       }
+        }
       });
     }
     const expansionFlag = this.collectionHasThread(startRow);
@@ -2019,7 +2019,7 @@ export class SpSystemTrace extends BaseElement {
         // 底部 tab 为 最小化 或者隐藏 时候
         if (this.rowsEL!.scrollHeight > this.scrollH) {
           heightTimeOut = setTimeout(() => {
-            let litTab = this.traceSheetEL?.shadowRoot?.querySelector<LitTabs>("#tabs");
+            let litTab = this.traceSheetEL?.shadowRoot?.querySelector<LitTabs>('#tabs');
             if (this.traceSheetEL?.getAttribute('mode') === 'hidden') {
               this.rowsEL!.scrollTop = this.rowsEL!.scrollTop - data.delta;
             }

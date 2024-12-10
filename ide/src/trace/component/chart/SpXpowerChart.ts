@@ -78,7 +78,7 @@ export class SpXpowerChart {
         };
         this.rowFolder = xpowerFolder;
         this.trace.rowsEL?.appendChild(xpowerFolder);
-    }
+    };
 
     initSystemFolder = async (traceId?: string): Promise<void> => {
         let systemFolder = TraceRow.skeleton(traceId);
@@ -111,7 +111,7 @@ export class SpXpowerChart {
         };
         this.systemFolder = systemFolder;
         this.rowFolder?.addChildTraceRow(systemFolder);
-    }
+    };
 
     private xpowerSupplierFrame(
         traceRow: TraceRow<XpowerStruct>,
