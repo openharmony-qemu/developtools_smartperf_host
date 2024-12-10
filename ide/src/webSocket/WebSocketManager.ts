@@ -134,7 +134,7 @@ export class WebSocketManager {
             }/application/extend/hi-smart-perf-host-extend-update.zip`;
         fetch(url).then(response => {
             if (!response.ok) {
-                throw new Error("No corresponding upgrade compression package found");
+                throw new Error('No corresponding upgrade compression package found');
             }
             return response.arrayBuffer();
         }).then((arrayBuffer) => {
@@ -154,7 +154,7 @@ export class WebSocketManager {
         if (!WebSocketManager.instance) {
             new WebSocketManager();
         }
-        return WebSocketManager.instance
+        return WebSocketManager.instance;
     }
 
     // WebSocket是否登录成功 

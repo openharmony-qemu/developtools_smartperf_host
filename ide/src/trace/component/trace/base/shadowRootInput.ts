@@ -14,9 +14,9 @@
  */
 import { BaseElement } from '../../../../base-ui/BaseElement';
 import { SpSystemTrace } from '../../SpSystemTrace';
-export class shadowRootInput {
-    public static preventBubbling(page: BaseElement | Element) {
-        let pageInputList = shadowRootInput.findInputListInShadowDOM(page);
+export class ShadowRootInput {
+    public static preventBubbling(page: BaseElement | Element): void {
+        let pageInputList = ShadowRootInput.findInputListInShadowDOM(page);
         let sp = document?.querySelector('body > sp-application')?.shadowRoot?.querySelector('#sp-system-trace') as SpSystemTrace;
         pageInputList.forEach(input => {
             input.addEventListener('focus', (e) => {
@@ -32,7 +32,7 @@ export class shadowRootInput {
         let inputList: Element[] = [];
         while (queue.length > 0) {
             let currentNode = queue.shift(); // 从队列中取出一个节点  
-            if (!currentNode) continue;
+            if (!currentNode) { continue };
             if (currentNode.tagName === 'INPUT') {
                 inputList.push(currentNode);
             }

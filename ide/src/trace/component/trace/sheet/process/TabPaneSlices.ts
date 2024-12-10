@@ -89,11 +89,11 @@ export class TabPaneSlices extends BaseElement {
       data = evt.detail.data;
     });
     this.slicesTbl!.addEventListener('click', () => {
-      if(!this.isDbClick){
+      if (!this.isDbClick) {
         this.isDbClick = true;
         FuncStruct.funcSelect = false;
-      // @ts-ignore
-      data && this.orgnazitionData(data);
+        // @ts-ignore
+        data && this.orgnazitionData(data);
       }
     });
     this.slicesTbl!.addEventListener('contextmenu', () => {

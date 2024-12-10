@@ -185,8 +185,7 @@ export class SpStatisticsHttpUtil {
     }).then(
       res => { }
     ).catch(err => {
-
-    })
+    });
   }
 
   static recordPluginUsage(): void {
@@ -242,7 +241,7 @@ export class SpStatisticsHttpUtil {
       }
     }).catch(err => {
       response.status = 700;
-    })
+    });
     return response;
   }
 
@@ -289,8 +288,8 @@ export class SpStatisticsHttpUtil {
           response.data = '请求错误';
         }
         reject(response);
-      })
-    })
+      });
+    });
   }
 }
 

@@ -130,7 +130,7 @@ export class SpAiAnalysisPage extends BaseElement {
             aiAssistant?.style.visibility = 'hidden';
             //@ts-ignore
             aiAssistant?.style.display = 'none';
-        })
+        });
 
         // 输入框发送消息
         this.inputEl?.addEventListener('keydown', (e) => {
@@ -341,7 +341,7 @@ export class SpAiAnalysisPage extends BaseElement {
             collection: 'smart_perf_test',
             scope: 'smartperf'
         };
-        let answer = await (await SpStatisticsHttpUtil.askAi(requestBody));
+        let answer = await SpStatisticsHttpUtil.askAi(requestBody);
         if (answer.status === 200) {
             SpStatisticsHttpUtil.generalRecord('AI_statistic', 'large_model_q&a', []);
         }
@@ -359,7 +359,7 @@ export class SpAiAnalysisPage extends BaseElement {
     }
 
     // 创建用户聊天对话气泡
-    createChatBox() {
+    createChatBox(): void {
         // 生成头像
         let headerDiv = document.createElement('div');
         headerDiv.className = 'userHeader headerDiv';
@@ -539,7 +539,7 @@ export class SpAiAnalysisPage extends BaseElement {
     // 每90min重新获取token
     async getToken90Min(isChat: boolean): Promise<void> {
         await this.getToken(isChat);
-        await setInterval(async () => {
+        setInterval(async () => {
             await this.getToken(isChat);
         }, 5400000);
     }
@@ -553,7 +553,7 @@ export class SpAiAnalysisPage extends BaseElement {
         timeList: Array<string>
     ): void {
         SpStatisticsHttpUtil.askAi({
-            token: this.token, 
+            token: this.token,
             // @ts-ignore
             question: dataList[i].description + ',请问该怎么优化？',
             collection: ''
@@ -675,9 +675,9 @@ export class SpAiAnalysisPage extends BaseElement {
                     // 整理数据,渲染数据
                     await this.renderData(dataList);
                 }
-            }
-        }
-    }
+            };
+        };
+    };
 
     // 发起诊断
     initiateDiagnosis(): void {
