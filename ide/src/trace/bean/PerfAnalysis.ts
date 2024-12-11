@@ -13,19 +13,22 @@
  * limitations under the License.
  */
 
-export class PerfFunctionAsmStruct {
+export class PerfFunctionAsmParam {
   totalCount: number = 0;
-  functionName: string = '';
+  functionName: string = "";
+  vaddrList: Array<unknown> = [];
 }
 
-export class PerfFunctionSelfCountPerAssembler {
-  addr: number = 0;
-  selfcount: number = 0;
-}
-
-export class AsmInstruction {
+export class FormattedAsmInstruction {
+    selfcount:number = 0;
+    percent:number = 0;
     addr: number = 0;
     instruction: string = '';
+}
+
+export class OriginAsmInstruction {
+  addr:string = '';
+  instruction:string = '';
 }
 
 export class PerfFunctionAsmShowUpData {

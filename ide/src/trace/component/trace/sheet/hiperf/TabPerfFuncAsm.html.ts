@@ -42,16 +42,22 @@ export const TabPerfFuncAsmHtml = `
   left: 50%;
   transform: translate(-50%, -50%);
 }
+.error-message {
+  color: red;
+  margin-top: 5px;
+  display: none;  /* 默认隐藏 */
+}
 </style>
 <div style="display: flex; flex-direction: row;" class="d-box">
     <div class="perf-table-box" style="height:auto;overflow: auto;position: relative">
         <div class="title-box">
             <div class="title-item" id="function-name"><span class="title-label">Function Name:</span> </div>
             <div class="title-item" id="total-count"><span class="title-label">Total Count:</span> </div>
+            <div class="title-item error-message" id="error-message"></div>
         </div>
         <lit-loading id="loading" class="loading" hidden></lit-loading>
         <lit-table id="perf-function-asm-table" style="display: grid;min-height: 380px" hideDownload>
-            <lit-table-column width="1fr" title="Self Count" data-index="selfCount" key="selfCount" align="flex-start" order></lit-table-column>
+            <lit-table-column width="1fr" title="Self Count" data-index="selfcount" key="selfcount" align="flex-start" order></lit-table-column>
             <lit-table-column width="1fr" title="%" data-index="percent" key="percent" align="flex-start" order></lit-table-column>
             <lit-table-column width="1fr" title="Virtual Addr" data-index="addr" key="addr" align="flex-start" order></lit-table-column>
             <lit-table-column width="1fr" title="Assembler" data-index="instruction" key="instruction" align="flex-start" order></lit-table-column>

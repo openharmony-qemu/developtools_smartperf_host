@@ -106,6 +106,8 @@ import { XpowerGpuFreqStruct } from '../../../database/ui-worker/ProcedureWorker
 import {WebSocketManager} from "../../../../webSocket/WebSocketManager";
 import {Constants, TypeConstants} from "../../../../webSocket/Constants";
 import {SpStatisticsHttpUtil} from "../../../../statistics/util/SpStatisticsHttpUtil";
+import { PerfFunctionAsmParam } from '../../../bean/PerfAnalysis';
+import { TabPerfFuncAsm } from '../sheet/hiperf/TabPerfFuncAsm';
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -306,17 +308,27 @@ export class TraceSheet extends BaseElement {
 
   private functionAnalysisListener(evt: unknown, vaddrList: Array<unknown>): void {
     // @ts-ignore
-    this.currentPaneID = 'box-perf-analysis';
+    this.currentPaneID = "box-perf-analysis";
     //隐藏除了当前Tab页的其他Tab页
-    this.shadowRoot!.querySelectorAll<LitTabpane>('lit-tabpane').forEach((it): boolean =>
-      it.id !== this.currentPaneID ? (it.hidden = true) : (it.hidden = false)
+    this.shadowRoot!.querySelectorAll<LitTabpane>("lit-tabpane").forEach(
+      (it): boolean =>
+        it.id !== this.currentPaneID ? (it.hidden = true) : (it.hidden = false)
     );
-    let pane = this.getPaneByID('tab-perf-func-asm');//通过Id找到需要展示的Tab页
+    let pane = this.getPaneByID("tab-perf-func-asm"); //通过Id找到需要展示的Tab页
     pane.closeable = true;
     pane.hidden = false;
-    this.litTabs!.activeByKey(pane.key); //显示key值（sheetconfig里面对应的index是一个数字）对应的Tab页
     // @ts-ignore
-    pane.tab = evt.tableName;//设置Tab页标题
+    pane.tab = evt.tableName; //设置Tab页标题
+    console.log("lbh: evt", evt);
+    console.log("lbh: vaadrlist", vaddrList);
+    let param = new PerfFunctionAsmParam();
+    param.vaddrList = vaddrList;
+    // @ts-ignore
+    param.functionName = evt.tableName;
+    // @ts-ignore
+    param.totalCount = evt.count;
+    (pane.children.item(0) as TabPerfFuncAsm)!.data = param;
+    this.litTabs!.activeByKey(pane.key); //显示key值（sheetconfig里面对应的index是一个数字）对应的Tab页
   }
 
   private nativeAnalysisListener(e: MouseEvent): void {

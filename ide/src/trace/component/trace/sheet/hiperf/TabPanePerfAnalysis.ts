@@ -599,10 +599,11 @@ export class TabPanePerfAnalysis extends BaseElement {
       };
       const dataString = JSON.stringify(queryData);
       const encodedData = textEncoder.encode(dataString);
+      console.log("lbh: queryData",queryData);
       WebSocketManager.getInstance()?.sendMessage(TypeConstants.DISASSEMBLY_TYPE, Constants.DISASSEMBLY_QUERY_CMD, encodedData);
     }
     this.functionListener!(it, this.clickFuncVaddrList);
- }
+  }
 
   private sortByColumn(): void {
     let currentTable: LitTable | null | undefined;
