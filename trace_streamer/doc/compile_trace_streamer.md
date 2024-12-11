@@ -12,7 +12,7 @@ TraceStreamer可以编译为命令行下的可执行程序，或者WebAssembly�
 所需编译器和版本如下表所示：
 | 系统 | 工具 | 版本号|
 | ---  | --- | --- |
-|linux |clang/clang++| (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0|
+|linux |clang/clang++| 16.0.6 |
 | macx |clang/clang++| 14.0.3 |
 |windows |gcc.exe/g++.exe| gcc version 12.1.0 (x86_64-posix-sjlj-rev3, Built by MinGW-W64 project)|
 |wasm(linux下编译) |emcc/em++| 3.1.12|

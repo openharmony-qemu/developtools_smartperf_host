@@ -69,6 +69,7 @@ https://gitee.com/openharmony/developtools_smartperf_host/releases
 - npm 版本 >= 8.13.2
 - TypeScript 版本 >= 4.2.3
 - golang 版本 >= 1.13.8
+- python 版本 >= 3.x
 ### Trace Streamer编译 
 搭建Smartperf_Host网站需要编译出trace_streamer的wasm版本供网页端进行原始trace数据解析工作，具体的编译过程参考《[如何独立编译Trace Streamer](./trace_streamer/doc/compile_trace_streamer.md)》。
 ### Smartperf_Host编译部署

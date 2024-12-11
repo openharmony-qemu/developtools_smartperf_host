@@ -147,7 +147,7 @@ bool LocalZip::IsZlibFile()
 {
     std::ifstream zlibIfstream(filePath_);
     unsigned char buf[ZLIB_MAGIC_NUM_LEN];
-    zlibIfstream.read(reinterpret_cast<char*>(buf), ZLIB_MAGIC_NUM_LEN);
+    zlibIfstream.read(reinterpret_cast<char *>(buf), ZLIB_MAGIC_NUM_LEN);
     return buf[0] == ZLIB_CMF && buf[1] == ZLIB_FLG;
 }
 
@@ -181,24 +181,24 @@ bool LocalZip::WriteFile(const unzFile &uzf, const std::filesystem::path &fileNa
         if (!parentPath.empty()) {
             CreateDir(parentPath);
         }
-        auto err = unzReadCurrentFile(uzf, buf_.get(), bufSize_);
-        if (err < 0) {
-            TS_LOGE("unzReadCurrentFile error.");
+#ifdef _WIN32
+        FILE *fout = fopen(Utf8ToGbk(fileName.u8string().c_str()).c_str(), "wb");
+#else
+        FILE *fout = fopen(fileName.c_str(), "wb");
+#endif
+        if (fout == NULL) {
+            unzCloseCurrentFile(uzf);
             return false;
         }
-        if (err > 0) {
-#ifdef _WIN32
-            FILE *fout = fopen(Utf8ToGbk(fileName.u8string().c_str()).c_str(), "wb");
-#else
-            FILE *fout = fopen(fileName.c_str(), "wb");
-#endif
+        int err = 1;
+        while (err >= 0) {
+            err = unzReadCurrentFile(uzf, buf_.get(), bufSize_);
             if (fwrite(buf_.get(), (unsigned)err, 1, fout) != 1) {
                 TS_LOGE("error in writing extracted filee.");
-                err = UNZ_ERRNO;
-                return false;
+                break;
             }
-            fclose(fout);
         }
+        fclose(fout);
         unzCloseCurrentFile(uzf);
     }
     return true;
@@ -234,7 +234,8 @@ bool LocalZip::Unzip(std::string &traceFile)
         std::string tempFileName = filenameInZip;
         if (base::GetCoding(reinterpret_cast<const uint8_t *>(tempFileName.c_str()), tempFileName.length()) !=
             base::CODING::UTF8) {
-            tempFileName = "temp_" + std::to_string(i);
+            tempFileName =
+                "temp_" + std::to_string(i) + ((tempFileName.back() == '/' || tempFileName.back() == '\\') ? "/" : "");
         }
         auto fileName = std::filesystem::path(tmpDir_).append(tempFileName);
 #endif

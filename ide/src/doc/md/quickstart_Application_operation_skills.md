@@ -24,6 +24,7 @@
                     第一部分是?trace=(固定格式)。
                     第二部分是trace文件的url(https://iot.itocm.com:9001/upload/ftrace_small.txt),此处根据文件的url实际地址填写。
                     第三部分,&link=true(固定格式)。
+-     支持打开的trace文件类型: 本工具命令抓取的hiprofiler_data.htrace、hitrace命令行工具抓取的xxx.systrace、xxx.sys等、以上类型的zip压缩文件（压缩包里必须为单文件，压缩算法支持ZIP_DEFLATED和ZIP_BZIP2）、hitrace -z参数生成的压缩trace
 
 ### 内容支持宽度可伸缩
 
