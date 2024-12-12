@@ -482,8 +482,6 @@ export class LitPopover extends BaseElement {
         }
       // @ts-ignore
       } else if (this.haveCheckbox) {
-        this.focus();
-        // @ts-ignore
       } else {
         // @ts-ignore
         this.visible = false;

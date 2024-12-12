@@ -118,6 +118,36 @@ export function getTimeString(ns: number): string {
   return res;
 }
 
+function compare(property: string, sort: number, type: string) {
+  return function (xpowerSortLeftData: SortData, xpowerSortRightData: SortData): number {
+    if (type === 'number') {
+      return sort === 2 // @ts-ignore
+        ? parseFloat(xpowerSortRightData[property]) - parseFloat(xpowerSortLeftData[property]) // @ts-ignore
+        : parseFloat(xpowerSortLeftData[property]) - parseFloat(xpowerSortRightData[property]);
+    } else if (type === 'duration') {
+      return sort === 2
+        ? xpowerSortRightData.dur - xpowerSortLeftData.dur
+        : xpowerSortLeftData.dur - xpowerSortRightData.dur;
+    } else if (type === 'bytes') {
+      return sort === 2
+        ? xpowerSortRightData.bytes - xpowerSortLeftData.bytes
+        : xpowerSortLeftData.bytes - xpowerSortRightData.bytes;
+    } {
+      // @ts-ignore
+      if (xpowerSortRightData[property] > xpowerSortLeftData[property]) {
+        return sort === 2 ? 1 : -1;
+      } else {
+        // @ts-ignore
+        if (xpowerSortRightData[property] === xpowerSortLeftData[property]) {
+          return 0;
+        } else {
+          return sort === 2 ? -1 : 1;
+        }
+      }
+    }
+  };
+}
+
 @element('tabpane-current-selection')
 export class TabPaneCurrentSelection extends BaseElement {
   weakUpBean: WakeupBean | null | undefined;
@@ -876,15 +906,21 @@ export class TabPaneCurrentSelection extends BaseElement {
       value: getTimeString(data.startTime || 0),
     });
     this.createStartTimeNode(list, data.startTime || 0, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
+    let vals: { name: string, dur: number, value: string }[] = [];
     let column = ['1hz', '5hz', '10hz', '15hz', '24hz', '30hz', '45hz', '60hz', '90hz', '120hz', '180hz'];
     column.forEach((item) => {
       // @ts-ignore
-      data['c' + item] !== 0 && list.push({
+      data['c' + item] !== 0 && vals.push({
         name: item,
+        // @ts-ignore
+        dur: data['c' + item],
         // @ts-ignore
         value: Utils.timeFormat(data['c' + item]),
       });
     });
+    // @ts-ignore
+    vals.sort(compare('value', 2, 'duration'));
+    list.push(...vals);
     this.currentSelectionTbl!.dataSource = list;
     let startTimeAbsolute = (data.startTime || 0) + Utils.getInstance().getRecordStartNS();
     this.addClickToTransfBtn(startTimeAbsolute, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
@@ -902,18 +938,20 @@ export class TabPaneCurrentSelection extends BaseElement {
       value: getTimeString(data.startTime || 0),
     });
     this.createStartTimeNode(list, data.startTime || 0, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
-    // @ts-ignore
-    data.tx !== 0 && list.push({
+    let vals: { name: string, bytes: number, value: string }[] = [];
+    data.tx !== 0 && vals.push({
       name: 'send',
-      // @ts-ignore
+      bytes: data.tx,
       value: convertBytesToReadableSize(data.tx),
     });
-    // @ts-ignore
-    data.rx !== 0 && list.push({
+    data.rx !== 0 && vals.push({
       name: 'receiver',
-      // @ts-ignore
+      bytes: data.rx,
       value: convertBytesToReadableSize(data.rx),
     });
+    // @ts-ignore
+    vals.sort(compare('value', 2, 'bytes'));
+    list.push(...vals);
     this.currentSelectionTbl!.dataSource = list;
     let startTimeAbsolute = (data.startTime || 0) + Utils.getInstance().getRecordStartNS();
     this.addClickToTransfBtn(startTimeAbsolute, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
@@ -931,18 +969,18 @@ export class TabPaneCurrentSelection extends BaseElement {
       value: getTimeString(data.startTime || 0),
     });
     this.createStartTimeNode(list, data.startTime || 0, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
-    // @ts-ignore
-    data.tx !== 0 && list.push({
+    let vals: { name: string, value: string }[] = [];
+    data.tx !== 0 && vals.push({
       name: 'send',
-      // @ts-ignore
-      value: data.tx,
+      value: data.tx.toString(),
+    });
+    data.rx !== 0 && vals.push({
+      name: 'receiver',
+      value: data.rx.toString(),
     });
     // @ts-ignore
-    data.rx !== 0 && list.push({
-      name: 'receiver',
-      // @ts-ignore
-      value: data.rx,
-    });
+    vals.sort(compare('value', 2, 'number'));
+    list.push(...vals);
     this.currentSelectionTbl!.dataSource = list;
     let startTimeAbsolute = (data.startTime || 0) + Utils.getInstance().getRecordStartNS();
     this.addClickToTransfBtn(startTimeAbsolute, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
@@ -2435,4 +2473,10 @@ class FunDetail {
   slice: string = '';
   CN: string = '';
   EN: string = '';
+}
+
+class SortData {
+  value: string = '';
+  dur: number = 0;
+  bytes: number = 0;
 }

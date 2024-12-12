@@ -808,6 +808,11 @@ export class TraceRowConfig extends BaseElement {
           if (subsystemFavorite.parentRowEl) {
             subsystemFavorite.parentRowEl.expansion = false;
             favoriteName = subsystemFavorite.parentRowEl!.name;
+            // 三级泳道判断
+            if(subsystemFavorite.parentRowEl.parentRowEl){
+              subsystemFavorite.parentRowEl.parentRowEl.expansion = false;
+              favoriteName = subsystemFavorite.parentRowEl.parentRowEl.name;
+            }
             for (let i = 0; i < this.subsystemSelectList!.length; i++) {
               if (this.subsystemSelectList![i].nodeName === favoriteName) {
                 isShowRow = true;
