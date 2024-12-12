@@ -976,7 +976,7 @@ export class SpSystemTrace extends BaseElement {
   documentOnKeyPress = (ev: KeyboardEvent): void => spSystemTraceDocumentOnKeyPress(this, ev);
 
   verticalScrollToRow(): void {
-    if (this.currentRow) {
+    if (this.currentRow && !this.currentRow.folder) {
       //@ts-ignore
       this.currentRow.scrollIntoViewIfNeeded();
     }
