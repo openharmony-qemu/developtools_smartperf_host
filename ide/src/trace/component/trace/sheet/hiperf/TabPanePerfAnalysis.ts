@@ -68,8 +68,6 @@ export class TabPanePerfAnalysis extends BaseElement {
   private currentSelectionParam: SelectionParam | undefined | null;
   static tabLoadingList: Array<string> = [];
   private vaddrList: Array<unknown> = [];
-  private selectedTabProcessId: number = 0;
-  private selectedTabThreadId: number = 0;
   private selectedTabfileName: string = '';
   private clickFuncVaddrList: Array<unknown> = [];
   private functionListener!: Function | undefined | null;
@@ -416,8 +414,6 @@ export class TabPanePerfAnalysis extends BaseElement {
     // @ts-ignore
     this.processName = it.tableName;
     this.perfAnalysisPie?.hideTip();
-    // @ts-ignore
-    this.selectedTabProcessId = it.pid;
   }
 
   private threadPieChart(val: SelectionParam): void {
@@ -489,8 +485,6 @@ export class TabPanePerfAnalysis extends BaseElement {
     // @ts-ignore
     this.threadName = it.tableName;
     this.perfAnalysisPie?.hideTip();
-    // @ts-ignore
-    this.selectedTabThreadId = it.tid;
   }
 
   private initPerfAnalysisPieConfig(): void {
@@ -582,9 +576,9 @@ export class TabPanePerfAnalysis extends BaseElement {
   private functionClickEvent(it: unknown) {
     this.clickFuncVaddrList = this.vaddrList.filter((item: unknown) => {
       // @ts-ignore
-      return item.process_id === this.selectedTabProcessId &&
+      return item.process_id === it.pid &&
         // @ts-ignore
-        item.thread_id === this.selectedTabThreadId &&
+        item.thread_id === it.tid &&
         // @ts-ignore
         item.libName === this.selectedTabfileName &&
         // @ts-ignore
@@ -599,7 +593,7 @@ export class TabPanePerfAnalysis extends BaseElement {
       };
       const dataString = JSON.stringify(queryData);
       const encodedData = textEncoder.encode(dataString);
-      console.log("lbh: queryData",queryData);
+      console.log("lbh: queryData", queryData);
       WebSocketManager.getInstance()?.sendMessage(TypeConstants.DISASSEMBLY_TYPE, Constants.DISASSEMBLY_QUERY_CMD, encodedData);
     }
     this.functionListener!(it, this.clickFuncVaddrList);
