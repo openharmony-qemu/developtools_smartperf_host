@@ -33,6 +33,8 @@ export class ChartStruct {
   durArray: Array<number> = [];
   isThread: boolean = false;
   isProcess: boolean = false;
+  sourceFile: string = '';
+  lineNumber: Set<number> = new Set<number>();
 }
 
 export class Msg {

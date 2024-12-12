@@ -66,7 +66,7 @@ export class FrameChart extends BaseElement {
   private chartClickListenerList: Array<Function> = [];
   private isUpdateCanvas = false;
   private isClickMode = false; //是否为点选模式
-  _totalRootData: Array<ChartStruct> = [];//初始化顶部root的数据 
+  _totalRootData: Array<ChartStruct> = []; //初始化顶部root的数据
   private totalRootNode!: ChartStruct;
   private tabPaneFilter: TabPaneFilter | undefined;
 
@@ -79,7 +79,12 @@ export class FrameChart extends BaseElement {
   }
 
   set data(val: Array<ChartStruct>) {
-    this.tabPaneFilter = document.querySelector('body > sp-application')?.shadowRoot?.querySelector('#sp-system-trace')?.shadowRoot?.querySelector('div > trace-sheet')?.shadowRoot?.querySelector('#box-native-calltree > tabpane-nm-calltree')?.shadowRoot?.querySelector("#nm-call-tree-filter") as TabPaneFilter;
+    this.tabPaneFilter = document
+      .querySelector('body > sp-application')
+      ?.shadowRoot?.querySelector('#sp-system-trace')
+      ?.shadowRoot?.querySelector('div > trace-sheet')
+      ?.shadowRoot?.querySelector('#box-native-calltree > tabpane-nm-calltree')
+      ?.shadowRoot?.querySelector('#nm-call-tree-filter') as TabPaneFilter;
     ChartStruct.lastSelectFuncStruct = undefined;
     this.setSelectStatusRecursive(ChartStruct.selectFuncStruct, true);
     ChartStruct.selectFuncStruct = undefined;
@@ -668,7 +673,11 @@ export class FrameChart extends BaseElement {
   private showTip(): void {
     this.floatHint!.innerHTML = this.hintContent;
     this.floatHint!.style.display = 'block';
-    let tipArea = this.tabPaneFilter?.getBoundingClientRect().top! - this.canvas.getBoundingClientRect().top - this.canvasScrollTop - scaleHeight;
+    let tipArea =
+      this.tabPaneFilter?.getBoundingClientRect().top! -
+      this.canvas.getBoundingClientRect().top -
+      this.canvasScrollTop -
+      scaleHeight;
     let x = this.canvasX;
     let y = this.canvasY - this.canvasScrollTop;
     //右边的函数块悬浮框显示在函数左边
@@ -908,10 +917,16 @@ export class FrameChart extends BaseElement {
         case ChartMode.Count:
           const label = ChartMode.Count === this._mode ? 'Count' : 'EventCount';
           const count = this.getNodeValue(hoverNode);
+          let sourceHint = '';
+          if (hoverNode.sourceFile !== '') {
+            const lines = Array.from(hoverNode.lineNumber).join(',');
+            sourceHint = `<span class="bold">Source: </span> <span class="text">${hoverNode?.sourceFile} : ${lines}</span> <br>`;
+          }
           this.hintContent = `
                       <span class="bold">Name: </span> <span class="text">${name} </span> <br>
                       <span class="bold">Lib: </span> <span class="text">${hoverNode?.lib}</span> <br>
                       <span class="bold">Addr: </span> <span>${hoverNode?.addr}</span> <br>
+                      ${sourceHint}
                       <span class="bold">${label}: </span> <span> ${count}</span>`;
           break;
       }

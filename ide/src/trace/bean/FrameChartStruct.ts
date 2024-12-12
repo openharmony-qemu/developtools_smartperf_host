@@ -77,6 +77,8 @@ export class ChartStruct extends BaseStruct {
   isThread: boolean = false;
   isProcess: boolean = false;
   isJsStack: boolean = false;
+  sourceFile: string = '';
+  lineNumber: Set<number> = new Set<number>();
 }
 
 export enum ChartMode {

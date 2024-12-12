@@ -257,7 +257,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       result = [];
     } else {
       //@ts-ignore
-      this.searchValue = data.params.searchValue;
+      this.searchValue = data.params.searchValue.toLocaleLowerCase();
       //@ts-ignore
       this.queryPerfAsync(data.params);
     }
@@ -381,7 +381,9 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
               c.vaddr_in_file as vaddrInFile,
               c.file_id       as fileId,
               c.depth,
-              c.symbol_id     as symbolId
+              c.symbol_id     as symbolId,
+              c.source_file_id as sourceFileId,
+              c.line_number as lineNumber
        from perf_callchain c
        where callchain_id != -1;`,
       {}
@@ -825,16 +827,9 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   }
 
   resetAllNode(sample: PerfCallChainMerageData[]): void {
-    this.clearSearchNode();
-    sample.forEach((process: PerfCallChainMerageData): void => {
-      process.searchShow = true;
-      process.isSearch = false;
-    });
+    this.allProcess = this.forkAllProcess.slice();
+    this.markSearchNode(this.allProcess, this.searchValue, false);
     this.resetNewAllNode(sample);
-    if (this.searchValue !== '') {
-      this.findSearchNode(sample, this.searchValue, false);
-      this.resetNewAllNode(sample);
-    }
   }
 
   /**
@@ -842,7 +837,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
    * 此函数旨在清理和重新组织 PerfCallChainMerageData 类型的样本数组中的节点关系
    * 它通过移除某些节点并重新分配子节点来更新树结构
    * 
-   * @param sampleArray - allProcess
+   * @param sampleArray - lastShowNode
    */
   resetNewAllNode(sampleArray: PerfCallChainMerageData[]): void {
     sampleArray.forEach((process: PerfCallChainMerageData): void => {
@@ -856,7 +851,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     const removeList : number[] = [];
     // 用于记录所有有效的子节点
     const effectChildList : PerfCallChainMerageData[] = [];
-    values.forEach((sample: PerfCallChainMerageData): void => {
+    for(const sample of values) {
       if (sample.parentNode !== undefined && sample.isStore === 0 && sample.searchShow) {
         let parentNode = sample.parentNode;
         while (parentNode !== undefined && !(parentNode.isStore === 0 && parentNode.searchShow)) {
@@ -867,16 +862,16 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
           parentNode.children.push(sample);
         }
       } else {
-        // 如果节点没有父节点且是存储节点，则将其标记为待删除，并检查其子节点中是否有需要保留的
-        if (!sample.parentNode && sample.isStore > 0){
-          removeList.push(sampleArray.indexOf(sample));
-          const effectChildren = this.findChildrenNotStore(sample.initChildren);
+        // 如果节点没有父节点且是存储节点或者搜索不显示，则将其标记为待删除，并检查其子节点中是否有需要保留的
+        if (!sample.parentNode && (sample.isStore > 0 || !sample.searchShow)) {
+          removeList.push(this.allProcess.indexOf(sample));
+          const effectChildren = this.findEffectChildren(sample.initChildren);
           if (effectChildren.length > 0) {
             effectChildList.push(...effectChildren);
           }
         }
       }
-    });
+    }
     // 删除标记为待删除的节点
     removeList.sort((a, b) => b - a).forEach(index => {
       if (index >= 0 && index < values.length) {
@@ -896,19 +891,43 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
    * @param children 调用链的子节点数组，这些子节点是待筛选的数据
    * @returns 返回一个新数组，包含所有非存储且标记为显示的子节点
    */
-  private findChildrenNotStore(children: PerfCallChainMerageData[]): PerfCallChainMerageData[]{
+  private findEffectChildren(children: PerfCallChainMerageData[]): PerfCallChainMerageData[]{
     let result: PerfCallChainMerageData[] = [];
     for(let child of children){
-      // 如果当前节点非存储且需要显示，则直接添加到结果数组中
-      if (child.isStore === 0 && child.searchShow) {
-        result.push(child);
-      } else {
-        // 如果当前节点不符合条件，递归查找其子节点中符合条件的节点
-        result.push(...this.findChildrenNotStore(child.initChildren));
+      // 如果搜索框有值，检查当前子树是否有任何一个节点的 isSearch 为 true
+      if (this.searchValue === '' || this.hasSearchNode(child)) {
+        // 如果当前节点非存储且需要显示，则直接添加到结果数组中
+        if (child.isStore === 0 && child.searchShow) {
+          result.push(child);
+        } else {
+          // 如果当前节点不符合条件，递归查找其子节点中符合条件的节点
+          result.push(...this.findEffectChildren(child.initChildren));
+        }
       }
     }
     // 返回结果数组
     return result;
+  }
+
+  /**
+   * 检查性能调用链合并数据中的节点是否包含搜索节点
+   *
+   * 该函数采用递归方式遍历节点及其子节点，以确定是否至少存在一个搜索节点
+   * 主要用于在性能数据结构中快速定位是否有符合搜索条件的节点
+   *
+   * @param node 当前遍历的节点，类型为PerfCallChainMerageData
+   * @returns 如果找到搜索节点则返回true，否则返回false
+   */
+  private hasSearchNode(node: PerfCallChainMerageData): boolean {
+    if (node.isSearch) {
+      return true;
+    }
+    for (let child of node.initChildren) {
+      if (this.hasSearchNode(child)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   kernelCombination(): void {
@@ -939,34 +958,32 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     });
   }
 
-  findSearchNode(sampleArray: PerfCallChainMerageData[], search: string, parentSearch: boolean): void {
-    search = search.toLocaleLowerCase();
-    sampleArray.forEach((sample: PerfCallChainMerageData): void => {
-      if ((sample.symbol && sample.symbol.toLocaleLowerCase().includes(search)) || parentSearch) {
+  markSearchNode(sampleArray: PerfCallChainMerageData[], search: string, parentSearch: boolean): void {
+    for(const sample of sampleArray){
+      if (search === ''){
         sample.searchShow = true;
-        sample.isSearch = sample.symbol !== undefined && sample.symbol.toLocaleLowerCase().includes(search);
-        let parentNode = sample.parent;
-        while (parentNode !== undefined && !parentNode.searchShow) {
-          parentNode.searchShow = true;
-          parentNode = parentNode.parent;
-        }
-      } else {
-        sample.searchShow = false;
         sample.isSearch = false;
+      } else {
+        let isInclude = sample.symbol.toLocaleLowerCase().includes(search);
+        if ((sample.symbol &&  isInclude) || parentSearch) {
+          sample.searchShow = true;
+          sample.isSearch = sample.symbol !== undefined && isInclude;
+          let parentNode = sample.parent;
+          // 如果匹配，所有parent都显示
+          while (parentNode !== undefined && !parentNode.searchShow) {
+            parentNode.searchShow = true;
+            parentNode = parentNode.parent;
+          }
+        } else {
+          sample.searchShow = false;
+          sample.isSearch = false;
+        }
       }
-      if (sample.children.length > 0) {
-        this.findSearchNode(sample.children, search, sample.searchShow);
+      if (sample.initChildren.length > 0) {
+        this.markSearchNode(sample.initChildren, search, sample.searchShow);
       }
-    });
+    }
   }
-
-  clearSearchNode(): void {
-    this.currentTreeList.forEach((sample: PerfCallChainMerageData): void => {
-      sample.searchShow = true;
-      sample.isSearch = false;
-    });
-  }
-
   splitAllProcess(processArray: { select: string; name: string; type: string; checked: boolean }[]): void {
     processArray.forEach((item: { select: string; name: string; type: string; checked: boolean }): void => {
       this.allProcess.forEach((process): void => {
@@ -995,7 +1012,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         }
       }
       if (this.isOnlyKernel){
-        return this.allProcess;
+        this.dataSource = this.allProcess;
       } else {
         this.dataSource = this.allProcess.filter((process: PerfCallChainMerageData): boolean => {
           return process.children && process.children.length > 0;
@@ -1065,7 +1082,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         this.splitPerfTree(this.allProcess, funcArgs[0] as string, funcArgs[1] as boolean, funcArgs[2] as boolean);
         break;
       case 'setSearchValue':
-        this.searchValue = funcArgs[0] as string;
+        this.searchValue = (funcArgs[0] as string).toLocaleLowerCase();
         break;
       case 'setCombineCallChain':
         this.isAnalysis = true;
@@ -1315,6 +1332,8 @@ export class PerfCallChain {
   isThread: boolean = false;
   isProcess: boolean = false;
   isThreadState: boolean = false;
+  sourceFileId: number = 0;
+  lineNumber: number = 0;
 
   static setNextNode(currentNode: PerfCallChain, nextNode: PerfCallChain): void {
     currentNode.nextNode = nextNode;
@@ -1419,6 +1438,10 @@ export class PerfCallChainMerageData extends ChartStruct {
       currentNode.canCharge = callChain.canCharge;
       if (callChain.path) {
         currentNode.path = callChain.path;
+      }
+      if (callChain.sourceFileId){
+        currentNode.sourceFile = DataCache.getInstance().dataDict.get(callChain.sourceFileId) || '';
+        currentNode.lineNumber.add(callChain.lineNumber);
       }
     }
     if (isEnd) {
