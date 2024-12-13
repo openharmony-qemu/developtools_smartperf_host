@@ -35,7 +35,6 @@ declare_args() {
 
 if (is_independent_compile) {
   asdk_libs_dir = "."
-  host_toolchain = ""
   PERF_DIR = "//third_party"
   clang_x64_folder = "."
   enable_ts_utest = target == "test"

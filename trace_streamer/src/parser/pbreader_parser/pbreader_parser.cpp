@@ -182,17 +182,17 @@ void PbreaderParser::InitPluginNameIndex()
 }
 
 #if defined(ENABLE_HIPERF) || defined(ENABLE_NATIVE_HOOK) || defined(ENABLE_EBPF)
-void PbreaderParser::ParserFileSO(std::string &directory, const std::vector<std::string> &relativeFilePaths)
+std::unique_ptr<SymbolsFile> PbreaderParser::ParseELF(const std::string &directory, const std::string &fileName)
 {
-    for (const auto &filePath : relativeFilePaths) {
-        auto symbolsFile = OHOS::Developtools::HiPerf::SymbolsFile::CreateSymbolsFile(SYMBOL_ELF_FILE, filePath);
-        symbolsFile->setSymbolsFilePath(directory);
-        auto res = symbolsFile->LoadSymbols(nullptr, filePath);
-        if (!res) {
-            continue;
-        }
-        symbolsFiles_.emplace_back(std::move(symbolsFile));
+    auto symbolsFile = OHOS::Developtools::HiPerf::SymbolsFile::CreateSymbolsFile(SYMBOL_ELF_FILE, fileName);
+    if (!symbolsFile) {
+        return nullptr;
     }
+    symbolsFile->setSymbolsFilePath(directory);
+    if (!symbolsFile->LoadSymbols(nullptr, fileName)) {
+        return nullptr;
+    }
+    return symbolsFile;
 }
 #endif
 
@@ -201,33 +201,30 @@ PbreaderParser::~PbreaderParser()
     TS_LOGI("clockid 2 is for RealTime and 1 is for BootTime");
 }
 
-bool PbreaderParser::ReparseSymbolFilesAndResymbolization(std::string &symbolsPath,
-                                                          std::vector<std::string> &symbolsPaths)
+bool PbreaderParser::ReparseSymbolFileAndResymbolization(const std::string &directory, const std::string &fileName)
 {
     auto parseStatus = false;
 #if defined(ENABLE_HIPERF) || defined(ENABLE_NATIVE_HOOK) || defined(ENABLE_EBPF)
-    ParserFileSO(symbolsPath, symbolsPaths);
+    auto symbolsFile = ParseELF(directory, fileName);
 #endif
 #ifdef ENABLE_HIPERF
     if (traceDataCache_->GetPerfFilesData()->Size() > 0) {
-        perfDataParser_->PerfReloadSymbolFiles(symbolsFiles_);
+        perfDataParser_->PerfReloadSymbolFile(symbolsFile);
+        perfDataParser_->ParseSourceLocation(directory, fileName);
         parseStatus = true;
     }
 #endif
 #ifdef ENABLE_NATIVE_HOOK
     if (traceDataCache_->GetNativeHookFrameData()->Size() > 0) {
-        pbreaderNativeHookParser_->NativeHookReloadElfSymbolTable(symbolsFiles_);
+        pbreaderNativeHookParser_->NativeHookReloadElfSymbolTable(symbolsFile);
         parseStatus = true;
     }
 #endif
 #ifdef ENABLE_EBPF
     if (traceDataCache_->GetEbpfCallStack()->Size() > 0) {
-        ebpfDataParser_->EBPFReloadElfSymbolTable(symbolsFiles_);
+        ebpfDataParser_->EBPFReloadElfSymbolTable(symbolsFile);
         parseStatus = true;
     }
-#endif
-#if defined(ENABLE_HIPERF) || defined(ENABLE_NATIVE_HOOK) || defined(ENABLE_EBPF)
-    symbolsFiles_.clear();
 #endif
     return parseStatus;
 }

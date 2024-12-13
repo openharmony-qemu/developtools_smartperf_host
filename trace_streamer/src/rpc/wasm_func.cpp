@@ -267,9 +267,9 @@ EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerDownloadELFEx(int32_t totalLen,
                                                         int32_t dataLen,
                                                         int32_t finish)
 {
-    std::string fileName(reinterpret_cast<const char *>(g_fileNameBuf), fileNameLen);
+    std::string filePath(reinterpret_cast<const char *>(g_fileNameBuf), fileNameLen);
 #if IS_WASM
-    if (g_wasmTraceStreamer.DownloadELFCallback(fileName, totalLen, g_reqBuf, dataLen, finish, &ParseELFCallback)) {
+    if (g_wasmTraceStreamer.DownloadELFCallback(filePath, totalLen, g_reqBuf, dataLen, finish, &ParseELFCallback)) {
         return 0;
     }
 #endif

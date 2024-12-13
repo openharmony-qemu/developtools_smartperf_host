@@ -58,7 +58,8 @@ public:
                                  bool isSplitFile,
                                  bool isFinish);
     void Finish();
-    void PerfReloadSymbolFiles(const std::vector<std::unique_ptr<SymbolsFile>> &symbolsFiles);
+    void PerfReloadSymbolFile(const std::unique_ptr<SymbolsFile> &symbolsFile);
+    void ParseSourceLocation(const std::string &directory, const std::string &fileName);
     const auto &GetPerfSplitResult()
     {
         return splitResult_;

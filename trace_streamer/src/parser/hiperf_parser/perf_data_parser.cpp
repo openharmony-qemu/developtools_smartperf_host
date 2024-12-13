@@ -15,6 +15,7 @@
 #include "perf_data_parser.h"
 #include "clock_filter_ex.h"
 #include "file.h"
+#include "llvm/DebugInfo/Symbolize/Symbolize.h"
 #include "perf_data_filter.h"
 #include "perf_file_format.h"
 #include "stat_filter.h"
@@ -472,18 +473,55 @@ void PerfDataParser::ReloadPerfCallChain(const std::unique_ptr<SymbolsFile> &sym
     }
 }
 
-void PerfDataParser::PerfReloadSymbolFiles(const std::vector<std::unique_ptr<SymbolsFile>> &symbolsFiles)
+void PerfDataParser::PerfReloadSymbolFile(const std::unique_ptr<SymbolsFile> &symbolsFile)
 {
-    for (const auto &symbolsFile : symbolsFiles) {
-        uint64_t fileId;
-        DataIndex filePathIndex;
-        if (!ReloadPerfFile(symbolsFile, fileId, filePathIndex)) {
-            continue;
-        }
-        ReloadPerfCallChain(symbolsFile, fileId, filePathIndex);
+    if (symbolsFile == nullptr) {
+        return;
     }
+    uint64_t fileId;
+    DataIndex filePathIndex;
+    if (!ReloadPerfFile(symbolsFile, fileId, filePathIndex)) {
+        return;
+    }
+    ReloadPerfCallChain(symbolsFile, fileId, filePathIndex);
 }
 
+void PerfDataParser::ParseSourceLocation(const std::string &directory, const std::string &fileName)
+{
+    uint64_t fileId;
+    DataIndex filePathIndex;
+    std::tie(fileId, filePathIndex) = GetFileIdWithLikelyFilePath(fileName);
+    if (fileId == INVALID_UINT64 || filePathIndex == INVALID_UINT64) {
+        return;
+    }
+    llvm::symbolize::LLVMSymbolizer::Options Opts;
+    llvm::symbolize::LLVMSymbolizer symbolizer(Opts);
+
+    // Associate perf_callchain with perf_file
+    auto perfCallChainData = traceDataCache_->GetPerfCallChainData();
+    auto path = directory + "/" + fileName;
+    for (auto row = 0; row < perfCallChainData->Size(); row++) {
+        if (perfCallChainData->FileIds()[row] != fileId) {
+            continue;
+        }
+        uint64_t vaddrInFile = perfCallChainData->VaddrInFiles()[row];
+        uint64_t offsetToVaddr = perfCallChainData->OffsetToVaddrs()[row];
+        if (vaddrInFile == 0 || offsetToVaddr == 0) {
+            continue;
+        }
+        llvm::object::SectionedAddress address = {vaddrInFile + offsetToVaddr,
+                                                  llvm::object::SectionedAddress::UndefSection};
+        auto inlinedContext = symbolizer.symbolizeInlinedCode(path, address);
+        if (inlinedContext && inlinedContext->getNumberOfFrames()) {
+            auto firstFrame = inlinedContext->getFrame(0);
+            auto sourceFileIndex = traceDataCache_->GetDataIndex(firstFrame.FileName);
+            perfCallChainData->SetSourceFileNameAndLineNumber(row, sourceFileIndex,
+                                                              static_cast<uint64_t>(firstFrame.Line));
+        } else {
+            TS_LOGD("symbolizeInlinedCode execute failed!");
+        }
+    }
+}
 bool PerfDataParser::LoadPerfData()
 {
     // try load the perf data

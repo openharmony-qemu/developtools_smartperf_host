@@ -733,18 +733,16 @@ int32_t RpcServer::WasmExportDatabase(ResultCallBack resultCallBack)
 }
 
 #if IS_WASM
-void RpcServer::CreateFilePath(const std::string &filePath)
+void RpcServer::CreateFilePath(const std::string &directory)
 {
-    if (std::filesystem::exists(filePath)) {
-        TS_LOGE("%s exist", filePath.c_str());
-    } else {
-        if (std::filesystem::create_directories(filePath)) {
-            TS_LOGI("create_directories success");
-        } else {
-            TS_LOGI("create_directories failed!");
-        }
+    if (std::filesystem::exists(directory)) {
+        return;
     }
-    TS_LOGI("filePath = %s", filePath.c_str());
+    if (std::filesystem::create_directories(directory)) {
+        TS_LOGI("create directory success.");
+    } else {
+        TS_LOGI("create directory failed!");
+    }
 }
 
 bool RpcServer::WriteToFile(const std::string &fileName, const uint8_t *data, size_t len)
@@ -765,26 +763,27 @@ bool RpcServer::WriteToFile(const std::string &fileName, const uint8_t *data, si
     return false;
 }
 
-bool RpcServer::ClearPathFile(std::string &symbolsPath, int32_t finish, ParseELFFileCallBack &parseELFFile)
+bool RpcServer::ReloadSymbolsAndClearELFs(const string &directory,
+                                          const string &fileName,
+                                          int32_t finish,
+                                          ParseELFFileCallBack &parseELFFile)
 {
     if (finish) {
-        if (!ts_->ReloadSymbolFiles(symbolsPath, symbolsPathFiles_)) {
-            symbolsPathFiles_.clear();
+        if (!ts_->ReloadSymbolFiles(directory, {fileName})) {
             if (parseELFFile) {
                 parseELFFile("formaterror\r\n", SEND_FINISH);
             }
             return false;
         }
-        symbolsPathFiles_.clear();
         if (parseELFFile) {
             parseELFFile("ok\r\n", SEND_FINISH);
         }
-        std::filesystem::remove_all(symbolsPath);
+        std::filesystem::remove_all(directory);
     }
     return true;
 }
 
-bool RpcServer::DownloadELFCallback(const std::string &fileName,
+bool RpcServer::DownloadELFCallback(const std::string &filePath,
                                     size_t totalLen,
                                     const uint8_t *data,
                                     size_t len,
@@ -792,18 +791,16 @@ bool RpcServer::DownloadELFCallback(const std::string &fileName,
                                     ParseELFFileCallBack parseELFFile)
 {
     g_fileLen += len;
-    std::string filePath = "";
-    TS_LOGI("fileName = %s", fileName.c_str());
-    std::string symbolsPath = fileName.substr(0, fileName.find("/"));
-    TS_LOGI("symbolsPath = %s", symbolsPath.c_str());
-    filePath = fileName.substr(0, fileName.find_last_of("/"));
-    CreateFilePath(filePath);
+    std::filesystem::path stdFilePath(filePath);
+    const std::string fileName = stdFilePath.filename().string();
+    const std::string directory = stdFilePath.parent_path().string();
+    CreateFilePath(directory);
     if (g_fileLen < totalLen) {
-        return WriteToFile(fileName, data, len);
+        return WriteToFile(filePath, data, len);
     }
     g_fileLen = 0;
     if (g_importFileFd == nullptr) {
-        g_importFileFd = fopen(fileName.c_str(), "a+");
+        g_importFileFd = fopen(filePath.c_str(), "a+");
         if (g_importFileFd == nullptr) {
             TS_LOGE("wasm file create failed");
             return false;
@@ -816,13 +813,10 @@ bool RpcServer::DownloadELFCallback(const std::string &fileName,
         TS_LOGE("wasm write file failed");
         return false;
     }
-    TS_LOGI("symbolsPath = %s, fileName = %s", symbolsPath.c_str(), fileName.c_str());
-    std::filesystem::path stdFileName(fileName);
-    symbolsPathFiles_.emplace_back(stdFileName.filename().string());
     parseELFFile("file send over\r\n", SEND_FINISH);
     // When the transfer is completed, reload the symbol file, clear the symbol path file list, call the callback
     // function, and delete the symbol path and all files under it
-    if (!ClearPathFile(symbolsPath, finish, parseELFFile)) {
+    if (!ReloadSymbolsAndClearELFs(directory, fileName, finish, parseELFFile)) {
         return false;
     }
     return true;

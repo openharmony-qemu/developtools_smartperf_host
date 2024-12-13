@@ -13,3 +13,5 @@
 
 buildconfig = "//gn/CONFIG.gn"
 script_executable = "/usr/bin/env"
+# REF: https://gitee.com/openharmony/third_party_llvm-project/blob/master/llvm/utils/gn/.gn
+secondary_source = "//llvm/utils/gn/secondary/"

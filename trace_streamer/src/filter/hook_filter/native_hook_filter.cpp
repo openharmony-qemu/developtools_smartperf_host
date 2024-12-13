@@ -1217,34 +1217,32 @@ void NativeHookFilter::UpdateFilePathIdAndStValueToSymAddrMap(T *firstSymbolAddr
     }
 }
 
-void NativeHookFilter::NativeHookReloadElfSymbolTable(const std::vector<std::unique_ptr<SymbolsFile>> &symbolsFiles)
+void NativeHookFilter::NativeHookReloadElfSymbolTable(const std::unique_ptr<SymbolsFile> &symbolsFile)
 {
     auto nativeHookFrame = traceDataCache_->GetNativeHookFrameData();
     auto size = nativeHookFrame->Size();
     auto filePathIndexs = nativeHookFrame->FilePaths();
     auto vaddrs = nativeHookFrame->Vaddrs();
-    for (const auto &symbolsFile : symbolsFiles) {
-        std::shared_ptr<std::set<size_t>> frameRows = nullptr;
-        for (const auto &item : filePathIndexToFrameTableRowMap_) {
-            auto filePath = traceDataCache_->GetDataFromDict(item.first);
-            if (base::EndWith(filePath, symbolsFile->filePath_)) {
-                frameRows = item.second;
-                break;
-            }
+    std::shared_ptr<std::set<size_t>> frameRows = nullptr;
+    for (const auto &item : filePathIndexToFrameTableRowMap_) {
+        auto filePath = traceDataCache_->GetDataFromDict(item.first);
+        if (base::EndWith(filePath, symbolsFile->filePath_)) {
+            frameRows = item.second;
+            break;
         }
-        if (frameRows == nullptr) {
+    }
+    if (frameRows == nullptr) {
+        return;
+    }
+    for (auto row : *frameRows) {
+        auto symVaddr = base::StrToInt<uint32_t>(vaddrs[row], base::INTEGER_RADIX_TYPE_HEX);
+        if (!symVaddr.has_value()) {
             continue;
         }
-        for (auto row : *frameRows) {
-            auto symVaddr = base::StrToInt<uint32_t>(vaddrs[row], base::INTEGER_RADIX_TYPE_HEX);
-            if (!symVaddr.has_value()) {
-                continue;
-            }
-            auto dfxSymbol = symbolsFile->GetSymbolWithVaddr(symVaddr.value());
-            if (dfxSymbol.IsValid()) {
-                auto newSymbolIndex = traceDataCache_->GetDataIndex(dfxSymbol.GetName());
-                nativeHookFrame->UpdateSymbolId(row, newSymbolIndex);
-            }
+        auto dfxSymbol = symbolsFile->GetSymbolWithVaddr(symVaddr.value());
+        if (dfxSymbol.IsValid()) {
+            auto newSymbolIndex = traceDataCache_->GetDataIndex(dfxSymbol.GetName());
+            nativeHookFrame->UpdateSymbolId(row, newSymbolIndex);
         }
     }
     UpdateLastCallerPathAndSymbolIndexs();

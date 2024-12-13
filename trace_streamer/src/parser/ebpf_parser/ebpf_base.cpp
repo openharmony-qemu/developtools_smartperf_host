@@ -215,30 +215,28 @@ void EbpfBase::UpdateFilePathIndexAndStValueToSymAddrMap(T *firstSymbolAddr, con
         }
     }
 }
-void EbpfBase::EBPFReloadElfSymbolTable(const std::vector<std::unique_ptr<SymbolsFile>> &symbolsFiles)
+void EbpfBase::EBPFReloadElfSymbolTable(const std::unique_ptr<SymbolsFile> &symbolsFile)
 {
     auto ebpfCallStackDate = traceDataCache_->GetEbpfCallStack();
     auto size = ebpfCallStackDate->Size();
     auto filePathIndexs = ebpfCallStackDate->FilePathIds();
     auto vaddrs = ebpfCallStackDate->Vaddrs();
-    for (const auto &symbolsFile : symbolsFiles) {
-        std::shared_ptr<std::set<size_t>> rows = nullptr;
-        for (const auto &item : filePathIndexToCallStackRowMap_) {
-            auto originFilePath = traceDataCache_->GetDataFromDict(item.first);
-            if (EndWith(originFilePath, symbolsFile->filePath_)) {
-                rows = item.second;
-                break;
-            }
+    std::shared_ptr<std::set<size_t>> rows = nullptr;
+    for (const auto &item : filePathIndexToCallStackRowMap_) {
+        auto originFilePath = traceDataCache_->GetDataFromDict(item.first);
+        if (EndWith(originFilePath, symbolsFile->filePath_)) {
+            rows = item.second;
+            break;
         }
-        if (rows == nullptr) {
-            continue;
-        }
-        for (auto row : *rows) {
-            auto dfxSymbol = symbolsFile->GetSymbolWithVaddr(vaddrs[row]);
-            if (dfxSymbol.IsValid()) {
-                auto symbolIndex = traceDataCache_->GetDataIndex(dfxSymbol.GetName());
-                ebpfCallStackDate->UpdateEbpfSymbolInfo(row, symbolIndex);
-            }
+    }
+    if (rows == nullptr) {
+        return;
+    }
+    for (auto row : *rows) {
+        auto dfxSymbol = symbolsFile->GetSymbolWithVaddr(vaddrs[row]);
+        if (dfxSymbol.IsValid()) {
+            auto symbolIndex = traceDataCache_->GetDataIndex(dfxSymbol.GetName());
+            ebpfCallStackDate->UpdateEbpfSymbolInfo(row, symbolIndex);
         }
     }
 }

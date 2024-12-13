@@ -26,7 +26,9 @@ enum class Index : int32_t {
     OFFSET_TO_VADDR,
     FILE_ID,
     SYMBOL_ID,
-    NAME
+    NAME,
+    SOURCE_FILE_ID,
+    LINE_NUMBER
 };
 PerfCallChainTable::PerfCallChainTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
@@ -39,6 +41,8 @@ PerfCallChainTable::PerfCallChainTable(const TraceDataCache *dataCache) : TableB
     tableColumn_.push_back(TableBase::ColumnInfo("file_id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("symbol_id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("name", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("source_file_id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("line_number", "INTEGER"));
     tablePriKey_.push_back("id");
 }
 
@@ -160,6 +164,12 @@ int32_t PerfCallChainTable::Cursor::Column(int32_t column) const
             break;
         case Index::NAME:
             sqlite3_result_int64(context_, static_cast<uint64_t>(perfCallChainObj_.Names()[CurrentRow()]));
+            break;
+        case Index::SOURCE_FILE_ID:
+            SetTypeColumnInt64(perfCallChainObj_.SourceFileIds()[CurrentRow()], INVALID_UINT64);
+            break;
+        case Index::LINE_NUMBER:
+            SetTypeColumnInt64(perfCallChainObj_.LineNumbers()[CurrentRow()], INVALID_UINT64);
             break;
         default:
             TS_LOGF("Unregistered column : %d", column);

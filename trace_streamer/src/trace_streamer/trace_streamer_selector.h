@@ -44,7 +44,7 @@ public:
     int32_t ExportPerfReadableText(const std::string &outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
     int32_t ExportHookReadableText(const std::string &outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
     int32_t ExportEbpfReadableText(const std::string &outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
-    bool ReloadSymbolFiles(std::string &directory, std::vector<std::string> &symbolsPaths);
+    bool ReloadSymbolFiles(const std::string &directory, const std::vector<std::string> &fileNames);
     std::vector<std::string> SearchData();
     int32_t OperateDatabase(const std::string &sql);
     int32_t SearchDatabase(const std::string &sql, TraceDataDB::ResultCallBack resultCallBack);

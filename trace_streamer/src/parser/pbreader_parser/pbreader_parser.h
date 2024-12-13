@@ -104,13 +104,13 @@ public:
     PbreaderParser(TraceDataCache *dataCache, const TraceStreamerFilters *filters);
     ~PbreaderParser();
     void ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, size_t size, bool isFinish = false) override;
-    bool ReparseSymbolFilesAndResymbolization(std::string &symbolsPath, std::vector<std::string> &symbolsPaths);
+    bool ReparseSymbolFileAndResymbolization(const std::string &directory, const std::string &fileName);
     void WaitForParserEnd();
 #ifdef ENABLE_ARKTS
     void EnableFileSeparate(bool enabled);
 #endif
 #if defined(ENABLE_HIPERF) || defined(ENABLE_NATIVE_HOOK) || defined(ENABLE_EBPF)
-    void ParserFileSO(std::string &directory, const std::vector<std::string> &relativeFilePaths);
+    std::unique_ptr<SymbolsFile> ParseELF(const std::string &directory, const std::string &fileName);
 #endif
 #ifdef ENABLE_HIPERF
     void TraceDataSegmentEnd(bool isSplitFile);
@@ -379,9 +379,6 @@ private:
     bool parseThreadStarted_ = false;
     int32_t parserThreadCount_ = 0;
     std::mutex pbreaderDataSegMux_ = {};
-#if defined(ENABLE_HIPERF) || defined(ENABLE_NATIVE_HOOK) || defined(ENABLE_EBPF)
-    std::vector<std::unique_ptr<SymbolsFile>> symbolsFiles_;
-#endif
     std::map<int32_t, int32_t> mPbreaderSplitData_ = {};
     uint64_t splitFileOffset_ = 0;
     uint64_t processedDataLen_ = 0;
