@@ -181,6 +181,8 @@ export class SpSystemTrace extends BaseElement {
   invisibleRows: Array<TraceRow<unknown>> = []; // @ts-ignore
   collectRows: Array<TraceRow<unknown>> = []; // @ts-ignore
   currentRow: TraceRow<unknown> | undefined | null;
+  // @ts-ignore
+  copyCurrentRow: TraceRow<unknown> | undefined | null;
   keyboardEnable = true;
   mouseEventEnable = true;
   currentRowType = ''; /*保存当前鼠标所在行的类型*/

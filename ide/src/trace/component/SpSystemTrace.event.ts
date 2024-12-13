@@ -646,6 +646,7 @@ export function spSystemTraceDocumentOnKeyPress(this: unknown, sp: SpSystemTrace
     if (keyPress === 'f') {
       let search = document.querySelector('body > sp-application')!.shadowRoot!.querySelector<LitSearch>('#lit-search');
       if (search && search.searchValue !== '' && sp.currentRow !== undefined) {
+        sp.copyCurrentRow = sp.currentRow;
         sp.currentRow = undefined;
       }
       let isSelectSliceOrFlag = false;
@@ -835,6 +836,9 @@ export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEven
   let keyPress = ev.key.toLocaleLowerCase();
   if (keyPress === 'w' || keyPress === 'a' || keyPress === 's' || keyPress === 'd') {
     sp.keyPressMap.set(keyPress, false);
+  }
+  if (keyPress === 'f' && sp.copyCurrentRow) {
+    sp.currentRow = sp.copyCurrentRow;
   }
   TraceRow.isUserInteraction = false;
   sp.observerScrollHeightEnable = false;
