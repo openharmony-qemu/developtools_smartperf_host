@@ -91,16 +91,6 @@ export class TabPerfFuncAsm extends BaseElement {
         }
       }
     }) as EventListener);
-    // 注册汇编代码请求回调函数
-    WebSocketManager.getInstance()?.registerCallback(TypeConstants.DISASSEMBLY_TYPE, this.receiveAsmData.bind(this));
-  }
-
-  private receiveAsmData(cmd: unknown, e: unknown): void {
-    // @ts-ignore
-    const result = JSON.parse(new TextDecoder().decode(e));
-    if (result.resultCode === 0) {
-      this.currentAsmList = JSON.parse(result.resultMessage);
-    }
   }
 
   private updateTitle(): void {
@@ -189,11 +179,8 @@ export class TabPerfFuncAsm extends BaseElement {
           new Promise((_, reject) => setTimeout(() => {
             WebSocketManager.getInstance()?.unregisterCallback(TypeConstants.DISASSEMBLY_TYPE, callback);
             reject(new Error('Request timeout'));
-          }, 5000))
+          }, 20000))
         ]);
-
-        // 5. 更新表格
-
       } catch (error) {
         console.error('Error:', error);
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
