@@ -164,6 +164,10 @@ function rightButtonOnClick(sp: SpSystemTrace, rightStar: HTMLElementAlias): unk
       CpuStruct.selectCpuStruct!.itid = CpuStruct.wakeupBean!.itid;
       sessionStorage.setItem('saveselectcpustruct', JSON.stringify(CpuStruct.selectCpuStruct));
     }
+    let rightButton: HTMLElement | null | undefined = sp.traceSheetEL?.shadowRoot 
+    ?.querySelector("#current-selection > tabpane-current-selection")
+    ?.shadowRoot?.querySelector("#rightButton");
+    rightButton?.blur();
     setTimeout(() => {
       requestAnimationFrame(() => sp.refreshCanvas(false));
     }, 300);
