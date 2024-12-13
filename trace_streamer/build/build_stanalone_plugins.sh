@@ -24,7 +24,7 @@ function check_plugin_true() {
 function enable_plugin() {
     check_params $1
     set_enable_plugin_array "false"
-    read -ra plugins <<< "$1"
+    IFS=',' read -ra plugins <<< "$1"
     local flag='false'
     for plugin in "${plugins[@]}"; do
         for enable_plugin in "${enable_plugin_array[@]}"; do

@@ -58,6 +58,7 @@ config("hiperf_parser_cfg") {
     "${SRC}/trace_data/trace_stdtype/hisysevent",
     "${SRC}/trace_data/trace_stdtype/htrace",
     "${SRC}/trace_data/trace_stdtype/measure",
+    "${SRC}/trace_data/trace_stdtype/xpower",
   ]
   include_dirs += [
     "${THIRD_PARTY}/googletest/googletest/include",

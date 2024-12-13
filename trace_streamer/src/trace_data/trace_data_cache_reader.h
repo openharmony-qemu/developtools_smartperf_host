@@ -34,6 +34,7 @@
 #include "syscall_stdtype.h"
 #include "task_pool_stdtype.h"
 #include "trace_data_cache_base.h"
+#include "xpower_stdtype.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
@@ -132,6 +133,12 @@ public:
     const CpuDumpInfo &GetConstCpuDumpInfo() const;
     const ProfileMemInfo &GetConstProfileMemInfo() const;
     const RSImageDumpInfo &GetConstRSImageDumpInfo() const;
+    const XPowerAppStatistic &GetConstXPowerAppStatisticInfo() const;
+    const XPowerAppDetailCPU &GetConstXPowerAppDetailCPUInfo() const;
+    const XPowerAppDetailGPU &GetConstXPowerAppDetailGPUInfo() const;
+    const XPowerAppDetailWifi &GetConstXPowerAppDetailWifiInfo() const;
+    const XPowerAppDetailDisplay &GetConstXPowerAppDetailDisplayInfo() const;
+    const XPowerComponentTop &GetConstXPowerComponentTopInfo() const;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

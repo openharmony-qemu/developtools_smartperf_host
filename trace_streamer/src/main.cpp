@@ -210,6 +210,11 @@ void PrintAbilityInfo()
 #else
     enableInfo.append("\n\tarkts");
 #endif
+#ifndef ENABLE_XPOWER
+    disableInfo.append("\n\txpower");
+#else
+    enableInfo.append("\n\txpower");
+#endif
     PrintDefaultAbilityInfo(disableInfo, enableInfo);
     PrintExtendAbilityInfo(disableInfo, enableInfo);
     printf("the enable ability list:%s\n", enableInfo.empty() ? "\n\tnull" : enableInfo.c_str());

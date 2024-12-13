@@ -41,6 +41,7 @@ ohos_source_set("trace_data") {
     "trace_stdtype/htrace/ebpf_stdtype.cpp",
     "trace_stdtype/htrace/native_memory_stdtype.cpp",
     "trace_stdtype/measure/measure_stdtype.cpp",
+    "trace_stdtype/xpower/xpower_stdtype.cpp",
   ]
 
   if (!is_independent_compile) {
@@ -74,6 +75,7 @@ ohos_source_set("trace_data") {
     "${SRC}/table/js_memory/include",
     "${SRC}/table/monitor/include",
     "${SRC}/table/native_hook/include",
+    "${SRC}/table/xpower/include",
     ".",
     "${THIRD_PARTY}/protobuf/src",
     "${THIRD_PARTY}/bounds_checking_function/include",
@@ -87,6 +89,7 @@ ohos_source_set("trace_data") {
     "${SRC}/trace_data/trace_stdtype/hisysevent",
     "${SRC}/trace_data/trace_stdtype/htrace",
     "${SRC}/trace_data/trace_stdtype/measure",
+    "${SRC}/trace_data/trace_stdtype/xpower",
   ]
 
   deps = [

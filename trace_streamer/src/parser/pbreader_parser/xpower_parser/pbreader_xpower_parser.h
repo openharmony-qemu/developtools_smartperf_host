@@ -43,6 +43,11 @@ private:
     void ProcessAppDetailGpu(const ProtoReader::BytesView &bytesView, uint64_t timestamp);
     void ProcessAppDetailWifi(const ProtoReader::BytesView &bytesView, uint64_t timestamp);
     void ProcessAppDetailDisplay(const ProtoReader::BytesView &bytesView, uint64_t timestamp);
+    void ProcessComponentTop(const ProtoReader::BytesView &bytesView, uint64_t timestamp);
+    void ProcessComponentTopComm(const DataIndex type, const ProtoReader::BytesView &bytesView, uint64_t timestamp);
+    void ProcessComponentTopDisplay(const DataIndex type, const ProtoReader::BytesView &bytesView, uint64_t timestamp);
+    void ProcessComponentTopCamera(const DataIndex type, const ProtoReader::BytesView &bytesView, uint64_t timestamp);
+    void ProcessComponentTopCpu(const DataIndex type, const ProtoReader::BytesView &bytesView, uint64_t timestamp);
 
     std::unordered_set<uint64_t> timeSet_;
 
@@ -56,7 +61,7 @@ private:
     // ThermalReport
     const DataIndex tReSheDataIndex_ = traceDataCache_->GetDataIndex("ThermalReport.ShellTemp");
     const DataIndex tReTheDataIndex_ = traceDataCache_->GetDataIndex("ThermalReport.ThermalLevel");
-    // AppStatistic
+    // AppStatistic, ComponentTop
     const std::string appStatisticStr_ = "AppStatistic";
     const std::string audioStr_ = "audio";
     const std::string bluetoothStr_ = "bluetooth";

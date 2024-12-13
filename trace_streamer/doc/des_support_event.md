@@ -86,6 +86,7 @@ trace_ebpf_paged_memory
 trace_ebpf_bio_latency
 trace_hisys_event
 trace_smaps
+xpower
 ```
 ## 进程的内存事件
 ```

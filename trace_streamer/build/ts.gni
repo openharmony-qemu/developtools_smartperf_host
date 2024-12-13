@@ -29,6 +29,7 @@ declare_args() {
   enable_network = true
   enable_diskio = true
   enable_process = true
+  enable_xpower = true
   enable_stream_extend = false
 }
 

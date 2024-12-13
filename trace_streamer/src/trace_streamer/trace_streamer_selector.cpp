@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdlib>
+#include <fstream>
 #include <functional>
 #include <regex>
 #include "animation_filter.h"
@@ -33,20 +34,20 @@
 #endif
 #include "irq_filter.h"
 #include "measure_filter.h"
-#include "task_pool_filter.h"
-#include "ptreader_parser.h"
 #include "pbreader_parser.h"
-#ifdef ENABLE_RAWTRACE
-#include "rawtrace_parser.h"
-#endif
 #ifdef ENABLE_HIPERF
 #include "perf_data_filter.h"
 #endif
 #include "process_filter.h"
+#include "ptreader_parser.h"
+#ifdef ENABLE_RAWTRACE
+#include "rawtrace_parser.h"
+#endif
 #include "slice_filter.h"
 #include "stat_filter.h"
 #include "string_help.h"
 #include "system_event_measure_filter.h"
+#include "task_pool_filter.h"
 
 namespace {
 const uint32_t CHUNK_SIZE = 1024 * 1024;

@@ -427,6 +427,30 @@ RSImageDumpInfo *TraceDataCacheWriter::GetRSImageDumpInfo()
 {
     return &rsImageDumpInfo_;
 }
+XPowerAppStatistic *TraceDataCacheWriter::GetXPowerAppStatisticInfo()
+{
+    return &xPowerAppStatisticInfo_;
+}
+XPowerAppDetailCPU *TraceDataCacheWriter::GetXPowerAppDetailCPUInfo()
+{
+    return &xPowerAppDetailCPUInfo_;
+}
+XPowerAppDetailGPU *TraceDataCacheWriter::GetXPowerAppDetailGPUInfo()
+{
+    return &xPowerAppDetailGPUInfo_;
+}
+XPowerAppDetailWifi *TraceDataCacheWriter::GetXPowerAppDetailWifiInfo()
+{
+    return &xPowerAppDetailWifiInfo_;
+}
+XPowerAppDetailDisplay *TraceDataCacheWriter::GetXPowerAppDetailDisplayInfo()
+{
+    return &xPowerAppDetailDisplayInfo_;
+}
+XPowerComponentTop *TraceDataCacheWriter::GetXPowerComponentTopInfo()
+{
+    return &xPowerComponentTopInfo_;
+}
 void TraceDataCacheWriter::ClearMeasure()
 {
     filterData_.Clear();

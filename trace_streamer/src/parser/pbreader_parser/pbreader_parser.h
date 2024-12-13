@@ -27,20 +27,21 @@
 #include "common_types.h"
 #include "common_types.pbreader.h"
 #include "clock_filter_ex.h"
-#include "pbreader_xpower_parser.h"
 #ifdef ENABLE_EBPF
 #include "ebpf_data_parser.h"
 #endif
 #include "file.h"
-#include "pbreader_clock_detail_parser.h"
 #ifdef ENABLE_HTRACE
 #include "htrace_cpu_detail_parser.h"
 #include "htrace_symbols_detail_parser.h"
 #endif
+#include "htrace_plugin_time_parser.h"
+#include "parser_base.h"
+#include "pbreader_clock_detail_parser.h"
+#include "pbreader_file_header.h"
 #ifdef ENABLE_FFRT
 #include "pbreader_ffrt_parser.h"
 #endif
-#include "htrace_plugin_time_parser.h"
 #ifdef ENABLE_CPUDATA
 #include "pbreader_cpu_data_parser.h"
 #endif
@@ -71,25 +72,24 @@
 #ifdef ENABLE_PROCESS
 #include "pbreader_process_parser.h"
 #endif
-#include "parser_base.h"
-#include "pbreader_file_header.h"
+#ifdef ENABLE_STREAM_EXTEND
+#include "pbreader_stream_parser.h"
+#endif
+#ifdef ENABLE_XPOWER
+#include "pbreader_xpower_parser.h"
+#endif
 #ifdef ENABLE_HIPERF
 #include "perf_data_parser.h"
 #endif
 #include "proto_reader_help.h"
 #include "string_help.h"
-#include "symbols_file.h"
 #include "trace_data_cache.h"
 #include "trace_streamer_filters.h"
 #include "ts_common.h"
-#ifdef ENABLE_STREAM_EXTEND
-#include "pbreader_stream_parser.h"
-#endif
 
 namespace SysTuning {
 namespace TraceStreamer {
 using namespace SysTuning::base;
-using namespace OHOS::Developtools::HiPerf;
 #if defined(ENABLE_HTRACE) && defined(ENABLE_NATIVE_HOOK) && defined(ENABLE_HIPERF)
 struct SliceInfo {
     SliceInfo(uint64_t tsBegin, uint64_t tsEnd, const std::string &traceid)
@@ -223,7 +223,9 @@ private:
 #ifdef ENABLE_NETWORK
     void ParseNetwork(PbreaderDataSegment &dataSeg);
 #endif
+#ifdef ENABLE_XPOWER
     void ParseXpower(PbreaderDataSegment &dataSeg);
+#endif
 #ifdef ENABLE_DISKIO
     void ParseDiskIO(PbreaderDataSegment &dataSeg);
 #endif
@@ -356,12 +358,14 @@ private:
     std::unique_ptr<PbreaderHiLogParser> pbreaderHiLogParser_;
     ClockId dataSourceTypeHilogClockid_ = TS_CLOCK_UNKNOW;
 #endif
+#ifdef ENABLE_XPOWER
+    std::unique_ptr<PbreaderXpowerParser> xpowerParser_;
+    DataIndex xpowerPluginIndex_;
+#endif
 #ifdef ENABLE_STREAM_EXTEND
     DataIndex streamPluginIndex_;
     std::unique_ptr<PbreaderStreamParser> pbreaderStreamParser_;
 #endif
-    std::unique_ptr<PbreaderXpowerParser> xpowerParser_;
-    DataIndex xpowerPluginIndex_;
     std::unique_ptr<PbreaderDataSegment[]> dataSegArray_;
     std::atomic<bool> filterThreadStarted_{false};
     const int32_t maxSegArraySize = 10000;
@@ -375,7 +379,9 @@ private:
     bool parseThreadStarted_ = false;
     int32_t parserThreadCount_ = 0;
     std::mutex pbreaderDataSegMux_ = {};
+#if defined(ENABLE_HIPERF) || defined(ENABLE_NATIVE_HOOK) || defined(ENABLE_EBPF)
     std::vector<std::unique_ptr<SymbolsFile>> symbolsFiles_;
+#endif
     std::map<int32_t, int32_t> mPbreaderSplitData_ = {};
     uint64_t splitFileOffset_ = 0;
     uint64_t processedDataLen_ = 0;

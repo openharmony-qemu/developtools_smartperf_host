@@ -49,6 +49,7 @@ ohos_source_set("pbreader_parser_src") {
     "${SRC}/trace_data/trace_stdtype/hisysevent",
     "${SRC}/trace_data/trace_stdtype/htrace",
     "${SRC}/trace_data/trace_stdtype/measure",
+    "${SRC}/trace_data/trace_stdtype/xpower",
   ]
   if (is_mingw || is_mac) {
     include_dirs += [
@@ -74,9 +75,11 @@ ohos_source_set("pbreader_parser_src") {
       cflags += [ "-D IS_UT" ]
     }
   }
-  public_configs = [ "../ebpf_parser:ebpf_parser_cfg" ]
   public_deps =
       [ "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/services:ts_all_type_cpp" ]
+  if (enable_ebpf) {
+    public_deps += [ "../ebpf_parser:ebpf_parser" ]
+  }
   if (enable_hiperf) {
     public_deps += [ "../hiperf_parser:hiperf_parser" ]
   }
@@ -101,7 +104,9 @@ ohos_source_set("pbreader_parser_src") {
   if (enable_memory) {
     public_deps += [ "mem_parser:pbreader_mem_parser" ]
   }
-  public_deps += [ "xpower_parser:pbreader_xpower_parser" ]
+  if (enable_xpower) {
+    public_deps += [ "xpower_parser:pbreader_xpower_parser" ]
+  }
   if (enable_hidump) {
     public_deps += [ "hidump_parser:pbreader_hidump_parser" ]
   }
@@ -125,6 +130,7 @@ ohos_source_set("pbreader_parser_src") {
     "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/services:ts_all_type_cpp_standard",
     "${THIRD_PARTY}/protobuf:protobuf_lite_static",
     "${THIRD_PARTY}/protobuf:protobuf_static",
+    "${THIRD_PARTY}/zlib:libz",
     "//third_party/perf_include/hiviewdfx:libfaultloggerd",
   ]
 }

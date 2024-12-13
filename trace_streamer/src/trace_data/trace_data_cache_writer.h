@@ -116,6 +116,12 @@ public:
     CpuDumpInfo *GetCpuDumpInfo();
     ProfileMemInfo *GetProfileMemInfo();
     RSImageDumpInfo *GetRSImageDumpInfo();
+    XPowerAppStatistic *GetXPowerAppStatisticInfo();
+    XPowerAppDetailCPU *GetXPowerAppDetailCPUInfo();
+    XPowerAppDetailGPU *GetXPowerAppDetailGPUInfo();
+    XPowerAppDetailWifi *GetXPowerAppDetailWifiInfo();
+    XPowerAppDetailDisplay *GetXPowerAppDetailDisplayInfo();
+    XPowerComponentTop *GetXPowerComponentTopInfo();
 
 private:
     void ClearBase();

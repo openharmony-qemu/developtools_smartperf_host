@@ -108,6 +108,9 @@ config("default") {
   if (enable_process) {
     defines += [ "ENABLE_PROCESS" ]
   }
+  if (enable_xpower) {
+    defines += [ "ENABLE_XPOWER" ]
+  }
   if (enable_stream_extend) {
     defines += [ "ENABLE_STREAM_EXTEND" ]
   }
