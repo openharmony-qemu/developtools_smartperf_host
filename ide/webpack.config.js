@@ -74,7 +74,6 @@ function clearDirectory(directoryPath) {
         try {
           fs.unlinkSync(filePath); // 删除文件
         } catch {
-          console.log(`can't del file ${filePath}`);
         }
       }
     });
