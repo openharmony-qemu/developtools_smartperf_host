@@ -15,7 +15,7 @@
 
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SortDetail } from '../SheetUtils';
-import { XpowerComponentTopStruct } from './TanPaneXpowerComponentTop';
+import { XpowerComponentTopStruct } from './TabPaneXpowerComponentTop';
 
 export function sortByColumn(detail: SortDetail, dataSource: Array<any>, table: LitTable): void {
   function compare(property: string | number, sort: number, type: string) {

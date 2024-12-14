@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { XpowerComponentTopStruct } from '../../component/trace/sheet/xpower/TanPaneXpowerComponentTop';
+import { XpowerComponentTopStruct } from '../../component/trace/sheet/xpower/TabPaneXpowerComponentTop';
 import { query } from '../SqlLite';
 export const queryXpowerMeasureData = (traceId?: string): Promise<
   Array<{

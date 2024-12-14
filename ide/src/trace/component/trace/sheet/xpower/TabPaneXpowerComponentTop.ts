@@ -20,9 +20,9 @@ import { SpSystemTrace } from '../../../SpSystemTrace';
 import { Utils } from '../../base/Utils';
 import { LitTabs } from '../../../../../base-ui/tabs/lit-tabs';
 import { LitTabpane } from '../../../../../base-ui/tabs/lit-tabpane';
-import { TabPaneXpowerComponentAudio } from './TanPaneXpowerComponentAudio';
+import { TabPaneXpowerComponentAudio } from './TabPaneXpowerComponentAudio';
 import { TabPaneXpowerComponentCamera } from './TabPaneXpowerComponentCamera';
-import { TabPaneXpowerComponentCpu } from './TanPaneXpowerComponentCpu';
+import { TabPaneXpowerComponentCpu } from './TabPaneXpowerComponentCpu';
 import { TabPaneXpowerComponentDisplay } from './TabPaneXpowerComponentDisplay';
 
 @element('tabpane-xpower-component-top')
@@ -45,7 +45,6 @@ export class TabPaneXpowerComponentTop extends BaseElement {
     this.xpowerComponentTopRange!.textContent = `Selected range: ${parseFloat(
       ((xpowerComponentTopValue.rightNs - xpowerComponentTopValue.leftNs) / 1000000.0).toFixed(5)
     )} ms`;
-    // 暂时先用wifi
     this.componentTypeList = [
       'audio',
       'bluetooth',
@@ -57,6 +56,7 @@ export class TabPaneXpowerComponentTop extends BaseElement {
       'display',
       'gpu',
     ];
+    this.currentTabPane = undefined;
     this.getComponentTopData(xpowerComponentTopValue);
   }
 
@@ -96,7 +96,7 @@ export class TabPaneXpowerComponentTop extends BaseElement {
           screenOffEnergy: list[i].screenOffEnergy + ' mAh',
           screenOnDuration: list[i].screenOnDuration,
           screenOnDurationStr: Utils.timeFormat(list[i].screenOnDuration),
-          screenOnEnergy: list[i].screenOnEnergy,
+          screenOnEnergy: list[i].screenOnEnergy + ' mAh',
           cameraId: list[i].cameraId,
           uId: list[i].uId,
           load: list[i].load + ' %',
@@ -120,7 +120,11 @@ export class TabPaneXpowerComponentTop extends BaseElement {
   }
 
   private showTabPane(xpowerComponentTopValue?: SelectionParam) {
-    if (this.currentTabPane) {
+    if (
+      this.currentTabPane &&
+      this.xpowerComponentTopTbl!.children.length > 0 &&
+      this.xpowerComponentTopTbl?.children[0] == this.currentTabPane
+    ) {
       this.xpowerComponentTopTbl?.removeChild(this.currentTabPane);
     }
     if (this.currentTabKey && this.currentSelection) {

@@ -15,7 +15,7 @@
 
 import { element, BaseElement } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
-import { XpowerComponentTopStruct } from './TanPaneXpowerComponentTop';
+import { XpowerComponentTopStruct } from './TabPaneXpowerComponentTop';
 import { sortByColumn } from './XpowerUtil';
 
 @element('tabpane-xpower-component-camera')

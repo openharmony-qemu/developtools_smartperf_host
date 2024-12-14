@@ -15,46 +15,46 @@
 
 import { element, BaseElement } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
-import { XpowerComponentTopStruct } from './TanPaneXpowerComponentTop';
+import { XpowerComponentTopStruct } from './TabPaneXpowerComponentTop';
 import { sortByColumn } from './XpowerUtil';
 
-@element('tabpane-xpower-component-cpu')
-export class TabPaneXpowerComponentCpu extends BaseElement {
-  private xpowerComponentCpuTbl: LitTable | null | undefined;
+@element('tabpane-xpower-component-audio')
+export class TabPaneXpowerComponentAudio extends BaseElement {
+  private xpowerComponentAudioTbl: LitTable | null | undefined;
   private currentDataList: Array<XpowerComponentTopStruct> = [];
   private theadEl: HTMLDivElement | undefined | null;
 
   set data(selectionDataList: Array<XpowerComponentTopStruct>) {
     this.currentDataList = selectionDataList;
-    this.xpowerComponentCpuTbl!.loading = true;
+    this.xpowerComponentAudioTbl!.loading = true;
     setTimeout(() => {
-      this.xpowerComponentCpuTbl!.recycleDataSource = selectionDataList;
-      this.xpowerComponentCpuTbl!.loading = false;
+      this.xpowerComponentAudioTbl!.recycleDataSource = selectionDataList;
+      this.xpowerComponentAudioTbl!.loading = false;
     }, 100);
   }
 
   initElements(): void {
-    this.xpowerComponentCpuTbl = this.shadowRoot?.querySelector<LitTable>('#lit-table');
-    this.theadEl = this.xpowerComponentCpuTbl!.shadowRoot?.querySelector('.thead') as HTMLDivElement;
+    this.xpowerComponentAudioTbl = this.shadowRoot?.querySelector<LitTable>('#lit-table');
+    this.theadEl = this.xpowerComponentAudioTbl!.shadowRoot?.querySelector('.thead') as HTMLDivElement;
   }
 
   connectedCallback(): void {
     super.connectedCallback();
-    this.xpowerComponentCpuTbl!.addEventListener('column-click', (evt): void => {
+    this.xpowerComponentAudioTbl!.addEventListener('column-click', (evt): void => {
       // @ts-ignore
-      sortByColumn(evt.detail, this.currentDataList, this.xpowerComponentCpuTbl!);
+      sortByColumn(evt.detail, this.currentDataList, this.xpowerComponentAudioTbl!);
     });
 
     new ResizeObserver((entries) => {
-      let clientHeight = this.xpowerComponentCpuTbl!.shadowRoot?.querySelector('.table')!.clientHeight;
-      let scrollHeight = this.xpowerComponentCpuTbl!.shadowRoot?.querySelector('.table')!.scrollHeight;
+      let clientHeight = this.xpowerComponentAudioTbl!.shadowRoot?.querySelector('.table')!.clientHeight;
+      let scrollHeight = this.xpowerComponentAudioTbl!.shadowRoot?.querySelector('.table')!.scrollHeight;
       if (clientHeight == scrollHeight) {
         this.style.height = 'calc(100% - 22px)';
       } else {
         this.style.height = 'calc(100% - 42px)';
       }
-    }).observe(this.xpowerComponentCpuTbl!.shadowRoot?.querySelector('.table')!);
-    this.xpowerComponentCpuTbl!.recycleDataSource = new Array().fill('');
+    }).observe(this.xpowerComponentAudioTbl!.shadowRoot?.querySelector('.table')!);
+    this.xpowerComponentAudioTbl!.recycleDataSource = new Array().fill('');
   }
 
   initHtml(): string {
@@ -73,10 +73,6 @@ export class TabPaneXpowerComponentCpu extends BaseElement {
             <lit-table-column order title="TimeStamp" data-index="startTimeStr" key="startTimeStr"  align="flex-start" width="100px">
             </lit-table-column>
             <lit-table-column title="AppName" data-index="appNameStr" order key="appNameStr"  align="flex-start" width="250px">
-            </lit-table-column>
-            <lit-table-column order title="UID" data-index="uId" key="uId"  align="flex-start" width="80px">
-            </lit-table-column>
-            <lit-table-column title="Load" data-index="load" order key="load"  align="flex-start" width="60px">
             </lit-table-column>
             <lit-table-column title="Background Duration" key="backgroundDurationStr" order data-index="backgroundDurationStr" align="flex-start" width="170px">
             </lit-table-column>
