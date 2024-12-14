@@ -919,7 +919,7 @@ export class FrameChart extends BaseElement {
           const count = this.getNodeValue(hoverNode);
           let sourceHint = '';
           if (hoverNode.sourceFile !== '') {
-            const lines = Array.from(hoverNode.lineNumber).join(',');
+            const lines = Array.from(hoverNode.lineNumber).sort((a, b) => a - b).join(',');
             sourceHint = `<span class="bold">Source: </span> <span class="text">${hoverNode?.sourceFile} : ${lines}</span> <br>`;
           }
           this.hintContent = `

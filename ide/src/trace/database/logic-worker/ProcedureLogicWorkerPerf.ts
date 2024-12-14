@@ -70,6 +70,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   private isTopDown: boolean = true;
   // 应对当depth为0是的结构变化后的数据还原
   private forkAllProcess: PerfCallChainMerageData[] = [];
+  private lineMap: Map<string, Set<number>> = new Map<string, Set<number>>();
 
   handle(data: unknown): void {
     //@ts-ignore
@@ -513,6 +514,16 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   initPerfCallChainTopDown(callChains: PerfCallChain[]): void {
     this.callChainData = {};
     callChains.forEach((callChain: PerfCallChain, index: number): void => {
+      if (callChain.sourceFileId){
+        const sourceFile = DataCache.getInstance().dataDict.get(callChain.sourceFileId) || '';  
+        const symbolName = DataCache.getInstance().dataDict.get(callChain.name as number) || '';  
+        let lines = this.lineMap.get(`${sourceFile}_${symbolName}`);
+        if (lines === undefined){
+          lines = new Set<number>()
+          this.lineMap.set(`${sourceFile}_${symbolName}`, lines);
+        }
+        lines.add(callChain.lineNumber);
+      }
       this.setPerfCallChainFrameName(callChain);
       this.addPerfGroupData(callChain);
       let callChainDatum = this.callChainData[callChain.sampleId];
@@ -598,7 +609,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
             this.currentTreeMapData[symbolName + usePidAsKey] = perfRootNode;
             this.currentTreeList.push(perfRootNode);
           }
-          PerfCallChainMerageData.merageCallChainSample(perfRootNode, perfCallChains[topIndex], perfSample, false);
+          PerfCallChainMerageData.merageCallChainSample(perfRootNode, perfCallChains[topIndex], perfSample, false, this.lineMap);
           this.mergeChildrenByIndex(perfRootNode, perfCallChains, topIndex, perfSample, isTopDown);
         }
       }
@@ -691,14 +702,14 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         }
         if (child.symbolName === name) {
           node = child;
-          PerfCallChainMerageData.merageCallChainSample(child, callChainDataList[index], sample, isEnd);
+          PerfCallChainMerageData.merageCallChainSample(child, callChainDataList[index], sample, isEnd, this.lineMap);
           return true;
         }
         return false;
       }).length === 0
     ) {
       node = new PerfCallChainMerageData();
-      PerfCallChainMerageData.merageCallChainSample(node, callChainDataList[index], sample, isEnd);
+      PerfCallChainMerageData.merageCallChainSample(node, callChainDataList[index], sample, isEnd, this.lineMap);
       currentNode.children.push(node);
       currentNode.initChildren.push(node);
       this.currentTreeList.push(node);
@@ -1418,7 +1429,8 @@ export class PerfCallChainMerageData extends ChartStruct {
     currentNode: PerfCallChainMerageData,
     callChain: PerfCallChain,
     sample: PerfCountSample,
-    isEnd: boolean
+    isEnd: boolean,
+    lineMap: Map<string, Set<number>>
   ): void {
     if (currentNode.symbolName === '') {
       let symbolName = '';
@@ -1441,7 +1453,10 @@ export class PerfCallChainMerageData extends ChartStruct {
       }
       if (callChain.sourceFileId){
         currentNode.sourceFile = DataCache.getInstance().dataDict.get(callChain.sourceFileId) || '';
-        currentNode.lineNumber.add(callChain.lineNumber);
+        const lines = lineMap.get(`${currentNode.sourceFile}_${currentNode.symbolName}`);
+        if (lines) {
+          currentNode.lineNumber = lines;
+        }
       }
     }
     if (isEnd) {
