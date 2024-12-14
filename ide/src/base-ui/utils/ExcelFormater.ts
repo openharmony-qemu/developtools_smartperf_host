@@ -198,7 +198,8 @@ export class ExcelFormater {
     filename: string,
     dataSource: { columns: unknown[]; tables: unknown[]; sheetName: string }[]
   ): void {
-    let AsciiValues = [104, 116, 116, 112, 58, 47, 47, 119, 119, 119, 46, 119, 51, 46, 111, 114, 103, 47, 84, 82, 47, 82, 69, 67, 45, 104, 116, 109, 108, 52, 48];
+    let AsciiValues = [104, 116, 116, 112, 58, 47, 47, 119, 119, 119, 46, 119, 51, 46, 111, 114, 103, 47, 84, 82, 47, 82, 69,
+      67, 45, 104, 116, 109, 108, 52, 48];
     let str = String.fromCharCode.apply(null, AsciiValues);
     const html_start =
       `<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns=${str}>`; //@ts-ignore

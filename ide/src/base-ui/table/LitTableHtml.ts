@@ -518,7 +518,7 @@ export const litTableHtml = `
 
 export function createDownUpSvg(index: number, head: unknown): { upSvg: SVGSVGElement; downSvg: SVGSVGElement } {
   let NSAsciiValues = [104, 116, 116, 112, 58, 47, 47, 119, 119, 119, 46, 119, 51, 46, 111, 114, 103, 47, 50, 48, 48, 48, 47, 115, 118, 103];
-  let NS = String.fromCharCode.apply(null, NSAsciiValues);;
+  let NS = String.fromCharCode.apply(null, NSAsciiValues);
   let upSvg: SVGSVGElement = document.createElementNS(NS, 'svg') as SVGSVGElement;
   let upPath: Element = document.createElementNS(NS, 'path');
   upSvg.setAttribute('fill', 'let(--dark-color1,#212121)');
