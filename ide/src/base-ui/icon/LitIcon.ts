@@ -100,9 +100,9 @@ export class LitIcon extends BaseElement {
     switch (name) {
       case 'name':
         if (this.use) {
-          let asciiValues  = [104, 116, 116, 112, 58, 47, 47, 119, 119, 119, 46, 119, 51, 46, 111, 114, 103, 47, 49, 57, 57, 57, 47, 120, 108, 105, 110, 107];
+          let asciiValues = [104, 116, 116, 112, 58, 47, 47, 119, 119, 119, 46, 119, 51, 46, 111, 114, 103, 47, 49, 57, 57, 57, 47, 120, 108, 105, 110, 107];
           let str = String.fromCharCode.apply(null, asciiValues);
-          this.use.setAttributeNS(str,'xlink:href', `./base-ui/icon.svg#icon-${value}`);
+          this.use.setAttributeNS(str, 'xlink:href', `./base-ui/icon.svg#icon-${value}`);
         }
         break;
       case 'path':
