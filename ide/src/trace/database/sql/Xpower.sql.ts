@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+import { XpowerComponentTopStruct } from '../../component/trace/sheet/xpower/TanPaneXpowerComponentTop';
 import { query } from '../SqlLite';
 export const queryXpowerMeasureData = (traceId?: string): Promise<
   Array<{
@@ -80,3 +81,34 @@ export const queryXpowerData = (traceId?: string): Promise<
 ;
 `, {}, { traceId: traceId }
   );
+
+  export const queryXpowerComponentTop = (leftNS:number, rightNS: number, dur:number, traceId?: string): Promise<
+  Array<XpowerComponentTopStruct>
+> =>
+  query(
+    'queryXpowerComponentTop',
+    `
+    select
+        (start_time - tr.start_ts) as startTime,
+        component_type_id as componentTypeId,
+        appname as appName,
+        background_duration as backgroundDuration,
+        background_energy as backgroundEnergy,
+        foreground_duration as foregroundDuration,
+        foreground_energy as foregroundEnergy,
+        screen_off_duration as screenOffDuration,
+        screen_off_energy as screenOffEnergy,
+        screen_on_duration as screenOnDuration,
+        screen_on_energy as screenOnEnergy,
+        camera_id as cameraId,
+        uid as uId,
+        load,
+        app_usage_duration as appUsageDuration,
+        app_usage_energy as appUsageEnergy
+    from
+      xpower_component_top,
+      trace_range as tr
+    where
+      $leftNS <= startTime + ${dur} and $rightNS >= startTime
+    `, { $leftNS:leftNS,$rightNS:rightNS, traceId: traceId }
+);

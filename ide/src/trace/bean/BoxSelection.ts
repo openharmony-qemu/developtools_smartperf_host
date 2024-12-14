@@ -77,6 +77,10 @@ export class SelectionParam {
   string,
   ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined
 >();
+xpowerComponentTopMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map<
+string,
+((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined
+>();
   xpowerStatisticMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map();
   xpowerDisplayMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map();
   xpowerWifiPacketsMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map();
@@ -1193,6 +1197,9 @@ string,
     }
     if (it.rowType === TraceRow.ROW_TYPE_XPOWER_SYSTEM) {
       this.xpowerMapData.set(it.rowId || '', it.getCacheData);
+      if(it.rowId === 'Battery.RealCurrent'){
+        this.xpowerComponentTopMapData.set(it.rowId || '', it.getCacheData);
+      }
     }
     if (it.rowType === TraceRow.ROW_TYPE_XPOWER_STATISTIC){
       this.xpowerStatisticMapData.set(it.rowId || '', it.getCacheData);

@@ -65,6 +65,11 @@ import { TabPaneCpuFreqLimits } from '../sheet/freq/TabPaneCpuFreqLimits';
 import { TabpaneNMCalltree } from '../sheet/native-memory/TabPaneNMCallTree';
 import { TabPaneClockCounter } from '../sheet/clock/TabPaneClockCounter';
 import { TabPaneXpowerCounter } from '../sheet/xpower/TabPaneXpowerCounter';
+import { TabPaneXpowerComponentTop } from '../sheet/xpower/TanPaneXpowerComponentTop'
+import { TabPaneXpowerComponentAudio } from '../sheet/xpower/TanPaneXpowerComponentAudio'
+import { TabPaneXpowerComponentDisplay } from '../sheet/xpower/TabPaneXpowerComponentDisplay'
+import { TabPaneXpowerComponentCamera } from '../sheet/xpower/TabPaneXpowerComponentCamera'
+import { TabPaneXpowerComponentCpu } from '../sheet/xpower/TanPaneXpowerComponentCpu'
 import { TabPaneXpowerStatistic } from '../sheet/xpower/TabPaneXpowerStatistic';
 import { TabPaneXpowerWifiBytes } from '../sheet/xpower/TabPaneXpowerWifiBytes';
 import { TabPaneXpowerWifiPackets } from '../sheet/xpower/TabPaneXpowerWifiPackets';
@@ -264,6 +269,11 @@ export let tabConfig: {
     title: 'Xpower Counters',
     type: TabPaneXpowerCounter,
     require: (param: SelectionParam) => param.xpowerMapData.size > 0,
+  },
+  'box-xpower-component-top': {
+    title: 'Xpower Component Top',
+    type: TabPaneXpowerComponentTop,
+    require: (param: SelectionParam) => param.xpowerComponentTopMapData.size > 0,
   },
   'box-xpower-statistic': {
     title: 'Xpower Statistic',

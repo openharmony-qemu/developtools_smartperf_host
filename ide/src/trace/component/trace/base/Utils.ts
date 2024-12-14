@@ -459,8 +459,8 @@ export class Utils {
     if (currentMsTime > 0) {
       currentMsTime = parseFloat(currentMsTime.toFixed(2));
       res += `${currentMsTime} ms `;
-    } else {
-      res += '0 ms ';
+    } else if(res === ''){
+        res += '0 ms ';
     }
     return res;
   }
