@@ -119,8 +119,8 @@ export class XpowerStruct extends BaseStruct {
         maxHeight = (Math.floor(((maxValue || 0) * (data.frame.height || 0) * 1.0) / maxValue));
         sumHeight = Math.abs(minHeight) + Math.abs(maxHeight);
         let num = this.cal(Math.abs(minHeight), Math.abs(maxHeight));
-        drawHeight = Math.floor(drawHeight / num);  //根据比例缩小绘制高度避免超出泳道
-
+        // 根据比例缩小绘制高度避免超出泳道
+        drawHeight = Math.floor(drawHeight / num);
         cutHeight = Math.abs((Math.floor(((minValue || 0) * (data.frame.height || 0) * 1.0) / maxValue)) / num) + 1;
         if (maxValue < 0) { // 全部数据都是负数时
           drawHeight = -drawHeight;

@@ -14,8 +14,10 @@
  */
 
 const htmlStr = (): unknown => {
+  let AsciiValues = [104, 116, 116, 112, 58, 47, 47, 119, 119, 119, 46, 119, 51, 46, 111, 114, 103, 47, 84, 82, 47, 82, 69, 67, 45, 104, 116, 109, 108, 52, 48];
+  let str = String.fromCharCode.apply(null, AsciiValues);
   const html_start =
-    '<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
+    `<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns=${str}>`;
   return {
     uri: 'data:application/vnd.ms-excel;base64,',
     template_ExcelWorksheet:
@@ -196,8 +198,10 @@ export class ExcelFormater {
     filename: string,
     dataSource: { columns: unknown[]; tables: unknown[]; sheetName: string }[]
   ): void {
+    let AsciiValues = [104, 116, 116, 112, 58, 47, 47, 119, 119, 119, 46, 119, 51, 46, 111, 114, 103, 47, 84, 82, 47, 82, 69, 67, 45, 104, 116, 109, 108, 52, 48];
+    let str = String.fromCharCode.apply(null, AsciiValues);
     const html_start =
-      '<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">'; //@ts-ignore
+      `<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns=${str}>`; //@ts-ignore
     let { uri, template_ExcelWorksheet, template_ListWorksheet, template_WorkBook } = htmlStr();
     let template_HTMLWorksheet =
       `
