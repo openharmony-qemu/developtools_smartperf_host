@@ -1,0 +1,176 @@
+--- a/llvm/lib/Support/Host.cpp
++++ b/llvm/lib/Support/Host.cpp
+@@ -518,7 +518,7 @@ static bool isCpuIdSupported() {
+ static bool getX86CpuIDAndInfo(unsigned value, unsigned *rEAX, unsigned *rEBX,
+                                unsigned *rECX, unsigned *rEDX) {
+ #if defined(__GNUC__) || defined(__clang__)
+-#if defined(__x86_64__)
++#if defined(__x86_64__) && !defined(IS_WASM)
+   // gcc doesn't know cpuid would clobber ebx/rbx. Preserve it manually.
+   // FIXME: should we save this for Clang?
+   __asm__("movq\t%%rbx, %%rsi\n\t"
+@@ -594,7 +594,7 @@ static bool getX86CpuIDAndInfoEx(unsigned value, unsigned subleaf,
+                                  unsigned *rEAX, unsigned *rEBX, unsigned *rECX,
+                                  unsigned *rEDX) {
+ #if defined(__GNUC__) || defined(__clang__)
+-#if defined(__x86_64__)
++#if defined(__x86_64__) && !defined(IS_WASM)
+   // gcc doesn't know cpuid would clobber ebx/rbx. Preserve it manually.
+   // FIXME: should we save this for Clang?
+   __asm__("movq\t%%rbx, %%rsi\n\t"
+@@ -628,7 +628,7 @@ static bool getX86CpuIDAndInfoEx(unsigned value, unsigned subleaf,
+ 
+ // Read control register 0 (XCR0). Used to detect features such as AVX.
+ static bool getX86XCR0(unsigned *rEAX, unsigned *rEDX) {
+-#if defined(__GNUC__) || defined(__clang__)
++#if (defined(__GNUC__) || defined(__clang__)) && !defined(IS_WASM)
+   // Check xgetbv; this uses a .byte sequence instead of the instruction
+   // directly because older assemblers do not include support for xgetbv and
+   // there is no easy way to conditionally compile based on the assembler used.
+diff --git a/llvm/utils/gn/build/buildflags.gni b/llvm/utils/gn/build/buildflags.gni
+index ca43a2499edc..bea51ce38990 100644
+--- a/llvm/utils/gn/build/buildflags.gni
++++ b/llvm/utils/gn/build/buildflags.gni
+@@ -1,6 +1,8 @@
+ declare_args() {
+   # Build for debugging. Equivalent to is_optimized=false symbol_level=2.
+-  is_debug = false
++  if (!build_llvm_with_ts) {
++    is_debug = false
++  }
+ 
+   # Whether to build with tsan.
+   use_tsan = false
+diff --git a/llvm/utils/gn/build/compiled_action.gni b/llvm/utils/gn/build/compiled_action.gni
+index 697fe3de2a9e..ad3d177edaf7 100644
+--- a/llvm/utils/gn/build/compiled_action.gni
++++ b/llvm/utils/gn/build/compiled_action.gni
+@@ -64,8 +64,13 @@ template("compiled_action") {
+                              "visibility",
+                            ])
+     host_tool = invoker.tool + "($host_toolchain)"
+-    host_executable = get_label_info(host_tool, "root_out_dir") +
+-                      "/bin/" + get_label_info(host_tool, "name")
++    if (build_llvm_with_ts) {
++      host_executable = get_label_info(host_tool, "root_out_dir") +
++              "/" + get_label_info(host_tool, "name")
++    } else {
++      host_executable = get_label_info(host_tool, "root_out_dir") +
++              "/bin/" + get_label_info(host_tool, "name")
++    }
+     deps = [ host_tool ]
+     script = "//llvm/utils/gn/build/run_built_binary.py"
+     args = [ rebase_path(host_executable, root_build_dir) ] + invoker.args
+diff --git a/llvm/utils/gn/secondary/llvm/include/llvm/Config/BUILD.gn b/llvm/utils/gn/secondary/llvm/include/llvm/Config/BUILD.gn
+index 897364f00741..b540838dd3b2 100644
+--- a/llvm/utils/gn/secondary/llvm/include/llvm/Config/BUILD.gn
++++ b/llvm/utils/gn/secondary/llvm/include/llvm/Config/BUILD.gn
+@@ -50,7 +50,11 @@ declare_args() {
+ 
+   # glibc is at least 2.33 which has mallinfo2.
+   # TODO: remove this once nobody using the gn build is building against an old glibc.
+-  llvm_have_mallinfo2 = current_os == "linux"
++  if (build_llvm_with_ts) {
++    llvm_have_mallinfo2 = false
++  } else {
++    llvm_have_mallinfo2 = current_os == "linux"
++  }
+ }
+ 
+ write_cmake_config("abi-breaking") {
+@@ -169,7 +173,8 @@ write_cmake_config("config") {
+     values += [
+       "HAVE_CRASHREPORTER_INFO=",
+       "HAVE_DECL_ARC4RANDOM=",
+-      "HAVE_DLADDR=",
++      # set HAVE_DLADDR to avoid compile error on wasm build
++      "HAVE_DLADDR=1",
+       "HAVE_MACH_MACH_H=",
+       "HAVE_MALLOC_MALLOC_H=",
+       "HAVE_MALLOC_ZONE_STATISTICS=",
+@@ -180,8 +185,16 @@ write_cmake_config("config") {
+   }
+ 
+   if (current_os == "linux" || current_os == "mac") {
++    if (build_llvm_with_ts) {
++      values += [
++        "HAVE_BACKTRACE=",
++      ]
++    } else {
++      values += [
++        "HAVE_BACKTRACE=1",
++      ]
++    }
+     values += [
+-      "HAVE_BACKTRACE=1",
+       "HAVE_POSIX_SPAWN=1",
+       "HAVE_PTHREAD_GETNAME_NP=1",
+     ]
+@@ -259,7 +272,17 @@ write_cmake_config("config") {
+       "HAVE_SBRK=1",
+       "HAVE_SETENV=1",
+       "HAVE_SETRLIMIT=1",
+-      "HAVE_SIGALTSTACK=1",
++    ]
++    if (build_llvm_with_ts) {
++      values += [
++        "HAVE_SIGALTSTACK=",
++      ]
++    } else {
++      values += [
++        "HAVE_SIGALTSTACK=1",
++      ]
++    }
++    values += [
+       "HAVE_STRERROR_R=1",
+       "HAVE_SYSCONF=1",
+       "HAVE_SYS_IOCTL_H=1",
+diff --git a/llvm/utils/gn/secondary/llvm/lib/Support/BUILD.gn b/llvm/utils/gn/secondary/llvm/lib/Support/BUILD.gn
+index 56d5b2ce7dc3..827184b7a5e0 100644
+--- a/llvm/utils/gn/secondary/llvm/lib/Support/BUILD.gn
++++ b/llvm/utils/gn/secondary/llvm/lib/Support/BUILD.gn
+@@ -1,13 +1,21 @@
+ static_library("Support") {
+   output_name = "LLVMSupport"
+-  deps = [
+-    "BLAKE3",
+-    "//llvm/include/llvm/Config:config",
+-    "//llvm/lib/Demangle",
+-    "//llvm/utils/gn/build/libs/pthread",
+-    "//llvm/utils/gn/build/libs/terminfo",
+-    "//llvm/utils/gn/build/libs/zlib",
+-  ]
++  if (build_llvm_with_ts) {
++    deps = [
++      "//llvm/include/llvm/Config:config",
++      "//llvm/lib/Demangle",
++      "//third_party/zlib:libz",
++    ]
++  } else {
++    deps = [
++      "BLAKE3",
++      "//llvm/include/llvm/Config:config",
++      "//llvm/lib/Demangle",
++      "//llvm/utils/gn/build/libs/pthread",
++      "//llvm/utils/gn/build/libs/terminfo",
++      "//llvm/utils/gn/build/libs/zlib",
++    ]
++  }
+ 
+   # public_deps are used for depending on targets that generate headers
+   # which are included in public headers of this target. public_deps means
+@@ -193,7 +201,10 @@ static_library("Support") {
+     libs += [ "dl" ]
+   } else if (current_os == "win") {
+     # Delay load shell32.dll if possible to speed up process startup.
+-    libs += [ "delayimp.lib" ]
++    # avoid link error if build with smartperf
++    if (!build_llvm_with_ts) {
++      libs += [ "delayimp.lib" ]
++    }
+     ldflags = [
+       "-delayload:ole32.dll",
+       "-delayload:shell32.dll",
+-- 
+2.25.1
+

@@ -18,6 +18,7 @@ trace_streamer/*.tar.gz
 trace_streamer/*.zip
 ts_tmp.perf.data
 trace_streamer/.cache
+trace_streamer/llvm
 tmp_*
 build-*
 *.pro.use*
