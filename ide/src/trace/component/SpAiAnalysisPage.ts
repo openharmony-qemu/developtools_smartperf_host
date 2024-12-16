@@ -515,14 +515,38 @@ export class SpAiAnalysisPage extends BaseElement {
             suggestonTitle.className = 'item-name';
             suggestonTitle.textContent = '优化建议：';
             suggestonDiv!.appendChild(suggestonTitle);
-            suggestonDiv!.appendChild(this.loading(''));
             itemDiv!.appendChild(suggestonDiv);
-            // @ts-ignore
-            this.getSuggestion(dataList, i, itemDiv, suggestonDiv, timeList);
-            // @ts-ignore
+            if (i === 0) {
+                suggestonDiv!.appendChild(this.loading(''));
+                // @ts-ignore
+                this.getSuggestion(dataList, i, suggestonDiv, timeList);
+                // @ts-ignore
+            } else {
+                let getButton = document.createElement('span');
+                getButton.className = 'getSgtBtn';
+                getButton.innerHTML = '获取';
+                getButton.addEventListener('click', (ev) => {
+                    if (suggestonDiv.getElementsByClassName('msgdiv').length > 0) {
+                        suggestonDiv.removeChild(suggestonDiv.getElementsByClassName('msgdiv')[0]);
+                    }
+                    if (suggestonDiv.getElementsByClassName('likeDiv').length > 0) {
+                        suggestonDiv.removeChild(suggestonDiv.getElementsByClassName('likeDiv')[0]);
+                    }
+                    getButton!.style.display = 'none';
+                    suggestonDiv!.appendChild(this.loading(''));
+                    // @ts-ignore
+                    this.getSuggestion(dataList, i, suggestonDiv, timeList);
+                })
+                suggestonTitle.appendChild(getButton);
+            }
+            this.draftList!.insertBefore(itemDiv!, this.loadingItem!);
+            itemDiv!.style.animation = 'opcityliner 3s';
+            itemDiv!.style.paddingBottom = '20px';
         }
         this.draftList?.removeChild(this.loadingItem!);
+
     }
+
 
     // Table数据渲染
     renderTblNav(dataList: unknown): void {
@@ -607,7 +631,6 @@ export class SpAiAnalysisPage extends BaseElement {
     getSuggestion(
         dataList: unknown,
         i: number,
-        itemDiv: HTMLDivElement | null | undefined,
         suggestonDiv: HTMLDivElement | null | undefined,
         timeList: Array<string>
     ): void {
@@ -620,9 +643,9 @@ export class SpAiAnalysisPage extends BaseElement {
             this.appendMsg(dataList, i, suggestonDiv, timeList, suggestion);
         }).catch((error) => {
             this.appendMsg(dataList, i, suggestonDiv, timeList, error);
+            // @ts-ignore
+            suggestonDiv?.getElementsByClassName('getSgtBtn')[0].style.display = 'inline-block';
         });
-        this.draftList!.insertBefore(itemDiv!, this.loadingItem!);
-        itemDiv!.style.animation = 'opcityliner 3s';
     }
 
     // 优化建议msg处理并渲染
@@ -650,11 +673,6 @@ export class SpAiAnalysisPage extends BaseElement {
         likeDiv.innerHTML = `<lit-like type = "detect" content = ${dataList[i].type}#${dataList[i].subtype}></lit-like>`;
         suggestonDiv!.appendChild(msgdiv);
         suggestonDiv!.appendChild(likeDiv);
-        // @ts-ignore
-        if ((dataList.length - 1) === i) {
-            this.draftBtn!.style.display = 'inline-block';
-            this.downloadBtn!.style.display = 'inline-block';
-        }
     }
 
     // 取消或中断请求
@@ -696,7 +714,6 @@ export class SpAiAnalysisPage extends BaseElement {
                 this.draftBtn!.style.display = 'inline-block';
             }
         }
-        // 诊断结果，resultCode===1:失败；resultCode===0:成功
         if (cmd === 4) {
             //     需要处理
             if (jsonRes.resultCode !== 0) {
@@ -729,6 +746,8 @@ export class SpAiAnalysisPage extends BaseElement {
                     this.isNodata = false;
                     // 整理数据,渲染数据
                     await this.renderData(dataList);
+                    this.draftBtn!.style.display = 'inline-block';
+                    this.downloadBtn!.style.display = 'inline-block';
                 }
             }
         }

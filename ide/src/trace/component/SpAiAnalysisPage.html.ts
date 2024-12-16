@@ -627,5 +627,20 @@ export const SpAiAnalysisPageHtml = `
         height:25px;
         margin-top:10px;
     }
+
+     .getSgtBtn {
+        display: inline-block;
+        border: 1px #999 solid;
+        padding: 2px 20px;
+        border-radius: 15px;
+        font-size: 12px;
+        color:#999;
+        cursor:pointer;
+    }
+
+    .getSgtBtn:hover {
+        color:#000;
+        border-color:@000;
+    }
 </style>
 `;
