@@ -514,12 +514,12 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   initPerfCallChainTopDown(callChains: PerfCallChain[]): void {
     this.callChainData = {};
     callChains.forEach((callChain: PerfCallChain, index: number): void => {
-      if (callChain.sourceFileId){
-        const sourceFile = DataCache.getInstance().dataDict.get(callChain.sourceFileId) || '';  
-        const symbolName = DataCache.getInstance().dataDict.get(callChain.name as number) || '';  
+      if (callChain.sourceFileId) {
+        const sourceFile = DataCache.getInstance().dataDict.get(callChain.sourceFileId) || '';
+        const symbolName = DataCache.getInstance().dataDict.get(callChain.name as number) || '';
         let lines = this.lineMap.get(`${sourceFile}_${symbolName}`);
-        if (lines === undefined){
-          lines = new Set<number>()
+        if (lines === undefined) {
+          lines = new Set<number>();
           this.lineMap.set(`${sourceFile}_${symbolName}`, lines);
         }
         lines.add(callChain.lineNumber);
@@ -837,17 +837,38 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     });
   }
 
+
+  clearSearchNode(): void {
+    this.currentTreeList.forEach((sample: PerfCallChainMerageData): void => {
+      sample.searchShow = true;
+      sample.isSearch = false;
+    });
+  }
+
   resetAllNode(sample: PerfCallChainMerageData[]): void {
     this.allProcess = this.forkAllProcess.slice();
-    this.markSearchNode(this.allProcess, this.searchValue, false);
-    this.resetNewAllNode(sample);
+    if (this.isOnlyKernel) {
+      this.markSearchNode(this.allProcess, this.searchValue, false);
+      this.resetNewAllNode(sample);
+    } else {
+      this.clearSearchNode();
+      sample.forEach((process: PerfCallChainMerageData): void => {
+        process.searchShow = true;
+        process.isSearch = false;
+      });
+      this.resetNewAllNode(sample);
+      if (this.searchValue !== '') {
+        this.markSearchNode(sample, this.searchValue, false);
+        this.resetNewAllNode(sample);
+      }
+    }
   }
 
   /**
    * 重置所有节点的子节点列表，并根据条件重新构建子节点列表
    * 此函数旨在清理和重新组织 PerfCallChainMerageData 类型的样本数组中的节点关系
    * 它通过移除某些节点并重新分配子节点来更新树结构
-   * 
+   *
    * @param sampleArray - lastShowNode
    */
   resetNewAllNode(sampleArray: PerfCallChainMerageData[]): void {
@@ -970,8 +991,8 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   }
 
   markSearchNode(sampleArray: PerfCallChainMerageData[], search: string, parentSearch: boolean): void {
-    for(const sample of sampleArray){
-      if (search === ''){
+    for(const sample of sampleArray) {
+      if (search === '') {
         sample.searchShow = true;
         sample.isSearch = false;
       } else {
@@ -990,8 +1011,9 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
           sample.isSearch = false;
         }
       }
-      if (sample.initChildren.length > 0) {
-        this.markSearchNode(sample.initChildren, search, sample.searchShow);
+      const children = this.isOnlyKernel ? sample.initChildren : sample.children;
+      if (children.length > 0) {
+        this.markSearchNode(children, search, sample.searchShow);
       }
     }
   }
