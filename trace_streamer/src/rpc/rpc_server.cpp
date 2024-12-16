@@ -763,8 +763,8 @@ bool RpcServer::WriteToFile(const std::string &fileName, const uint8_t *data, si
     return false;
 }
 
-bool RpcServer::ReloadSymbolsAndClearELFs(const string &directory,
-                                          const string &fileName,
+bool RpcServer::ReloadSymbolsAndClearELFs(const std::string &directory,
+                                          const std::string &fileName,
                                           int32_t finish,
                                           ParseELFFileCallBack &parseELFFile)
 {

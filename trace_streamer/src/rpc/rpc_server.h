@@ -87,8 +87,8 @@ public:
     bool SendConvertedFfrtFile(const std::string &fileName, ResultCallBack resultCallBack);
     void CreateFilePath(const std::string &directory);
     bool WriteToFile(const std::string &fileName, const uint8_t *data, size_t len);
-    bool ReloadSymbolsAndClearELFs(const string &directory,
-                                   const string &fileName,
+    bool ReloadSymbolsAndClearELFs(const std::string &directory,
+                                   const std::string &fileName,
                                    int32_t finish,
                                    ParseELFFileCallBack &parseELFFile);
     bool DownloadELFCallback(const std::string &filePath,
