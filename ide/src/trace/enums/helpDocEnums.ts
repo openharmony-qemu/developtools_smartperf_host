@@ -40,6 +40,7 @@ const events = {
   KEYWORDS_SHORTCUTS_EVENT: 'keywords_shortcuts',
   XPOWER_EVENT: 'xpower',
   EXTEND_EVENT: 'extensions',
+  FFRT_EVENT: 'ffrt',
   TRACE_STREAMER_EXPLAIN_EVENT: 'trace_streamer_explain',
 };
 
@@ -185,9 +186,14 @@ export const eventDefinitions: { [key: string]: EventDefinition } = {
     name: 'quickstart_extensions',
     index: 27,
   },
+  quickstart_ffrt: {
+    event: events.FFRT_EVENT,
+    name: 'quickstart_ffrt',
+    index: 28,
+  },
   des_tables: {
     event: events.TRACE_STREAMER_EXPLAIN_EVENT,
     name: 'des_tables',
-    index: 28,
+    index: 29,
   },
 };
