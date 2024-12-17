@@ -1348,13 +1348,14 @@ export class SpRecordTrace extends BaseElement {
   recordButtonListener(): void {
     SpRecordTrace.cancelRecord = false;
     let request = this.makeRequest();
-    if (request.pluginConfigs.length === 0) {
+    let isRecordArkTs = (this.spArkTs!.isStartArkts && this.spArkTs!.process.trim() !== '') ? true : false;
+    if (request.pluginConfigs.length === 0 && !isRecordArkTs) {
       this.useExtentTip!.style.display = 'block';
       this.useExtentTip!.innerHTML = "It looks like you didn't add any probes. Please add at least one";
       return;
     }
     this.useExtentTip!.style.display = 'none';
-    this.useExtentTip!.innerHTML = "";
+    this.useExtentTip!.innerHTML = '';
     if (SpRecordTrace.useExtend) {
       this.recordButton!.hidden = true;
       this.buttonDisable(true, true);
