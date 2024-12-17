@@ -221,6 +221,8 @@ export class TabPaneSlices extends BaseElement {
         count.occurrences = sumOcc;
         count.selfTime = parseFloat(sumSelf.toFixed(5));
         count.tabTitle = 'Summary';
+        //@ts-ignore
+        count.avgDuration = parseFloat((count.wallDuration / count.occurrences).toFixed(5));
         // @ts-ignore
         count.allName = processSlicesResultsValue.map((item: unknown) => item.name);
         processSlicesResultsValue.splice(0, 0, count); //@ts-ignore
