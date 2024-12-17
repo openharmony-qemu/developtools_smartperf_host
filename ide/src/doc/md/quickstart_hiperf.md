@@ -121,5 +121,15 @@ Hiperf 分为 process、thread、library、function 四层，调用栈均可在�
 ![GitHub Logo](../../figures/perf/perf_analysisjump.jpg)
 如上图，右键点击 hiprofiler_plugins 可以跳转到下图
 ![GitHub Logo](../../figures/perf/perf_jumpframe.jpg)
-筛选面板新增 Hide Thread、Hide Thread State 筛选选项，Hiperf 可隐藏线程和线程状态。
+筛选面板包含 Hide Thread、Hide Thread State筛选选项、Hiperf 可隐藏线程和线程状态，以及新增Only Kernel 内核函数合并选项。
 ![GitHub Logo](../../figures/perf/perf_hide.jpg)
+
+点击Only Kernel合并内核函数后，会使每个函数的Lib名不为[kernel.kallsyms]的从调用者中移除，只保留内核栈。
+
+![GitHub Logo](../../figures/perf/perf_kernel.jpg)
+
+### SO导入获取符号所在行能力
+
+在导入so符号化文件后，新增对elf文件中每个函数的地址定位到具体哪个源文件，以及显示该源文件的具体行号功能。
+
+![GitHub Logo](../../figures/perf/perf_so.jpg)
