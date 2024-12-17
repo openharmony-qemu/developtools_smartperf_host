@@ -180,7 +180,7 @@ export const SpRecordTraceHtml = `
             padding="0 0 0 12px" justify_content="left" icon="add" margin_icon="0 10px 0 8px">Add HDC Device</lit-button>
             <div style="display:flex;align-items:center">
               <lit-check-box id="use-extend-check" not-close></lit-check-box>&nbsp;&nbsp;
-              <span style="font-family: Helvetica;font-size: 16px;color:#000000;">use localhdc</span>
+              <span style="font-family: Helvetica;font-size: 16px;color:#000000;">Use local hdc</span>
             </div>
             <div class="header-right">
               <lit-button class="disconnect" style="margin-right: 30px" height="32px" width="96px" font_size="14px" 
@@ -199,7 +199,6 @@ export const SpRecordTraceHtml = `
           </div>
           <div  style="height:21px;">
             <span id="record_tip" style="display:none;height:21px;font-size: 16px;color:red;">
-              若要抓取arkts插件，请勾选 use-extend 开关，选择后台扩展服务进行抓取，相关指导请查看: 《xxx》
             </span>
           </div>
          </div>

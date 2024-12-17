@@ -142,7 +142,7 @@ export class SpRecordTrace extends BaseElement {
       this.setAttribute('record_template', 'false');
     }
     if (this.recordSetting) {
-      this.recordSetting.isRecordTemplate = re === 'true' ?  true : false;
+      this.recordSetting.isRecordTemplate = re === 'true' ? true : false;
     }
   }
 
@@ -459,9 +459,15 @@ export class SpRecordTrace extends BaseElement {
       }
     });
     this.spArkTs?.addEventListener('showTip', () => {
-      let guideSrc = `https://${window.location.host.split(':')[0]}:${window.location.port}/application/?action=help_27`;
-      this.useExtentTip!.style.display = 'block';
-      this.useExtentTip!.innerHTML = `若要抓取arkts，请勾选 use-extend 开关，选择后台扩展服务进行抓取，相关指导: [</span style="cursor: pointer;"><a href=${guideSrc} style="color: blue;" target="_blank">指导</a><span>]`;
+      if (this.spArkTs!.isStartArkts) {
+        let guideSrc = `https://${window.location.host.split(':')[0]}:${window.location.port}/application/?action=help_27`;
+        this.useExtentTip!.style.display = 'block';
+        this.useExtentTip!.innerHTML = `若要抓取Ark Ts，请勾选 Use local hdc 开关，启动后台扩展服务进行抓取，相关指导: 
+        [</span style="cursor: pointer;"><a href=${guideSrc} style="color: blue;" target="_blank">指导</a><span>]`;
+      } else {
+        this.useExtentTip!.style.display = 'none';
+        this.useExtentTip!.innerHTML = '';
+      }
     });
   }
 
@@ -587,6 +593,12 @@ export class SpRecordTrace extends BaseElement {
         aElement.href = URL.createObjectURL(new Blob([result!]));
         aElement.download = 'arkts.htrace';
         aElement.click();
+      } else if (cmd === 6) {
+        this.litSearch!.setPercent('Start to record...', -1);
+      } else if (cmd === 7) {
+        this.litSearch!.setPercent('Tracing htrace down', -1);
+      } else if (cmd === 8) {
+        this.litSearch!.setPercent('Downloading Hitrace file...', -1);
       }
     };
     WebSocketManager.getInstance()!.registerMessageListener(TypeConstants.ARKTS_TYPE, onmessageCallBack, this.eventCallBack);
@@ -658,6 +670,8 @@ export class SpRecordTrace extends BaseElement {
 
   eventCallBack = (result: string) => {
     this.recordButton!.hidden = true;
+    this.disconnectButton!.hidden = true;
+    this.disconnectButtonClickEvent();
     this.useExtentTip!.style.display = 'block';
     // @ts-ignore
     this.useExtentTip!.innerHTML = this.getStatusesPrompt()[result].prompt;
@@ -852,7 +866,6 @@ export class SpRecordTrace extends BaseElement {
   };
 
   disconnectButtonClickEvent = (): void => {
-    // --------------我修改的
     this.setDeviceVersionSelect('unknown')
     let index = this.deviceSelect!.selectedIndex;
     if (index !== -1 && this.deviceSelect!.options.length > 0) {
@@ -1078,10 +1091,7 @@ export class SpRecordTrace extends BaseElement {
           item.clickHandler(item);
         }
       });
-      if (item.title === 'Ark Ts') {
-        this.MenuItemArkts = item;
-        this.MenuItemArktsHtml = th;
-      } else if (item.title === 'eBPF Config') {
+      if (item.title === 'eBPF Config') {
         this.MenuItemEbpf = item;
         this.MenuItemEbpfHtml = th;
       }
@@ -1337,14 +1347,13 @@ export class SpRecordTrace extends BaseElement {
   recordButtonListener(): void {
     SpRecordTrace.cancelRecord = false;
     let request = this.makeRequest();
-    this.showHint = true;
-    if (request.pluginConfigs.length === 0) {
+    if (request.pluginConfigs.length === 0 && this.spArkTs!.isStartArkts && this.spArkTs!.process.trim() !== '') {
       this.useExtentTip!.style.display = 'block';
       this.useExtentTip!.innerHTML = "It looks like you didn't add any probes. Please add at least one";
       return;
     }
-    this.showHint = false;
-
+    this.useExtentTip!.style.display = 'none';
+    this.useExtentTip!.innerHTML = "";
     if (SpRecordTrace.useExtend) {
       this.recordButton!.hidden = true;
       this.buttonDisable(true, true);

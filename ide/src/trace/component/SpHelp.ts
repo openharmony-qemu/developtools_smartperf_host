@@ -79,17 +79,6 @@ export class SpHelp extends BaseElement {
       if (value.title === 'SmartPerf') {
         value.style.display = 'none';
       }
-      if (value.title === 'TS栈') { 
-        value.style.display = 'none';
-      }
-      if (value.title === '内存') {
-        let items = value.querySelectorAll<LitMainMenuItem>('lit-main-menu-item');
-        items.forEach((i) => {
-          if (i.title === 'Js Memory抓取和展示说明') {
-            i.style.display = 'none';
-          }
-        });
-      }
     });
     let urlParams = new URL(window.location.href).searchParams;
     if (urlParams && urlParams.get('action') && urlParams.get('action')!.length > 4) {
