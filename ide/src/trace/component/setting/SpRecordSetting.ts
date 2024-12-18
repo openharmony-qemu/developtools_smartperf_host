@@ -28,10 +28,12 @@ import { SpRecordSettingHtml } from './SpRecordSetting.html';
 export class SpRecordSetting extends BaseElement {
   private memoryBufferSlider: LitSlider | undefined;
   private maxDurationSliders: LitSlider | undefined;
+  private snapShotSlider: LitSlider | undefined;
   private radioBox: LitRadioBox | undefined;
   private longTraceRadio: LitRadioBox | undefined;
   private bufferNumber: HTMLElement | undefined;
   private durationNumber: HTMLElement | undefined;
+  private snapShotNumber: HTMLElement | undefined;
   private outputPath: HTMLInputElement | undefined;
   private lastMemoryValue: string | undefined;
   private lastDurationValue: string | undefined;
@@ -90,6 +92,15 @@ export class SpRecordSetting extends BaseElement {
     return NUM_30;
   }
 
+  get snapShot(): number {
+    if (this.snapShotNumber?.hasAttribute('percent')) {
+      info('snapShot  is : ', this.snapShotNumber!.getAttribute('percent'));
+      let snapShot = Number(this.snapShotNumber!.getAttribute('percent')) < 200 ? '0' : this.snapShotNumber!.getAttribute('percent');
+      return Number(snapShot);
+    }
+    return NUM_200;
+  }
+
   resetValue(): void {
     let bufferInput = this.shadowRoot?.querySelector('.memory_buffer_result') as HTMLInputElement;
     let parentElement = this.memoryBufferSlider!.parentNode as Element;
@@ -134,6 +145,7 @@ export class SpRecordSetting extends BaseElement {
   initElements(): void {
     this.bufferNumber = this.shadowRoot?.querySelector('.buffer-size') as HTMLElement;
     this.durationNumber = this.shadowRoot?.querySelector('.max-duration') as HTMLElement;
+    this.snapShotNumber = this.shadowRoot?.querySelector('.snapShot') as HTMLElement;
     let inputs = this.shadowRoot?.querySelectorAll('input');
     inputs!.forEach((item) => {
       item.addEventListener('keydown', (ev) => {
@@ -296,6 +308,48 @@ export class SpRecordSetting extends BaseElement {
       durationInput.parentElement!.style.backgroundColor = 'var(--dark-background5,#F2F2F2)';
       durationInput.style.backgroundColor = 'var(--dark-background5,#F2F2F2)';
     });
+    this.snapShotSlider = this.shadowRoot?.querySelector<LitSlider>('#snapShot') as LitSlider;
+    this.snapShotSlider.sliderStyle = {
+      minRange: 0,
+      maxRange: 1000,
+      defaultValue: '0',
+      resultUnit: 'MS',
+      stepSize: 1,
+      lineColor: 'var(--dark-color3,#46B1E3)',
+      buttonColor: '#999999',
+    };
+    this.initSnapShotEl();
+  }
+
+  private initSnapShotEl(): void {
+    let parentElement = this.snapShotSlider!.parentNode as Element;
+    let snapShotInput = this.shadowRoot?.querySelector('.snapShot_result') as HTMLInputElement;
+    snapShotInput.value = this.snapShotSlider!.sliderStyle.defaultValue;
+    this.snapShotSlider!.addEventListener('input', () => {
+      snapShotInput.value = this.snapShot.toString();
+      this.isUseLocalhdc(snapShotInput.value);
+    });
+    parentElement.setAttribute('percent', '0');
+    snapShotInput.style.color = 'var(--dark-color1,#000000)';
+    snapShotInput.addEventListener('input', () => {
+      this.snapShotInputHandler(snapShotInput, parentElement);
+      this.isUseLocalhdc(snapShotInput.value);
+    });
+    let memoryBufferInput = this.snapShotSlider!.shadowRoot?.querySelector('#slider') as HTMLInputElement;
+    memoryBufferInput.addEventListener('input', () => {
+      snapShotInput.style.color = 'var(--dark-color1,#000000)';
+      snapShotInput.parentElement!.style.backgroundColor = 'var(--dark-background5,#F2F2F2)';
+      snapShotInput.style.backgroundColor = 'var(--dark-background5,#F2F2F2)';
+    });
+  }
+
+  private isUseLocalhdc(val: string) {
+    this.dispatchEvent(new CustomEvent('showTip', {
+      detail: {
+        value: 'snapshot',
+        isShow:!(Number(val) < 200)
+      }
+    }));
   }
 
   private initMemoryBufferEl(): void {
@@ -404,6 +458,44 @@ export class SpRecordSetting extends BaseElement {
       };
       parentElement.setAttribute('percent', bufferInput.value);
       this.lastMemoryValue = bufferInput.value;
+    }
+  }
+
+  private snapShotInputHandler(snapShotInput: HTMLInputElement, parentElement: Element): void {
+    if (this.snapShotNumber!.hasAttribute('percent')) {
+      this.snapShotNumber!.removeAttribute('percent');
+    }
+    snapShotInput.style.color = 'var(--dark-color1,#000000)';
+    snapShotInput.parentElement!.style.backgroundColor = 'var(--dark-background5,#F2F2F2)';
+    snapShotInput.style.backgroundColor = 'var(--dark-background5,#F2F2F2)';
+    if (snapShotInput.value.trim() === '') {
+      snapShotInput.style.color = 'red';
+      parentElement.setAttribute('percent', '0');
+      return;
+    }
+    let snapShotSize = Number(snapShotInput.value);
+    if (
+      0 < snapShotSize && snapShotSize < 200
+    ) {
+      snapShotInput.style.color = 'red';
+      parentElement.setAttribute('percent', '0');
+      this.snapShotSlider!.percent = '0';
+      let htmlInputElement = this.snapShotSlider!.shadowRoot?.querySelector('#slider') as HTMLInputElement;
+      htmlInputElement.value = '0'
+    } else {
+      this.snapShotSlider!.percent = snapShotInput.value;
+      let htmlInputElement = this.snapShotSlider!.shadowRoot?.querySelector('#slider') as HTMLInputElement;
+      htmlInputElement.value = snapShotInput.value;
+      this.snapShotSlider!.sliderStyle = {
+        minRange: 0,
+        maxRange: 1000,
+        defaultValue: snapShotInput.value,
+        resultUnit: 'MS',
+        stepSize: 1,
+        lineColor: 'var(--dark-color3,#46B1E3)',
+        buttonColor: '#999999',
+      };
+      parentElement.setAttribute('percent', snapShotInput.value);
     }
   }
 

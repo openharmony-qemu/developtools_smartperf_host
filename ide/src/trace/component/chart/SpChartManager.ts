@@ -62,6 +62,7 @@ import { SpUserFileChart } from './SpUserPluginChart';
 import { SpImportUserPluginsChart } from './SpImportUserPluginsChart';
 import { queryDmaFenceIdAndCat } from '../../database/sql/dmaFence.sql';
 import { queryAllFuncNames } from '../../database/sql/Func.sql';
+import {SpSnapShotChart} from './spSnapShotChart'
 
 export class SpChartManager {
   static APP_STARTUP_PID_ARR: Array<number> = [];
@@ -96,6 +97,7 @@ export class SpChartManager {
   private spGpuCounterChart: SpGpuCounterChart;
   private spUserFileChart: SpUserFileChart;
   private spImportUserPluginsChart: SpImportUserPluginsChart;
+  private spSnapShotChart: SpSnapShotChart;
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -127,6 +129,7 @@ export class SpChartManager {
     this.spUserFileChart = new SpUserFileChart(trace);
     this.spImportUserPluginsChart = new SpImportUserPluginsChart(trace);
     this.xpowerChart = new SpXpowerChart(trace);
+    this.spSnapShotChart = new SpSnapShotChart(trace)
   }
   async initPreprocessData(progress: Function): Promise<void> {
     progress('load data dict', 50);
@@ -193,6 +196,7 @@ export class SpChartManager {
     await this.initCpu(progress);
     await this.logChart.init();
     await this.spHiSysEvent.init();
+    await this.spSnapShotChart.init();
     let idAndNameArr = await queryDmaFenceIdAndCat();
     this.handleDmaFenceName(idAndNameArr as { id: number; cat: string; seqno: number; driver: string; context: string }[]);
     if (FlagsConfig.getFlagsConfigEnableStatus('Hangs Detection')) {

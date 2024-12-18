@@ -153,6 +153,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_PERF_TOOL = 'perf-tool';
   static ROW_TYPE_GPU_COUNTER_GROUP = 'gpu-counter-group';
   static ROW_TYPE_GPU_COUNTER = 'gpu-counter';
+  static ROW_TYPE_SNAPSHOT = 'snapShots';
   static FRAME_WIDTH: number = 0;
   static range: TimeRange | undefined | null;
   static rangeSelectObject: RangeSelectStruct | undefined;

@@ -77,6 +77,7 @@ import { XpowerAppDetailRender } from './ProcedureWorkerXpowerAppDetail';
 import { XpowerWifiRender } from './ProcedureWorkerXpowerWifi';
 import { XpowerGpuFreqCountRender } from './ProcedureWorkerXpowerGpuFreqCount';
 import { XpowerGpuFreqRender } from './ProcedureWorkerXpowerGpuFreq';
+import { SnapShotRender } from './ProcedureWorkerSnaps'
 
 let dataList: unknown = {};
 let dataList2: unknown = {};
@@ -150,7 +151,8 @@ export let renders = {
   perfTool: new PerfToolRender(),
   gpuCounter: new GpuCounterRender(),
   stateCut: new AllStatesRender(),
-  dmaFence:new DmaFenceRender()
+  dmaFence:new DmaFenceRender(),
+  'snap-shot': new SnapShotRender()
 };
 
 function match(type: string, req: RequestMessage): void {

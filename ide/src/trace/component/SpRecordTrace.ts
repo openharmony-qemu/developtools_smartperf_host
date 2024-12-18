@@ -134,6 +134,8 @@ export class SpRecordTrace extends BaseElement {
   public static usbGetEvent: string;
   public static usbGetApp: string;
   private static usbGetVersion: string;
+  static snapShotList: Array<unknown> = [];
+  static snapShotDuration: number = 0;
 
   set record_template(re: string) {
     if (re === 'true') {
@@ -459,16 +461,23 @@ export class SpRecordTrace extends BaseElement {
       }
     });
     this.spArkTs?.addEventListener('showTip', () => {
-      if (this.spArkTs!.isStartArkts) {
-        let guideSrc = `https://${window.location.host.split(':')[0]}:${window.location.port}/application/?action=help_27`;
-        this.useExtentTip!.style.display = 'block';
-        this.useExtentTip!.innerHTML = `若要抓取Ark Ts，请勾选 Use local hdc 开关，启动后台扩展服务进行抓取，相关指导: 
-        [</span style="cursor: pointer;"><a href=${guideSrc} style="color: blue;" target="_blank">指导</a><span>]`;
-      } else {
-        this.useExtentTip!.style.display = 'none';
-        this.useExtentTip!.innerHTML = '';
-      }
+      this.isShowTipFunc('arkts', this.spArkTs!.isStartArkts);
     });
+    this.recordSetting?.addEventListener('showTip', (event) => {// @ts-ignore
+      this.isShowTipFunc(event.detail.value, event.detail.isShow);
+    });
+  }
+
+  isShowTipFunc(text: string, isShow: boolean) {
+    if (isShow) {
+      let guideSrc = `https://${window.location.host.split(':')[0]}:${window.location.port}/application/?action=help_27`;
+      this.useExtentTip!.style.display = 'block';
+      // @ts-ignore
+      this.useExtentTip!.innerHTML = `若要抓取${text}，请勾选 Use local hdc 开关，启动后台扩展服务进行抓取，相关指导: [</span style="cursor: pointer;"><a href=${guideSrc} style="color: blue;" target="_blank">指导</a><span>]`;
+    } else {
+      this.useExtentTip!.style.display = 'none';
+      this.useExtentTip!.innerHTML = '';
+    }
   }
 
   connectedCallback(): void {
@@ -529,6 +538,8 @@ export class SpRecordTrace extends BaseElement {
     let isCheckTimeLine = this.spArkTs!.radioBoxType === 1 ? true : false; // 是否 check timeline
 
     let maxDur = this.recordSetting!.maxDur; // 抓取trace的时长
+    let snapShotDur = this.recordSetting!.snapShot;//截图
+    SpRecordTrace.snapShotDuration = snapShotDur;
     let snapshotTimeInterval = this.spArkTs!.intervalValue;
     let cpuProfTimeInt = this.spArkTs!.intervalCpuValue;
     let captureNumericValue = this.spArkTs!.grabNumeric; // snapshot check box
@@ -541,6 +552,7 @@ export class SpRecordTrace extends BaseElement {
       type: '',
       processName: processName,
       maxDur: maxDur,
+      snapShotDur: snapShotDur,
       snapshotTimeInterval: snapshotTimeInterval,
       cpuProfilerInterval: cpuProfTimeInt,
       captureNumericValue: captureNumericValue,
@@ -593,6 +605,8 @@ export class SpRecordTrace extends BaseElement {
         aElement.href = URL.createObjectURL(new Blob([result!]));
         aElement.download = 'arkts.htrace';
         aElement.click();
+      } else if (cmd === 5) {
+        SpRecordTrace.snapShotList = JSON.parse(new TextDecoder('utf-8').decode(result)) as string[];
       } else if (cmd === 6) {
         this.litSearch!.setPercent('Start to record...', -1);
       } else if (cmd === 7) {
