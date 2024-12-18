@@ -68,7 +68,7 @@ export class XpowerStatisticRender extends Render {
     }
     xpowerStasticReq.context.closePath();
     let spApplication = document.getElementsByTagName('sp-application')[0];
-    let isDark = spApplication.hasAttribute('dark');
+    let isDark = spApplication && spApplication.hasAttribute('dark');
     drawLegend(xpowerStasticReq, checkedType!, checkedValue!, isDark);
   }
 }

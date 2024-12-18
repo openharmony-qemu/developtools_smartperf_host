@@ -122,6 +122,7 @@ export class XpowerGpuFreqStruct extends BaseStruct {
   startTimeStr: string = '';
   frequency: number = 0;
   count: number = 0;
+  static colorMap: Map<number, string> = new Map();
   static flagTime: number = 0;
   static height: number = -1;
   static drawY: number = 0;
@@ -224,7 +225,7 @@ export class XpowerGpuFreqStruct extends BaseStruct {
       ns2x(data.startNS || 0, TraceRow.range!.startNS, TraceRow.range!.endNS, TraceRow.range!.totalNS, rowFrame)
     );
     let frameWidth = endPointX - startPointX <= 1 ? 1 : endPointX - startPointX;
-    let histogramColor = ColorUtils.colorForTid(data.frequency || 0);
+    let histogramColor = this.colorMap.get(data.frequency)!;
     req!.context.fillStyle = histogramColor;
     let drawStartY = 0;
     let dataHeight: number = ((data.runTime || 0) * (this.rowHeight - 28)) / XpowerGpuFreqStruct.maxValue;

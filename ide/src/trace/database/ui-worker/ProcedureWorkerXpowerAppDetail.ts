@@ -69,7 +69,7 @@ export class XpowerAppDetailRender extends Render {
     }
     xpowerAppDetailReq.context.closePath();
     let spApplication = document.getElementsByTagName('sp-application')[0];
-    let isDark = spApplication.hasAttribute('dark');
+    let isDark = spApplication && spApplication.hasAttribute('dark');
     drawLegend(xpowerAppDetailReq, checkedType!, checkedValue!, isDark);
   }
 }

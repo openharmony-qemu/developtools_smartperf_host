@@ -43,11 +43,7 @@ import {
   xpowerGpuFreqDataSender,
   xpowerGpuFreqCountDataSender,
 } from '../../database/data-trafic/xpower/XpowerGpuFrequencySender';
-import {
-  queryTraceConfig,
-  queryXpowerData,
-  queryXpowerMeasureData,
-} from '../../database/sql/Xpower.sql';
+import { queryTraceConfig, queryXpowerData, queryXpowerMeasureData } from '../../database/sql/Xpower.sql';
 import { BaseStruct } from '../../bean/BaseStruct';
 import {
   XpowerGpuFreqCountRender,
@@ -472,20 +468,15 @@ export class SpXpowerChart {
     };
   }
 
-  private setDataMap(resultXpower: Array<XpowerThreadInfoStruct> | Array<XpowerGpuFreqStruct>) {
+  private setDataMap(resultXpower: Array<XpowerThreadInfoStruct>): Map<number, Array<XpowerThreadInfoStruct>> {
     let threadInfoStructMap = new Map();
-    resultXpower.forEach((item: any) => {
-      for (let key in item) {
-        if (item[key] === undefined || item[key] === null) {
-          item[key] = 0;
-        }
-      }
+    resultXpower.forEach((item: XpowerThreadInfoStruct) => {
       const startNS = item.startNS;
       if (threadInfoStructMap.has(startNS)) {
         const data = threadInfoStructMap.get(startNS)!;
         data.push(item);
       } else {
-        const data: XpowerThreadInfoStruct[] | XpowerGpuFreqStruct[] = [];
+        const data: XpowerThreadInfoStruct[] = [];
         data.push(item);
         threadInfoStructMap.set(startNS, data);
       }
@@ -540,7 +531,7 @@ export class SpXpowerChart {
     return resultXpowerLit;
   }
 
-  private setTips(traceRow: TraceRow<XpowerThreadInfoStruct>, value: string) {
+  private setTips(traceRow: TraceRow<XpowerThreadInfoStruct>, value: string): void {
     let tipsHtml = '';
     if (XpowerThreadInfoStruct.hoverXpowerStruct) {
       let hoverData: XpowerThreadInfoStruct[] = [];
@@ -550,7 +541,7 @@ export class SpXpowerChart {
         unit = 'mAh';
       } else if (XpowerThreadInfoStruct.hoverXpowerStruct.valueType == THREAD_LOAD) {
         hoverData = this.threadLoadStructMap!.get(XpowerThreadInfoStruct.hoverXpowerStruct.startNS) || [];
-        unit = '%'
+        unit = '%';
       }
       hoverData = [...hoverData].reverse();
       for (let i = 0; i < hoverData.length; i++) {
@@ -633,26 +624,53 @@ export class SpXpowerChart {
       }
     };
   }
+
+  private setGpuFreqDataMap(resultXpower: Array<XpowerGpuFreqStruct>): Map<number, Array<XpowerGpuFreqStruct>> {
+    let gpuFreqStructMap = new Map();
+    resultXpower.forEach((item: XpowerGpuFreqStruct, index: number) => {
+      const startNS = item.startNS;
+      if (gpuFreqStructMap.has(startNS)) {
+        const data = gpuFreqStructMap.get(startNS)!;
+        data.push(item);
+      } else {
+        const data = Array<XpowerGpuFreqStruct>();
+        data.push(item);
+        gpuFreqStructMap.set(startNS, data);
+      }
+      if (item.frequency && !XpowerGpuFreqStruct.colorMap.has(item.frequency)) {
+        let color = ColorUtils.MD_PALETTE[index % ColorUtils.MD_PALETTE.length];
+        XpowerGpuFreqStruct.colorMap.set(item.frequency, color);
+      }
+    });
+    return gpuFreqStructMap;
+  }
+
+  private sumTime(arr: Array<XpowerGpuFreqStruct>): Array<XpowerGpuFreqStruct> {
+    return arr.reduce((accumulator: Array<XpowerGpuFreqStruct>, current) => {
+      const { frequency, runTime, idleTime } = current;
+      const existingEntry = accumulator.find((entry) => entry.frequency === frequency);
+      if (existingEntry) {
+        existingEntry.runTime += runTime;
+        existingEntry.idleTime += idleTime;
+      } else {
+        accumulator.push({ ...current });
+      }
+      return accumulator;
+    }, []);
+  }
+
   private getGpuFreqDrawData(resultXpower: Array<XpowerGpuFreqStruct>): XpowerGpuFreqStruct[] {
-    let newArr: XpowerGpuFreqStruct[] = [];
-    let sumOfRemainingRunTimes = 0;
     let maxValue = 0;
     let itemArraySum = 0;
     this.gpuFreqStructMap = new Map();
-    this.gpuFreqStructMap = this.setDataMap(resultXpower);
+    this.gpuFreqStructMap = this.setGpuFreqDataMap(resultXpower);
     for (let itemArray of this.gpuFreqStructMap.values()) {
+      itemArray = this.sumTime(itemArray);
       itemArray.sort((a, b) => {
         return b.runTime - a.runTime;
       });
-      if (itemArray.length > 10) {
-        newArr = itemArray.slice(0, 10);
-        sumOfRemainingRunTimes = itemArray.slice(9).reduce((acc, obj) => acc + obj.runTime, 0);
-        newArr[9].runTime = sumOfRemainingRunTimes;
-      } else {
-        newArr = itemArray;
-      }
-      this.gpuFreqStructMap.set(itemArray[0].startNS, newArr);
-      itemArraySum = newArr.reduce((acc, obj) => acc + obj.runTime, 0);
+      this.gpuFreqStructMap.set(itemArray[0].startNS, itemArray);
+      itemArraySum = itemArray.reduce((acc, obj) => acc + obj.runTime, 0);
       if (itemArraySum > maxValue) {
         maxValue = itemArraySum;
       }
@@ -664,7 +682,7 @@ export class SpXpowerChart {
       let mapValue = Math.ceil(((runTimeSum || 0) * (ROW_HEIGHT - 28)) / XpowerGpuFreqStruct.maxValue);
       XpowerGpuFreqStruct.histogramHeightMap.set(itemArray[0].startNS, mapValue);
     }
-    XpowerGpuFreqStruct.gpuFreqStructMap = this.setDataMap(resultXpower);
+    XpowerGpuFreqStruct.gpuFreqStructMap = this.gpuFreqStructMap;
     let resultXpowerLit = Array.from(this.gpuFreqStructMap.values()).reduce(
       (acc, valueArray) => acc.concat(valueArray),
       []
@@ -673,7 +691,7 @@ export class SpXpowerChart {
     return resultXpowerLit;
   }
 
-  private setGpuFreqTips(traceRow: TraceRow<XpowerGpuFreqStruct>) {
+  private setGpuFreqTips(traceRow: TraceRow<XpowerGpuFreqStruct>): void {
     let tipsHtml = '';
     if (XpowerGpuFreqStruct.hoverXpowerStruct) {
       let hoverData: XpowerGpuFreqStruct[] = [];
@@ -682,15 +700,15 @@ export class SpXpowerChart {
       for (let i = 0; i < hoverData.length; i++) {
         if (hoverData[i].runTime > 0) {
           tipsHtml += `<div style=" display: flex; flex-wrap: nowrap; justify-content: space-between;">
-                <div style=" line-height: 20px; flex-grow: 2; flex-shrink: 1; flex-basis: auto;">runTime: ${
+                <div style="line-height: 20px; flex-grow: 1; flex-shrink: 1; flex-basis: auto;">frequency: ${
+                  hoverData[i].frequency! || 0
+                }</div>
+                <div style=" line-height: 20px; flex-grow: 2; flex-shrink: 1; flex-basis: auto;">&nbsp;&nbsp;runTime: ${
                   hoverData[i].runTime! || 0
                 }&nbsp;ms</div>
                 <div style="line-height: 20px; flex-grow: 1; flex-shrink: 1; flex-basis: auto;">&nbsp;&nbsp;idleTime: ${
                   hoverData[i].idleTime! || 0
                 }&nbsp;ms</div>
-                <div style="line-height: 20px; flex-grow: 1; flex-shrink: 1; flex-basis: auto;">&nbsp;&nbsp;frequency: ${
-                  hoverData[i].frequency! || 0
-                }</div>
             </div>`;
         }
       }

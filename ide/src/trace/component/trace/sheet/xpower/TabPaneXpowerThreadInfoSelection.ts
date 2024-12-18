@@ -22,13 +22,13 @@ import { SortDetail, resizeObserver } from '../SheetUtils';
 
 @element('tabpane-xpower-thread-info-selection')
 export class TabPaneXpowerThreadInfoSelection extends BaseElement {
-  private TableEl: LitTable | undefined | null;
+  private tableEl: LitTable | undefined | null;
   private threadInfoData: Array<XpowerThreadInfoStruct> = [];
   private tabTitle: HTMLDivElement | undefined | null;
   private valueType: string = '';
 
   setThreadInfoData(dataList: Array<XpowerThreadInfoStruct>): void {
-    this.TableEl!.recycleDataSource = [];
+    this.tableEl!.recycleDataSource = [];
     this.init();
     if (dataList.length >= 1) {
       dataList[0].valueType == THREAD_ENERGY ? (this.valueType = 'Energy') : (this.valueType = 'Load');
@@ -42,15 +42,17 @@ export class TabPaneXpowerThreadInfoSelection extends BaseElement {
       data.startTimeStr = Utils.getTimeString(data.startNS);
       data.threadTimeStr = Utils.timeFormat(data.threadTime);
     });
-    this.tabTitle!.querySelectorAll('.td')[2]!.querySelector('label')!.innerHTML = this.valueType;
+    if (this.tabTitle && this.tabTitle!.querySelectorAll('.td')[2]) {
+      this.tabTitle!.querySelectorAll('.td')[2]!.querySelector('label')!.innerHTML = this.valueType;
+    }
     this.threadInfoData = dataList;
-    this.TableEl!.recycleDataSource = this.threadInfoData;
+    this.tableEl!.recycleDataSource = this.threadInfoData;
   }
 
   initElements(): void {
-    this.TableEl = this.shadowRoot!.querySelector<LitTable>('.tb-thread-info-selection') as LitTable;
-    this.tabTitle = this.TableEl!.shadowRoot?.querySelector('.thead') as HTMLDivElement;
-    this.TableEl!.addEventListener('column-click', (evt) => {
+    this.tableEl = this.shadowRoot!.querySelector<LitTable>('.tb-thread-info-selection') as LitTable;
+    this.tabTitle = this.tableEl!.shadowRoot?.querySelector('.thead') as HTMLDivElement;
+    this.tableEl!.addEventListener('column-click', (evt) => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
     });
@@ -58,7 +60,7 @@ export class TabPaneXpowerThreadInfoSelection extends BaseElement {
 
   connectedCallback(): void {
     super.connectedCallback();
-    resizeObserver(this.parentElement!, this.TableEl!);
+    resizeObserver(this.parentElement!, this.tableEl!);
   }
 
   private init(): void {
@@ -105,7 +107,7 @@ export class TabPaneXpowerThreadInfoSelection extends BaseElement {
       let key = this.setSortKey(detail.key);
       this.threadInfoData.sort(compare(key, detail.sort, 'number'));
     }
-    this.TableEl!.recycleDataSource = this.threadInfoData;
+    this.tableEl!.recycleDataSource = this.threadInfoData;
   }
 
   private setSortKey(detailKey: string) {

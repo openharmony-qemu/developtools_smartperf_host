@@ -279,7 +279,7 @@ export class TabPaneXpowerGpuFreq extends BaseElement {
         key = 'maxRunTime';
         break;
       case 'minRunTimeStr':
-        key = 'maxRunTime';
+        key = 'minRunTime';
         break;
       case 'avgIdleTimeStr':
         key = 'avgIdleTime';
@@ -288,7 +288,7 @@ export class TabPaneXpowerGpuFreq extends BaseElement {
         key = 'maxIdleTime';
         break;
       case 'minIdleTimeStr':
-        key = 'maxIdleTime';
+        key = 'minIdleTime';
         break;
       case 'startTimeStr':
         key = 'startNS';
