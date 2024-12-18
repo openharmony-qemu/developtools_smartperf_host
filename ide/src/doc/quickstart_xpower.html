@@ -808,7 +808,7 @@
     <p>选择后Trace command页面显示对应抓取命令</p>
     <p><img src="../figures/Xpower/xpowercmd.jpg" alt="GitHub Logo" /></p>
     <p>
-      点击MessageType下拉框，可以选择需要抓取的类型(只有选择了应用才会出现COMPONENT_TOP、APP_STATISTIC、APP_DERAIL并且下拉框支持多选)。
+      点击MessageType下拉框，可以选择需要抓取的类型支持多选(只有选择了应用才会出现APP_STATISTIC、APP_DERAIL)。
       <br />
       <img src="../figures/Xpower/xpowertype.jpg" alt="GitHub Logo" />
     </p>
@@ -905,203 +905,325 @@ ThermalReport.ThermalLevel： 温度等级。
 </pre>
       </li>
     </ul>
-    <h3 id="xpower泳道图说明component_top">Xpower泳道图说明——COMPONENT_TOP</h3>
-      <p>选择COMPONENT_TOP，框选Battery.RealCurrent则展示Xpower Component Top的tab页。</p>
-      <p><img src="../figures/Xpower/xpowertop.jpg" alt="GitHub Logo" /></p>
-      <ul>
-        <li>
-          <pre class="smartperf-text">
-audio：audio的能耗
-</pre
-          >
-        </li>
-        <li>
-          <pre class="smartperf-text">
-bluetooth：Bluetooth的能耗
-</pre
-          >
-        </li>
-        <li>
-          <pre class="smartperf-text">
-flashlight：flashlight的能耗
-</pre
-          >
-        </li>
-        <li>
-          <pre class="smartperf-text">
-location：location的能耗
-</pre
-          >
-        </li>
-        <li>
-          <pre class="smartperf-text">
-wifi：wifi的能耗
-</pre
-          >
-        </li>
-        <li>
-          <pre class="smartperf-text">
-camera：camera的能耗
-</pre
-          >
-        </li>
-        <li>
-          <pre class="smartperf-text">
-cpu：cpu的能耗
-</pre
-          >
-        </li>
-        <li>
-          <pre class="smartperf-text">
-display：display的能耗
-</pre
-          >
-        </li>
-        <li>
-          <pre class="smartperf-text">
-gpu：gpu的能耗
-</pre
-          >
-        </li>
-      </ul>
-      <h3 id="xpower泳道图说明app_statistic">Xpower泳道图说明——APP_STATISTIC</h3>
-      <p>选择APP_STATISTIC则只有statistic泳道图有数据：</p>
-      <p><img src="../figures/Xpower/xpowerstatistic.jpg" alt="GitHub Logo" /></p>
-      <ul>
-        <li>statistic：统计数据</li>
-      </ul>
-      <h3 id="系统泳道图的悬浮">系统泳道图的悬浮</h3>
-      <p>鼠标悬浮至任意system的泳道图上鼠标旁边会悬浮当前值的大小</p>
-      <p><img src="../figures/Xpower/xpower_xf_system.jpg" alt="GitHub Logo" /></p>
-      <h3 id="xpower泳道图说明app_detail">Xpower泳道图说明——APP_DETAIL</h3>
-      <p>选择APP_DETAIL则有八条泳道图有数据：</p>
-      <p><img src="../figures/Xpower/xpowerdetail.jpg" alt="GitHub Logo" /></p>
-      <p><img src="../figures/Xpower/xpowerdetail2.jpg" alt="GitHub Logo" /></p>
-      <ul>
-        <li>wifi packet：wifi的数据包。</li>
-        <li>WIFIBytes：wifi的字节数。</li>
-        <li>DisPlay：屏幕的刷新率。</li>
-        <li>Thread Count：线程统计。</li>
-        <li>Thread Energy：线程能耗。</li>
-        <li>Thread Load：线程负载。</li>
-        <li>Gpu Freq Count：GPU频率计数。</li>
-        <li>Gpu Freq：GPU频率。</li>
-      </ul>
-      <h3 id="应用泳道图的点选和框选">应用泳道图的点选和框选</h3>
-      <p>statistic泳道图的点选功能：点击statistic泳道图可以弹出Xpower Statistic Current Data的tab页</p>
-      <p><img src="../figures/Xpower/xpower_dx_current.jpg" alt="GitHub Logo" /></p>
-      <ul>
-        <li>Name:器件的名字</li>
-        <li>TimeStamp：时间戳</li>
-        <li>Duration：持续时间</li>
-        <li>Energy：能耗</li>
-      </ul>
-      <p>
-        WIFIPacket、WIFIPacket和DisPlay泳道图的点选功能：点击WIFIPacket、WIFIPacket和DisPlay泳道图可以弹出Current
-        Selection的tab页
-      </p>
-      <p><img src="../figures/Xpower/xpower_dx_selection.jpg" alt="GitHub Logo" /></p>
-      <ul>
-        <li>StartTime(Relative) ：相对开始时间</li>
-        <li>StartTime(Absolute) ：绝对开始时间</li>
-        <li>receiver：接收数据大小</li>
-        <li>send：发送数据大小</li>
-      </ul>
-      <p>特别地：点击display的泳道图会出现屏幕刷新率的持续时间</p>
-      <p><img src="../figures/Xpower/xpower_dx_display.jpg" alt="GitHub Logo" /></p>
-      <p>Thread Load泳道图的点选功能</p>
-      <p><img src="../figures/Xpower/xpower_dx_load.jpg" alt="GitHub Logo" /></p>
-      <ul>
-        <li>ThreadName：线程名</li>
-        <li>TimeStamp：时间戳</li>
-        <li>Load：负载</li>
-        <li>Duration：持续时间</li>
-      </ul>
-      <p>Thread Energy泳道图的点选功能：</p>
-      <p><img src="../figures/Xpower/xpower_dx_energy.jpg" alt="GitHub Logo" /></p>
-      <ul>
-        <li>ThreadName：线程名</li>
-        <li>TimeStamp：时间戳</li>
-        <li>Energy：能耗</li>
-        <li>Duration：持续时间</li>
-      </ul>
-      <p>GPU Freq泳道图的点选功能：</p>
-      <p><img src="../figures/Xpower/xpower_dx_freq.jpg" alt="GitHub Logo" /></p>
-      <ul>
-        <li>Frequency：频率</li>
-        <li>TimeStamp：时间戳</li>
-        <li>RunTime：运行时间</li>
-        <li>IdleTime：休眠时间</li>
-      </ul>
-      <p>
-        Thread Count和Gpu Freq Count框选功能：框选Gpu Freq Count、Thread Count泳道图任意处会弹出Xpower Counters的tab页
-      </p>
-      <p><img src="../figures/Xpower/xpower_kx_counters.jpg" alt="GitHub Logo" /></p>
-      <ul>
-        <li>Name：器件名字</li>
-        <li>Delta value：增量值</li>
-        <li>Rate/s：速率（单位：s）</li>
-        <li>Weighted avg value：加权平均值</li>
-        <li>Count：数量</li>
-        <li>First value：第一个值</li>
-        <li>Last value：最后一个值</li>
-        <li>Min value：最小值</li>
-        <li>Max value：最大值</li>
-      </ul>
-      <p>Statistics泳道图的框选功能：框选Statistics泳道图任意处会弹出Xpowe Statistics的tab页</p>
-      <p><img src="../figures/Xpower/xpower_kx_Statistics.jpg" alt="GitHub Logo" /></p>
-      <ul>
-        <li>Name：器件名</li>
-        <li>Count：数量：</li>
-        <li>Avg_Energy：平均能耗</li>
-        <li>Max_Energy：最大能耗</li>
-        <li>Min_Energy：最小能耗</li>
-      </ul>
-      <p>
-        WIFIPackets、WIFIBytes和Display泳道图的框选功能：框选WIFIPackets、WIFIBytes和Display会出现三个Display
-        Detail、WIFIPackets、WIFIBytes三个tab页，但表头均一致
-      </p>
-      <ul>
-        <li>Name：名字（display为刷新率，WIFIPackets、WIFIBytes为收发数据）</li>
-        <li>Count：数量（display为持续时间，WIFIPackets、WIFIBytes为收发的数据包个数活数据大小）</li>
-        <li>Max：最大值（display为刷新率的最大持续时间，WIFIBytes为收发的数据包个数活数据最大值）</li>
-        <li>Min：最小值（display为刷新率的最小持续时间，WIFIBytes为收发的数据包个数活数据最小值）</li>
-        <li>Avg：平均值（display为刷新率的平均持续时间，WIFIBytes为收发的数据包个数活数据平均数）</li>
-      </ul>
-      <p>Thread energy泳道图的框选功能：框选Thread energy泳道图会弹出Xpowe Thread energy的tab页</p>
-      <p><img src="../figures/Xpower/xpower_kx_energy.jpg" alt="GitHub Logo" /></p>
-      <ul>
-        <li>ThreadName：线程名</li>
-        <li>Count：线程数</li>
-        <li>Avg Energy：平均能耗</li>
-        <li>Max Energy：最大能耗</li>
-        <li>Min Energy：最小能耗</li>
-      </ul>
-      <p>Thread Load泳道图的框选功能：框选Thread Load泳道图会弹出Xpowe Thread Load的tab页</p>
-      <p><img src="../figures/Xpower/xpower_kx_load.jpg" alt="GitHub Logo" /></p>
-      <ul>
-        <li>ThreadName：线程名</li>
-        <li>Count：线程出现的次数</li>
-        <li>Avg Load：平均占比</li>
-        <li>Max Load：最大占比</li>
-        <li>Min Load：最小占比</li>
-      </ul>
-      <p>Gpu Freq Count泳道图的框选功能：框选Thread energy泳道图会弹出Xpowe Gpu Frequency 的tab页</p>
-      <p><img src="../figures/Xpower/xpower_kx_freq.jpg" alt="GitHub Logo" /></p>
-      <ul>
-        <li>Frequency：频率</li>
-        <li>Count：数量</li>
-        <li>Avg RunTime：平均运行时间</li>
-        <li>Max RunTime：最大运行时间</li>
-        <li>Min RunTime：最小运行时间</li>
-        <li>Avg IdleTime：平均休眠时间</li>
-        <li>Max IdleTime：最大休眠时间</li>
-        <li>Min IdleTime：最小休眠时间</li>
-      </ul>
-      <h3 id="应用的鼠标悬浮">应用的鼠标悬浮</h3>
-      <p>鼠标悬浮至应用的任意的泳道图上鼠标旁边会悬浮当前器件的简要信息</p>
-      <p><img src="../figures/Xpower/xpower_xf.jpg" alt="GitHub Logo" /></p>
-    </div>
+    <h3 id="system泳道图点选和框选功能">system泳道图点选和框选功能 </h3>
+    <p>点击system下的任意通道图弹出Current Selection的tab页</p>
+    <p><img src="../figures/Xpower/xpower_kx_system1" alt="GitHub Logo"></p>
+    <ul>
+      <li>StartTime(Relative)：相对时间</li>
+      <li>StartTime(Absolute) ：绝对时间</li>
+      <li>Value：值</li>
+      <li>Duration：持续时间</li>
+    </ul>
+    <p>框选system下的RealCurrent泳道图可以弹出Xpower Counters和Xpowe Component Top两个tab页</p>
+    <p>Xpower Counters的tab页</p>
+    <p><img src="../figures/Xpower/xpower_kx_system.jpg" alt="GitHub Logo"></p>
+    <ul>
+      <li>
+        <p>Name：器件的名字</p>
+      </li>
+      <li>
+        <p>Delta value：增量值</p>
+      </li>
+      <li>
+        <p>Rate /s：速率(单位：s)</p>
+      </li>
+      <li>
+        <p>Weighted：加权平均值</p>
+      </li>
+      <li>
+        <p>avg value：平均值</p>
+      </li>
+      <li>
+        <p>Count：数值</p>
+      </li>
+      <li>
+        <p>First value：第一个值</p>
+      </li>
+      <li>
+        <p>Last value：最后一个值</p>
+      </li>
+      <li>
+        <p>Min value：最小值</p>
+      </li>
+      <li>
+        <p>Max value：最大值</p>
+      </li>
+    </ul>
+    <p>Component Top Tab页: </p>
+    <p><img src="../figures/Xpower/xpowertop.jpg" alt="GitHub Logo" /></p>
+    <ul>
+      <li>
+        <pre class="smartperf-text">
+audio：audioTop应用的能耗
+</pre>
+      </li>
+      <li>
+        <pre class="smartperf-text">
+bluetooth：BluetoothTop应用的能耗
+</pre>
+      </li>
+      <li>
+        <pre class="smartperf-text">
+flashlight：flashlightTop应用的能耗
+</pre>
+      </li>
+      <li>
+        <pre class="smartperf-text">
+location：locationTop应用的能耗
+</pre>
+      </li>
+      <li>
+        <pre class="smartperf-text">
+wifi：wifiTop应用的能耗
+</pre>
+      </li>
+      <li>
+        <pre class="smartperf-text">
+camera：cameraTop应用的能耗
+</pre>
+      </li>
+      <li>
+        <pre class="smartperf-text">
+cpu：cpuTop应用的能耗
+</pre>
+      </li>
+      <li>
+        <pre class="smartperf-text">
+display：displayTop应用的能耗
+</pre>
+      </li>
+      <li>
+        <pre class="smartperf-text">
+gpu：gpuTop应用的能耗
+</pre>
+      </li>
+    </ul>
+    <p>根据选的的参数不同tab页的表头会发生变化，audio/bluetooth/flashlight/location/wifiscan表头为</p>
+    <ul>
+      <li>TimeStamp：时间戳</li>
+      <li>AppName：应用名</li>
+      <li>Background Duration：后台持续时间</li>
+      <li>Background Energy：后台能耗</li>
+      <li>Foreground Duration：前台持续时间</li>
+      <li>Foreground Energy：前台能耗</li>
+      <li>ScreenOff Duration：锁屏持续时间</li>
+      <li>ScreenOff Energy：锁屏能耗</li>
+      <li>ScreenOn Duration：亮屏持续时间</li>
+      <li>ScreenOn Energy：亮屏能耗</li>
+    </ul>
+    <p>camera的表头为：</p>
+    <ul>
+      <li>
+        <p>TimeStamp：时间戳</p>
+      </li>
+      <li>
+        <p>AppName：应用名</p>
+      </li>
+      <li>
+        <p>CameraId：相机id</p>
+      </li>
+      <li>
+        <p>Background Duration：后台持续时间</p>
+      </li>
+      <li>
+        <p>Background Energy：后台能耗</p>
+      </li>
+      <li>
+        <p>Foreground Duration：前台持续时间</p>
+      </li>
+      <li>
+        <p>Foreground Energy：前台能耗</p>
+      </li>
+      <li>
+        <p>ScreenOff Duration：锁屏持续时间</p>
+      </li>
+      <li>
+        <p>ScreenOff Energy：锁屏能耗</p>
+      </li>
+      <li>
+        <p>ScreenOn Duration：亮屏持续时间</p>
+      </li>
+      <li>
+        <p>ScreenOn Energy：亮屏能耗</p>
+      </li>
+    </ul>
+    <p>CPU表头为：</p>
+    <ul>
+      <li>
+        <p>TimeStamp：时间戳</p>
+      </li>
+      <li>
+        <p>AppName：应用名</p>
+      </li>
+      <li>
+        <p>UID：UID</p>
+      </li>
+      <li>
+        <p>Load ：负荷</p>
+      </li>
+      <li>
+        <p>Background Duration：后台持续时间</p>
+      </li>
+      <li>
+        <p>Background Energy：后台能耗</p>
+      </li>
+      <li>
+        <p>Foreground Duration：前台持续时间</p>
+      </li>
+      <li>
+        <p>Foreground Energy：前台能耗</p>
+      </li>
+      <li>
+        <p>ScreenOff Duration：锁屏持续时间</p>
+      </li>
+      <li>
+        <p>ScreenOff Energy：锁屏能耗</p>
+      </li>
+      <li>
+        <p>ScreenOn Duration：亮屏持续时间</p>
+      </li>
+      <li>
+        <p>ScreenOn Energy：亮屏能耗</p>
+      </li>
+    </ul>
+    <p>display/GPU表头</p>
+    <ul>
+      <li>TimeStamp：时间戳</li>
+      <li>AppName：应用名</li>
+      <li>Usage Duration：使用时长</li>
+      <li>Usage Energy：使用能耗</li>
+    </ul>
+    <h3 id="xpower泳道图说明app_statistic">Xpower泳道图说明——APP_STATISTIC</h3>
+    <p>选择APP_STATISTIC则只有statistic泳道图有数据：</p>
+    <p><img src="../figures/Xpower/xpowerstatistic.jpg" alt="GitHub Logo" /></p>
+    <ul>
+      <li>statistic：每个器件的统计数据</li>
+    </ul>
+    <h3 id="xpower泳道图说明app_detail">Xpower泳道图说明——APP_DETAIL</h3>
+    <p>选择APP_DETAIL则有八条泳道图有数据：</p>
+    <p><img src="../figures/Xpower/xpowerdetail.jpg" alt="GitHub Logo" /></p>
+    <p><img src="../figures/Xpower/xpowerdetail2.jpg" alt="GitHub Logo" /></p>
+    <ul>
+      <li>WIFIPacket：wifi传输的数据包个数。tx表示发送，rx表示接收</li>
+      <li>WIFIBytes：wifi的字节数。tx表示发送，rx表示接收</li>
+      <li>Display：屏幕的刷新率。</li>
+      <li>ThreadCount：每个时间线程数统计。</li>
+      <li>ThreadEnergy：线程能耗。</li>
+      <li>ThreadLoad：线程负载。</li>
+      <li>GpuFreqCount：GPU频率计数。</li>
+      <li>GpuFreq：GPU频率时间。</li>
+    </ul>
+    <h3 id="应用泳道图的点选和框选">应用泳道图的点选和框选</h3>
+    <p>statistic泳道图的点选功能：点击statistic泳道图可以弹出Xpower Statistic Current Data的tab页</p>
+    <p><img src="../figures/Xpower/xpower_dx_current.jpg" alt="GitHub Logo" /></p>
+    <ul>
+      <li>Name:器件的名字</li>
+      <li>TimeStamp：时间戳</li>
+      <li>Duration：持续时间</li>
+      <li>Energy：能耗</li>
+    </ul>
+    <p>
+      WIFIPacket、WIFIPacket和DisPlay泳道图的点选功能：点击WIFIPacket、WIFIPacket和DisPlay泳道图可以弹出Current
+      Selection的tab页
+    </p>
+    <p><img src="../figures/Xpower/xpower_dx_selection.jpg" alt="GitHub Logo" /></p>
+    <ul>
+      <li>StartTime(Relative) ：相对开始时间</li>
+      <li>StartTime(Absolute) ：绝对开始时间</li>
+      <li>receiver：接收数据大小</li>
+      <li>send：发送数据大小</li>
+    </ul>
+    <p>点击display的泳道图会出现屏幕刷新率的持续时间</p>
+    <p><img src="../figures/Xpower/xpower_dx_display.jpg" alt="GitHub Logo" /></p>
+    <p>Thread Load泳道图的点选功能</p>
+    <p><img src="../figures/Xpower/xpower_dx_load.jpg" alt="GitHub Logo" /></p>
+    <ul>
+      <li>ThreadName：线程名</li>
+      <li>TimeStamp：时间戳</li>
+      <li>Load：负载</li>
+      <li>Duration：持续时间</li>
+    </ul>
+    <p>Thread Energy泳道图的点选功能：</p>
+    <p><img src="../figures/Xpower/xpower_dx_energy.jpg" alt="GitHub Logo" /></p>
+    <ul>
+      <li>ThreadName：线程名</li>
+      <li>TimeStamp：时间戳</li>
+      <li>Energy：能耗</li>
+      <li>Duration：持续时间</li>
+    </ul>
+    <p>GPU Freq泳道图的点选功能：</p>
+    <p><img src="../figures/Xpower/xpower_dx_freq.jpg" alt="GitHub Logo" /></p>
+    <ul>
+      <li>Frequency：频率</li>
+      <li>TimeStamp：时间戳</li>
+      <li>RunTime：运行时间</li>
+      <li>IdleTime：休眠时间</li>
+    </ul>
+    <p>
+      Thread Count和Gpu Freq Count框选功能：框选Gpu Freq Count、Thread Count泳道图任意处会弹出Xpower Counters的tab页
+    </p>
+    <p><img src="../figures/Xpower/xpower_kx_counters.jpg" alt="GitHub Logo" /></p>
+    <ul>
+      <li>Name：器件名字</li>
+      <li>Delta value：增量值</li>
+      <li>Rate/s：速率（单位：s）</li>
+      <li>Weighted avg value：加权平均值</li>
+      <li>Count：数量</li>
+      <li>First value：第一个值</li>
+      <li>Last value：最后一个值</li>
+      <li>Min value：最小值</li>
+      <li>Max value：最大值</li>
+    </ul>
+    <p>Statistics泳道图的框选功能：框选Statistics泳道图任意处会弹出Xpowe Statistics的tab页</p>
+    <p><img src="../figures/Xpower/xpower_kx_Statistics.jpg" alt="GitHub Logo" /></p>
+    <ul>
+      <li>Name：器件名</li>
+      <li>Count：数量：</li>
+      <li>Avg_Energy：平均能耗</li>
+      <li>Max_Energy：最大能耗</li>
+      <li>Min_Energy：最小能耗</li>
+    </ul>
+    <p>
+      WIFIPackets、WIFIBytes和Display泳道图的框选功能：框选WIFIPackets、WIFIBytes和Display会出现三个Display
+      Detail、WIFIPackets、WIFIBytes三个tab页，但表头均一致
+    </p>
+    <ul>
+      <li>Name：名字（display为刷新率，WIFIPackets、WIFIBytes为收发数据）</li>
+      <li>Count：数量（display为持续时间，WIFIPackets、WIFIBytes为收发的数据包个数活数据大小）</li>
+      <li>Max：最大值（display为刷新率的最大持续时间，WIFIBytes为收发的数据包个数活数据最大值）</li>
+      <li>Min：最小值（display为刷新率的最小持续时间，WIFIBytes为收发的数据包个数活数据最小值）</li>
+      <li>Avg：平均值（display为刷新率的平均持续时间，WIFIBytes为收发的数据包个数活数据平均数）</li>
+    </ul>
+    <p>Thread energy泳道图的框选功能：框选Thread energy泳道图会弹出Xpowe Thread energy的tab页</p>
+    <p><img src="../figures/Xpower/xpower_kx_energy.jpg" alt="GitHub Logo" /></p>
+    <ul>
+      <li>ThreadName：线程名</li>
+      <li>Count：线程数</li>
+      <li>Avg Energy：平均能耗</li>
+      <li>Max Energy：最大能耗</li>
+      <li>Min Energy：最小能耗</li>
+    </ul>
+    <p>Thread Load泳道图的框选功能：框选Thread Load泳道图会弹出Xpowe Thread Load的tab页</p>
+    <p><img src="../figures/Xpower/xpower_kx_load.jpg" alt="GitHub Logo" /></p>
+    <ul>
+      <li>ThreadName：线程名</li>
+      <li>Count：线程出现的次数</li>
+      <li>Avg Load：平均占比</li>
+      <li>Max Load：最大占比</li>
+      <li>Min Load：最小占比</li>
+    </ul>
+    <p>Gpu Freq Count泳道图的框选功能：框选Thread energy泳道图会弹出Xpowe Gpu Frequency 的tab页</p>
+    <p><img src="../figures/Xpower/xpower_kx_freq.jpg" alt="GitHub Logo" /></p>
+    <ul>
+      <li>Frequency：频率</li>
+      <li>Count：数量</li>
+      <li>Avg RunTime：平均运行时间</li>
+      <li>Max RunTime：最大运行时间</li>
+      <li>Min RunTime：最小运行时间</li>
+      <li>Avg IdleTime：平均休眠时间</li>
+      <li>Max IdleTime：最大休眠时间</li>
+      <li>Min IdleTime：最小休眠时间</li>
+    </ul>
   </div>
 
   <script>

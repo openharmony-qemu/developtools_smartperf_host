@@ -1058,6 +1058,8 @@ Only Kernel：只展示内核调用栈，会使每个函数的Lib名不为[kerne
         current Process，% in all Process。
         <br />
         <img src="../figures/perf/flameshow.jpg" alt="GitHub Logo" />
+        <p>支持导入so离线符号化，符号化函数后，对elf文件中每个函数的地址定位到具体哪个源文件，以及显示该源文件的具体行号功能。</p>
+        <img src="../figures/perf/perf_so.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor" id="header-index-11">Hiperf的show event count功能</h3>
 
@@ -1090,13 +1092,7 @@ Only Kernel：只展示内核调用栈，会使每个函数的Lib名不为[kerne
         <br />
         <img src="../figures/perf/perf_jumpframe.jpg" alt="GitHub Logo" />
         <br />
-        筛选面板新增Hide Thread、Hide Thread State筛选选项，Hiperf可隐藏线程和线程状态。
-        <br />
-        <img src="../figures/perf/perf_hide.jpg" alt="GitHub Logo" />
       </p>
-      <h3 id="so导入获取符号所在行能力">SO导入获取符号所在行能力</h3>
-      <p>在导入so符号化文件后，新增对elf文件中每个函数的地址定位到具体哪个源文件，以及显示该源文件的具体行号功能。</p>
-      <p><img src="../figures/perf/perf_so.jpg" alt="GitHub Logo" /></p>
     </div>
 
     <script>
