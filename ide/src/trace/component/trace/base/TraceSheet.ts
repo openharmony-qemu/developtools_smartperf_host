@@ -104,7 +104,6 @@ import { TabPaneXpowerThreadInfoSelection } from '../sheet/xpower/TabPaneXpowerT
 import { TabPaneXpowerGpuFreqSelection } from '../sheet/xpower/TabPaneXpowerGpuFreqSelection';
 import { XpowerGpuFreqStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerGpuFreq';
 
-
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
   systemLogFlag: Flag | undefined | null;
@@ -593,8 +592,15 @@ export class TraceSheet extends BaseElement {
         let table2 = Array.from(
           (currentTab.firstChild as BaseElement).shadowRoot?.querySelectorAll<LitTable>('lit-table') || []
         );
-        let componentTopTable = ((currentTab.firstChild as BaseElement).shadowRoot?.querySelector('#tb-counter')
-          ?.firstChild as BaseElement)!.shadowRoot?.querySelectorAll<LitTable>('lit-table');
+        let componentTopTable = undefined;
+        if (
+          (currentTab.firstChild as BaseElement).shadowRoot?.querySelector('#tb-counter') &&
+          ((currentTab.firstChild as BaseElement).shadowRoot?.querySelector('#tb-counter')?.firstChild as BaseElement)
+        ) {
+          componentTopTable = ((currentTab.firstChild as BaseElement).shadowRoot?.querySelector('#tb-counter')
+            ?.firstChild as BaseElement)!.shadowRoot?.querySelectorAll<LitTable>('lit-table');
+        }
+
         let table3 = Array.from(componentTopTable || []);
         let tables = [...table1, ...table2, ...table3];
 
