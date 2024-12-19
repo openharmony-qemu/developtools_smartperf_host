@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+import { SelectionParam } from '../../../../../../src/trace/bean/BoxSelection';
 import { TabPaneIrqCounter } from '../../../../../../src/trace/component/trace/sheet/irq/TabPaneIrqCounter';
 import { IrqStruct } from '../../../../../../src/trace/database/ui-worker/ProcedureWorkerIrq';
 jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
@@ -20,6 +21,15 @@ jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
 });
 const sqlite = require('../../../../../../src/trace/database/sql/Irq.sql');
 jest.mock('../../../../../../src/trace/database/sql/Irq.sql');
+jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {
+  return {};
+});
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+  return {};
+});
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -60,27 +70,134 @@ describe('TabPaneIrqCounter Test', () => {
   let irqData = sqlite.queryIrqDataBoxSelect;
   irqData.mockResolvedValue([
     {
-      irqName: "name",
+      irqName: 'name',
       wallDuration: 9536,
       maxDuration: 5239,
       count: 1,
-      avgDuration: 2563
-    }
+      avgDuration: 2563,
+    },
   ]);
 
   let softIrqData = sqlite.querySoftIrqDataBoxSelect;
   softIrqData.mockResolvedValue([
     {
-      irqName: "name",
+      irqName: 'name',
       wallDuration: 6765,
       maxDuration: 56756,
       count: 1,
-      avgDuration: 46545
-    }
+      avgDuration: 46545,
+    },
   ]);
 
+  let selectionParam = new SelectionParam();
+  selectionParam.rightNs = 100000000;
+  selectionParam.leftNs = 0;
+  selectionParam.softIrqCallIds = [1, 2, 3];
+  selectionParam.irqCallIds = [1, 2, 3];
+
   it('TabPaneIrqCounterTest01', function () {
-    tabPaneIrqCounter.data = frameData;
-    expect(tabPaneIrqCounter.data).not.toBeUndefined();
+    let tabPane = new TabPaneIrqCounter();
+    expect(tabPane.initElements()).toBeUndefined();
+  });
+
+  it('TabPaneIrqCounterTest02', function () {
+    let tabPane = new TabPaneIrqCounter();
+    expect(tabPane.connectedCallback()).toBeUndefined();
+  });
+
+  it('TabPaneIrqCounterTest03', function () {
+    let tabPane = new TabPaneIrqCounter();
+    expect(tabPane.initHtml()).not.toBeUndefined();
+  });
+
+  it('TabPaneIrqCounterTest04', function () {
+    let tabPane = new TabPaneIrqCounter();
+    tabPane.initElements();
+    expect(tabPane.sortByColumn('wallDurationFormat', 0)).toBeUndefined();
+    expect(tabPane.sortByColumn('count', 0)).toBeUndefined();
+    expect(tabPane.sortByColumn('avgDuration', 0)).toBeUndefined();
+    expect(tabPane.sortByColumn('maxDurationFormat', 0)).toBeUndefined();
+    expect(tabPane.sortByColumn('name', 0)).toBeUndefined();
+  });
+
+  it('TabPaneIrqCounterTest04', function () {
+    let tabPane = new TabPaneIrqCounter();
+    let data = [
+      {
+        cat: '',
+        name: '',
+        callid: 50,
+        count: 50,
+        isFirstObject: 1,
+        startTime: 50,
+        endTime: 50,
+        wallDuration: 50,
+        priority: 50,
+      },
+    ];
+    expect(tabPane.groupByCallid(data)).not.toBeUndefined();
+  });
+
+  it('TabPaneIrqCounterTest05', function () {
+    let tabPane = new TabPaneIrqCounter();
+    let data = [
+      {
+        cat: '',
+        name: '',
+        callid: 50,
+        count: 50,
+        isFirstObject: 1,
+        startTime: 50,
+        endTime: 150,
+        wallDuration: 50,
+        priority: 50,
+      },
+    ];
+    expect(tabPane.callidByIrq(data)).not.toBeUndefined();
+  });
+
+  it('TabPaneIrqCounterTest06', function () {
+    let tabPane = new TabPaneIrqCounter();
+    let data = [
+      {
+        cat: '',
+        name: '',
+        callid: 50,
+        count: 50,
+        isFirstObject: 1,
+        startTime: 50,
+        endTime: 150,
+        wallDuration: 50,
+        priority: 50,
+      },
+    ];
+    expect(tabPane.findMaxPriority(data)).not.toBeUndefined();
+  });
+
+  it('TabPaneIrqCounterTest07', function () {
+    let tabPane = new TabPaneIrqCounter();
+    let data = [
+      {
+        cat: '',
+        wallDuration: 0,
+        maxDuration: 100,
+        name: '555',
+        count: 2,
+        avgDuration: 50,
+        wallDurationFormat: 50,
+        maxDurationFormat: 50,
+      },
+    ];
+    expect(tabPane.aggregateData(data, true)).toBeUndefined();
+  });
+
+  it('TabPaneIrqCounterTest08', function () {
+    let tabPane = new TabPaneIrqCounter();
+    tabPane.initElements();
+    expect(tabPane.reSortByColum('name', 0)).toBeUndefined();
+    expect(tabPane.reSortByColum('cat', 0)).toBeUndefined();
+    expect(tabPane.reSortByColum('string', 0)).toBeUndefined();
+    expect(tabPane.reSortByColum('maxDurationFormat', 0)).toBeUndefined();
+    expect(tabPane.reSortByColum('number', 0)).toBeUndefined();
   });
 });

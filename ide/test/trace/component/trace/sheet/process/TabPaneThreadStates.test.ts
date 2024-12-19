@@ -28,6 +28,18 @@ jest.mock('../../../../../../src/trace/database/sql/ProcessThread.sql');
 jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
   return {};
 });
+jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {
+    return {};
+});
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+    return {};
+});
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+    return {};
+});
+jest.mock('../../../../../../src/trace/component/SpSystemTrace', () => {
+    return {};
+});
 describe('TabPaneThreadStates Test', () => {
   let tabPaneThreadStates = null;
   beforeEach(() => {

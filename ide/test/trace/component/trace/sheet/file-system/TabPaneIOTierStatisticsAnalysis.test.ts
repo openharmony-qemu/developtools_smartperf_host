@@ -35,6 +35,12 @@ jest.mock('../../../../../../src/trace/component/trace/sheet/SheetUtils', () => 
     initSort: ()=>{}
   };
 });
+jest.mock('../../../../../../src/trace/bean/AbilityMonitor', () => {
+  return {};
+});
+jest.mock('../../../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 describe('TabPaneIOTierStatisticsAnalysis Test', () => {
   document.body.innerHTML = `<tabpane-tb-vm-statistics id="statistics-analysis"></tabpane-tb-vm-statistics>`;
   let tabPane = document.querySelector<TabPaneIOTierStatisticsAnalysis>('#statistics-analysis');

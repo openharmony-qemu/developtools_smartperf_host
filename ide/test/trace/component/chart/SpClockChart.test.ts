@@ -14,13 +14,16 @@
  */
 
 import { SpClockChart } from '../../../../src/trace/component/chart/SpClockChart';
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
   return {};
 });
 
-const sqlite = require('../../../../src/trace/database/sql/Clock.sql');
+const clockSqlite = require('../../../../src/trace/database/sql/Clock.sql');
 jest.mock('../../../../src/trace/database/sql/Clock.sql');
 jest.mock('../../../../src/js-heap/model/DatabaseStruct');
+const sqlLite = require('../../../../src/trace/database/sql/dmaFence.sql');
+jest.mock('../../../../src/trace/database/sql/dmaFence.sql');
 jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
   return {};
 });
@@ -42,25 +45,43 @@ window.ResizeObserver =
 describe('SpClockChart Test', () => {
   let htmlElement: any = document.createElement('sp-system-trace');
   let clockChart = new SpClockChart(htmlElement);
-
-  let queryClock = sqlite.queryClockData;
+  let queryClock = clockSqlite.queryClockData;
   let queryClockData = [
     {
       name: 'Frequency',
       num: 20,
+      srcname: 'Frequency',
     },
     {
       name: 'State',
       num: 10,
+      srcname: 'State',
     },
     {
       name: 'ScreenState',
       num: 10,
+      srcname: 'ScreenState',
     },
   ];
   queryClock.mockResolvedValue(queryClockData);
-
+  let queryDmaFenceName = sqlLite.queryDmaFenceName;
+  let queryDmaFenceNameData = [
+    {
+      timeline: 'timeline1',
+    },
+    {
+      timeline: 'timeline2',
+    },
+    {
+      timeline: 'timeline3',
+    },
+  ];
+  queryDmaFenceName.mockResolvedValue(queryDmaFenceNameData);
   it('SpClockChart01', function () {
     expect(clockChart.init()).toBeDefined();
+  });
+  it('SpClockChart02', function () {
+    let traceRow = new TraceRow();
+    expect(clockChart.initDmaFence(traceRow)).toBeDefined();
   });
 });

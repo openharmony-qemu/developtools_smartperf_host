@@ -33,6 +33,7 @@ window.ResizeObserver =
   }));
 
 describe('TraceSheet Test', () => {
+  global.Worker = jest.fn();
   let traceSheet = new TraceSheet();
   it('TraceSheet Test01', () => {
     expect(traceSheet).not.toBeUndefined();

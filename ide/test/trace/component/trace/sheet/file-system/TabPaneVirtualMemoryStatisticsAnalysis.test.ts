@@ -18,6 +18,12 @@ import '../../../../../../src/trace/component/trace/sheet/file-system/TabPaneVir
 import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 import crypto from 'crypto';
 import { TabPaneFilter } from '../../../../../../src/trace/component/trace/sheet/TabPaneFilter';
+jest.mock('../../../../../../src/trace/bean/AbilityMonitor', () => {
+  return {};
+});
+jest.mock('../../../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 // @ts-ignore
 window.ResizeObserver =
   window.ResizeObserver ||

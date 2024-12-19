@@ -40,6 +40,7 @@ window.ResizeObserver = window.ResizeObserver ||
     unobserve: jest.fn(),
   }));
 describe('SpSegmentationChart Test', () => {
+  global.Worker = jest.fn();
   let mockqueryAllFuncNames = funcSqlit.queryAllFuncNames;
   mockqueryAllFuncNames.mockResolvedValue([]);
   let spSystemTrace = new SpSystemTrace();

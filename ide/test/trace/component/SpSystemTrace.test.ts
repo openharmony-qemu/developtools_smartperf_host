@@ -175,11 +175,11 @@ describe('SpSystemTrace Test', () => {
     let structs = [
       {
         length: 1,
-        starttime: 1,
+        startTime: 1,
       },
     ];
     let previous = 1;
-    let currentIndex = 1;
+    let currentIndex = 0;
     TraceRow.range = jest.fn(() => undefined);
     TraceRow.range.startNS = jest.fn(() => 1);
     spSystemTrace.timerShaftEL.drawTriangle = jest.fn(()=>{});

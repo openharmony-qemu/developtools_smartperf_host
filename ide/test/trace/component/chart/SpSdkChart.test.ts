@@ -24,6 +24,7 @@ jest.mock('../../../../src/trace/database/sql/Sdk.sql');
 const intersectionObserverMock = () => ({
   observe: () => null,
 });
+global.Worker = jest.fn();
 window.IntersectionObserver = jest.fn().mockImplementation(intersectionObserverMock);
 window.ResizeObserver =
   window.ResizeObserver ||

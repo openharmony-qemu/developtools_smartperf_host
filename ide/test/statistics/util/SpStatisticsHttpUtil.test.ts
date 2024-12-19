@@ -20,8 +20,8 @@ describe('SpStatisticsHttpUtil Test', () => {
   let mockXMLHttpRequest;
   let originalFetch;
   let mockFetch;
-  let originalXMLHttp；
-  let mockXMLHttp；
+  let originalXMLHttp;
+  let mockXMLHttp;
 
   beforeAll(() => {
     // Mock XMLHttpRequest

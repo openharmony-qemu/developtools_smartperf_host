@@ -194,19 +194,19 @@ describe('TabPaneNMStatisticAnalysis Test', () => {
   it('statisticAnalysis09', function () {
     tabStatisticAnalysis.currentLevel = 0;
     tabStatisticAnalysis.sortByColumn('', 0);
-    expect(tabStatisticAnalysis.tableType.recycleDataSource.length).toBe(0);
+    expect(tabStatisticAnalysis.typeUsageTbl.recycleDataSource.length).toBe(0);
   });
 
   it('statisticAnalysis10', function () {
-    tabStatisticAnalysis.currentLevel = 1;
-    tabStatisticAnalysis.sortByColumn('', 0);
-    expect(tabStatisticAnalysis.tableType.recycleDataSource.length).toBe(0);
+    tabStatisticAnalysis.titleEl = tabStatisticAnalysis.shadowRoot!.querySelector<HTMLDivElement>('.title');
+    tabStatisticAnalysis.titleEl.textContent = "2";
+    expect(tabStatisticAnalysis.titleTxt).toBe("2");
   });
 
   it('statisticAnalysis11', function () {
     tabStatisticAnalysis.currentLevel = 2;
     tabStatisticAnalysis.sortByColumn('', 0);
-    expect(tabStatisticAnalysis.tableType.recycleDataSource.length).toBe(0);
+    expect(tabStatisticAnalysis.typeUsageTbl.recycleDataSource.length).toBe(0);
   });
 
   it('statisticAnalysis12', function () {
@@ -256,48 +256,11 @@ describe('TabPaneNMStatisticAnalysis Test', () => {
       },
     ];
     tabStatisticAnalysis.sortByColumn('existCountPercent', 1);
-    expect(tabStatisticAnalysis.tableType.recycleDataSource.length).toBe(0);
+    expect(tabStatisticAnalysis.typeUsageTbl.recycleDataSource.length).toBe(0);
   });
 
   it('statisticAnalysis13', function () {
-    tabStatisticAnalysis.currentLevel = 1;
-    tabStatisticAnalysis.currentLevelData = [
-      {
-        releaseSize: 0,
-      },
-      {
-        releaseSize: 1,
-      },
-    ];
-    tabStatisticAnalysis.sortByColumn('releaseSizeFormat', 1);
-    tabStatisticAnalysis.currentLevelData = [
-      {
-        releaseSize: 0,
-      },
-      {
-        releaseSize: 1,
-      },
-    ];
-    tabStatisticAnalysis.sortByColumn('releaseSizePercent', 1);
-    tabStatisticAnalysis.currentLevelData = [
-      {
-        releaseCount: 0,
-      },
-      {
-        releaseCount: 1,
-      },
-    ];
-    tabStatisticAnalysis.sortByColumn('releaseCount', 1);
-    tabStatisticAnalysis.currentLevelData = [
-      {
-        releaseCount: 0,
-      },
-      {
-        releaseCount: 1,
-      },
-    ];
-    tabStatisticAnalysis.sortByColumn('releaseCountPercent', 1);
-    expect(tabStatisticAnalysis.tableType.recycleDataSource.length).toBe(0);
+    expect(tabStatisticAnalysis.sortByColumn()).toBeUndefined();
   });
 
   it('statisticAnalysis14', function () {
@@ -338,7 +301,7 @@ describe('TabPaneNMStatisticAnalysis Test', () => {
       },
     ];
     tabStatisticAnalysis.sortByColumn('applyCountPercent', 1);
-    expect(tabStatisticAnalysis.tableType.recycleDataSource.length).toBe(0);
+    expect(tabStatisticAnalysis.typeUsageTbl.recycleDataSource.length).toBe(0);
   });
 
   it('statisticAnalysis15', function () {

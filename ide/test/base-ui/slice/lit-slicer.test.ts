@@ -76,8 +76,9 @@ describe('slicer Test', () => {
     let litSlicer = new LitSlicer();
     litSlicer.style = 'v';
     document.body.innerHTML = `
-        <lit-slicer-track id="slicer_2"></lit-slicer-track>
+        <lit-slicer-track id="slicer_pre"></lit-slicer-track>
         <lit-slicer-track id="slicer"></lit-slicer-track>
+        <lit-slicer-track id="slicer_next"></lit-slicer-track>
         `;
     let slice = document.getElementById('slicer') as LitSlicerTrack;
     let line = slice.shadowRoot?.querySelector('#root') as HTMLDivElement;

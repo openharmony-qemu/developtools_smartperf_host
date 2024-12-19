@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import '../../../../../../src/trace/component/trace/sheet/file-system/TabpaneFilesystemCalltree';
-import { TabpaneFilesystemCalltree } from '../../../../../../src/trace/component/trace/sheet/file-system/TabpaneFilesystemCalltree';
+import '../../../../../../src/trace/component/trace/sheet/file-system/TabPaneFileSystemCalltree';
+import { TabpaneFilesystemCalltree } from '../../../../../../src/trace/component/trace/sheet/file-system/TabPaneFileSystemCalltree';
 import { TabPaneFilter } from '../../../../../../src/trace/component/trace/sheet/TabPaneFilter';
 
 jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
@@ -30,7 +30,15 @@ jest.mock('../../../../../../src/trace/database/ui-worker/cpu/ProcedureWorkerCPU
     EmptyRender: Object,
   };
 });
-
+jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {
+    return {};
+});
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+    return {};
+});
+jest.mock('../../../../../../src/trace/component/SpSystemTrace', () => {
+    return {};
+});
 const intersectionObserverMock = () => ({
   observe: () => null,
 });

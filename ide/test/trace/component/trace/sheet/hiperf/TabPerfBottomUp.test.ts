@@ -15,6 +15,12 @@
 
 import { TabpanePerfBottomUp } from '../../../../../../src/trace/component/trace/sheet/hiperf/TabPerfBottomUp';
 
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+  return {};
+});
 jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });

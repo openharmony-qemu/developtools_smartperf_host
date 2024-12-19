@@ -26,7 +26,7 @@ jest.mock('../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot',
 jest.mock('../../../../../src/js-heap/model/DatabaseStruct', () => {
   return {};
 });
-
+global.Worker = jest.fn();
 const intersectionObserverMock = () => ({
   observe: () => null,
 });

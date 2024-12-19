@@ -16,10 +16,8 @@ import { TabPaneFreqUsage } from '../../../../../../src/trace/component/trace/sh
 
 jest.mock('../../../../../../src/base-ui/table/lit-table', () => {
   return {
-    snapshotDataSource: () => {
-    },
-    removeAttribute: () => {
-    },
+    snapshotDataSource: () => {},
+    removeAttribute: () => {},
   };
 });
 window.ResizeObserver =
@@ -32,21 +30,27 @@ window.ResizeObserver =
 jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
+const processThreadSqlite = require('../../../../../../src/trace/database/sql/ProcessThread.sql');
+jest.mock('../../../../../../src/trace/database/sql/ProcessThread.sql');
 const cpuSqlite = require('../../../../../../src/trace/database/sql/Cpu.sql');
 jest.mock('../../../../../../src/trace/database/sql/Cpu.sql');
-const sqlite = require('../../../../../../src/trace/database/sql/ProcessThread.sql');
-jest.mock('../../../../../../src/trace/database/sql/ProcessThread.sql');
-jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker',()=>{
+jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {
   return {};
-})
+});
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+  return {};
+});
+global.Worker = jest.fn();
 describe('TabPaneFreqUsage Test', () => {
-  let tabPaneFreqUsage = new TabPaneFreqUsage();
   let data = {
     leftNs: 0,
     rightNs: 0,
     processIds: [1, 2],
   };
-  let getTabRunningPercent = sqlite.getTabRunningPercent;
+  let getTabRunningPercent = processThreadSqlite.getTabRunningPercent;
   getTabRunningPercent.mockResolvedValue([
     {
       pid: 1,
@@ -55,22 +59,28 @@ describe('TabPaneFreqUsage Test', () => {
       cpu: 0,
       dur: 0,
       ts: 1,
-    }
+    },
   ]);
   let queryCpuFreqFilterId = cpuSqlite.queryCpuFreqFilterId;
-  queryCpuFreqFilterId.mockResolvedValue([{
-    id: 1,
-    cpu: 0,
-  }]);
+  queryCpuFreqFilterId.mockResolvedValue([
+    {
+      id: 1,
+      cpu: 0,
+    },
+  ]);
   let queryCpuFreqUsageData = cpuSqlite.queryCpuFreqUsageData;
-  queryCpuFreqUsageData.mockResolvedValue([{
-    value: '',
-    dur: '',
-    startNS: 0,
-    filter_id: 1,
-  }]);
-  it('TabPaneFreqUsageTest01 ', function () {
+  queryCpuFreqUsageData.mockResolvedValue([
+    {
+      value: '',
+      dur: '',
+      startNS: 0,
+      filter_id: 1,
+    },
+  ]);
+  it('TabPaneFreqUsageTest01', function () {
+    document.body.innerHTML = `<div><tabpane-frequsage id="freq-usage"></tabpane-frequsage></div>`;
+    let tabPaneFreqUsage = document.querySelector<TabPaneFreqUsage>('#freq-usage');
     tabPaneFreqUsage.data = data;
-    expect(tabPaneFreqUsage.data).toBeUndefined();
+    expect(tabPaneFreqUsage.data).toEqual(data);
   });
 });

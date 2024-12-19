@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+import { SelectionData } from '../../../../../../src/trace/bean/BoxSelection';
 import { TabPaneSlices } from '../../../../../../src/trace/component/trace/sheet/process/TabPaneSlices';
 jest.mock('../../../../../../src/base-ui/table/lit-table', () => {
   return {};
@@ -83,11 +84,15 @@ describe('TabPaneSlices Test', () => {
         processIds: [578],
         funTids: [915],
         funAsync: [],
+        funCatAsync: [{ threadName: 'thread01', pid: 1 }],
       })
     );
   });
 
   it('TabPaneSlicesTest02', function () {
+    let selectionData = new SelectionData();
+    selectionData.name = '';
+    tabPaneSlices.slicesTbl!.recycleDataSource = [selectionData];
     expect(
       tabPaneSlices.sortByColumn({
         key: 'name',

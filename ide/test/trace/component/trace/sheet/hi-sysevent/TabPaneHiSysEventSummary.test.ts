@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 import { TabPaneHiSysEventSummary } from '../../../../../../src/trace/component/trace/sheet/hisysevent/TabPaneHiSysEventSummary';
+const perf = require('../../../../../../src/trace/database/sql/Perf.sql');
+jest.mock('../../../../../../src/trace/database/sql/Perf.sql');
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -22,6 +24,27 @@ window.ResizeObserver =
     unobserve: jest.fn(),
   }));
 describe('TabPaneHilogSummary Test', () => {
+  let queryHiSysEventTabData = perf.queryHiSysEventTabData;
+  let data = [
+    {
+      id: 1,
+      domain: "d",
+      eventName: "s",
+      eventType: 0,
+      tz: 475,
+      pid: 999,
+      tid: 5,
+      uid: 4,
+      info: "885",
+      level: 1,
+      seq: "5",
+      contents: "60",
+      startTs: 5,
+      dur: 511,
+    }
+  ];
+  queryHiSysEventTabData.mockResolvedValue(data);
+  
   let summaryTab = new TabPaneHiSysEventSummary();
   let summaryData = {
     sysAllEventsData: [{

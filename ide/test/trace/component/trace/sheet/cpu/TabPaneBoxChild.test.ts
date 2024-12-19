@@ -14,12 +14,23 @@
  */
 
 import { TabPaneBoxChild } from '../../../../../../src/trace/component/trace/sheet/cpu/TabPaneBoxChild';
-const sqlit = require('../../../../../../src/trace/database/sql/ProcessThread.sql');
+const sqlite = require('../../../../../../src/trace/database/sql/ProcessThread.sql');
 jest.mock('../../../../../../src/trace/database/sql/ProcessThread.sql');
 jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
   return {};
 });
-
+jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {
+    return {};
+});
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+    return {};
+});
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+    return {};
+});
+jest.mock('../../../../../../src/trace/component/SpSystemTrace', () => {
+    return {};
+});
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -34,18 +45,10 @@ describe('TabPaneBoxChild Test', () => {
   let tabPaneBoxChild = new TabPaneBoxChild();
   element.appendChild(tabPaneBoxChild);
   tabPaneBoxChild.loadDataInCache = true;
-  let getTabBox = sqlit.getTabBoxChildData;
+  let getTabBox = sqlite.queryArgsById;
   let data = [
     {
-      process: '',
-      processId: 12,
-      thread: '',
-      state: 2,
-      threadId: 3,
-      duration: 1,
-      startNs: 17,
-      cpu: 2,
-      priority: 1,
+        id: 0
     },
   ];
   getTabBox.mockResolvedValue(data);

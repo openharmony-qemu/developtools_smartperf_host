@@ -14,7 +14,9 @@
  */
 
 import { LitSearch } from '../../../../../src/trace/component/trace/search/Search';
-
+jest.mock('../../../../../src/js-heap/model/DatabaseStruct', () => {
+    return {};
+});
 describe(' SearchTest', () => {
   beforeAll(() => {});
   it('Search Test01', () => {

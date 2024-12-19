@@ -22,7 +22,8 @@ describe('Serialize Test', () => {
       authType: 1,
       sessionId: 1,
       connectKey: 1,
-      buf: '',
+      buf: 'buf',
+      version: 'Ver: 3.0.0b',
     };
     expect(Serialize.serializeSessionHandShake(banne)).not.toBeUndefined();
   });
