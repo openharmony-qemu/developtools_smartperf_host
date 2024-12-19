@@ -19,6 +19,7 @@ rm='rm'
 root_dir=`pwd`
 echo "build root dir is $root_dir"
 
+git config --global core.longpaths true
 case "$OSTYPE" in
   darwin*)  sed="gsed" ;;
 esac
