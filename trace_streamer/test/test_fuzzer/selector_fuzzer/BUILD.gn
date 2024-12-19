@@ -45,6 +45,7 @@ ohos_fuzztest("ts_selector_fuzz_test") {
     "${TRACE_STDTYPE}/hisysevent",
     "${TRACE_STDTYPE}/htrace",
     "${TRACE_STDTYPE}/measure",
+    "${TRACE_STDTYPE}/xpower",
   ]
   cflags = [
     "-g",
