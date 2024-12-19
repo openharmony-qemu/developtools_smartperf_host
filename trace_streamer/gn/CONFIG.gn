@@ -35,6 +35,7 @@ declare_args() {
   is_mac = false
   is_spb = false
   target = "trace_streamer"
+  enable_addr2line = false
 }
 if (target_os == "linux") {
   is_linux = true
@@ -100,7 +101,10 @@ if (!is_debug) {
   hiperf_default_configs += [ "//gn:release" ]
 }
 
-llvm_include_configs = [ "//llvm/utils/gn/build:llvm_code" ]
+llvm_include_configs = []
+if (enable_addr2line) {
+  llvm_include_configs += [ "//llvm/utils/gn/build:llvm_code" ]
+}
 
 set_defaults("static_library") {
   configs = default_configs

@@ -30,6 +30,10 @@ function list_all_plugins() {
     for var in "${enable_extend_plugin_array[@]}"; do
         echo "  ${var#enable_}"
     done
+    echo "the default support macro switch list:"
+    for var in "${enable_macro_switch_array[@]}"; do
+        echo "  ${var#enable_}"
+    done
     exit
 }
 function set_enable_all_plugins_str() {
@@ -37,6 +41,9 @@ function set_enable_all_plugins_str() {
         enable_all_plugins_str="$enable_all_plugins_str$var=${!var} "
     done
     for var in "${enable_extend_plugin_array[@]}"; do
+        enable_all_plugins_str="$enable_all_plugins_str$var=${!var} "
+    done
+    for var in "${enable_macro_switch_array[@]}"; do
         enable_all_plugins_str="$enable_all_plugins_str$var=${!var} "
     done
 }
@@ -48,6 +55,11 @@ function set_enable_plugin_array() {
 function set_enable_extend_plugin_array() {
     for enable_extend_plugin in "${enable_extend_plugin_array[@]}"; do
         eval "$enable_extend_plugin=$1"
+    done
+}
+function set_enable_macro_switch_array() {
+    for enable_macro in "${enable_macro_switch_array[@]}"; do
+        eval "$enable_macro=$1"
     done
 }
 function choose_os_type() {

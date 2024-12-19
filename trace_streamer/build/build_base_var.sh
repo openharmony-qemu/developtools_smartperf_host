@@ -28,4 +28,5 @@ enable_plugin_array=("enable_hiperf" "enable_ebpf" "enable_native_hook" "enable_
            "enable_arkts" "enable_bytrace" "enable_rawtrace" "enable_htrace" "enable_ffrt" "enable_memory"
            "enable_hidump" "enable_cpudata" "enable_network" "enable_diskio" "enable_process" "enable_xpower")
 enable_extend_plugin_array=("enable_stream_extend")
+enable_macro_switch_array=("enable_addr2line")
 enable_all_plugins_str=""

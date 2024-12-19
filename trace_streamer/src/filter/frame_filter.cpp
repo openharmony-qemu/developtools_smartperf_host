@@ -95,11 +95,11 @@ bool FrameFilter::UpdateVsyncId(const BytraceLine &line, uint32_t vsyncId)
     return true;
 }
 
-bool FrameFilter::MarkRSOnDoCompositionEvent(uint64_t ts, uint32_t itid)
+bool FrameFilter::MarkRSOnDoCompositionEvent(uint32_t itid)
 {
     auto frame = vsyncRenderSlice_.find(itid);
     if (frame == vsyncRenderSlice_.end()) {
-        TS_LOGD("BeginOnDoCompositionEvent find for itid:%u failed, ts:%" PRIu64 "", itid, ts);
+        TS_LOGD("BeginOnDoCompositionEvent find for itid:%u failed", itid);
         return false;
     }
     if (!frame->second.size()) {
@@ -111,10 +111,7 @@ bool FrameFilter::MarkRSOnDoCompositionEvent(uint64_t ts, uint32_t itid)
     return true;
 }
 // for app
-bool FrameFilter::BeginRSTransactionData(uint64_t ts,
-                                         uint32_t currentThreadId,
-                                         uint32_t frameNum,
-                                         uint32_t mainThreadId)
+bool FrameFilter::BeginRSTransactionData(uint32_t currentThreadId, uint32_t frameNum, uint32_t mainThreadId)
 {
     auto frame = vsyncRenderSlice_.find(currentThreadId);
     if (frame == vsyncRenderSlice_.end()) {
@@ -134,10 +131,7 @@ bool FrameFilter::BeginRSTransactionData(uint64_t ts,
     return true;
 }
 // for RS
-bool FrameFilter::BeginProcessCommandUni(uint64_t ts,
-                                         uint32_t itid,
-                                         const std::vector<FrameMap> &frames,
-                                         uint32_t sliceIndex)
+bool FrameFilter::BeginProcessCommandUni(uint32_t itid, const std::vector<FrameMap> &frames, uint32_t sliceIndex)
 {
     auto frame = vsyncRenderSlice_.find(itid);
     TS_CHECK_TRUE_RET(frame != vsyncRenderSlice_.end(), false);

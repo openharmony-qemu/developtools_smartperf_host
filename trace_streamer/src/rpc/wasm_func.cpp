@@ -242,7 +242,9 @@ EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerParseDataEx(int32_t dataLen, bool isFi
     if (!g_hasDeterminedSystrace) {
         g_isSystrace = g_wasmTraceStreamer.DetermineSystrace(g_reqBuf, dataLen);
         g_isZipTrace = g_wasmTraceStreamer.DetermineZipTrace(g_reqBuf, dataLen);
+#if IS_WASM
         g_isZlibTrace = g_wasmTraceStreamer.DetermineZlibTrace(g_reqBuf, dataLen);
+#endif
         g_hasDeterminedSystrace = true;
     }
     if (g_wasmTraceStreamer.GetFfrtConvertStatus() && g_isSystrace) {

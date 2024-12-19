@@ -210,7 +210,9 @@ bool PbreaderParser::ReparseSymbolFileAndResymbolization(const std::string &dire
 #ifdef ENABLE_HIPERF
     if (traceDataCache_->GetPerfFilesData()->Size() > 0) {
         perfDataParser_->PerfReloadSymbolFile(symbolsFile);
+#ifdef ENABLE_ADDR2LINE
         perfDataParser_->ParseSourceLocation(directory, fileName);
+#endif
         parseStatus = true;
     }
 #endif

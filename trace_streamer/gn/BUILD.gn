@@ -114,6 +114,9 @@ config("default") {
   if (enable_stream_extend) {
     defines += [ "ENABLE_STREAM_EXTEND" ]
   }
+  if (enable_addr2line) {
+    defines += [ "ENABLE_ADDR2LINE" ]
+  }
   if (is_debug && is_win) {
     ldflags += [ "-fstack-protector" ]
   }

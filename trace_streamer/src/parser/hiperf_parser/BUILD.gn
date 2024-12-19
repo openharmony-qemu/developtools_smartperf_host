@@ -71,10 +71,12 @@ config("hiperf_parser_cfg") {
     "${COMMON_LIBRARY}/base/include",
     "${THIRD_PARTY}/sqlite",
   ]
-  include_dirs += [
-    "//llvm/include",
-    "$root_gen_dir/llvm/include",
-  ]
+  if (enable_addr2line) {
+    include_dirs += [
+      "//llvm/include",
+      "$root_gen_dir/llvm/include",
+    ]
+  }
   if (is_mingw || is_mac) {
     include_dirs += [ "${THIRD_PARTY}/libbpf/include/uapi" ]
   }
@@ -92,12 +94,16 @@ ohos_static_library("hiperf_parser") {
     "${PERF_DIR}/hiperf:hiperf_src",
     "${THIRD_PARTY}/protobuf:protobuf_lite_static",
     "${THIRD_PARTY}/protobuf:protobuf_static",
-    "//llvm/lib/DebugInfo/DWARF",
-    "//llvm/lib/DebugInfo/PDB",
-    "//llvm/lib/DebugInfo/Symbolize",
-    "//llvm/lib/Demangle",
-    "//llvm/lib/Object",
-    "//llvm/lib/Support",
     "//third_party/perf_include/hiviewdfx:libfaultloggerd",
   ]
+  if (enable_addr2line) {
+    public_deps += [
+      "//llvm/lib/DebugInfo/DWARF",
+      "//llvm/lib/DebugInfo/PDB",
+      "//llvm/lib/DebugInfo/Symbolize",
+      "//llvm/lib/Demangle",
+      "//llvm/lib/Object",
+      "//llvm/lib/Support",
+    ]
+  }
 }

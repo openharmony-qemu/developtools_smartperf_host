@@ -874,7 +874,7 @@ HWTEST_F(TableTest, PerfCallchainTableTest, TestSize.Level1)
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 1);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect2, false), 2);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect3, false), 0);
-    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect4, false), 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect4, false), 0);
 }
 /**
  * @tc.name: PerfFilesTableTest

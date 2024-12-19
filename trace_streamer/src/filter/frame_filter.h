@@ -32,13 +32,13 @@ public:
                          uint64_t expectEnd,
                          uint32_t vsyncId,
                          uint32_t callStackSliceId);
-    bool MarkRSOnDoCompositionEvent(uint64_t ts, uint32_t itid);
-    bool BeginRSTransactionData(uint64_t ts, uint32_t currentThreadId, uint32_t frameNum, uint32_t mainThreadId);
+    bool MarkRSOnDoCompositionEvent(uint32_t itid);
+    bool BeginRSTransactionData(uint32_t currentThreadId, uint32_t frameNum, uint32_t mainThreadId);
     typedef struct {
         uint32_t sourceItid;
         uint32_t frameNum;
     } FrameMap;
-    bool BeginProcessCommandUni(uint64_t ts, uint32_t itid, const std::vector<FrameMap> &frame, uint32_t sliceIndex);
+    bool BeginProcessCommandUni(uint32_t itid, const std::vector<FrameMap> &frame, uint32_t sliceIndex);
     bool EndVsyncEvent(uint64_t ts, uint32_t itid);
     bool StartFrameQueue(uint64_t ts, uint32_t itid);
     bool EndFrameQueue(uint64_t ts, uint32_t itid);

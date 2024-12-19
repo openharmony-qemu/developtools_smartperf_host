@@ -15,7 +15,9 @@
 #include "perf_data_parser.h"
 #include "clock_filter_ex.h"
 #include "file.h"
+#ifdef ENABLE_ADDR2LINE
 #include "llvm/DebugInfo/Symbolize/Symbolize.h"
+#endif
 #include "perf_data_filter.h"
 #include "perf_file_format.h"
 #include "stat_filter.h"
@@ -485,7 +487,7 @@ void PerfDataParser::PerfReloadSymbolFile(const std::unique_ptr<SymbolsFile> &sy
     }
     ReloadPerfCallChain(symbolsFile, fileId, filePathIndex);
 }
-
+#ifdef ENABLE_ADDR2LINE
 void PerfDataParser::ParseSourceLocation(const std::string &directory, const std::string &fileName)
 {
     uint64_t fileId;
@@ -522,6 +524,7 @@ void PerfDataParser::ParseSourceLocation(const std::string &directory, const std
         }
     }
 }
+#endif
 bool PerfDataParser::LoadPerfData()
 {
     // try load the perf data

@@ -203,7 +203,7 @@ size_t XPowerAppDetailDisplay::AppendNewAppDetailDisplayData(const XPowerAppDeta
     count1Hertzs_.emplace_back(row.count1Hertz);
     count5Hertzs_.emplace_back(row.count5Hertz);
     count10Hertzs_.emplace_back(row.count10Hertz);
-    count15Hertzs_.emplace_back(row.count5Hertz);
+    count15Hertzs_.emplace_back(row.count15Hertz);
     count24Hertzs_.emplace_back(row.count24Hertz);
     count30Hertzs_.emplace_back(row.count30Hertz);
     count45Hertzs_.emplace_back(row.count45Hertz);

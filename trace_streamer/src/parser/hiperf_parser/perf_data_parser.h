@@ -59,7 +59,9 @@ public:
                                  bool isFinish);
     void Finish();
     void PerfReloadSymbolFile(const std::unique_ptr<SymbolsFile> &symbolsFile);
+#ifdef ENABLE_ADDR2LINE
     void ParseSourceLocation(const std::string &directory, const std::string &fileName);
+#endif
     const auto &GetPerfSplitResult()
     {
         return splitResult_;

@@ -26,7 +26,7 @@ fi
 lcov -r test.info \
     '/usr/include/*' \
     '*/out/*' \
-    '*/src/base/*' \
+    '*/llvm/*' \
     '*/third_party/*' \
     -o test.info
 

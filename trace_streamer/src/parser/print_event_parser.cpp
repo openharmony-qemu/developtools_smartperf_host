@@ -391,7 +391,7 @@ bool PrintEventParser::RSReciveOnDoComposition(size_t callStackRow, std::string 
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_ON_DO_COMPOSITION, STAT_EVENT_RECEIVED);
     auto iTid = streamFilters_->processFilter_->GetInternalTid(line.pid);
-    (void)streamFilters_->frameFilter_->MarkRSOnDoCompositionEvent(line.ts, iTid);
+    (void)streamFilters_->frameFilter_->MarkRSOnDoCompositionEvent(iTid);
     return true;
 }
 bool PrintEventParser::OnRwTransaction(size_t callStackRow, std::string &args, const BytraceLine &line)
@@ -407,7 +407,7 @@ bool PrintEventParser::OnRwTransaction(size_t callStackRow, std::string &args, c
         // use to update vsyncRenderSlice_
         auto currentThreadId = streamFilters_->processFilter_->GetInternalTid(line.pid);
         return streamFilters_->frameFilter_->BeginRSTransactionData(
-            line.ts, currentThreadId, base::StrToInt<uint32_t>(flag2).value(), mainThreadId);
+            currentThreadId, base::StrToInt<uint32_t>(flag2).value(), mainThreadId);
     }
     return true;
 }
@@ -425,7 +425,7 @@ bool PrintEventParser::OnMainThreadProcessCmd(size_t callStackRow, std::string &
         ++it;
     }
     auto iTid = streamFilters_->processFilter_->GetInternalTid(line.pid);
-    return streamFilters_->frameFilter_->BeginProcessCommandUni(line.ts, iTid, frames, callStackRow);
+    return streamFilters_->frameFilter_->BeginProcessCommandUni(iTid, frames, callStackRow);
 }
 bool PrintEventParser::OnFrameQueueStart(uint64_t ts, size_t callStackRow, uint64_t pid)
 {

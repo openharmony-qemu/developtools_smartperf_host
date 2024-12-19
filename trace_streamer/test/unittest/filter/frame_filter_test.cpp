@@ -31,6 +31,7 @@ const uint64_t EXPECTED_START = 5;
 const uint64_t EXPECTED_END = 10;
 const uint32_t VSYNC_ID = 1;
 const uint32_t CALLSTACK_SLICE_ID = 1;
+const uint32_t CALLSTACK_SLICE_ID2 = 1;
 const uint64_t RS_START_TS = 5;
 const uint32_t RS_PID = 2;
 const uint32_t RS_TID = 2;
@@ -38,6 +39,8 @@ const uint64_t RS_EXPECTED_START = 6;
 const uint64_t RS_EXPECTED_END = 11;
 const uint32_t RS_VSYNC_ID = 2;
 const uint32_t RS_CALLSTACK_SLICE_ID = 2;
+const size_t SON_THREAD_DATA_INDEX = 2;
+const uint8_t INVALID_DATA = 2;
 
 class FrameFilterTest : public ::testing::Test {
 public:
@@ -96,7 +99,7 @@ HWTEST_F(FrameFilterTest, AppVsyncHasFrameNum, TestSize.Level1)
                                                           CALLSTACK_SLICE_ID);
     const uint64_t FRAME_TS = 5;
     const uint32_t FRAME_NUM = 1;
-    bool res = stream_.streamFilters_->frameFilter_->BeginRSTransactionData(FRAME_TS, itid, FRAME_NUM);
+    bool res = stream_.streamFilters_->frameFilter_->BeginRSTransactionData(itid, FRAME_NUM, itid);
     EXPECT_TRUE(res);
     const uint64_t END_TS = 10;
     res = stream_.streamFilters_->frameFilter_->EndVsyncEvent(END_TS, itid);
@@ -124,8 +127,7 @@ HWTEST_F(FrameFilterTest, RSVsyncHasNoFrameNum, TestSize.Level1)
     auto itid = stream_.streamFilters_->processFilter_->GetOrCreateThreadWithPid(TID1, PID1);
     stream_.streamFilters_->frameFilter_->BeginVsyncEvent(line, EXPECTED_START, EXPECTED_END, VSYNC_ID,
                                                           CALLSTACK_SLICE_ID);
-    const uint64_t ON_DO_COMPOSITION_TS = 2;
-    auto res = stream_.streamFilters_->frameFilter_->MarkRSOnDoCompositionEvent(ON_DO_COMPOSITION_TS, itid);
+    auto res = stream_.streamFilters_->frameFilter_->MarkRSOnDoCompositionEvent(itid);
     EXPECT_TRUE(res);
     const uint64_t END_TS = 10;
     res = stream_.streamFilters_->frameFilter_->EndVsyncEvent(END_TS, itid);
@@ -149,16 +151,14 @@ HWTEST_F(FrameFilterTest, RSVsyncHasFrameNumNotMatched, TestSize.Level1)
     auto itid = stream_.streamFilters_->processFilter_->GetOrCreateThreadWithPid(TID1, PID1);
     stream_.streamFilters_->frameFilter_->BeginVsyncEvent(line, EXPECTED_START, EXPECTED_END, VSYNC_ID,
                                                           CALLSTACK_SLICE_ID);
-    const uint64_t ON_DO_COMPOSITION_TS = 2;
-    auto res = stream_.streamFilters_->frameFilter_->MarkRSOnDoCompositionEvent(ON_DO_COMPOSITION_TS, itid);
+    auto res = stream_.streamFilters_->frameFilter_->MarkRSOnDoCompositionEvent(itid);
     EXPECT_TRUE(res);
 
     const uint32_t SOURCE_ITID1 = 2;
     const uint32_t SOURCE_FRAME_NUM = 1;
-    const uint64_t UNI_TS = 3;
     std::vector<FrameFilter::FrameMap> frames;
     frames.push_back({SOURCE_ITID1, SOURCE_FRAME_NUM});
-    stream_.streamFilters_->frameFilter_->BeginProcessCommandUni(UNI_TS, itid, frames, 0);
+    stream_.streamFilters_->frameFilter_->BeginProcessCommandUni(itid, frames, 0);
     const uint64_t END_TS = 10;
     res = stream_.streamFilters_->frameFilter_->EndVsyncEvent(END_TS, itid);
     EXPECT_TRUE(res);
@@ -182,16 +182,14 @@ HWTEST_F(FrameFilterTest, RSVsyncHasGpu, TestSize.Level1)
     auto itid = stream_.streamFilters_->processFilter_->GetOrCreateThreadWithPid(TID1, PID1);
     stream_.streamFilters_->frameFilter_->BeginVsyncEvent(line, EXPECTED_START, EXPECTED_END, VSYNC_ID,
                                                           CALLSTACK_SLICE_ID);
-    const uint64_t ON_DO_COMPOSITION_TS = 2;
-    auto res = stream_.streamFilters_->frameFilter_->MarkRSOnDoCompositionEvent(ON_DO_COMPOSITION_TS, itid);
+    auto res = stream_.streamFilters_->frameFilter_->MarkRSOnDoCompositionEvent(itid);
     EXPECT_TRUE(res);
 
     const uint32_t SOURCE_ITID1 = 2;
     const uint32_t SOURCE_FRAME_NUM = 1;
-    const uint64_t UNI_TS = 3;
     std::vector<FrameFilter::FrameMap> frames;
     frames.push_back({SOURCE_ITID1, SOURCE_FRAME_NUM});
-    stream_.streamFilters_->frameFilter_->BeginProcessCommandUni(UNI_TS, itid, frames, 0);
+    stream_.streamFilters_->frameFilter_->BeginProcessCommandUni(itid, frames, 0);
     const uint64_t END_TS = 10;
     res = stream_.streamFilters_->frameFilter_->EndVsyncEvent(END_TS, itid);
     EXPECT_TRUE(res);
@@ -216,8 +214,7 @@ HWTEST_F(FrameFilterTest, RSVsyncHasGpuCross, TestSize.Level1)
     auto itid = stream_.streamFilters_->processFilter_->GetOrCreateThreadWithPid(TID1, PID1);
     stream_.streamFilters_->frameFilter_->BeginVsyncEvent(line, EXPECTED_START, EXPECTED_END, VSYNC_ID,
                                                           CALLSTACK_SLICE_ID);
-    const uint64_t ON_DO_COMPOSITION_TS = 2;
-    auto res = stream_.streamFilters_->frameFilter_->MarkRSOnDoCompositionEvent(ON_DO_COMPOSITION_TS, itid);
+    auto res = stream_.streamFilters_->frameFilter_->MarkRSOnDoCompositionEvent(itid);
     EXPECT_TRUE(res);
     const uint64_t GPU_START_TS = 3;
     stream_.streamFilters_->frameFilter_->StartFrameQueue(GPU_START_TS, itid);
@@ -250,8 +247,7 @@ HWTEST_F(FrameFilterTest, RSVsyncHasGpu2Slices, TestSize.Level1)
     auto itid = stream_.streamFilters_->processFilter_->GetOrCreateThreadWithPid(TID1, PID1);
     stream_.streamFilters_->frameFilter_->BeginVsyncEvent(line1, EXPECTED_START, EXPECTED_END, VSYNC_ID,
                                                           CALLSTACK_SLICE_ID);
-    const uint64_t ON_DO_COMPOSITION_TS = 2;
-    auto res = stream_.streamFilters_->frameFilter_->MarkRSOnDoCompositionEvent(ON_DO_COMPOSITION_TS, itid);
+    auto res = stream_.streamFilters_->frameFilter_->MarkRSOnDoCompositionEvent(itid);
     EXPECT_TRUE(res);
     const uint64_t GPU_START_TS = 3;
     stream_.streamFilters_->frameFilter_->StartFrameQueue(GPU_START_TS, itid);
@@ -269,8 +265,7 @@ HWTEST_F(FrameFilterTest, RSVsyncHasGpu2Slices, TestSize.Level1)
     auto itid2 = stream_.streamFilters_->processFilter_->GetOrCreateThreadWithPid(TID1, PID1);
     stream_.streamFilters_->frameFilter_->BeginVsyncEvent(line2, EXPECTED_START2, EXPECTED_END2, VSYNC_ID2,
                                                           CALLSTACK_SLICE_ID2);
-    const uint64_t ON_DO_COMPOSITION_TS2 = 5;
-    res = stream_.streamFilters_->frameFilter_->MarkRSOnDoCompositionEvent(ON_DO_COMPOSITION_TS2, itid2);
+    res = stream_.streamFilters_->frameFilter_->MarkRSOnDoCompositionEvent(itid2);
     EXPECT_TRUE(res);
 
     const uint64_t GPU_END_TS = 15;
@@ -313,14 +308,13 @@ HWTEST_F(FrameFilterTest, SliceFromAppToRS, TestSize.Level1)
                                                           CALLSTACK_SLICE_ID);
     const uint64_t ON_DO_COMPOSITION_TS = 2;
     const uint32_t FRAME_NUM = 1;
-    EXPECT_TRUE(stream_.streamFilters_->frameFilter_->BeginRSTransactionData(ON_DO_COMPOSITION_TS, itid, FRAME_NUM));
+    EXPECT_TRUE(stream_.streamFilters_->frameFilter_->BeginRSTransactionData(itid, FRAME_NUM, itid));
     BytraceLine line2 = {RS_START_TS, RS_PID};
     line.tgid = RS_TID;
     auto itid2 = stream_.streamFilters_->processFilter_->GetOrCreateThreadWithPid(RS_TID, RS_PID);
     stream_.streamFilters_->frameFilter_->BeginVsyncEvent(line2, RS_EXPECTED_START, RS_EXPECTED_END, RS_VSYNC_ID,
                                                           RS_CALLSTACK_SLICE_ID);
-    const uint64_t ON_DO_COMPOSITION_TS2 = 7;
-    stream_.streamFilters_->frameFilter_->MarkRSOnDoCompositionEvent(ON_DO_COMPOSITION_TS2, RS_TID);
+    stream_.streamFilters_->frameFilter_->MarkRSOnDoCompositionEvent(RS_TID);
     const uint64_t GPU_START_TS2 = 7;
     stream_.streamFilters_->frameFilter_->StartFrameQueue(GPU_START_TS2, RS_TID);
     const uint64_t END_TS = 10;
@@ -337,8 +331,7 @@ HWTEST_F(FrameFilterTest, SliceFromAppToRS, TestSize.Level1)
     BytraceLine line3 = {RS_START_TS2, RS_PID, RS_TID};
     stream_.streamFilters_->frameFilter_->BeginVsyncEvent(line3, RS_EXPECTED_START2, RS_EXPECTED_END2, RS_VSYNC_ID2,
                                                           RS_CALLSTACK_SLICE_ID2);
-    const uint64_t ON_DO_COMPOSITION_TS3 = 12;
-    stream_.streamFilters_->frameFilter_->MarkRSOnDoCompositionEvent(ON_DO_COMPOSITION_TS3, RS_TID);
+    stream_.streamFilters_->frameFilter_->MarkRSOnDoCompositionEvent(RS_TID);
 
     const uint64_t GPU_END_TS = 15;
     stream_.streamFilters_->frameFilter_->EndFrameQueue(GPU_END_TS, RS_TID);
@@ -355,6 +348,110 @@ HWTEST_F(FrameFilterTest, SliceFromAppToRS, TestSize.Level1)
     EXPECT_EQ(stream_.traceDataCache_->GetFrameSliceData()->Durs()[2], GPU_END_TS3 - END_TS3);
     EXPECT_TRUE(atoi(stream_.traceDataCache_->GetFrameSliceData()->Srcs()[2].c_str()) ==
                 stream_.traceDataCache_->GetFrameSliceData()->IdsData()[0]);
+}
+
+HWTEST_F(FrameFilterTest, AppUVTraceNoVsyncIdAndFrameNum, TestSize.Level1)
+{
+    TS_LOGI("test6-9");
+    // no vsyncId and frameNum
+    // app ---------------H:UVTrace------------------End---uint64_t ts,
+    BytraceLine line = {START_TS, TID1};
+    line.tgid = PID1;
+    auto itid = stream_.streamFilters_->processFilter_->GetOrCreateThreadWithPid(TID1, PID1);
+    stream_.streamFilters_->frameFilter_->BeginUVTraceEvent(line, CALLSTACK_SLICE_ID);
+    const uint64_t END_TS = 10;
+    auto res = stream_.streamFilters_->frameFilter_->EndVsyncEvent(END_TS, itid);
+    EXPECT_FALSE(res);
+    EXPECT_EQ(stream_.traceDataCache_->GetFrameSliceData()->Flags()[0], INVALID_DATA);     // actural frame, no frameNum
+    EXPECT_EQ(stream_.traceDataCache_->GetFrameSliceData()->TimeStampData()[0], START_TS); // actural frame
+    EXPECT_EQ(stream_.traceDataCache_->GetFrameSliceData()->Durs()[0], END_TS - START_TS); // actural frame
+}
+
+HWTEST_F(FrameFilterTest, AppUVTraceNoFrameNum, TestSize.Level1)
+{
+    TS_LOGI("test6-10");
+    // no frameNum
+    // app ---------------H:UVTrace------------------End---uint64_t ts,
+    BytraceLine mainThreadLine = {0, PID1};
+    mainThreadLine.tgid = PID1;
+    const uint64_t SON_START_TS = 6;
+    BytraceLine line = {SON_START_TS, TID1};
+    line.tgid = PID1;
+    auto mainThreadId = stream_.streamFilters_->processFilter_->GetOrCreateThreadWithPid(PID1, PID1);
+    auto itid = stream_.streamFilters_->processFilter_->GetOrCreateThreadWithPid(TID1, PID1);
+    stream_.streamFilters_->frameFilter_->BeginVsyncEvent(mainThreadLine, EXPECTED_START, EXPECTED_END, VSYNC_ID,
+                                                          CALLSTACK_SLICE_ID);
+    stream_.streamFilters_->frameFilter_->BeginUVTraceEvent(line, CALLSTACK_SLICE_ID);
+    stream_.streamFilters_->frameFilter_->UpdateVsyncId(line, VSYNC_ID);
+    const uint64_t SON_END_TS = 9;
+    auto res = stream_.streamFilters_->frameFilter_->EndVsyncEvent(SON_END_TS, itid);
+    EXPECT_FALSE(res);
+    const uint64_t END_TS = 10;
+    res = stream_.streamFilters_->frameFilter_->EndVsyncEvent(END_TS, mainThreadId);
+    EXPECT_FALSE(res);
+    EXPECT_EQ(stream_.traceDataCache_->GetFrameSliceData()->Flags()[SON_THREAD_DATA_INDEX],
+              INVALID_DATA); // actural frame, no frameNum
+    EXPECT_EQ(stream_.traceDataCache_->GetFrameSliceData()->Durs()[SON_THREAD_DATA_INDEX],
+              SON_END_TS - SON_START_TS); // actural frame
+}
+
+HWTEST_F(FrameFilterTest, AppUVTraceNormal, TestSize.Level1)
+{
+    TS_LOGI("test6-11");
+    // app ---------------H:UVTrace------------------End---uint64_t ts,
+    const uint64_t SON_START_TS = 6;
+    BytraceLine line = {SON_START_TS, TID1};
+    line.tgid = PID1;
+    auto sonThreadId = stream_.streamFilters_->processFilter_->GetOrCreateThreadWithPid(TID1, PID1);
+    BytraceLine mainThreadLine = {0, PID1};
+    mainThreadLine.tgid = PID1;
+    auto mainThreadId = stream_.streamFilters_->processFilter_->GetOrCreateThreadWithPid(PID1, PID1);
+    stream_.streamFilters_->frameFilter_->BeginVsyncEvent(mainThreadLine, EXPECTED_START, EXPECTED_END, VSYNC_ID,
+                                                          CALLSTACK_SLICE_ID2);
+    stream_.streamFilters_->frameFilter_->BeginUVTraceEvent(line, CALLSTACK_SLICE_ID2);
+    stream_.streamFilters_->frameFilter_->UpdateVsyncId(line, VSYNC_ID);
+    const uint32_t FRAME_NUM = 1;
+    stream_.streamFilters_->frameFilter_->BeginRSTransactionData(sonThreadId, FRAME_NUM, mainThreadId);
+    const uint64_t SON_END_TS = 8;
+    auto res = stream_.streamFilters_->frameFilter_->EndVsyncEvent(SON_END_TS, sonThreadId);
+    EXPECT_TRUE(res);
+    const uint64_t END_TS = 9;
+    res = stream_.streamFilters_->frameFilter_->EndVsyncEvent(END_TS, mainThreadId);
+    EXPECT_FALSE(res);
+    EXPECT_EQ(stream_.traceDataCache_->GetFrameSliceData()->Flags()[SON_THREAD_DATA_INDEX],
+              0); // actural frame, no frameNum
+    EXPECT_EQ(stream_.traceDataCache_->GetFrameSliceData()->Durs()[SON_THREAD_DATA_INDEX],
+              SON_END_TS - SON_START_TS); // actural frame
+}
+
+HWTEST_F(FrameFilterTest, AppUVTraceTimeout, TestSize.Level1)
+{
+    TS_LOGI("test6-12");
+    // app subthread actual frame timeout
+    const uint64_t SON_START_TS = 7;
+    BytraceLine line = {SON_START_TS, TID1};
+    line.tgid = PID1;
+    const uint64_t START_TS = 6;
+    BytraceLine mainThreadLine = {START_TS, PID1};
+    mainThreadLine.tgid = PID1;
+    auto sonThreadId = stream_.streamFilters_->processFilter_->GetOrCreateThreadWithPid(TID1, PID1);
+    auto mainThreadId = stream_.streamFilters_->processFilter_->GetOrCreateThreadWithPid(PID1, PID1);
+    stream_.streamFilters_->frameFilter_->BeginVsyncEvent(mainThreadLine, EXPECTED_START, EXPECTED_END, VSYNC_ID,
+                                                          CALLSTACK_SLICE_ID);
+    stream_.streamFilters_->frameFilter_->BeginUVTraceEvent(line, CALLSTACK_SLICE_ID2);
+    stream_.streamFilters_->frameFilter_->UpdateVsyncId(line, VSYNC_ID);
+    const uint32_t FRAME_NUM = 2;
+    stream_.streamFilters_->frameFilter_->BeginRSTransactionData(sonThreadId, FRAME_NUM, mainThreadId);
+    const uint64_t SON_END_TS = 11;
+    auto res = stream_.streamFilters_->frameFilter_->EndVsyncEvent(SON_END_TS, sonThreadId);
+    EXPECT_TRUE(res);
+    const uint64_t END_TS = 9;
+    res = stream_.streamFilters_->frameFilter_->EndVsyncEvent(END_TS, mainThreadId);
+    EXPECT_FALSE(res);
+    EXPECT_EQ(stream_.traceDataCache_->GetFrameSliceData()->Flags()[SON_THREAD_DATA_INDEX],
+              1); // actural frame, no frameNum
+    EXPECT_EQ(stream_.traceDataCache_->GetFrameSliceData()->Durs()[SON_THREAD_DATA_INDEX],
+              SON_END_TS - SON_START_TS); // actural frame
 }
 } // namespace TraceStreamer
 } // namespace SysTuning
