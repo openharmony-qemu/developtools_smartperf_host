@@ -1770,6 +1770,8 @@ export class SpSystemTrace extends BaseElement {
   private subRecordExportListener(): void {
     window.subscribe(window.SmartEvent.UI.ExportRecord, (params) => {
       let range = this.timerShaftEL?.rangeRuler?.range;
+      // @ts-ignore
+      let searchVal = document.querySelector("body > sp-application").shadowRoot.querySelector("#lit-search").shadowRoot.querySelector("div.root > input")!.value;
       if (range) {
         let expandRows =
           Array.from(this.rowsEL!.querySelectorAll<TraceRow<BaseStruct>>('trace-row[folder][expansion]')) || [];
@@ -1791,6 +1793,7 @@ export class SpSystemTrace extends BaseElement {
           drawFlag: this.timerShaftEL!.sportRuler!.flagList,
           //下载时存M和shiftM的信息
           markFlag: this.timerShaftEL!.sportRuler!.slicesTimeList,
+          search: searchVal?searchVal:''
         });
         this.downloadRecordFile(data).then(() => { });
       }
@@ -1838,6 +1841,10 @@ export class SpSystemTrace extends BaseElement {
         TraceRow.range!.refresh = true;
         this.refreshCanvas(true);
         this.restoreRecordScrollTop(record.scrollTop, record.favoriteScrollTop);
+        // @ts-ignore
+        document.querySelector("body > sp-application").shadowRoot.querySelector("#lit-search").shadowRoot.querySelector("div.root > input")!.value = record.search?record.search:'';
+        // @ts-ignore
+        document.querySelector("body > sp-application").shadowRoot.querySelector("#lit-search")!.valueChangeHandler!(record.search?record.search:'');
       }
     });
   }
