@@ -43,7 +43,7 @@ export function sortByColumn(detail: SortDetail, dataSource: Array<any>, table: 
     };
   }
 
-  if (detail.key === 'name') {
+  if (detail.key === 'appNameStr') {
     dataSource.sort(compare(detail.key, detail.sort, 'string'));
   } else {
     let key = setSortKey(detail.key);

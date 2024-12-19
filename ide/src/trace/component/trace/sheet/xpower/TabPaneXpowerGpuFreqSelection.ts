@@ -89,12 +89,8 @@ export class TabPaneXpowerGpuFreqSelection extends BaseElement {
         }
       };
     }
-    if (detail.key === 'frequency') {
-      this.gpuFreqData.sort(compare(detail.key, detail.sort, 'string'));
-    } else {
-      let key = this.setSortKey(detail.key);
-      this.gpuFreqData.sort(compare(key, detail.sort, 'number'));
-    }
+    let key = this.setSortKey(detail.key);
+    this.gpuFreqData.sort(compare(key, detail.sort, 'number'));
     this.TableEl!.recycleDataSource = this.gpuFreqData;
   }
 

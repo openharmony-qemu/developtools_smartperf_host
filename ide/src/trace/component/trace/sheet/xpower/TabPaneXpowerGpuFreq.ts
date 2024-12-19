@@ -260,12 +260,8 @@ export class TabPaneXpowerGpuFreq extends BaseElement {
         }
       };
     }
-    if (detail.key === 'name') {
-      this.XpowerGpuFreqSource.sort(compare(detail.key, detail.sort, 'string'));
-    } else {
-      let key = this.setSortKey(detail.key);
-      this.XpowerGpuFreqSource.sort(compare(key, detail.sort, 'number'));
-    }
+    let key = this.setSortKey(detail.key);
+    this.XpowerGpuFreqSource.sort(compare(key, detail.sort, 'number'));
     this.XpowerGpuFreqTbl!.recycleDataSource = this.XpowerGpuFreqSource;
   }
 

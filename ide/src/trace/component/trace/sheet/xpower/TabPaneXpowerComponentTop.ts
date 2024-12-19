@@ -56,7 +56,6 @@ export class TabPaneXpowerComponentTop extends BaseElement {
       'display',
       'gpu',
     ];
-    this.currentTabPane = undefined;
     this.getComponentTopData(xpowerComponentTopValue);
   }
 
@@ -119,7 +118,7 @@ export class TabPaneXpowerComponentTop extends BaseElement {
     this.xpowerComponentTopRange = this.shadowRoot?.querySelector('#time-range');
   }
 
-  private showTabPane(xpowerComponentTopValue?: SelectionParam) {
+  private showTabPane() {
     if (
       this.currentTabPane &&
       this.xpowerComponentTopTbl!.children.length > 0 &&

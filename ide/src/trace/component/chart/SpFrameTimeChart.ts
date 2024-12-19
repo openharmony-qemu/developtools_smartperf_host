@@ -181,7 +181,6 @@ export class SpFrameTimeChart {
         item.rs_name = this.idToProcessNameMap.get(Number(item.rs_name)!);
         item.type = '0';
         if (item.pid !== item.tid){
-          item.dur = item.app_dur;
           item.name = `${item.name}-${item.tid}`
         }
       });

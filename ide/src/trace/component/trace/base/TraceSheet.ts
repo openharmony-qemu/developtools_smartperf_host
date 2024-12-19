@@ -220,13 +220,16 @@ export class TraceSheet extends BaseElement {
       this.nativeAnalysisListener(e);
     });
     // @ts-ignore
-    this.getComponentByID<unknown>('box-io-tier-statistics-analysis')?.addEventListener('row-click', (evt: MouseEvent) => {
-      // @ts-ignore
-      if (evt.detail.button === 2 && evt.detail.tableName) {
-        let pane = this.getPaneByID('box-io-calltree');
-        this.litTabs!.activeByKey(pane.key);
+    this.getComponentByID<unknown>('box-io-tier-statistics-analysis')?.addEventListener(
+      'row-click',
+      (evt: MouseEvent) => {
+        // @ts-ignore
+        if (evt.detail.button === 2 && evt.detail.tableName) {
+          let pane = this.getPaneByID('box-io-calltree');
+          this.litTabs!.activeByKey(pane.key);
+        }
       }
-    });
+    );
     // @ts-ignore
     this.getComponentByID<unknown>('box-virtual-memory-statistics-analysis')?.addEventListener(
       'row-click',
@@ -394,17 +397,19 @@ export class TraceSheet extends BaseElement {
     this.initNavElements(tabsPackUp!, borderTop, initialHeight);
     this.exportBt = this.shadowRoot?.querySelector<LitIcon>('#export-btn');
     tabsOpenUp!.onclick = (): void => {
-      this.tabs!.style.height = `${window.innerHeight - this.search!.offsetHeight - this.timerShaft!.offsetHeight - borderTop
-        }px`;
+      this.tabs!.style.height = `${
+        window.innerHeight - this.search!.offsetHeight - this.timerShaft!.offsetHeight - borderTop
+      }px`;
       let litTabpane: NodeListOf<HTMLDivElement> | undefined | null =
         this.shadowRoot?.querySelectorAll('#tabs > lit-tabpane');
       litTabpane!.forEach((node: HTMLDivElement): void => {
-        node!.style.height = `${window.innerHeight -
+        node!.style.height = `${
+          window.innerHeight -
           this.search!.offsetHeight -
           this.timerShaft!.offsetHeight -
           this.navRoot!.offsetHeight -
           borderTop
-          }px`;
+        }px`;
         initialHeight.node = node!.style.height;
       });
       initialHeight.tabs = this.tabs!.style.height;
@@ -500,7 +505,7 @@ export class TraceSheet extends BaseElement {
         // 只要没有移动到边界区域都会进入该条件
         that.navRoot!.offsetHeight <= newHeight &&
         that.search!.offsetHeight + that.timerShaft!.offsetHeight + borderTop + that.spacer!.offsetHeight <=
-        window.innerHeight - newHeight
+          window.innerHeight - newHeight
       ) {
         that.tabs!.style.height = `${newHeight}px`;
         litTabpane!.style.height = `${newHeight - that.navRoot!.offsetHeight}px`;
@@ -515,19 +520,21 @@ export class TraceSheet extends BaseElement {
         window.innerHeight - newHeight
       ) {
         // 该条件在面板高度置顶时触发
-        that.tabs!.style.height = `${window.innerHeight -
+        that.tabs!.style.height = `${
+          window.innerHeight -
           that.search!.offsetHeight -
           that.timerShaft!.offsetHeight -
           borderTop -
           that.spacer!.offsetHeight
-          }px`;
-        litTabpane!.style.height = `${window.innerHeight -
+        }px`;
+        litTabpane!.style.height = `${
+          window.innerHeight -
           that.search!.offsetHeight -
           that.timerShaft!.offsetHeight -
           that.navRoot!.offsetHeight -
           borderTop -
           that.spacer!.offsetHeight
-          }px`;
+        }px`;
         tabsPackUp!.name = 'down';
       }
       that.tabPaneHeight = litTabpane!.style.height;
@@ -586,7 +593,10 @@ export class TraceSheet extends BaseElement {
         let table2 = Array.from(
           (currentTab.firstChild as BaseElement).shadowRoot?.querySelectorAll<LitTable>('lit-table') || []
         );
-        let tables = [...table1, ...table2];
+        let componentTopTable = ((currentTab.firstChild as BaseElement).shadowRoot?.querySelector('#tb-counter')
+          ?.firstChild as BaseElement)!.shadowRoot?.querySelectorAll<LitTable>('lit-table');
+        let table3 = Array.from(componentTopTable || []);
+        let tables = [...table1, ...table2, ...table3];
 
         for (let table of tables) {
           if (!table.hasAttribute('hideDownload')) {
@@ -689,7 +699,10 @@ export class TraceSheet extends BaseElement {
     this.displayTab<TabPaneCurrentSelection>('current-selection').setHangData(data, sp, scrollCallback);
   displayClockData = (data: ClockStruct): Promise<void> =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setClockData(data);
-  displayDmaFenceData = (data: DmaFenceStruct, rowData: unknown): void =>//展示tab页内容
+  displayDmaFenceData = (
+    data: DmaFenceStruct,
+    rowData: unknown
+  ): void => //展示tab页内容
     // @ts-ignore
     this.displayTab<TabPaneCurrentSelection>('current-selection').setDmaFenceData(data, rowData);
   displayXpowerData = (data: XpowerStruct): Promise<void> =>
@@ -701,7 +714,9 @@ export class TraceSheet extends BaseElement {
   displayXpowerBytesWifiData = (data: XpowerWifiStruct): Promise<void> =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setXpowerWifiBytesData(data);
   displayXpowerStatisticData = (data: XpowerStatisticStruct): void =>
-    this.displayTab<TabPaneXpowerStatisticCurrentData>('box-xpower-statistic-current-data').setXpowerStatisticCurrentData(data);
+    this.displayTab<TabPaneXpowerStatisticCurrentData>(
+      'box-xpower-statistic-current-data'
+    ).setXpowerStatisticCurrentData(data);
   displayXpowerThreadInfoData = (dataList: Array<XpowerThreadInfoStruct>): void => {
     this.displayTab<TabPaneXpowerThreadInfoSelection>('box-xpower-thread-info-selection').setThreadInfoData(dataList);
   };
@@ -748,9 +763,15 @@ export class TraceSheet extends BaseElement {
     data: FuncStruct,
     scrollCallback: Function,
     callback?: (data: Array<unknown>, str: string, binderTid: number) => void,
-    distributedCallback?: (dataList: FuncStruct[]) => void,
+    distributedCallback?: (dataList: FuncStruct[]) => void
   ): Promise<void> =>
-    this.displayTab<TabPaneCurrentSelection>(...names).setFunctionData(data, threadName, scrollCallback, callback, distributedCallback);
+    this.displayTab<TabPaneCurrentSelection>(...names).setFunctionData(
+      data,
+      threadName,
+      scrollCallback,
+      callback,
+      distributedCallback
+    );
   displayCpuData = (
     data: CpuStruct,
     callback: ((data: WakeupBean | null) => void) | undefined = undefined,
@@ -952,9 +973,8 @@ export class TraceSheet extends BaseElement {
     ];
   };
   displayUserPlugin = (selectData: unknown): void => {
-    this.displayTab<TabPaneUserPlugin>("tab-pane-userplugin").data = selectData;
+    this.displayTab<TabPaneUserPlugin>('tab-pane-userplugin').data = selectData;
   };
-
 
   displayGpuCounterData = (data: GpuCounterStruct): void => {
     this.displayTab<TabPaneGpuCounter>('box-gpu-counter').data = data;
@@ -1152,13 +1172,13 @@ export class TraceSheet extends BaseElement {
     //隐藏除了当前Tab页的其他Tab页
     this.shadowRoot!.querySelectorAll<LitTabpane>('lit-tabpane').forEach((it): boolean =>
       it.id !== this.currentPaneID ? (it.hidden = true) : (it.hidden = false)
-    );//todo：看能不能优化
-    let pane = this.getPaneByID('box-cpu-child');//通过Id找到需要展示的Tab页
-    pane.closeable = true;//关闭的ican显示
+    ); //todo：看能不能优化
+    let pane = this.getPaneByID('box-cpu-child'); //通过Id找到需要展示的Tab页
+    pane.closeable = true; //关闭的ican显示
     pane.hidden = false;
     this.litTabs!.activeByKey(pane.key); //显示key值对应的Tab页
     // @ts-ignore
-    pane.tab = e.detail.tabTitle ? e.detail.tabTitle : Utils.transferPTSTitle(e.detail.title);//设置Tab页标题，有的标题可直接用，有的标题需在此转换成需要展示的字符串
+    pane.tab = e.detail.tabTitle ? e.detail.tabTitle : Utils.transferPTSTitle(e.detail.title); //设置Tab页标题，有的标题可直接用，有的标题需在此转换成需要展示的字符串
     let param = new BoxJumpParam();
     param.traceId = this.selection!.traceId;
     param.leftNs = this.selection!.leftNs;
@@ -1170,8 +1190,8 @@ export class TraceSheet extends BaseElement {
     param.processId = e.detail.summary ? this.selection.processIds : e.detail.pid;
     // @ts-ignore
     param.threadId = e.detail.summary ? this.selection.threadIds : e.detail.tid;
-    param.isJumpPage = true;// @ts-ignore
-    param.currentId = e.target.parentElement.id;//根据父Tab页的标题，确认子Tab页的dur是否需要处理
+    param.isJumpPage = true; // @ts-ignore
+    param.currentId = e.target.parentElement.id; //根据父Tab页的标题，确认子Tab页的dur是否需要处理
     (pane.children.item(0) as TabPaneBoxChild).data = param;
   }
 
@@ -1183,20 +1203,20 @@ export class TraceSheet extends BaseElement {
     this.shadowRoot!.querySelectorAll<LitTabpane>('lit-tabpane').forEach((it): boolean =>
       it.id !== this.currentPaneID ? (it.hidden = true) : (it.hidden = false)
     );
-    let pane = this.getPaneByID('box-slice-child');//通过Id找到需要展示的Tab页
+    let pane = this.getPaneByID('box-slice-child'); //通过Id找到需要展示的Tab页
     pane.closeable = true;
     pane.hidden = false;
     this.litTabs!.activeByKey(pane.key); //显示key值（sheetconfig里面对应的index是一个数字）对应的Tab页
     // @ts-ignore
-    pane.tab = e.detail.tabTitle;//设置Tab页标题
+    pane.tab = e.detail.tabTitle; //设置Tab页标题
     let param = new SliceBoxJumpParam();
     param.traceId = this.selection!.traceId;
     param.leftNs = this.selection!.leftNs;
     param.rightNs = this.selection!.rightNs;
     param.processId = this.selection!.processIds;
-    param.threadId = this.selection!.funTids;//@ts-ignore2
-    param.name = e.detail.allName ? e.detail.allName : [e.detail.name];//@ts-ignore2
-    param.isJumpPage = true;// @ts-ignore
+    param.threadId = this.selection!.funTids; //@ts-ignore2
+    param.name = e.detail.allName ? e.detail.allName : [e.detail.name]; //@ts-ignore2
+    param.isJumpPage = true; // @ts-ignore
     param.isSummary = e.detail.allName ? true : false;
     (pane.children.item(0) as TabPaneSliceChild).data = { param: param, selection: this.selection };
   }

@@ -204,7 +204,7 @@ export class TabPaneXpowerDisplay extends BaseElement {
       };
     }
     if (detail.key === 'name') {
-      this.xpowerCounterSource.sort(compare(detail.key, detail.sort, 'string'));
+      this.xpowerCounterSource.sort(compare(detail.key, detail.sort, 'number'));
     } else if (detail.key === 'max') {
       this.xpowerCounterSource.sort(compare(detail.key, detail.sort, 'max'));
     } else if (detail.key === 'min') {
