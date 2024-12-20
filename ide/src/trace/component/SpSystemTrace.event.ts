@@ -655,11 +655,6 @@ export function spSystemTraceDocumentOnKeyPress(this: unknown, sp: SpSystemTrace
       }
     }
     if (keyPress === 'f') {
-      let search = document.querySelector('body > sp-application')!.shadowRoot!.querySelector<LitSearch>('#lit-search');
-      if (search && search.searchValue !== '' && sp.currentRow !== undefined) {
-        sp.copyCurrentRow = sp.currentRow;
-        sp.currentRow = undefined;
-      }
       let isSelectSliceOrFlag = false;
       // 设置当前选中的slicetime
       let selectSlice: unknown = undefined;
