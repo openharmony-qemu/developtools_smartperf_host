@@ -724,6 +724,7 @@ export class SpRecordTrace extends BaseElement {
     const jsonString = decoder.decode(result);
     let jsonRes = JSON.parse(jsonString);
     if (cmd === TypeConstants.USB_SN_CMD) {
+      this.hdcList = jsonRes.resultMessage;
       HdcDeviceManager.findDevice().then((usbDevices): void => {
         SpRecordTrace.serialNumber = usbDevices.serialNumber;
         // let serialNum = jsonRes.resultMessage;
@@ -1798,14 +1799,16 @@ export class SpRecordTrace extends BaseElement {
     if (SpRecordTrace.serialNumber !== '') {
       for (let i = 0; i < this.hdcList.length; i++) {
         let dev = this.hdcList[i];
+        // @ts-ignore
+        let serialNumber = typeof(dev) === 'string'?dev:dev.serialNumber;
         let option = document.createElement('option');
         option.className = 'select';
         //@ts-ignore
-        option.selected = dev.serialNumber === SpRecordTrace.serialNumber;
+        option.selected = serialNumber === SpRecordTrace.serialNumber;
         //@ts-ignore
-        option.value = dev.serialNumber;
+        option.value = serialNumber;
         //@ts-ignore
-        option.textContent = dev.serialNumber;
+        option.textContent = serialNumber;
         this.deviceSelect!.appendChild(option);
         this.recordButton!.hidden = false;
         this.disconnectButton!.hidden = false;
