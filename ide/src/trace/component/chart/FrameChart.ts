@@ -668,6 +668,7 @@ export class FrameChart extends BaseElement {
   private showTip(): void {
     this.floatHint!.innerHTML = this.hintContent;
     this.floatHint!.style.display = 'block';
+    this.floatHint!.style.zIndex = '9999999';
     let tipArea =
       this.tabPaneFilter?.getBoundingClientRect().top! -
       this.canvas.getBoundingClientRect().top -
