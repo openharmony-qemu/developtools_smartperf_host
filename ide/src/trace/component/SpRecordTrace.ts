@@ -461,7 +461,7 @@ export class SpRecordTrace extends BaseElement {
       }
     });
     this.spArkTs?.addEventListener('showTip', () => {
-      this.isShowTipFunc('arkts', this.spArkTs!.isStartArkts);
+      this.isShowTipFunc('Ark Ts', this.spArkTs!.isStartArkts);
     });
     this.recordSetting?.addEventListener('showTip', (event) => {// @ts-ignore
       this.isShowTipFunc(event.detail.value, event.detail.isShow);
@@ -1362,7 +1362,8 @@ export class SpRecordTrace extends BaseElement {
   recordButtonListener(): void {
     SpRecordTrace.cancelRecord = false;
     let request = this.makeRequest();
-    if (request.pluginConfigs.length === 0 && this.spArkTs!.isStartArkts && this.spArkTs!.process.trim() !== '') {
+    let isRecordArkTs = (this.spArkTs!.isStartArkts && this.spArkTs!.process.trim() !== '') ? true : false;
+    if (request.pluginConfigs.length === 0 && !isRecordArkTs) {
       this.useExtentTip!.style.display = 'block';
       this.useExtentTip!.innerHTML = "It looks like you didn't add any probes. Please add at least one";
       return;
