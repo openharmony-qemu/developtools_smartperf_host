@@ -22,20 +22,16 @@ import { sortByColumn } from './XpowerUtil';
 export class TabPaneXpowerComponentAudio extends BaseElement {
   private xpowerComponentAudioTbl: LitTable | null | undefined;
   private currentDataList: Array<XpowerComponentTopStruct> = [];
-  private theadEl: HTMLDivElement | undefined | null;
 
   set data(selectionDataList: Array<XpowerComponentTopStruct>) {
     this.currentDataList = selectionDataList;
     this.xpowerComponentAudioTbl!.loading = true;
-    setTimeout(() => {
-      this.xpowerComponentAudioTbl!.recycleDataSource = selectionDataList;
-      this.xpowerComponentAudioTbl!.loading = false;
-    }, 100);
+    this.xpowerComponentAudioTbl!.recycleDataSource = selectionDataList;
+    this.xpowerComponentAudioTbl!.loading = false;
   }
 
   initElements(): void {
     this.xpowerComponentAudioTbl = this.shadowRoot?.querySelector<LitTable>('#lit-table');
-    this.theadEl = this.xpowerComponentAudioTbl!.shadowRoot?.querySelector('.thead') as HTMLDivElement;
   }
 
   connectedCallback(): void {
@@ -54,7 +50,6 @@ export class TabPaneXpowerComponentAudio extends BaseElement {
         this.style.height = 'calc(100% - 42px)';
       }
     }).observe(this.xpowerComponentAudioTbl!.shadowRoot?.querySelector('.table')!);
-    this.xpowerComponentAudioTbl!.recycleDataSource = new Array().fill('');
   }
 
   initHtml(): string {

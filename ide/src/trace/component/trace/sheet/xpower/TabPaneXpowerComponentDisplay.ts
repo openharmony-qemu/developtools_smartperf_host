@@ -22,20 +22,16 @@ import { sortByColumn } from './XpowerUtil';
 export class TabPaneXpowerComponentDisplay extends BaseElement {
   private xpowerComponentDisplayTbl: LitTable | null | undefined;
   private currentDataList: Array<XpowerComponentTopStruct> = [];
-  private theadEl: HTMLDivElement | undefined | null;
 
   set data(selectionDataList: Array<XpowerComponentTopStruct>) {
     this.currentDataList = selectionDataList;
     this.xpowerComponentDisplayTbl!.loading = true;
-    setTimeout(() => {
-      this.xpowerComponentDisplayTbl!.recycleDataSource = selectionDataList;
-      this.xpowerComponentDisplayTbl!.loading = false;
-    }, 100);
+    this.xpowerComponentDisplayTbl!.recycleDataSource = selectionDataList;
+    this.xpowerComponentDisplayTbl!.loading = false;
   }
 
   initElements(): void {
     this.xpowerComponentDisplayTbl = this.shadowRoot?.querySelector<LitTable>('#lit-table');
-    this.theadEl = this.xpowerComponentDisplayTbl!.shadowRoot?.querySelector('.thead') as HTMLDivElement;
   }
 
   connectedCallback(): void {
@@ -54,7 +50,6 @@ export class TabPaneXpowerComponentDisplay extends BaseElement {
         this.style.height = 'calc(100% - 42px)';
       }
     }).observe(this.xpowerComponentDisplayTbl!.shadowRoot?.querySelector('.table')!);
-    this.xpowerComponentDisplayTbl!.recycleDataSource = new Array().fill('');
   }
 
   initHtml(): string {

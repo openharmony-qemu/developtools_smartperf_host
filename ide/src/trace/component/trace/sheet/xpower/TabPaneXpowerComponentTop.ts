@@ -24,10 +24,12 @@ import { TabPaneXpowerComponentAudio } from './TabPaneXpowerComponentAudio';
 import { TabPaneXpowerComponentCamera } from './TabPaneXpowerComponentCamera';
 import { TabPaneXpowerComponentCpu } from './TabPaneXpowerComponentCpu';
 import { TabPaneXpowerComponentDisplay } from './TabPaneXpowerComponentDisplay';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
 
 @element('tabpane-xpower-component-top')
 export class TabPaneXpowerComponentTop extends BaseElement {
   private currentSelection: Array<XpowerComponentTopStruct> = [];
+  private currentXpowerComponentTopValue: SelectionParam | undefined;
   private xpowerComponentTopTbl: HTMLDivElement | null | undefined;
   private xpowerComponentTopRange: HTMLLabelElement | null | undefined;
   private xpowerComponentTopSelect: LitSelect | null | undefined;
@@ -36,6 +38,7 @@ export class TabPaneXpowerComponentTop extends BaseElement {
   private currentTabKey: string | undefined;
   private currentTabPane?: BaseElement;
   private tabMap: Map<string, BaseElement> = new Map<string, BaseElement>();
+  private theadEl: HTMLDivElement | undefined | null;
 
   set data(xpowerComponentTopValue: SelectionParam) {
     //@ts-ignore
@@ -45,6 +48,9 @@ export class TabPaneXpowerComponentTop extends BaseElement {
     this.xpowerComponentTopRange!.textContent = `Selected range: ${parseFloat(
       ((xpowerComponentTopValue.rightNs - xpowerComponentTopValue.leftNs) / 1000000.0).toFixed(5)
     )} ms`;
+    if (xpowerComponentTopValue == this.currentXpowerComponentTopValue) {
+      return;
+    }
     this.componentTypeList = [
       'audio',
       'bluetooth',
@@ -56,6 +62,7 @@ export class TabPaneXpowerComponentTop extends BaseElement {
       'display',
       'gpu',
     ];
+    this.currentXpowerComponentTopValue = xpowerComponentTopValue;
     this.getComponentTopData(xpowerComponentTopValue);
   }
 
@@ -77,7 +84,6 @@ export class TabPaneXpowerComponentTop extends BaseElement {
     if (list.length > 0) {
       for (let i = 0; i < list.length; i++) {
         const selectComponentTopData = {
-          structType: 'xpower component',
           startTime: list[i].startTime,
           startTimeStr: Utils.getTimeString(list[i].startTime),
           componentTypeId: list[i].componentTypeId,
@@ -118,7 +124,34 @@ export class TabPaneXpowerComponentTop extends BaseElement {
     this.xpowerComponentTopRange = this.shadowRoot?.querySelector('#time-range');
   }
 
-  private showTabPane() {
+  private setColumns(table: LitTable): void {
+    if (!table!.columns) {
+      table!.gridTemplateColumns = [];
+      table!.columns = table!.slotArr;
+      table!.columns.forEach((a: unknown, i: unknown) => {
+        // @ts-ignore
+        if (a.tagName === 'LIT-TABLE-COLUMN') {
+          // @ts-ignore
+          table!.gridTemplateColumns.push(a.getAttribute('width') || '1fr');
+        }
+      });
+    }
+  }
+
+  private initSortIcon(thead: HTMLDivElement, table: LitTable): void {
+    const thTable = thead!.querySelector('.th');
+    if (thead && thead!.hasAttribute('sort')) {
+      const list = thTable!.querySelectorAll('div');
+      thead!.removeAttribute('sort');
+      list.forEach((item) => {
+        item.querySelectorAll('svg').forEach((svg) => {
+          svg.style.display = 'none';
+        });
+      });
+    }
+  }
+
+  private showTabPane(): void {
     if (
       this.currentTabPane &&
       this.xpowerComponentTopTbl!.children.length > 0 &&
@@ -138,6 +171,10 @@ export class TabPaneXpowerComponentTop extends BaseElement {
       }
       if (this.currentTabPane) {
         this.xpowerComponentTopTbl?.appendChild(this.currentTabPane);
+        let table = this.currentTabPane.shadowRoot?.querySelector<LitTable>('lit-table')!;
+        let theadEl = table!.shadowRoot?.querySelector<HTMLDivElement>('.thead')!;
+        this.initSortIcon(theadEl, table);
+        this.setColumns(table);
         // @ts-ignore
         this.currentTabPane.data = this.currentSelection.filter(
           (item) => item.componentTypeName === this.currentTabKey
@@ -249,7 +286,6 @@ export class TabPaneXpowerComponentTop extends BaseElement {
 }
 
 export class XpowerComponentTopStruct {
-  structType: string = 'xpower component';
   startTime: number = 0;
   startTimeStr: string = '';
   componentTypeId: number = 0;

@@ -22,20 +22,16 @@ import { sortByColumn } from './XpowerUtil';
 export class TabPaneXpowerComponentCamera extends BaseElement {
   private xpowerComponentCameraTbl: LitTable | null | undefined;
   private currentDataList: Array<XpowerComponentTopStruct> = [];
-  private theadEl: HTMLDivElement | undefined | null;
 
   set data(selectionDataList: Array<XpowerComponentTopStruct>) {
     this.currentDataList = selectionDataList;
     this.xpowerComponentCameraTbl!.loading = true;
-    setTimeout(() => {
-      this.xpowerComponentCameraTbl!.recycleDataSource = selectionDataList;
-      this.xpowerComponentCameraTbl!.loading = false;
-    }, 100);
+    this.xpowerComponentCameraTbl!.recycleDataSource = selectionDataList;
+    this.xpowerComponentCameraTbl!.loading = false;
   }
 
   initElements(): void {
     this.xpowerComponentCameraTbl = this.shadowRoot?.querySelector<LitTable>('#lit-table');
-    this.theadEl = this.xpowerComponentCameraTbl!.shadowRoot?.querySelector('.thead') as HTMLDivElement;
   }
 
   connectedCallback(): void {
@@ -45,15 +41,14 @@ export class TabPaneXpowerComponentCamera extends BaseElement {
       sortByColumn(evt.detail, this.currentDataList, this.xpowerComponentCameraTbl!);
     });
     new ResizeObserver((entries) => {
-        let clientHeight = this.xpowerComponentCameraTbl!.shadowRoot?.querySelector('.table')!.clientHeight;
-        let scrollHeight = this.xpowerComponentCameraTbl!.shadowRoot?.querySelector('.table')!.scrollHeight;
-        if (clientHeight == scrollHeight) {
-          this.style.height = 'calc(100% - 22px)';
-        } else {
-          this.style.height = 'calc(100% - 42px)';
-        }
-      }).observe(this.xpowerComponentCameraTbl!.shadowRoot?.querySelector('.table')!);
-      this.xpowerComponentCameraTbl!.recycleDataSource = new Array().fill('');
+      let clientHeight = this.xpowerComponentCameraTbl!.shadowRoot?.querySelector('.table')!.clientHeight;
+      let scrollHeight = this.xpowerComponentCameraTbl!.shadowRoot?.querySelector('.table')!.scrollHeight;
+      if (clientHeight == scrollHeight) {
+        this.style.height = 'calc(100% - 22px)';
+      } else {
+        this.style.height = 'calc(100% - 42px)';
+      }
+    }).observe(this.xpowerComponentCameraTbl!.shadowRoot?.querySelector('.table')!);
   }
 
   initHtml(): string {
