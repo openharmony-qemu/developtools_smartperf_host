@@ -62,7 +62,8 @@ import { SpUserFileChart } from './SpUserPluginChart';
 import { SpImportUserPluginsChart } from './SpImportUserPluginsChart';
 import { queryDmaFenceIdAndCat } from '../../database/sql/dmaFence.sql';
 import { queryAllFuncNames } from '../../database/sql/Func.sql';
-import {SpSnapShotChart} from './spSnapShotChart'
+import {SpSnapShotChart} from './spSnapShotChart';
+import { SpRecordTrace } from '../SpRecordTrace';
 
 export class SpChartManager {
   static APP_STARTUP_PID_ARR: Array<number> = [];
@@ -196,7 +197,7 @@ export class SpChartManager {
     await this.initCpu(progress);
     await this.logChart.init();
     await this.spHiSysEvent.init();
-    await this.spSnapShotChart.init();
+    await SpRecordTrace.snapShotList.length > 0 && this.spSnapShotChart.init();
     let idAndNameArr = await queryDmaFenceIdAndCat();
     this.handleDmaFenceName(idAndNameArr as { id: number; cat: string; seqno: number; driver: string; context: string }[]);
     if (FlagsConfig.getFlagsConfigEnableStatus('Hangs Detection')) {
