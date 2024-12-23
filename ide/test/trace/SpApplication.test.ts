@@ -198,4 +198,19 @@ describe('spApplication Test', () => {
     spApplication.initElements();
     expect(spApplication.freshMenuDisable(false)).toBeUndefined();
   });
+
+  it('spApplicationTest30', function () {
+    spApplication.initElements();
+    expect(spApplication.sqlite).not.toBeUndefined();
+  });
+
+  it('spApplicationTest31', function () {
+    spApplication.initElements();
+    expect(spApplication.wasm).not.toBeUndefined();
+  });
+
+  it('spApplicationTest33', function () {
+    spApplication.initElements();
+    expect(spApplication.changeUrl()).toBeUndefined();
+  });
 });

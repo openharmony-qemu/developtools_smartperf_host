@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+import { CpuAndIrqBean } from '../../../../../../src/trace/component/trace/sheet/cpu/CpuAndIrqBean';
 import { TabPaneCpuByThread } from '../../../../../../src/trace/component/trace/sheet/cpu/TabPaneCpuByThread';
 
 window.ResizeObserver =
@@ -31,8 +32,21 @@ jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
 
 describe('TabPaneCpuByThread Test', () => {
   let tabPaneCpuByThread = new TabPaneCpuByThread();
-  tabPaneCpuByThread.cpuByThreadTbl.injectColumns = jest.fn(()=> true)
-
+  tabPaneCpuByThread.cpuByThreadTbl!.injectColumns = jest.fn(() => true);
+  let val = [
+    {
+      leftNs: 11,
+      rightNs: 34,
+      state: true,
+      processId: 3,
+      threadId: 1,
+      traceId: 0,
+      cpus: '0, 1, 2',
+      isJumpPage: 0,
+      currentId: 0,
+    },
+  ];
+  let cpuAndIrqBean = new CpuAndIrqBean();
   it('TabPaneCpuByThreadTest01', function () {
     expect(
       tabPaneCpuByThread.sortByColumn({
@@ -65,5 +79,52 @@ describe('TabPaneCpuByThread Test', () => {
     mockgetTabCpuByThread.mockResolvedValue([]);
     let a = { rightNs: 1, cpus: [11, 12, 13] };
     expect((tabPaneCpuByThread.data = a)).toBeTruthy();
+  });
+  it('TabPaneCpuByThreadTest06', function () {
+    let finalResultBean = [
+      {
+        dur: 0,
+        cat: '',
+        cpu: 0,
+        occurrences: 1,
+        pid: '[NULL]',
+        tid: '[NULL]',
+      },
+    ];
+    expect(tabPaneCpuByThread.groupByCpu([cpuAndIrqBean])).toStrictEqual(finalResultBean);
+    expect(tabPaneCpuByThread.cpuByIrq([cpuAndIrqBean])).toStrictEqual(finalResultBean);
+  });
+  it('TabPaneCpuByThreadTest07', function () {
+    expect(tabPaneCpuByThread.findMaxPriority([cpuAndIrqBean])).toStrictEqual(cpuAndIrqBean);
+    expect(tabPaneCpuByThread.findMaxPriority([cpuAndIrqBean])).toStrictEqual(cpuAndIrqBean);
+  });
+  it('TabPaneCpuByThreadTest08', function () {
+    expect(tabPaneCpuByThread.reSortByColum('process', 0)).toBeUndefined();
+    expect(tabPaneCpuByThread.reSortByColum('thread', 1)).toBeUndefined();
+  });
+  it('TabPaneCpuByThreadTest09', function () {
+    let e = [
+      {
+        pis: 0,
+        tid: 0,
+        cpu: 0,
+        wallDuration: 100,
+        occurrences: 20,
+      },
+    ];
+    let cpuByThreadValue = [
+      {
+        cpus: [0, 1],
+      },
+    ];
+    let cpuByThreadObject = {
+      cpu0: 0,
+      cpu0TimeStr: '0',
+      cpu0Ratio: '0',
+    };
+    expect(tabPaneCpuByThread.updateCpuValues(e, cpuByThreadValue, cpuByThreadObject)).toBeUndefined();
+  });
+  it('TabPaneCpuByThreadTest10', function () {
+    expect(tabPaneCpuByThread.getTableColumns([0, 1, 2])).not.toBeUndefined();
   });
 });

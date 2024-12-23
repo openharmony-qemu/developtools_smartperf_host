@@ -13,7 +13,15 @@
  * limitations under the License.
  */
 
-import { SelectionParam, BoxJumpParam, SelectionData, Counter, Fps } from '../../../src/trace/bean/BoxSelection';
+import {
+  SelectionParam,
+  BoxJumpParam,
+  SelectionData,
+  Counter,
+  Fps,
+  GpuCounter,
+  SliceBoxJumpParam,
+} from '../../../src/trace/bean/BoxSelection';
 import { TraceRow } from '../../../src/trace/component/trace/base/TraceRow';
 import { SpSystemTrace } from '../../../src/trace/component/SpSystemTrace';
 jest.mock('../../../src/js-heap/model/DatabaseStruct', () => {
@@ -55,7 +63,7 @@ describe('BoxSelection Test', () => {
   let sp = new SpSystemTrace();
   let itRow = new TraceRow();
   let selectionParam = new SelectionParam();
-  it('BoxSelectionTest01', ()=> {
+  it('BoxSelectionTest01', () => {
     let selectionParam: SelectionParam;
     selectionParam = {
       recordStartNs: 0,
@@ -939,5 +947,215 @@ describe('BoxSelection Test', () => {
     itRow.rowType = 'sample';
     itRow.rowId = '98';
     expect(selectionParam.pushSelection(itRow, sp)).toBeUndefined();
+  });
+
+  it('BoxSelectionTest80', () => {
+    let data = new GpuCounter();
+    data.startNS = 54;
+    expect(data.startNS).toEqual(54);
+  });
+
+  it('BoxSelectionTest81', () => {
+    let data = new Fps();
+    data.startNS = 54;
+    expect(data.startNS).toEqual(54);
+  });
+
+  it('BoxSelectionTest82', () => {
+    let data = new Counter();
+    data.trackId = 54;
+    expect(data.trackId).toEqual(54);
+  });
+
+  it('BoxSelectionTest83', () => {
+    let data = new BoxJumpParam();
+    data.rightNs = 54;
+    expect(data.rightNs).toEqual(54);
+  });
+
+  it('BoxSelectionTest84', () => {
+    let data = new SliceBoxJumpParam();
+    data.leftNs = 54;
+    expect(data.leftNs).toEqual(54);
+  });
+
+  it('BoxSelectionTest85', function () {
+    itRow.rowType = TraceRow.ROW_TYPE_XPOWER;
+    itRow.rowId = '98';
+    expect(selectionParam.pushXpower(itRow, sp)).toBeUndefined();
+  });
+
+  it('BoxSelectionTest86', function () {
+    itRow.rowType = TraceRow.ROW_TYPE_XPOWER_SYSTEM_GROUP;
+    itRow.rowId = '98';
+    expect(selectionParam.pushXpower(itRow, sp)).toBeUndefined();
+  });
+
+  it('BoxSelectionTest87', function () {
+    itRow.rowType = TraceRow.ROW_TYPE_XPOWER_STATISTIC;
+    itRow.rowId = '98';
+    expect(selectionParam.pushXpower(itRow, sp)).toBeUndefined();
+  });
+
+  it('BoxSelectionTest88', function () {
+    itRow.rowType = TraceRow.ROW_TYPE_XPOWER_SYSTEM;
+    itRow.rowId = 'Battery.RealCurrent';
+    expect(selectionParam.pushXpower(itRow, sp)).toBeUndefined();
+  });
+
+  it('BoxSelectionTest89', function () {
+    itRow.rowType = TraceRow.ROW_TYPE_XPOWER_APP_DETAIL_DISPLAY;
+    itRow.rowId = '98';
+    expect(selectionParam.pushXpower(itRow, sp)).toBeUndefined();
+  });
+
+  it('BoxSelectionTest90', function () {
+    itRow.rowType = TraceRow.ROW_TYPE_XPOWER_WIFI_PACKETS;
+    itRow.rowId = '98';
+    expect(selectionParam.pushXpower(itRow, sp)).toBeUndefined();
+  });
+
+  it('BoxSelectionTest91', function () {
+    itRow.rowType = TraceRow.ROW_TYPE_XPOWER_WIFI_BYTES;
+    itRow.rowId = '98';
+    expect(selectionParam.pushXpower(itRow, sp)).toBeUndefined();
+  });
+
+  it('BoxSelectionTest92', function () {
+    itRow.rowType = TraceRow.ROW_TYPE_XPOWER_THREAD_COUNT;
+    itRow.rowId = '98';
+    expect(selectionParam.pushXpower(itRow, sp)).toBeUndefined();
+  });
+
+  it('BoxSelectionTest93', function () {
+    itRow.rowType = TraceRow.ROW_TYPE_XPOWER_GPU_COUNT;
+    itRow.rowId = '98';
+    expect(selectionParam.pushXpower(itRow, sp)).toBeUndefined();
+  });
+
+  it('BoxSelectionTest94', function () {
+    itRow.rowType = TraceRow.ROW_TYPE_XPOWER_THREAD_INFO;
+    itRow.rowId = 'THREAD_ENERGY';
+    expect(selectionParam.pushXpowerThreadInfo(itRow, sp)).toBeUndefined();
+  });
+
+  it('BoxSelectionTest95', function () {
+    itRow.rowType = TraceRow.ROW_TYPE_XPOWER_THREAD_INFO;
+    itRow.rowId = 'THREAD_LOAD';
+    expect(selectionParam.pushXpowerThreadInfo(itRow, sp)).toBeUndefined();
+  });
+
+  it('BoxSelectionTest96', function () {
+    itRow.rowType = TraceRow.ROW_TYPE_XPOWER_GPU_FREQUENCY;
+    itRow.rowId = 'THREAD_LOAD';
+    expect(selectionParam.pushXpowerGpuFreq(itRow, sp)).toBeUndefined();
+  });
+
+  it('BoxSelectionTest97', function () {
+    itRow.rowType = TraceRow.ROW_TYPE_HANG_GROUP;
+    itRow.rowId = 'THREAD_LOAD';
+    expect(selectionParam.pushHang(itRow, sp)).toBeUndefined();
+  });
+
+  it('BoxSelectionTest98', function () {
+    itRow.rowType = TraceRow.ROW_TYPE_HANG;
+    itRow.rowId = 'THREAD_LOAD';
+    expect(selectionParam.pushHang(itRow, sp)).toBeUndefined();
+  });
+
+  it('BoxSelectionTest99', function () {
+    itRow.rowType = TraceRow.ROW_TYPE_PURGEABLE_PIN_ABILITY;
+    itRow.rowId = 'THREAD_LOAD';
+    expect(selectionParam.pushHang(itRow, sp)).toBeUndefined();
+  });
+
+  it('BoxSelectionTest100', function () {
+    itRow.rowType = TraceRow.ROW_TYPE_PURGEABLE_TOTAL_VM;
+    itRow.rowId = 'THREAD_LOAD';
+    expect(selectionParam.pushHang(itRow, sp)).toBeUndefined();
+  });
+
+  it('BoxSelectionTest101', function () {
+    itRow.rowType = TraceRow.ROW_TYPE_PURGEABLE_PIN_VM;
+    itRow.rowId = 'THREAD_LOAD';
+    expect(selectionParam.pushHang(itRow, sp)).toBeUndefined();
+  });
+
+  it('BoxSelectionTest102', function () {
+    itRow.rowType = TraceRow.ROW_TYPE_DMA_FENCE;
+    itRow.rowId = 'THREAD_LOAD';
+    expect(selectionParam.pushDmaFence(itRow, sp)).toBeUndefined();
+  });
+
+  it('BoxSelectionTest103', function () {
+    itRow.rowType = TraceRow.ROW_TYPE_CLOCK_GROUP;
+    itRow.rowId = 'THREAD_LOAD';
+    expect(selectionParam.pushClock(itRow, sp)).toBeUndefined();
+  });
+
+  it('BoxSelectionTest104', function () {
+    itRow.rowType = TraceRow.ROW_TYPE_CLOCK;
+    itRow.rowId = 'THREAD_LOAD';
+    expect(selectionParam.pushClock(itRow, sp)).toBeUndefined();
+  });
+
+  it('BoxSelectionTest105', function () {
+    itRow.rowType = TraceRow.ROW_TYPE_FILE_SYSTEM_GROUP;
+    itRow.rowId = 'THREAD_LOAD';
+    expect(selectionParam.pushFileSystem(itRow, sp)).toBeUndefined();
+  });
+
+  it('BoxSelectionTest106', function () {
+    itRow.rowType = TraceRow.ROW_TYPE_FUNC;
+    itRow.rowId = 'THREAD_LOAD';
+    expect(selectionParam.pushFileSystem(itRow, sp)).toBeUndefined();
+  });
+
+  it('BoxSelectionTest107', function () {
+    itRow.rowType = TraceRow.ROW_TYPE_SAMPLE;
+    itRow.rowId = 'THREAD_LOAD';
+    expect(selectionParam.pushSampleData(itRow)).toBeUndefined();
+  });
+
+  it('BoxSelectionTest108', function () {
+    itRow.rowType = TraceRow.ROW_TYPE_CPU_STATE_ALL;
+    itRow.rowId = 'THREAD_LOAD';
+    expect(selectionParam.pushCpuStateFilterIds(itRow)).toBeUndefined();
+  });
+
+  it('BoxSelectionTest109', function () {
+    itRow.rowType = TraceRow.ROW_TYPE_CPU_FREQ_LIMITALL;
+    itRow.rowId = 'THREAD_LOAD';
+    expect(selectionParam.pushCpuFreqLimit(itRow)).toBeUndefined();
+  });
+
+  it('BoxSelectionTest110', function () {
+    itRow.rowType = TraceRow.ROW_TYPE_GPU_MEMORY_VMTRACKER;
+    itRow.rowId = 'THREAD_LOAD';
+    expect(selectionParam.vMTrackerGpuChildRowsEvery(itRow)).toBeUndefined();
+  });
+
+  it('BoxSelectionTest111', function () {
+    itRow.rowType = TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GL;
+    itRow.rowId = 'THREAD_LOAD';
+    expect(selectionParam.vMTrackerGpuChildRowsEvery(itRow)).toBeUndefined();
+  });
+
+  it('BoxSelectionTest112', function () {
+    itRow.rowType = TraceRow.ROW_TYPE_SYS_MEMORY_GPU_GRAPH;
+    itRow.rowId = 'THREAD_LOAD';
+    expect(selectionParam.vMTrackerGpuChildRowsEvery(itRow)).toBeUndefined();
+  });
+
+  it('BoxSelectionTest113', function () {
+    itRow.rowType = TraceRow.ROW_TYPE_SYS_MEMORY_GPU_TOTAL;
+    itRow.rowId = 'THREAD_LOAD';
+    expect(selectionParam.vMTrackerGpuChildRowsEvery(itRow)).toBeUndefined();
+  });
+
+  it('BoxSelectionTest114', function () {
+    itRow.rowType = TraceRow.ROW_TYPE_SYS_MEMORY_GPU_WINDOW;
+    itRow.rowId = 'THREAD_LOAD';
+    expect(selectionParam.vMTrackerGpuChildRowsEvery(itRow)).toBeUndefined();
   });
 });

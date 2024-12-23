@@ -17,7 +17,6 @@ import { TabPaneXpowerCounter } from '../../../../../../src/trace/component/trac
 import { SelectionParam } from '../../../../../../src/trace/bean/BoxSelection';
 import { TraceRow } from '../../../../../../src/trace/component/trace/base/TraceRow';
 import { XpowerStruct } from '../../../../../../src/trace/database/ui-worker/ProcedureWorkerXpower';
-import { Rect } from '../../../../../../src/trace/database/ui-worker/ProcedureWorkerCommon';
 import { xpowerDataSender } from '../../../../../../src/trace/database/data-trafic/xpower/XpowerDataSender';
 jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {
   return {};
@@ -60,9 +59,7 @@ describe('TabPaneXpowerCounter', () => {
     value: mockParentElement,
     writable: true,
   });
-
   tabpane.initElements = jest.fn();
-  let frame = new Rect(0, 0, 100, 100);
   it('TabPaneXpowerCounterTest01', () => {
     expect(tabpane.initElements()).toBeUndefined();
     expect(tabpane.connectedCallback()).toBeUndefined();
