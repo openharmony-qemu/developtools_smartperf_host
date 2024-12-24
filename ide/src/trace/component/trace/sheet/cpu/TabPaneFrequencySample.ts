@@ -186,7 +186,6 @@ export class TabPaneFrequencySample extends BaseElement {
     });
     let tmpCpuArr = Array.from(sampleMap.entries());
     let weightMapArr = Array.from(weightMap.entries());
-    console.log(tmpCpuArr, weightMap);
     for (let j = 0; j < weightMapArr.length; j++) {
       // @ts-ignore
       let singleCpuArr = tmpCpuArr.filter((item) => item[1].filterId && item[1].filterId === Number(weightMapArr[j][1].filterId));

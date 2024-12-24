@@ -237,7 +237,6 @@ export class Cmd {
         WebSocketManager.getInstance()!.sendMessage(TypeConstants.USB_TYPE, TypeConstants.USB_GET_PROCESS, new TextEncoder().encode(SpRecordTrace.serialNumber));
         setTimeout(() => {
           if (SpRecordTrace.allProcessListStr) {
-            console.log(SpRecordTrace.allProcessListStr);
             resolve(Cmd.convertOutProcessList(SpRecordTrace.allProcessListStr));
           }
         }, 1000)

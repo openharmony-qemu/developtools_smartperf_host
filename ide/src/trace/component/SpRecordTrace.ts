@@ -771,16 +771,13 @@ export class SpRecordTrace extends BaseElement {
         }
       });
     } else if (cmd === TypeConstants.USB_GET_PROCESS) {
-      console.log(jsonRes.resultMessage);
       // @ts-ignore
       SpRecordTrace.allProcessListStr = jsonRes.resultMessage;
     } else if (cmd === TypeConstants.USB_GET_CPU_COUNT) {
       SpRecordTrace.usbGetCpuCount = jsonRes.resultMessage;
     } else if (cmd === TypeConstants.USB_GET_EVENT) {
-      console.log(jsonString);
       SpRecordTrace.usbGetEvent = jsonRes.resultMessage;
     } else if (cmd === TypeConstants.USB_GET_APP) {
-      console.log(jsonString)
       SpRecordTrace.usbGetApp = jsonRes.resultMessage;
     } else if (cmd === TypeConstants.USB_GET_VERSION) {
       SpRecordTrace.usbGetVersion = jsonRes.resultMessage;
