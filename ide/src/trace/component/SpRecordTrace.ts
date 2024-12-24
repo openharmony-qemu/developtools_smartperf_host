@@ -122,8 +122,6 @@ export class SpRecordTrace extends BaseElement {
   private hintTimeOut: number = -1;
   private MenuItemArkts: MenuItem | undefined | null;
   private MenuItemArktsHtml: LitMainMenuItem | undefined | null;
-  private MenuItemEbpf: MenuItem | undefined | null;
-  private MenuItemEbpfHtml: LitMainMenuItem | undefined | null;
   private hdcList: Array<unknown> = [];
   public useExtendCheck: LitCheckBox | undefined | null;
   public static useExtend = false;
@@ -248,20 +246,6 @@ export class SpRecordTrace extends BaseElement {
           if (this.MenuItemArkts.clickHandler) {
             this.MenuItemArkts.clickHandler = undefined;
           }
-        }
-        try {
-          let kernelInfo = await HdcDeviceManager.shellResultAsString(CmdConstant.CMD_UNAME, false);
-          if (kernelInfo.includes('HongMeng')) {
-            if (this.MenuItemEbpf && this.MenuItemEbpfHtml) {//如果为鸿蒙内核，ebpf开关置灰不能点击
-              this.MenuItemEbpfHtml.style.color = 'gray';
-              this.MenuItemEbpfHtml.disabled = true;
-              if (this.MenuItemEbpf.clickHandler) {
-                this.MenuItemEbpf.clickHandler = undefined;
-              }
-            }
-          }
-        } catch (error) {
-          console.error('Failed to get kernel info:', error);
         }
         HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_VERSION, false).then((version) => {
           SpRecordTrace.selectVersion = this.getDeviceVersion(version);
@@ -1107,8 +1091,13 @@ export class SpRecordTrace extends BaseElement {
         }
       });
       if (item.title === 'eBPF Config') {
-        this.MenuItemEbpf = item;
-        this.MenuItemEbpfHtml = th;
+        if (th && item) {//ebpf开关置灰不能点击
+          th.style.color = 'gray';
+          th.disabled = true;
+          if (item.clickHandler) {
+            item.clickHandler = undefined;
+          }
+        }
       }
       this.menuGroup!.appendChild(th);
     });
@@ -1800,7 +1789,7 @@ export class SpRecordTrace extends BaseElement {
       for (let i = 0; i < this.hdcList.length; i++) {
         let dev = this.hdcList[i];
         // @ts-ignore
-        let serialNumber = typeof(dev) === 'string'?dev:dev.serialNumber;
+        let serialNumber = typeof (dev) === 'string' ? dev : dev.serialNumber;
         let option = document.createElement('option');
         option.className = 'select';
         //@ts-ignore
