@@ -383,10 +383,18 @@ export class SpAiAnalysisPage extends BaseElement {
             collection: 'smart_perf_test',
             scope: 'smartperf'
         };
-        let answer = await SpStatisticsHttpUtil.askAi(requestBody);
-        if (answer.status === 200) {
-            SpStatisticsHttpUtil.generalRecord('AI_statistic', 'large_model_q&a', []);
-        }
+
+        await SpStatisticsHttpUtil.askAi(requestBody).then(res => {
+            if (res.status === 200) {
+                SpStatisticsHttpUtil.generalRecord('AI_statistic', 'large_model_q&a', []);
+            }
+            this.appendChatContent(res);
+        }).catch(error => {
+            this.appendChatContent(error);
+        });
+    }
+
+    appendChatContent(response: AiResponse) {
         if (!this.isNewChat) {
             // @ts-ignore
             this.aiAnswerBox!.firstElementChild!.innerHTML = this.md!.render(response.data);
@@ -744,6 +752,16 @@ export class SpAiAnalysisPage extends BaseElement {
             };
         };
     };
+
+    // eventCallBack
+    eventCallBack = async (result: string) => {
+        this.draftList!.innerHTML = '';
+        this.tipsContent!.style.display = 'flex';
+        this.tipContentArr = ['detect'];
+        // @ts-ignore
+        this.abnormalPageTips(this.getStatusesPrompt()[result].prompt, '', 4000, ['detect']);
+        this.draftBtn!.style.display = 'inline-block';
+    }
 
     // 发起诊断
     initiateDiagnosis(): void {

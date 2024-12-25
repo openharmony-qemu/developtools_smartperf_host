@@ -79,7 +79,12 @@ export class FrameChart extends BaseElement {
   }
 
   set data(val: Array<ChartStruct>) {
-    this.tabPaneFilter = document.querySelector('body > sp-application')?.shadowRoot?.querySelector('#sp-system-trace')?.shadowRoot?.querySelector('div > trace-sheet')?.shadowRoot?.querySelector('#box-native-calltree > tabpane-nm-calltree')?.shadowRoot?.querySelector('#nm-call-tree-filter') as TabPaneFilter;
+    this.tabPaneFilter = document
+      .querySelector('body > sp-application')
+      ?.shadowRoot?.querySelector('#sp-system-trace')
+      ?.shadowRoot?.querySelector('div > trace-sheet')
+      ?.shadowRoot?.querySelector('#box-native-calltree > tabpane-nm-calltree')
+      ?.shadowRoot?.querySelector('#nm-call-tree-filter') as TabPaneFilter;
     ChartStruct.lastSelectFuncStruct = undefined;
     this.setSelectStatusRecursive(ChartStruct.selectFuncStruct, true);
     ChartStruct.selectFuncStruct = undefined;

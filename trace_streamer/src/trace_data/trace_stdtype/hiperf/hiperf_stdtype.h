@@ -27,7 +27,6 @@ struct PerfCallChainRow {
     uint64_t ip = INVALID_UINT64;
     uint64_t vaddrInFile = INVALID_UINT64;
     uint64_t offsetToVaddr = INVALID_UINT64;
-    uint64_t offsetToVaddr = INVALID_UINT64;
     uint64_t fileId = INVALID_UINT64;
     uint64_t symbolId = INVALID_UINT64;
 };

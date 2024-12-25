@@ -24,7 +24,6 @@ size_t PerfCallChain::AppendNewPerfCallChain(const PerfCallChainRow &context)
     ips_.emplace_back(context.ip);
     vaddrInFiles_.emplace_back(context.vaddrInFile);
     offsetToVaddrs_.emplace_back(context.offsetToVaddr);
-    offsetToVaddrs_.emplace_back(context.offsetToVaddr);
     fileIds_.emplace_back(context.fileId);
     symbolIds_.emplace_back(context.symbolId);
     names_.emplace_back(INVALID_UINT64);

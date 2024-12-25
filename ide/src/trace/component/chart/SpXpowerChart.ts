@@ -102,70 +102,74 @@ export class SpXpowerChart {
     }
   }
 
-    initXpowerFolder = async (traceId?: string): Promise<void> => {
-        let xpowerFolder = TraceRow.skeleton(traceId);
-        xpowerFolder.rowId = 'Xpowers';
-        xpowerFolder.index = 0;
-        xpowerFolder.rowType = TraceRow.ROW_TYPE_XPOWER;
-        xpowerFolder.rowParentId = '';
-        xpowerFolder.style.height = '40px';
-        xpowerFolder.folder = true;
-        xpowerFolder.name = 'Xpower';
-        xpowerFolder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-        xpowerFolder.selectChangeHandler = this.trace.selectChangeHandler;
-        xpowerFolder.supplier = (): Promise<BaseStruct[]> => new Promise<Array<BaseStruct>>((resolve) => resolve([]));
-        xpowerFolder.onThreadHandler = (useCache): void => {
-            xpowerFolder.canvasSave(this.trace.canvasPanelCtx!);
-            if (xpowerFolder.expansion) {
-                this.trace.canvasPanelCtx?.clearRect(0, 0, xpowerFolder.frame.width, xpowerFolder.frame.height);
-            } else {
-                (renders.empty as EmptyRender).renderMainThread(
-                    {
-                        context: this.trace.canvasPanelCtx,
-                        useCache: useCache,
-                        type: '',
-                    },
-                    xpowerFolder
-                );
-            }
-            xpowerFolder.canvasRestore(this.trace.canvasPanelCtx!, this.trace);
-        };
-        this.rowFolder = xpowerFolder;
-        this.trace.rowsEL?.appendChild(xpowerFolder);
+  initXpowerFolder = async (traceId?: string): Promise<void> => {
+    let xpowerFolder = TraceRow.skeleton(traceId);
+    xpowerFolder.rowId = 'Xpowers';
+    xpowerFolder.index = 0;
+    xpowerFolder.rowType = TraceRow.ROW_TYPE_XPOWER;
+    xpowerFolder.rowParentId = '';
+    xpowerFolder.style.height = '40px';
+    xpowerFolder.folder = true;
+    xpowerFolder.name = 'Xpower';
+    xpowerFolder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    xpowerFolder.selectChangeHandler = this.trace.selectChangeHandler;
+    xpowerFolder.supplier = (): Promise<BaseStruct[]> => new Promise<Array<BaseStruct>>((resolve) => resolve([]));
+    xpowerFolder.onThreadHandler = (useCache): void => {
+      xpowerFolder.canvasSave(this.trace.canvasPanelCtx!);
+      if (xpowerFolder.expansion) {
+        this.trace.canvasPanelCtx?.clearRect(0, 0, xpowerFolder.frame.width, xpowerFolder.frame.height);
+      } else {
+        (renders.empty as EmptyRender).renderMainThread(
+          {
+            context: this.trace.canvasPanelCtx,
+            useCache: useCache,
+            type: '',
+          },
+          xpowerFolder
+        );
+      }
+      xpowerFolder.canvasRestore(this.trace.canvasPanelCtx!, this.trace);
     };
+    this.rowFolder = xpowerFolder;
+    this.trace.rowsEL?.appendChild(xpowerFolder);
+  };
 
-    initSystemFolder = async (traceId?: string): Promise<void> => {
-        let systemFolder = TraceRow.skeleton(traceId);
-        systemFolder.rowId = 'system';
-        systemFolder.rowParentId = 'Xpowers';
-        systemFolder.rowHidden = !this.rowFolder.expansion;
-        systemFolder.rowType = TraceRow.ROW_TYPE_XPOWER_SYSTEM_GROUP;
-        systemFolder.folder = true;
-        systemFolder.name = 'System';
-        systemFolder.folderPaddingLeft = 20;
-        systemFolder.style.height = '40px';
-        systemFolder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-        systemFolder.selectChangeHandler = this.trace.selectChangeHandler;
-        systemFolder.supplier = (): Promise<BaseStruct[]> => new Promise<Array<BaseStruct>>((resolve) => resolve([]));
-        systemFolder.onThreadHandler = (useCache): void => {
-            systemFolder.canvasSave(this.trace.canvasPanelCtx!);
-            if (systemFolder.expansion) {
-                this.trace.canvasPanelCtx?.clearRect(0, 0, systemFolder.frame.width, systemFolder.frame.height);
-            } else {
-                (renders.empty as EmptyRender).renderMainThread(
-                    {
-                        context: this.trace.canvasPanelCtx,
-                        useCache: useCache,
-                        type: '',
-                    },
-                    systemFolder
-                );
-            }
-            systemFolder.canvasRestore(this.trace.canvasPanelCtx!, this.trace);
-        };
-        this.systemFolder = systemFolder;
-        this.rowFolder?.addChildTraceRow(systemFolder);
+  private initFolder = async (rowId: string, rowType: string, name: string, traceId?: string): Promise<void> => {
+    let folder = TraceRow.skeleton(traceId);
+    folder.rowId = rowId;
+    folder.rowParentId = 'Xpowers';
+    folder.rowHidden = !this.rowFolder.expansion;
+    folder.rowType = rowType;
+    folder.folder = true;
+    folder.name = name;
+    folder.folderPaddingLeft = 20;
+    folder.style.height = '40px';
+    folder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    folder.selectChangeHandler = this.trace.selectChangeHandler;
+    folder.supplier = (): Promise<BaseStruct[]> => new Promise<Array<BaseStruct>>((resolve) => resolve([]));
+    folder.onThreadHandler = (useCache): void => {
+      folder.canvasSave(this.trace.canvasPanelCtx!);
+      if (folder.expansion) {
+        this.trace.canvasPanelCtx?.clearRect(0, 0, folder.frame.width, folder.frame.height);
+      } else {
+        (renders.empty as EmptyRender).renderMainThread(
+          {
+            context: this.trace.canvasPanelCtx,
+            useCache: useCache,
+            type: '',
+          },
+          folder
+        );
+      }
+      folder.canvasRestore(this.trace.canvasPanelCtx!, this.trace);
     };
+    if (rowType == TraceRow.ROW_TYPE_XPOWER_SYSTEM_GROUP) {
+      this.systemFolder = folder;
+    } else if (rowType == TraceRow.ROW_TYPE_XPOWER_BUNDLE_NAME_GROUP) {
+      this.bundleNameFolder = folder;
+    }
+    this.rowFolder?.addChildTraceRow(folder);
+  };
 
   private xpowerSupplierFrame(
     traceRow: TraceRow<XpowerStruct>,

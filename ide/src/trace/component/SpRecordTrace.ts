@@ -68,7 +68,9 @@ import {
 import { SpRecordTraceHtml } from './SpRecordTrace.html';
 import { SpFFRTConfig } from './setting/SpFFRTConfig';
 import { ShadowRootInput } from './trace/base/ShadowRootInput';
-
+import { WebSocketManager } from '../../webSocket/WebSocketManager';
+import { TypeConstants } from '../../webSocket/Constants';
+import { LitCheckBox } from '../../base-ui/checkbox/LitCheckBox';
 const DEVICE_NOT_CONNECT =
   '<div>1.请确认抓取设备上是否已勾选并确认总是允许smartPerf-Host调试的弹窗</div>' +
   '<div>2.请关闭DevEco Studio,DevEco Testing等会占用hdc端口的应用</div>' +
