@@ -73,7 +73,7 @@ config("hiperf_parser_cfg") {
   ]
   if (enable_addr2line) {
     include_dirs += [
-      "//llvm/include",
+      "${LLVM_ROOT}/include",
       "$root_gen_dir/llvm/include",
     ]
   }
@@ -98,12 +98,12 @@ ohos_static_library("hiperf_parser") {
   ]
   if (enable_addr2line) {
     public_deps += [
-      "//llvm/lib/DebugInfo/DWARF",
-      "//llvm/lib/DebugInfo/PDB",
-      "//llvm/lib/DebugInfo/Symbolize",
-      "//llvm/lib/Demangle",
-      "//llvm/lib/Object",
-      "//llvm/lib/Support",
+      "${LLVM_ROOT}/lib/DebugInfo/DWARF",
+      "${LLVM_ROOT}/lib/DebugInfo/PDB",
+      "${LLVM_ROOT}/lib/DebugInfo/Symbolize",
+      "${LLVM_ROOT}/lib/Demangle",
+      "${LLVM_ROOT}/lib/Object",
+      "${LLVM_ROOT}/lib/Support",
     ]
   }
 }
