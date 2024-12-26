@@ -1647,14 +1647,14 @@ export class SpSystemTrace extends BaseElement {
     spSystemTraceDrawFuncLine(this, endParentRow, selectFuncStruct, data, binderTid);
   }
 
-  getStartRow(selectRowId: number | undefined, collectList: unknown[]): unknown {
+  getStartRow(selectRowId: number | undefined, selectRowPid: number | undefined, collectList: unknown[]): unknown {
     let startRow = this.shadowRoot?.querySelector<TraceRow<ThreadStruct>>(
-      `trace-row[row-id='${selectRowId}'][row-type='thread']`
+      `trace-row[row-id='${selectRowId}'][row-parent-id='${selectRowPid}'][row-type='thread']`
     );
     if (!startRow) {
       for (let collectChart of collectList) {
         // @ts-ignore
-        if (collectChart.rowId === selectRowId?.toString() && collectChart.rowType === 'thread') {
+        if (collectChart.rowId === selectRowId?.toString() && collectChart.rowParentId === selectRowPid?.toString() && collectChart.rowType === 'thread') {
           // @ts-ignore
           startRow = collectChart;
           break;

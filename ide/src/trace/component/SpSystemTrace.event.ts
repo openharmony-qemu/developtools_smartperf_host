@@ -349,8 +349,8 @@ function cpuClickHandlerFunc(sp: SpSystemTrace) {
     }
     sp.observerScrollHeightEnable = true;
     let threadRow = sp.queryAllTraceRow<TraceRow<ThreadStruct>>(
-      `trace-row[row-id='${Utils.getDistributedRowId(d.tid)}'][row-type='thread']`,
-      (row) => row.rowId === `${d.tid}` && row.rowType === 'thread'
+      `trace-row[row-id='${Utils.getDistributedRowId(d.tid)}'][row-type='thread'][row-parent-id='${traceRow?.rowId}']`,
+      (row) => row.rowId === `${d.tid}` && row.rowType === 'thread' && row.rowParentId === traceRow?.rowId
     )[0];
     sp.currentRow = threadRow;
     if (threadRow) {
