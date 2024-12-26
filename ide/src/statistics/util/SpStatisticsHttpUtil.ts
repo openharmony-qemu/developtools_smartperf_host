@@ -217,7 +217,7 @@ export class SpStatisticsHttpUtil {
   }
 
   // ai对话接口--获取token
-  static async getAItoken(): Promise<AiResponse> {
+  static async getAItoken(params:string): Promise<AiResponse> {
     let controller = new AbortController();
     let response: AiResponse = {
       status: 0,
@@ -226,7 +226,7 @@ export class SpStatisticsHttpUtil {
     setTimeout(() => {
       controller.abort();
     }, 60000);
-    let res = await window.fetch(`https://${window.location.host}/takeToken`, {
+    let res = await window.fetch(`https://${window.location.host}/${params}`, {
       method: 'post',
       signal: controller.signal,
       headers: {
@@ -247,7 +247,7 @@ export class SpStatisticsHttpUtil {
 
   // ai对话接口--问答
   // @ts-ignore
-  static askAi(requestBody): Promise<AiResponse> {
+  static askAi(requestBody,params:string): Promise<AiResponse> {
     return new Promise((resolve, reject) => {
       let controller = new AbortController();
       let date = Date.now();
@@ -262,7 +262,7 @@ export class SpStatisticsHttpUtil {
       setTimeout(() => {
         controller.abort();
       }, 60000);
-      window.fetch(`https://${window.location.host}/ask`, {
+      window.fetch(`https://${window.location.host}/${params}`, {
         method: 'post',
         signal: controller.signal,
         headers: {

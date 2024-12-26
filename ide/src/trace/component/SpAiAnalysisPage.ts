@@ -56,7 +56,8 @@ export class SpAiAnalysisPage extends BaseElement {
     private showPageFlag: string = 'chat';
     private tipContentArr: Array<string> = [];
     private question: string = '';
-    private token: string = '';
+    private chatToken: string = '';
+    private detectToken: string = '';
     // 是否点击了新建聊天
     private isNewChat: boolean = false;
     isCtrlDown: boolean = false;
@@ -187,7 +188,7 @@ export class SpAiAnalysisPage extends BaseElement {
         this.newChatEl?.addEventListener('click', () => {
             this.isNewChat = true;
             this.isResultBack = true;
-            this.token = '';
+            this.chatToken = '';
             this.q_a_window!.innerHTML = '';
             this.createAiChatBox('有什么可以帮助您的吗？');
         });
@@ -365,10 +366,10 @@ export class SpAiAnalysisPage extends BaseElement {
             this.createAiChatBox('AI智能分析中...');
             this.q_a_window!.scrollTop = this.q_a_window!.scrollHeight;
             // 没有token
-            if (this.token === '') {
-                await this.getToken90Min(true);
+            if (this.chatToken === '') {
+                await this.getToken90Min('aiTakeToken', true);
             }
-            if (this.token !== '') {
+            if (this.chatToken !== '') {
                 this.answer();
             }
             this.isResultBack = true;
@@ -378,13 +379,13 @@ export class SpAiAnalysisPage extends BaseElement {
     // ai对话
     async answer(): Promise<void> {
         let requestBody = {
-            token: this.token,
+            token: this.chatToken,
             question: this.question,
             collection: 'smart_perf_test',
             scope: 'smartperf'
         };
 
-        await SpStatisticsHttpUtil.askAi(requestBody).then(res => {
+        await SpStatisticsHttpUtil.askAi(requestBody, 'aiAsk').then(res => {
             if (res.status === 200) {
                 SpStatisticsHttpUtil.generalRecord('AI_statistic', 'large_model_q&a', []);
             }
@@ -456,8 +457,9 @@ export class SpAiAnalysisPage extends BaseElement {
         //生成表格导航
         //@ts-ignore
         this.renderTblNav(dataList);
-        if (this.token === '') {
-            await this.getToken90Min(false);
+        this.renderTblNav(dataList);
+        if (this.detectToken === '') {
+            await this.getToken90Min('takeToken', false);
         }
         // @ts-ignore
         for (let i = 0; i < dataList.length; i++) {
@@ -570,15 +572,19 @@ export class SpAiAnalysisPage extends BaseElement {
         super.connectedCallback();
     }
 
-    async getToken(isChat?: boolean): Promise<void> {
-        let data = await SpStatisticsHttpUtil.getAItoken();
+    async getToken(params: string, isChat?: boolean): Promise<void> {
+        let data = await SpStatisticsHttpUtil.getAItoken(params);
         if (data.status !== 200) {
             if (isChat) {
                 this.aiAnswerBox!.firstElementChild!.innerHTML = '获取token失败';
             }
             return;
         } else {
-            this.token = data.data;
+            if (isChat) {
+                this.chatToken = data.data;
+            } else {
+                this.detectToken = data.data;
+            }
         }
     }
 
@@ -620,10 +626,10 @@ export class SpAiAnalysisPage extends BaseElement {
     }
 
     // 每90min重新获取token
-    async getToken90Min(isChat: boolean): Promise<void> {
-        await this.getToken(isChat);
+    async getToken90Min(params: string, isChat: boolean): Promise<void> {
+        await this.getToken(params, isChat);
         setInterval(async () => {
-            await this.getToken(isChat);
+            await this.getToken(params, isChat);
         }, 5400000);
     }
 
@@ -635,11 +641,11 @@ export class SpAiAnalysisPage extends BaseElement {
         timeList: Array<string>
     ): void {
         SpStatisticsHttpUtil.askAi({
-            token: this.token,
+            token: this.detectToken,
             // @ts-ignore
             question: dataList[i].description + ',请问该怎么优化？',
             collection: ''
-        }).then((suggestion) => {
+        },'ask').then((suggestion) => {
             this.appendMsg(dataList, i, suggestonDiv, timeList, suggestion);
         }).catch((error) => {
             this.appendMsg(dataList, i, suggestonDiv, timeList, error);
