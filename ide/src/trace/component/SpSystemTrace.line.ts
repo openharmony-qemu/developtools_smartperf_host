@@ -768,7 +768,8 @@ export function spSystemTraceDrawThreadLine(
     return;
   }
   let selectRowId = selectThreadStruct.tid;
-  let startRow = sp.getStartRow(selectRowId, collectList);
+  let selectRowPid = selectThreadStruct.pid;
+  let startRow = sp.getStartRow(selectRowId, selectRowPid, collectList);
 
   if (endParentRow) {
     //@ts-ignore
