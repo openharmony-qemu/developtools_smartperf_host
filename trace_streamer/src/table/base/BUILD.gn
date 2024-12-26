@@ -35,6 +35,7 @@ config("base_tables_cfg") {
     "${SRC}/trace_data/trace_stdtype/hisysevent",
     "${SRC}/trace_data/trace_stdtype/htrace",
     "${SRC}/trace_data/trace_stdtype/measure",
+    "${SRC}/trace_data/trace_stdtype/xpower",
   ]
 }
 ohos_source_set("base_tables") {

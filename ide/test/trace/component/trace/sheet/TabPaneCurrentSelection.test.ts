@@ -13,288 +13,80 @@
  * limitations under the License.
  */
 
+import { SpApplication } from '../../../../../src/trace/SpApplication';
+import { SpSystemTrace } from '../../../../../src/trace/component/SpSystemTrace';
 import {
   getTimeString,
+  JankTreeNode,
   TabPaneCurrentSelection,
+  ThreadTreeNode,
 } from '../../../../../src/trace/component/trace/sheet/TabPaneCurrentSelection';
+import { AllAppStartupStruct } from '../../../../../src/trace/database/ui-worker/ProcedureWorkerAllAppStartup';
+import { ClockStruct } from '../../../../../src/trace/database/ui-worker/ProcedureWorkerClock';
+import { DmaFenceStruct } from '../../../../../src/trace/database/ui-worker/ProcedureWorkerDmaFence';
+import { FuncStruct } from '../../../../../src/trace/database/ui-worker/ProcedureWorkerFunc';
+import { HangStruct } from '../../../../../src/trace/database/ui-worker/ProcedureWorkerHang';
+import { JankStruct } from '../../../../../src/trace/database/ui-worker/ProcedureWorkerJank';
+import { PerfToolStruct } from '../../../../../src/trace/database/ui-worker/ProcedureWorkerPerfTool';
+import { SoStruct } from '../../../../../src/trace/database/ui-worker/ProcedureWorkerSoInit';
+import { ThreadStruct } from '../../../../../src/trace/database/ui-worker/ProcedureWorkerThread';
+import { XpowerStruct } from '../../../../../src/trace/database/ui-worker/ProcedureWorkerXpower';
+import { XpowerAppDetailStruct } from '../../../../../src/trace/database/ui-worker/ProcedureWorkerXpowerAppDetail';
+import { XpowerWifiStruct } from '../../../../../src/trace/database/ui-worker/ProcedureWorkerXpowerWifi';
+import { CpuStruct, WakeupBean } from '../../../../../src/trace/database/ui-worker/cpu/ProcedureWorkerCPU';
 const processSqlite = require('../../../../../src/trace/database/sql/ProcessThread.sql');
 jest.mock('../../../../../src/trace/database/sql/ProcessThread.sql');
 const sqlite = require('../../../../../src/trace/database/sql/SqlLite.sql');
 jest.mock('../../../../../src/trace/database/sql/SqlLite.sql');
 const gpuSqlite = require('../../../../../src/trace/database/sql/Gpu.sql');
 jest.mock('../../../../../src/trace/database/sql/Gpu.sql');
-
+const clockSqlite = require('../../../../../src/trace/database/sql/Clock.sql');
+jest.mock('../../../../../src/trace/database/sql/Clock.sql');
+const cpuSqlite = require('../../../../../src/trace/database/sql/Cpu.sql');
+jest.mock('../../../../../src/trace/database/sql/Cpu.sql');
+jest.mock('../../../../../src/js-heap/model/DatabaseStruct', () => {
+  return {};
+});
+jest.mock('../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
+jest.mock('../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+  return {};
+});
+global.caches = {
+  match: jest.fn(),
+} as any;
 describe('TabPaneCurrentSelection Test', () => {
   let tabPaneCurrentSelection = new TabPaneCurrentSelection();
-  tabPaneCurrentSelection.setRealTime = jest.fn();
   const canvas = document.createElement('canvas');
   canvas.width = 1;
   canvas.height = 1;
   let context = canvas.getContext('2d');
 
-  let cpuData = [
-    {
-      cpu: 1,
-      dur: 1,
-      end_state: 'string',
-      id: 12,
-      name: 'name',
-      priority: 11,
-      processCmdLine: 'processCmdLine',
-      processId: 1111,
-      processName: 'processName',
-      schedId: 221,
-      startTime: 0,
-      tid: 1001,
-      type: 'type',
-    },
-  ];
-  let functionData = [
-    {
-      argsetid: 53161,
-      depth: 0,
-      dur: 570000,
-      funName: 'binder transaction',
-      id: 92749,
-      is_main_thread: 0,
-      parent_id: null,
-      startTs: 9729867000,
-      threadName: 'Thread-15',
-      tid: 2785,
-    },
-  ];
-  let memData = [
-    {
-      trackId: 100,
-      processName: 'processName',
-      pid: 11,
-      upid: 1,
-      trackName: 'trackName',
-      type: 'type',
-      track_id: 'track_id',
-      value: 111,
-      startTime: 0,
-      duration: 1000,
-      maxValue: 4000,
-      delta: 2,
-    },
-  ];
-  let threadData = [
-    {
-      hasSched: 14724852000,
-      pid: 2519,
-      processName: null,
-      threadName: 'ACCS0',
-      tid: 2716,
-      upid: 1,
-      utid: 1,
-      cpu: null,
-      dur: 405001,
-      end_ts: null,
-      id: 11,
-      is_main_thread: 0,
-      name: 'ACCS0',
-      startTime: 58001,
-      start_ts: null,
-      state: 'S',
-      type: 'thread',
-    },
-  ];
-  let wakeupBean = [
-    {
-      wakeupTime: 0,
-      cpu: 1,
-      process: 'process',
-      pid: 11,
-      thread: 'thread',
-      tid: 22,
-      schedulingLatency: 33,
-      schedulingDesc: 'schedulingDesc',
-    },
-  ];
+  it('TabPaneCurrentSelectionTest01', function () {
+    expect(tabPaneCurrentSelection.getDate(1732017213)).not.toBeUndefined;
+  });
 
-  let queryData = [
-    {
-      id: 1,
-      startTime: 0,
-      hasSched: 14724852000,
-      pid: 2519,
-      processName: null,
-      threadName: 'ACCS0',
-      tid: 2716,
-      upid: 1,
-      utid: 1,
-      cpu: null,
-      dur: 405002,
-      end_ts: null,
-      is_main_thread: 2,
-      name: 'ACCS0',
-      start_ts: null,
-      state: 'S',
-      type: 'thread',
-    },
-  ];
-  let scrollWakeUp = [
-    {
-      startTime: 0,
-      pid: 11,
-      tid: 22,
-    },
-  ];
-  let data = [
-    {
-      cpu: 1,
-      dur: 1,
-      end_state: 'string',
-      id: 12,
-      name: 'name',
-      priority: 11,
-      processCmdLine: 'processCmdLine',
-      processId: 1112,
-      processName: 'processName',
-      schedId: 222,
-      startTime: 0,
-      tid: 1002,
-      type: 'type',
-    },
-  ];
+  it('TabPaneCurrentSelectionTest02', function () {
+    let memData = [
+      {
+        trackId: 100,
+        processName: 'processName',
+        pid: 11,
+        upid: 1,
+        trackName: 'trackName',
+        type: 'type',
+        track_id: 'track_id',
+        value: 111,
+        startTime: 0,
+        duration: 1000,
+        maxValue: 4000,
+        delta: 2,
+      },
+    ];
+    expect(tabPaneCurrentSelection.setMemData(memData)).toBeUndefined;
+  });
 
-  let jankData = {
-    id: 10,
-    ts: 25415,
-    dur: 1200,
-    name: '1523',
-    depth: 1,
-    jank_tag: true,
-    cmdline: 'com.test',
-    type: '0',
-    pid: 20,
-    frame_type: 'app',
-    app_dur: 110,
-    dst_slice: 488,
-  };
-
-  let jankDataRender = {
-    id: 22,
-    ts: 254152,
-    dur: 1202,
-    name: '1583',
-    depth: 1,
-    jank_tag: true,
-    cmdline: 'render.test',
-    type: '0',
-    pid: 22,
-    frame_type: 'render_service',
-    src_slice: '525',
-    rs_ts: 2562,
-    rs_vsync: '2562',
-    rs_dur: 1528,
-    rs_pid: 1252,
-    rs_name: 'name',
-    gpu_dur: 2568,
-  };
-
-  let irqData = [
-    {
-      id: 25,
-      startNS: 1526,
-      name: 'test',
-      dur: 125,
-      argSetId: 526,
-    },
-  ];
-
-  let clockData = [
-    {
-      filterId: 96,
-      value: 253,
-      startNS: 25852,
-      dur: 125,
-      delta: 2586,
-    },
-  ];
-
-  let functionDataTest = {
-    argsetid: 53161,
-    depth: 0,
-    dur: 570000,
-    funName: 'binder async',
-    id: 92749,
-    is_main_thread: 0,
-    parent_id: null,
-    startTs: 9729867000,
-    threadName: 'Thread-15',
-    tid: 2785,
-  };
-
-  tabPaneCurrentSelection.queryWakeUpData = jest.fn(() => 'WakeUpData');
-  tabPaneCurrentSelection.queryWakeUpData.wb = jest.fn(() => null);
-  tabPaneCurrentSelection.setCpuData(cpuData, undefined, 1);
-  let argsetTest = processSqlite.queryBinderArgsByArgset;
-  let argsetIdTest = sqlite.queryBinderByArgsId;
-  let argsetData = [
-    {
-      argset: 12,
-      keyName: 'test',
-      id: 123,
-      desc: 'desc',
-      strValue: 'value',
-    },
-    {
-      argset: 11,
-      keyName: 'test',
-      id: 113,
-      desc: 'desc',
-      strValue: 'value',
-    },
-  ];
-
-  let argsetIdData = [
-    {
-      type: 'func',
-      startTs: 1258,
-      dur: 25,
-      depth: 1,
-      argsetid: 258,
-    },
-  ];
-  argsetTest.mockResolvedValue(argsetData);
-  argsetIdTest.mockResolvedValue(argsetIdData);
-
-  let gpuDur = gpuSqlite.queryGpuDur;
-  let gpuDurData = [
-    {
-      gpu_dur: 1528,
-    },
-  ];
-  gpuDur.mockResolvedValue(gpuDurData);
-
-  let queryFlows = sqlite.queryFlowsData;
-  let queryFlowsData = [
-    {
-      name: '25962',
-      pid: 1885,
-      cmdline: 'render Test',
-      type: 1,
-    },
-  ];
-  queryFlows.mockResolvedValue(queryFlowsData);
-
-  let queryPreceding = sqlite.queryPrecedingData;
-  let queryPrecedingData = [
-    {
-      name: '2596562',
-      pid: 18854,
-      cmdline: 'app Test',
-      type: 0,
-    },
-  ];
-  queryPreceding.mockResolvedValue(queryPrecedingData);
-  tabPaneCurrentSelection.setMemData(memData)
-  tabPaneCurrentSelection.setCpuData(cpuData, undefined, 1);
-  tabPaneCurrentSelection.setFunctionData(functionData);
-  tabPaneCurrentSelection.setClockData(clockData);
-  tabPaneCurrentSelection.setFunctionData(functionDataTest);
   it('TabPaneCurrentSelectionTest03', function () {
     let result = getTimeString(3600_000_000_002);
     expect(result).toBe('1h 2ns ');
@@ -325,6 +117,56 @@ describe('TabPaneCurrentSelection Test', () => {
     expect(result).toBe('101ns ');
   });
 
+  let queryRunnableTimeByRunning = processSqlite.queryRunnableTimeByRunning;
+  let queryRunnableTimeByRunningData = [
+    {
+      ts: 5564,
+    },
+    {
+      ts: 764,
+    },
+  ];
+  queryRunnableTimeByRunning.mockResolvedValue(queryRunnableTimeByRunningData);
+
+  let queryThreadWakeUpFrom = processSqlite.queryThreadWakeUpFrom;
+  let queryThreadWakeUpFromData = [
+    {
+      ts: 5564,
+      tid: 88,
+      itid: 48,
+      pid: 756,
+      cpu: 4,
+      dur: 8456,
+      argSetID: 5,
+    },
+  ];
+  queryThreadWakeUpFrom.mockResolvedValue(queryThreadWakeUpFromData);
+
+  let queryRealTime = clockSqlite.queryRealTime;
+  let queryRealTimeData = [
+    {
+      ts: 5564,
+      name: 'ds5f',
+    },
+    {
+      ts: 5584,
+      name: 'ddsdd',
+    },
+  ];
+  queryRealTime.mockResolvedValue(queryRealTimeData);
+
+  let queryThreadStateArgs = processSqlite.queryThreadStateArgs;
+  let queryThreadStateArgsData = [
+    {
+      argset: 5,
+      keyName: 'f5',
+      id: 985,
+      desc: 'dg4d',
+      strValue: 'dsfsfdf',
+    },
+  ];
+  queryThreadStateArgs.mockResolvedValue(queryThreadStateArgsData);
+
   it('TabPaneCurrentSelectionTest09', function () {
     tabPaneCurrentSelection.setCpuData = jest.fn(() => true);
     tabPaneCurrentSelection.data = jest.fn(() => true);
@@ -332,48 +174,121 @@ describe('TabPaneCurrentSelection Test', () => {
   });
 
   it('TabPaneCurrentSelectionTest10', function () {
+    let cpuData = [
+      {
+        cpu: 2,
+        dur: 2,
+        end_state: 'string',
+        id: 14,
+        name: 'name',
+        priority: 11,
+        processCmdLine: 'processCmdLine',
+        processId: 1115,
+        processName: 'processName',
+        schedId: 221,
+        startTime: 5,
+        tid: 1081,
+        type: 'type',
+      },
+    ];
     expect(tabPaneCurrentSelection.setCpuData(cpuData, undefined, 1)).toBeTruthy();
   });
 
-  it('TabPaneCurrentSelectionTest13', function () {
+  it('TabPaneCurrentSelectionTest11', function () {
     expect(tabPaneCurrentSelection.initCanvas()).not.toBeUndefined();
   });
 
+  it('TabPaneCurrentSelectionTest12', function () {
+    expect(tabPaneCurrentSelection.transferString('')).toBe('');
+  });
+
+  it('TabPaneCurrentSelectionTest13', function () {
+    expect(tabPaneCurrentSelection.drawRight(null, null)).toBeUndefined();
+  });
+
   it('TabPaneCurrentSelectionTest14', function () {
-    let str = {
-      length: 0,
+    let jankData = {
+      id: 10,
+      ts: 25415,
+      dur: 1200,
+      name: '1523',
+      depth: 1,
+      jank_tag: true,
+      cmdline: 'com.test',
+      type: '0',
+      pid: 20,
+      frame_type: 'app',
+      app_dur: 110,
+      dst_slice: 488,
     };
-    expect(tabPaneCurrentSelection.transferString(str)).toBe('');
-  });
-
-  it('TabPaneCurrentSelectionTest16', function () {
-    expect(tabPaneCurrentSelection.drawRight(null)).toBeUndefined();
-  });
-
-  it('TabPaneCurrentSelectionTest23', function () {
     let result = tabPaneCurrentSelection.setJankData(jankData, undefined, 1);
     expect(result).toBeUndefined();
   });
 
-  it('TabPaneCurrentSelectionTest25', function () {
+  it('TabPaneCurrentSelectionTest15', function () {
+    let jankDataRender = {
+      id: 22,
+      ts: 254152,
+      dur: 1202,
+      name: '1583',
+      depth: 1,
+      jank_tag: true,
+      cmdline: 'render.test',
+      type: '0',
+      pid: 22,
+      frame_type: 'render_service',
+      src_slice: '525',
+      rs_ts: 2562,
+      rs_vsync: '2562',
+      rs_dur: 1528,
+      rs_pid: 1252,
+      rs_name: 'name',
+      gpu_dur: 2568,
+    };
     let result = tabPaneCurrentSelection.setJankData(jankDataRender, undefined, 1);
     expect(result).toBeUndefined();
   });
 
-  it('TabPaneCurrentSelectionTest24', function () {
+  let irqData = new SoStruct();
+  irqData.id = 25;
+  irqData.startTs = 1526;
+  irqData.soName = 'test';
+  irqData.dur = 125;
+  irqData.tid = 500;
+
+  it('TabPaneCurrentSelectionTest16', function () {
+    let argsetTest = processSqlite.queryBinderArgsByArgset;
+    let argsetData = [
+      {
+        argset: 12,
+        keyName: 'test',
+        id: 123,
+        desc: 'desc',
+        strValue: 'value',
+      },
+      {
+        argset: 11,
+        keyName: 'test',
+        id: 113,
+        desc: 'desc',
+        strValue: 'value',
+      },
+    ];
+    argsetTest.mockResolvedValue(argsetData);
     let result = tabPaneCurrentSelection.setIrqData(irqData);
     expect(result).toBeUndefined();
   });
 
-  it('TabPaneCurrentSelectionTest18', function () {
+  it('TabPaneCurrentSelectionTest17', function () {
     let result = tabPaneCurrentSelection.setStartupData(irqData, 1, []);
     expect(result).toBeUndefined();
   });
-  it('TabPaneCurrentSelectionTest19', function () {
-    let result = tabPaneCurrentSelection.setStaticInitData(irqData, 1);
+  it('TabPaneCurrentSelectionTest18', function () {
+    tabPaneCurrentSelection.startIconClickEvent = jest.fn();
+    let result = tabPaneCurrentSelection.setStaticInitData(irqData, () => {});
     expect(result).toBeUndefined();
   });
-  it('TabPaneCurrentSelectionTest20', function () {
+  it('TabPaneCurrentSelectionTest19', function () {
     let list: never[] = [];
     let data = [
       {
@@ -384,16 +299,321 @@ describe('TabPaneCurrentSelection Test', () => {
     let result = tabPaneCurrentSelection.setJankType(data, list);
     expect(result).toBeUndefined();
   });
-  it('TabPaneCurrentSelectionTest21', function () {
-    let data = [{
-      startTime:22,
-    }]
-    let result = tabPaneCurrentSelection.setFrameAnimationData(data)
+  it('TabPaneCurrentSelectionTest20', function () {
+    let queryFpsSourceList = sqlite.queryFpsSourceList;
+    let queryFpsSourceListData = [
+      {
+        tid: 5564,
+        dur: 854,
+        depth: 84,
+        ts: 998,
+        name: 'ds8f',
+      },
+    ];
+    queryFpsSourceList.mockResolvedValue(queryFpsSourceListData);
+
+    let data = [
+      {
+        startTime: 22,
+      },
+    ];
+    let result = tabPaneCurrentSelection.setFrameAnimationData(data);
     expect(result).toBeTruthy();
   });
-  it('TabPaneCurrentSelectionTest22', function () {
-    let data = [{}]
-    let result = tabPaneCurrentSelection.queryCPUWakeUpFromData(data)
+
+  it('TabPaneCurrentSelectionTest21', function () {
+    let data = new CpuStruct();
+    data.id = 555;
+    data.startTime = 84;
+    data.tid = 84;
+    let result = tabPaneCurrentSelection.queryCPUWakeUpFromData(data);
     expect(result).toBeTruthy();
+  });
+
+  it('TabPaneCurrentSelectionTest22', function () {
+    let data = {
+      argsetid: 1,
+      depth: 2,
+      dur: 50,
+      funName: 'efs',
+      id: 8,
+      callid: 8,
+      is_main_thread: 74,
+    };
+    expect(tabPaneCurrentSelection.handleNonBinder(data, [], 'sfe', 'effe')).toBeUndefined();
+  });
+
+  it('TabPaneCurrentSelectionTest23', function () {
+    expect(tabPaneCurrentSelection.initElements()).toBeUndefined();
+  });
+
+  it('TabPaneCurrentSelectionTest24', function () {
+    let data = [
+      {
+        thread: 'fds',
+        wakeupTime: 54,
+        cpu: 85,
+        dur: 848,
+        process: 'fdsf',
+        pid: 847,
+        tid: 48,
+        schedulingDesc: 'sdf',
+        ts: 774,
+        itid: 87,
+        state: 'sfd',
+        argSetID: 48785,
+        schedulingLatency: 747,
+      },
+    ];
+    let queryWakeupListPriority = cpuSqlite.queryWakeupListPriority;
+    let queryWakeupListPriorityData = [
+      {
+        itid: 5564,
+        priority: 854,
+        dur: 84,
+        ts: 998,
+        cpu: 'ds8f',
+      },
+    ];
+    queryWakeupListPriority.mockResolvedValue(queryWakeupListPriorityData);
+    expect(tabPaneCurrentSelection.showWakeupListTableData(data)).toBeUndefined();
+  });
+
+  it('TabPaneCurrentSelectionTest24', function () {
+    expect(tabPaneCurrentSelection.getRealTimeStr(74512)).not.toBeUndefined();
+  });
+
+  it('TabPaneCurrentSelectionTest25', function () {
+    let data = new ClockStruct();
+    tabPaneCurrentSelection.initElements();
+    expect(tabPaneCurrentSelection.setClockData(data)).not.toBeUndefined();
+  });
+
+  it('TabPaneCurrentSelectionTest26', function () {
+    let data = new XpowerStruct();
+    tabPaneCurrentSelection.initElements();
+    expect(tabPaneCurrentSelection.setXpowerData(data)).not.toBeUndefined();
+  });
+
+  it('TabPaneCurrentSelectionTest27', function () {
+    let data = new XpowerAppDetailStruct();
+    tabPaneCurrentSelection.initElements();
+    expect(tabPaneCurrentSelection.setXpowerDisplayData(data)).not.toBeUndefined();
+  });
+
+  it('TabPaneCurrentSelectionTest28', function () {
+    let data = new XpowerWifiStruct();
+    tabPaneCurrentSelection.initElements();
+    expect(tabPaneCurrentSelection.setXpowerWifiBytesData(data)).not.toBeUndefined();
+  });
+
+  it('TabPaneCurrentSelectionTest29', function () {
+    let data = new XpowerWifiStruct();
+    tabPaneCurrentSelection.initElements();
+    expect(tabPaneCurrentSelection.setXpowerWifiPacketsData(data)).not.toBeUndefined();
+  });
+
+  it('TabPaneCurrentSelectionTest30', function () {
+    let data = new CpuStruct();
+    data.name = 'fd0';
+    data.pid = 9;
+    data.ts = 9366;
+    data.dur = 9366;
+    tabPaneCurrentSelection.initElements();
+    expect(
+      tabPaneCurrentSelection.setCpuData(
+        data,
+        (data: WakeupBean | null) => {}
+      )
+    ).not.toBeUndefined();
+  });
+
+  it('TabPaneCurrentSelectionTest31', function () {
+    let data = new PerfToolStruct();
+    tabPaneCurrentSelection.initElements();
+    expect(tabPaneCurrentSelection.setPerfToolsData(data)).toBeUndefined();
+  });
+
+  it('TabPaneCurrentSelectionTest32', function () {
+    let data = new ThreadStruct();
+    tabPaneCurrentSelection.initElements();
+    expect(
+      tabPaneCurrentSelection.setThreadData(
+        data,
+        () => {},
+        () => {},
+        () => {}
+      )
+    ).not.toBeUndefined();
+  });
+
+  it('TabPaneCurrentSelectionTest33', function () {
+    let data = new ThreadStruct();
+    tabPaneCurrentSelection.initElements();
+    expect(tabPaneCurrentSelection.sortByNearData([], data, [])).not.toBeUndefined();
+  });
+
+  it('TabPaneCurrentSelectionTest34', function () {
+    let fromBean = new WakeupBean();
+    let wakeUps = [fromBean];
+    tabPaneCurrentSelection.initElements();
+    expect(tabPaneCurrentSelection.setWakeupData(fromBean, wakeUps, [])).toBeUndefined();
+  });
+
+  it('TabPaneCurrentSelectionTest35', function () {
+    let data = new JankStruct();
+    data.rs_name = 'fd0';
+    data.rs_pid = 9;
+    data.rs_ts = 9366;
+    data.rs_dur = 9366;
+    let list = [];
+    tabPaneCurrentSelection.initElements();
+    expect(tabPaneCurrentSelection.addRenderServiceFrameDetails(data, list)).toBeUndefined();
+  });
+
+  it('TabPaneCurrentSelectionTest36', function () {
+    let data = new JankStruct();
+    data.name = 'fd0';
+    data.rs_pid = 9;
+    data.rs_ts = 9366;
+    data.rs_dur = 9366;
+    data.cmdline = 'ef';
+    let list = [];
+    tabPaneCurrentSelection.initElements();
+    expect(tabPaneCurrentSelection.addFollowingDetails(list, data)).toBeUndefined();
+  });
+
+  it('TabPaneCurrentSelectionTest37', function () {
+    let data = new JankStruct();
+    data.name = 'fd0';
+    data.pid = 9;
+    data.ts = 9366;
+    data.dur = 9366;
+    data.cmdline = 'ef';
+    let list = [];
+    tabPaneCurrentSelection.initElements();
+    expect(tabPaneCurrentSelection.addAppFrameDetails(data, list)).toBeUndefined();
+  });
+
+  it('TabPaneCurrentSelectionTest38', function () {
+    let data = new JankStruct();
+    data.name = 'fd0';
+    data.pid = 9;
+    data.ts = 9366;
+    data.dur = 9366;
+    data.cmdline = 'ef';
+    let list = [];
+    tabPaneCurrentSelection.initElements();
+    expect(tabPaneCurrentSelection.handleAppJank(list, data, [], () => {}, undefined)).toBeUndefined();
+  });
+
+  it('TabPaneCurrentSelectionTest39', function () {
+    let data = new AllAppStartupStruct();
+    data.dur = 9366;
+    tabPaneCurrentSelection.initElements();
+    expect(tabPaneCurrentSelection.setAllStartupData(data, () => {})).toBeUndefined();
+  });
+
+  it('TabPaneCurrentSelectionTest40', function () {
+    let data = new FuncStruct();
+    data.name = 'fd0';
+    data.pid = 9;
+    data.ts = 9366;
+    data.dur = 9366;
+    data.cmdline = 'ef';
+    let list = [];
+    tabPaneCurrentSelection.initElements();
+    expect(tabPaneCurrentSelection.handleBinder(data, list, [], 'dfs', () => {}, 'fds')).toBeUndefined();
+  });
+
+  it('TabPaneCurrentSelectionTest41', function () {
+    let data = new DmaFenceStruct();
+    data.dur = 9366;
+    let list = [];
+    tabPaneCurrentSelection.initElements();
+    expect(tabPaneCurrentSelection.setDmaFenceData(data, list)).toBeUndefined();
+  });
+
+  it('TabPaneCurrentSelectionTest42', function () {
+    let data = new JankStruct();
+    data.dur = 9366;
+    let list = [];
+    tabPaneCurrentSelection.initElements();
+    expect(tabPaneCurrentSelection.setJankType(data, list)).toBeUndefined();
+  });
+
+  it('TabPaneCurrentSelectionTest43', function () {
+    let data = new WakeupBean();
+    data.dur = 9566;
+    let wakeup = new WakeupBean();
+    tabPaneCurrentSelection.drawVerticalLine = jest.fn(() => {});
+    tabPaneCurrentSelection.initElements();
+    let canvas = tabPaneCurrentSelection.initCanvas();
+    expect(tabPaneCurrentSelection.drawRight(canvas, wakeup)).toBeUndefined();
+  });
+
+  it('TabPaneCurrentSelectionTest44', function () {
+    let data = new JankStruct();
+    data.dur = 9566;
+    let jankTreeNode = new JankTreeNode('fs', 5, 's');
+    tabPaneCurrentSelection.initElements();
+    expect(
+      tabPaneCurrentSelection.handleRenderServiceJank(
+        data,
+        [],
+        [jankTreeNode],
+        () => {},
+        () => {}
+      )
+    ).toBeUndefined();
+  });
+
+  it('TabPaneCurrentSelectionTest45', function () {
+    let data = new JankStruct();
+    data.dur = 9366;
+    data.jank_tag = 1;
+    data.frameType = 'render_service';
+    let list = [];
+    tabPaneCurrentSelection.initElements();
+    expect(tabPaneCurrentSelection.setJankType(data, list)).toBeUndefined();
+  });
+
+  it('TabPaneCurrentSelectionTest46', function () {
+    let data = new JankStruct();
+    data.dur = 9366;
+    data.jank_tag = 1;
+    data.frameType = 'app';
+    let list = [];
+    tabPaneCurrentSelection.initElements();
+    expect(tabPaneCurrentSelection.setJankType(data, list)).toBeUndefined();
+  });
+
+  it('TabPaneCurrentSelectionTest47', function () {
+    let data = new JankStruct();
+    data.dur = 9366;
+    data.jank_tag = 1;
+    data.frameType = 'frameTime';
+    let list = [];
+    tabPaneCurrentSelection.initElements();
+    expect(tabPaneCurrentSelection.setJankType(data, list)).toBeUndefined();
+  });
+
+  it('TabPaneCurrentSelectionTest48', function () {
+    let data = new JankStruct();
+    data.dur = 9366;
+    data.jank_tag = 3;
+    data.frameType = 'frameTime';
+    let list = [];
+    tabPaneCurrentSelection.initElements();
+    expect(tabPaneCurrentSelection.setJankType(data, list)).toBeUndefined();
+  });
+
+  it('TabPaneCurrentSelectionTest49', function () {
+    expect(tabPaneCurrentSelection.transferString('frrfsdsd')).not.toBeUndefined();
+  });
+
+  it('TabPaneCurrentSelectionTest50', function () {
+    let threadTreeNode = new ThreadTreeNode(5, 9, 1000);
+    expect(threadTreeNode.tid).toEqual(5);
   });
 });

@@ -79,17 +79,6 @@ export class SpHelp extends BaseElement {
       if (value.title === 'SmartPerf') {
         value.style.display = 'none';
       }
-      if (value.title === 'TS栈') { 
-        value.style.display = 'none';
-      }
-      if (value.title === '内存') {
-        let items = value.querySelectorAll<LitMainMenuItem>('lit-main-menu-item');
-        items.forEach((i) => {
-          if (i.title === 'Js Memory抓取和展示说明') {
-            i.style.display = 'none';
-          }
-        });
-      }
     });
     let urlParams = new URL(window.location.href).searchParams;
     if (urlParams && urlParams.get('action') && urlParams.get('action')!.length > 4) {
@@ -218,6 +207,7 @@ export class SpHelp extends BaseElement {
       this.createSubMenuItem('快捷键说明', 'keywords_shortcuts', 'quickstart_keywords_shortcuts', that, '25'),
       this.createSubMenuItem('Xpower抓取和展示说明', 'xpower', 'quickstart_xpower', that, '26'),
       this.createSubMenuItem('扩展程序安装指导', 'extensions', 'quickstart_extensions', that, '27'),
+      this.createSubMenuItem('FFRT抓取和展示说明', 'ffrt', 'quickstart_ffrt', that, '28'),
     ];
   }
 
@@ -457,7 +447,7 @@ export class SpHelp extends BaseElement {
       title: 'TraceStreamer数据库说明',
       icon: '',
       clickHandler: function (item: MenuItem): void {
-        that.handleMemoryMenuItemClick(that, 'trace_streamer_explain', 'des_tables', '28');
+        that.handleMemoryMenuItemClick(that, 'trace_streamer_explain', 'des_tables', '29');
       },
     };
   }

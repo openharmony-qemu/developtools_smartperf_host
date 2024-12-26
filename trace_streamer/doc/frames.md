@@ -1,14 +1,23 @@
 # 帧渲染数据解析的逻辑
 帧的解析分为应用帧的解析和渲染帧的业务解析。  
 ## 应用帧
-应用帧解析主要是进行应用帧业务的开始和结束，并对其帧编号进行记录，以便在RS的业务中进行匹配（RenderService简称为RS）。  
-应用帧会有下面一些调用栈：  
+应用帧解析主要是进行应用帧业务的开始和结束，并对其帧编号进行记录，以便在RS的业务中进行匹配（RenderService简称为RS）。
+### 主线程应用帧
+主线程应用帧包含以下调用栈：  
 H:ReceiveVsync  
 H:OnVsyncEvent  
 H:MarshRSTransactionData  
 H:ReceiveVsync包含H:OnVsyncEvent, H:OnVsyncEvent包含H:MarshRSTransactionData.  
 特别地，当一个栈没有H:MarshRSTransactionData事件时，是无效的帧。  
 H:MarshRSTransactionData内会包含线程号和应用的帧标号。  例如： H:MarshRSTransactionData cmdCount:3 transactionFlag:[32402,146] 
+### 非主线程应用帧
+非主线程应用帧包含以下调用栈
+H:UV_TRACE  
+H:OnVsyncEvent  
+H:UIVsyncTask[timestamps:time][vsyncID:xxx][instanceID:xxx]  
+H:MarshRSTransactionData  
+与主线程相似，如果没有H:MarshRSTransactionData事件则认为是无效帧。
+
 ## 渲染帧
 渲染帧会有下面一些调用栈：  
 H:ReceiveVsync  
@@ -21,8 +30,8 @@ H:RSMainThread::ProcessCommandUni内包含被渲染帧所属的线程号和帧�
 应用帧和渲染帧通过H:MarshRSTransactionData和H:RSMainThread::ProcessCommandUni事件挟带的[tid, id]关联。  
 ## 应用帧数据计算
 expect: 开始时间为应用帧H:ReceiveVsync事件中now字段指定的时间， 结束时间为end字段指定的时间。  
-        需要注意这里的now和end指定的时间并非boottime，需要经过时钟同步后使用。 在文本格式的数据中无时钟源信息，所以无法进行时钟同步。进而导致文本和htrace解析结果不一致。  
-actural: 开始时间为应用帧H:ReceiveVsync事件B子事件发生时间，结束时间为应用帧H:ReceiveVsync事件E子事件发生时间。  
+        需要注意这里的now和end指定的时间并非boottime，需要经过时钟同步后使用。 在文本格式的数据中无时钟源信息，所以无法进行时钟同步。进而导致文本和htrace解析结果不一致。 非主线程没有expect数据, 只有actural数据。
+actural: 开始时间为应用帧H:ReceiveVsync/H:UV_TRACE事件B子事件发生时间，结束时间为应用帧H:OnVsyncEvent事件E子事件发生时间。  
 ## 渲染帧数据计算
 expect: 开始时间为渲染帧H:ReceiveVsync事件中now字段指定的时间， 结束时间为end字段指定的时间。  
         需要注意这里的now和end指定的时间并非boottime，需要经过时钟同步后使用。 在文本格式的数据中无时钟源信息，所以无法进行时钟同步。进而导致文本和htrace解析结果不一致。  

@@ -124,7 +124,16 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_CLOCK = 'clock';
   static ROW_TYPE_XPOWER = 'xpower';
   static ROW_TYPE_XPOWER_SYSTEM_GROUP = 'xpower-system-group';
+  static ROW_TYPE_XPOWER_BUNDLE_NAME_GROUP = 'xpower-bundle-name-group';
+  static ROW_TYPE_XPOWER_STATISTIC = 'xpower-statistic';
+  static ROW_TYPE_XPOWER_APP_DETAIL_DISPLAY = 'xpower-app-detail-display';
+  static ROW_TYPE_XPOWER_WIFI_PACKETS = 'xpower-wifi-packets';
+  static ROW_TYPE_XPOWER_WIFI_BYTES = 'xpower-wifi-bytes';
   static ROW_TYPE_XPOWER_SYSTEM = 'xpower-system';
+  static ROW_TYPE_XPOWER_THREAD_COUNT = 'xpower-thread-count';
+  static ROW_TYPE_XPOWER_THREAD_INFO = 'xpower-thread-info';
+  static ROW_TYPE_XPOWER_GPU_COUNT = 'xpower-gpu-count';
+  static ROW_TYPE_XPOWER_GPU_FREQUENCY = 'xpower-gpu-frequency'
   static ROW_TYPE_IRQ_GROUP = 'irq-group';
   static ROW_TYPE_IRQ = 'irq';
   static ROW_TYPE_JANK = 'janks';
@@ -144,6 +153,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_PERF_TOOL = 'perf-tool';
   static ROW_TYPE_GPU_COUNTER_GROUP = 'gpu-counter-group';
   static ROW_TYPE_GPU_COUNTER = 'gpu-counter';
+  static ROW_TYPE_SNAPSHOT = 'snapShots';
   static FRAME_WIDTH: number = 0;
   static range: TimeRange | undefined | null;
   static rangeSelectObject: RangeSelectStruct | undefined;
@@ -170,6 +180,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   public collectEL: LitIcon | null | undefined;
   public onThreadHandler: ((useCache: boolean, buf: ArrayBuffer | undefined | null) => void) | undefined | null;
   public onRowSettingChangeHandler: ((keys: Array<string>, nodes: Array<unknown>) => void) | undefined | null;
+  public onRowSettingCheckBoxChangeHandler: ((keys: boolean[]) => void) | undefined | null;
   public onRowCheckFileChangeHandler: (() => void) | undefined | null;
   public supplier: (() => Promise<Array<T>>) | undefined | null; // @ts-ignore
   public favoriteChangeHandler: ((fav: TraceRow<unknown>) => void) | undefined | null; // @ts-ignore
@@ -189,6 +200,9 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   private nameEL: HTMLLabelElement | null | undefined;
   private rowSettingTree: LitTree | null | undefined;
   private rowSettingPop: LitPopover | null | undefined;
+  private rowSettingCheckBoxPop: LitPopover | null | undefined;
+  private _rowSettingCheckBoxList: string[] | null | undefined;
+  private _rowSettingCheckedBoxList: boolean[] | null | undefined;
   private fileEL: unknown;
   private rowCheckFilePop: LitPopover | null | undefined;
   private _rangeSelect: boolean = false;
@@ -395,6 +409,18 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
 
   get rowSettingList(): TreeItemData[] | null | undefined {
     return this._rowSettingList;
+  }
+
+  set rowSettingCheckBoxList(value: Array<string> | null | undefined) {
+    this._rowSettingCheckBoxList = value;
+  }
+
+  get rowSettingCheckBoxList(): Array<string> | null | undefined {
+    return this._rowSettingCheckBoxList;
+  }
+
+  get rowSettingCheckedBoxList(): Array<boolean> | null | undefined {
+    return this._rowSettingCheckedBoxList;
   }
 
   get collect(): boolean {
@@ -993,11 +1019,62 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.describeEl?.appendChild(this.rowCheckFilePop);
   }
 
+  addRowSettingCheckBox(): void {
+    let nameEl = this.shadowRoot && (this.shadowRoot.querySelector('.name') as HTMLLabelElement);
+    nameEl && (nameEl.style.maxWidth = '160px');
+    let collectEl = (this.shadowRoot && this.shadowRoot.querySelector('.collect') as LitIcon);
+    collectEl && (collectEl.style.marginRight = '20px');
+    this.rowSettingCheckBoxPop = document.createElement('lit-popover') as LitPopover;
+    let checkboxHtml = '';
+    checkboxHtml += `<div class="checkboxAll" style="margin-bottom: 2px;">
+        <lit-check-box class="lit-checkbox" value="All" checked></lit-check-box></div>`;
+    this._rowSettingCheckBoxList && this._rowSettingCheckBoxList.forEach((item) => {
+      checkboxHtml += `<div class="checkboxItem" style="margin-bottom: 2px;">
+      <lit-check-box class="lit-checkbox" checked style="margin-left: 20px;" not-close value="${item}"></lit-check-box>
+      </div>`; })
+    this._rowSettingCheckedBoxList = new Array(this._rowSettingCheckBoxList?.length).fill(true);
+    this.rowSettingCheckBoxPop.innerHTML = `<div slot="content" id="settingList"
+      style="display: block;height: auto;max-height:200px;overflow-y:auto">
+      ${checkboxHtml} </div>
+      <lit-icon name="setting" size="19" id="setting"></lit-icon>`;
+    let allCheckBox = this.rowSettingCheckBoxPop!.querySelector('.checkboxAll>.lit-checkbox') as LitCheckBox;
+    let checkBoxItems = this.rowSettingCheckBoxPop.querySelectorAll('.checkboxItem>.lit-checkbox');
+    checkBoxItems.forEach(item => {
+      // @ts-ignore
+      item.onchange = (e: unknown): void => {
+        // @ts-ignore
+        this._rowSettingCheckedBoxList[this._rowSettingCheckBoxList?.indexOf(item.value)] = item.checked;
+        const allChecked = this._rowSettingCheckedBoxList!.every(item => item);
+        allCheckBox.checked = allChecked;
+        this.onRowSettingCheckBoxChangeHandler?.(this._rowSettingCheckedBoxList!);
+      }
+    })
+    allCheckBox.onchange = (e: unknown): void => {
+      checkBoxItems.forEach(item => {
+        // @ts-ignore
+        item.checked = allCheckBox.checked;
+      })
+      this._rowSettingCheckedBoxList!.forEach((_, index) => {
+        this._rowSettingCheckedBoxList![index] = allCheckBox.checked;
+      });
+      this.onRowSettingCheckBoxChangeHandler?.(this._rowSettingCheckedBoxList!);
+    };
+    this.rowSettingCheckBoxPop.id = 'rowSetting';
+    this.rowSettingCheckBoxPop.className = 'popover setting';
+    this.rowSettingCheckBoxPop.setAttribute('placement', 'bottomLeft');
+    this.rowSettingCheckBoxPop.setAttribute('trigger', 'click');
+    this.rowSettingCheckBoxPop.setAttribute('haveCheckbox', 'true');
+    this.rowSettingCheckBoxPop?.addEventListener('mouseenter', (): void => {
+      window.publish(window.SmartEvent.UI.HoverNull, undefined);
+    });
+    this.describeEl?.appendChild(this.rowSettingCheckBoxPop);
+  }
+
   addRowSettingPop(): void {
-    let nameEl = this.shadowRoot?.querySelector('.name') as HTMLLabelElement;
-    nameEl.style.maxWidth = '160px';
-    let collectEl = this.shadowRoot?.querySelector('.collect') as LitIcon;
-    collectEl.style.marginRight = '20px';
+    let nameEl = this.shadowRoot && (this.shadowRoot.querySelector('.name') as HTMLLabelElement);
+    nameEl && (nameEl.style.maxWidth = '160px');
+    let collectEl = (this.shadowRoot && this.shadowRoot.querySelector('.collect') as LitIcon);
+    collectEl && (collectEl.style.marginRight = '20px');
     this.rowSettingPop = document.createElement('lit-popover') as LitPopover;
     this.rowSettingPop.innerHTML = `<div slot="content" id="settingList"
       style="display: block;height: auto;max-height:200px;overflow-y:auto">

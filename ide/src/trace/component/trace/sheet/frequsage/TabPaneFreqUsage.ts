@@ -34,6 +34,7 @@ import {
   type RunningData,
   type CpuFreqTd,
 } from './TabPaneFreqUsageConfig';
+import { getCpuData } from '../../../../database/sql/CpuAndIrq.sql';
 
 @element('tabpane-frequsage')
 export class TabPaneFreqUsage extends BaseElement {
@@ -88,6 +89,7 @@ export class TabPaneFreqUsage extends BaseElement {
         dur: i.dur,
       });
     }
+    const cpuData = await getCpuData(cpuArray, threadStatesParam.leftNs, threadStatesParam.rightNs);
     const LEFT_TIME: number = threadStatesParam.leftNs + threadStatesParam.recordStartNs;
     const RIGHT_TIME: number = threadStatesParam.rightNs + threadStatesParam.recordStartNs;
     const comPower =
@@ -101,6 +103,9 @@ export class TabPaneFreqUsage extends BaseElement {
       rightNs: RIGHT_TIME,
       cpuArray: cpuArray,
       comPower: comPower,
+      broCpuData: cpuData,
+      // @ts-ignore
+      recordStartNS: (window as unknown).recordStartNS
     };
     TabPaneFreqUsage.element.worker!.postMessage(args);
     TabPaneFreqUsage.element.worker!.onmessage = (event: MessageEvent): void => {

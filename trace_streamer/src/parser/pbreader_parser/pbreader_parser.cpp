@@ -80,10 +80,12 @@ PbreaderParser::PbreaderParser(TraceDataCache *dataCache, const TraceStreamerFil
 #ifdef ENABLE_EBPF
       ebpfDataParser_(std::make_unique<EbpfDataParser>(dataCache, filters)),
 #endif
+#ifdef ENABLE_XPOWER
+      xpowerParser_(std::make_unique<PbreaderXpowerParser>(dataCache, filters)),
+#endif
 #ifdef ENABLE_STREAM_EXTEND
       pbreaderStreamParser_(std::make_unique<PbreaderStreamParser>(dataCache, filters)),
 #endif
-      xpowerParser_(std::make_unique<PbreaderXpowerParser>(dataCache, filters)),
       traceDataCache_(dataCache)
 {
     InitPluginNameIndex();
@@ -173,22 +175,24 @@ void PbreaderParser::InitPluginNameIndex()
     streamPluginIndex_ = traceDataCache_->GetDataIndex("stream-plugin");
     supportPluginNameIndex_.insert(streamPluginIndex_);
 #endif
+#ifdef ENABLE_XPOWER
     xpowerPluginIndex_ = traceDataCache_->GetDataIndex("xpower-plugin");
     supportPluginNameIndex_.insert(xpowerPluginIndex_);
+#endif
 }
 
 #if defined(ENABLE_HIPERF) || defined(ENABLE_NATIVE_HOOK) || defined(ENABLE_EBPF)
-void PbreaderParser::ParserFileSO(std::string &directory, const std::vector<std::string> &relativeFilePaths)
+std::unique_ptr<SymbolsFile> PbreaderParser::ParseELF(const std::string &directory, const std::string &fileName)
 {
-    for (const auto &filePath : relativeFilePaths) {
-        auto symbolsFile = OHOS::Developtools::HiPerf::SymbolsFile::CreateSymbolsFile(SYMBOL_ELF_FILE, filePath);
-        symbolsFile->setSymbolsFilePath(directory);
-        auto res = symbolsFile->LoadSymbols(nullptr, filePath);
-        if (!res) {
-            continue;
-        }
-        symbolsFiles_.emplace_back(std::move(symbolsFile));
+    auto symbolsFile = OHOS::Developtools::HiPerf::SymbolsFile::CreateSymbolsFile(SYMBOL_ELF_FILE, fileName);
+    if (!symbolsFile) {
+        return nullptr;
     }
+    symbolsFile->setSymbolsFilePath(directory);
+    if (!symbolsFile->LoadSymbols(nullptr, fileName)) {
+        return nullptr;
+    }
+    return symbolsFile;
 }
 #endif
 
@@ -197,32 +201,33 @@ PbreaderParser::~PbreaderParser()
     TS_LOGI("clockid 2 is for RealTime and 1 is for BootTime");
 }
 
-bool PbreaderParser::ReparseSymbolFilesAndResymbolization(std::string &symbolsPath,
-                                                          std::vector<std::string> &symbolsPaths)
+bool PbreaderParser::ReparseSymbolFileAndResymbolization(const std::string &directory, const std::string &fileName)
 {
     auto parseStatus = false;
 #if defined(ENABLE_HIPERF) || defined(ENABLE_NATIVE_HOOK) || defined(ENABLE_EBPF)
-    ParserFileSO(symbolsPath, symbolsPaths);
+    auto symbolsFile = ParseELF(directory, fileName);
 #endif
 #ifdef ENABLE_HIPERF
     if (traceDataCache_->GetPerfFilesData()->Size() > 0) {
-        perfDataParser_->PerfReloadSymbolFiles(symbolsFiles_);
+        perfDataParser_->PerfReloadSymbolFile(symbolsFile);
+#ifdef ENABLE_ADDR2LINE
+        perfDataParser_->ParseSourceLocation(directory, fileName);
+#endif
         parseStatus = true;
     }
 #endif
 #ifdef ENABLE_NATIVE_HOOK
     if (traceDataCache_->GetNativeHookFrameData()->Size() > 0) {
-        pbreaderNativeHookParser_->NativeHookReloadElfSymbolTable(symbolsFiles_);
+        pbreaderNativeHookParser_->NativeHookReloadElfSymbolTable(symbolsFile);
         parseStatus = true;
     }
 #endif
 #ifdef ENABLE_EBPF
     if (traceDataCache_->GetEbpfCallStack()->Size() > 0) {
-        ebpfDataParser_->EBPFReloadElfSymbolTable(symbolsFiles_);
+        ebpfDataParser_->EBPFReloadElfSymbolTable(symbolsFile);
         parseStatus = true;
     }
 #endif
-    symbolsFiles_.clear();
     return parseStatus;
 }
 
@@ -431,14 +436,16 @@ void PbreaderParser::FilterData(PbreaderDataSegment &seg, bool isSplitFile)
         hisyseventParser_->Parse(&hisyseventConfig, seg.timeStamp);
     }
 #endif
+#ifdef ENABLE_XPOWER
+    else if (seg.dataType == DATA_SOURCE_TYPE_XPOWER) {
+        xpowerParser_->Parse(seg, seg.timeStamp, seg.clockId);
+    }
+#endif
 #ifdef ENABLE_STREAM_EXTEND
     else if (seg.dataType == DATA_SOURCE_TYPE_STREAM) {
         pbreaderStreamParser_->Parse(seg);
     }
 #endif
-    else if (seg.dataType == DATA_SOURCE_TYPE_XPOWER) {
-        xpowerParser_->Parse(seg, seg.timeStamp, seg.clockId);
-    }
     if (traceDataCache_->isSplitFile_ && haveSplitSeg) {
         mPbreaderSplitData_.emplace(splitFileOffset_, nextLength_ + packetSegLength_);
     }
@@ -601,14 +608,16 @@ void PbreaderParser::ParseDataByPluginName(PbreaderDataSegment &dataSeg,
         ParseJSMemoryConfig(dataSeg);
     }
 #endif
+#ifdef ENABLE_XPOWER
+    else if (pulginNameIndex == xpowerPluginIndex_) {
+        ParseXpower(dataSeg);
+    }
+#endif
 #ifdef ENABLE_STREAM_EXTEND
     else if (pulginNameIndex == streamPluginIndex_) { // for trace extend demo
         ParseStream(dataSeg);
     }
 #endif
-    else if (pulginNameIndex == xpowerPluginIndex_) {
-        ParseXpower(dataSeg);
-    }
 }
 
 void PbreaderParser::ParserData(PbreaderDataSegment &dataSeg, bool isSplitFile)
@@ -804,12 +813,13 @@ void PbreaderParser::ParseNetwork(PbreaderDataSegment &dataSeg)
     dataSeg.status = TS_PARSE_STATUS_PARSED;
 }
 #endif
+#ifdef ENABLE_XPOWER
 void PbreaderParser::ParseXpower(PbreaderDataSegment &dataSeg)
 {
-    dataSourceTypeNetworkClockid_ = TS_CLOCK_REALTIME;
     dataSeg.dataType = DATA_SOURCE_TYPE_XPOWER;
     dataSeg.status = TS_PARSE_STATUS_PARSED;
 }
+#endif
 #ifdef ENABLE_DISKIO
 void PbreaderParser::ParseDiskIO(PbreaderDataSegment &dataSeg)
 {

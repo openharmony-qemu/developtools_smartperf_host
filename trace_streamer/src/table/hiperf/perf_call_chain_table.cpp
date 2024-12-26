@@ -17,7 +17,19 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-enum class Index : int32_t { ID = 0, CALLCHAIN_ID, DEPTH, IP, VADDR_IN_FILE, FILE_ID, SYMBOL_ID, NAME };
+enum class Index : int32_t {
+    ID = 0,
+    CALLCHAIN_ID,
+    DEPTH,
+    IP,
+    VADDR_IN_FILE,
+    OFFSET_TO_VADDR,
+    FILE_ID,
+    SYMBOL_ID,
+    NAME,
+    SOURCE_FILE_ID,
+    LINE_NUMBER
+};
 PerfCallChainTable::PerfCallChainTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
@@ -25,9 +37,12 @@ PerfCallChainTable::PerfCallChainTable(const TraceDataCache *dataCache) : TableB
     tableColumn_.push_back(TableBase::ColumnInfo("depth", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("ip", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("vaddr_in_file", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("offset_to_vaddr", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("file_id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("symbol_id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("name", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("source_file_id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("line_number", "INTEGER"));
     tablePriKey_.push_back("id");
 }
 
@@ -138,6 +153,9 @@ int32_t PerfCallChainTable::Cursor::Column(int32_t column) const
         case Index::VADDR_IN_FILE:
             sqlite3_result_int64(context_, static_cast<uint64_t>(perfCallChainObj_.VaddrInFiles()[CurrentRow()]));
             break;
+        case Index::OFFSET_TO_VADDR:
+            sqlite3_result_int64(context_, static_cast<uint64_t>(perfCallChainObj_.OffsetToVaddrs()[CurrentRow()]));
+            break;
         case Index::FILE_ID:
             sqlite3_result_int64(context_, static_cast<uint64_t>(perfCallChainObj_.FileIds()[CurrentRow()]));
             break;
@@ -146,6 +164,12 @@ int32_t PerfCallChainTable::Cursor::Column(int32_t column) const
             break;
         case Index::NAME:
             sqlite3_result_int64(context_, static_cast<uint64_t>(perfCallChainObj_.Names()[CurrentRow()]));
+            break;
+        case Index::SOURCE_FILE_ID:
+            SetTypeColumnInt64(perfCallChainObj_.SourceFileIds()[CurrentRow()], INVALID_UINT64);
+            break;
+        case Index::LINE_NUMBER:
+            SetTypeColumnInt64(perfCallChainObj_.LineNumbers()[CurrentRow()], INVALID_UINT64);
             break;
         default:
             TS_LOGF("Unregistered column : %d", column);

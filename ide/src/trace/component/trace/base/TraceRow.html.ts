@@ -173,16 +173,6 @@ export const TraceRowHtml = `
         :host(:not([check-type])) .lit-check-box{
             display: none;
         }
-        :host([collect-type][row-setting='enable']:not([row-type='hiperf-callchart'])) .setting{
-            position:fixed;
-            z-index:0;
-            left: 473px;
-        }
-        :host([collect-type][row-setting='enable'][row-type='hiperf-callchart'][func-expand='false']) .setting{
-            position:fixed;
-            z-index:0;
-            left: 473px;
-        }
         :host(:not([collect-type])) {
             /*position:static;*/
         }

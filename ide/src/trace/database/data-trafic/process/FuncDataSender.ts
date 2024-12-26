@@ -21,7 +21,7 @@ export function funcDataSender(tid: number, ipid: number, row: TraceRow<FuncStru
   Promise<FuncStruct[] | boolean>
 {
   let trafic: number = TraficEnum.Memory;
-  let width = row.clientWidth || row.parentRowEl!.clientWidth - CHART_OFFSET_LEFT;
+  let width = row.clientWidth || (row.parentRowEl && (row.parentRowEl.clientWidth - CHART_OFFSET_LEFT));
   if (trafic === TraficEnum.SharedArrayBuffer && !row.sharedArrayBuffers) {
     row.sharedArrayBuffers = {
       startTs: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),

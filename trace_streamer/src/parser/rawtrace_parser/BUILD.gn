@@ -40,6 +40,7 @@ config("rawtrace_parser_comm") {
     "${SRC}/trace_data/trace_stdtype/hisysevent",
     "${SRC}/trace_data/trace_stdtype/htrace",
     "${SRC}/trace_data/trace_stdtype/measure",
+    "${SRC}/trace_data/trace_stdtype/xpower",
   ]
   if (enable_ts_utest && !use_wasm) {
     cflags = [

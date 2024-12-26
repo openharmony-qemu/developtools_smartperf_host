@@ -13,10 +13,11 @@
  * limitations under the License.
  */
 import { SpStatisticsHttpUtil } from '../../src/statistics/util/SpStatisticsHttpUtil';
-
+import fetch from 'node-fetch';
 SpStatisticsHttpUtil.initStatisticsServerConfig = jest.fn(() => true);
 SpStatisticsHttpUtil.addUserVisitAction = jest.fn(() => true);
-
+global.fetch = fetch;
+global.Worker = jest.fn();
 const intersectionObserverMock = () => ({
   observe: () => null,
 });
@@ -44,7 +45,6 @@ describe('spApplication Test', () => {
   document.body.innerHTML = '<sp-application id="sss"></sp-application>';
   let spApplication = document.querySelector('#sss') as SpApplication;
   it('spApplicationTest01', function () {
-    spApplication.dark = true;
     expect(SpApplication.name).toEqual('SpApplication');
   });
 
@@ -110,8 +110,8 @@ describe('spApplication Test', () => {
   });
 
   it('spApplicationTest15', function () {
-    spApplication.dark = false;
-    expect(spApplication.dark).toBeFalsy();
+    spApplication.dark = true;
+    expect(spApplication.dark).toBeTruthy();
   });
 
   it('spApplicationTest16', function () {
@@ -197,5 +197,20 @@ describe('spApplication Test', () => {
   it('spApplicationTest29', function () {
     spApplication.initElements();
     expect(spApplication.freshMenuDisable(false)).toBeUndefined();
+  });
+
+  it('spApplicationTest30', function () {
+    spApplication.initElements();
+    expect(spApplication.sqlite).not.toBeUndefined();
+  });
+
+  it('spApplicationTest31', function () {
+    spApplication.initElements();
+    expect(spApplication.wasm).not.toBeUndefined();
+  });
+
+  it('spApplicationTest33', function () {
+    spApplication.initElements();
+    expect(spApplication.changeUrl()).toBeUndefined();
   });
 });

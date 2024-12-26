@@ -20,37 +20,27 @@ function getBusyTime(
   leftStartNs: number,
   rightEndNs: number
 ): void {
-  if (initFreqResult.length === 0) {
+  if (initFreqResult.length === 0 || initStateResult.length === 0) {
     return;
   }
-  if (initStateResult.length === 0) {
-    return;
-  }
-  //处理被框选的freq的第一个数据
-  //@ts-ignore
-  let includeData = initFreqResult.findIndex((a) => a.ts >= leftStartNs);
-  if (includeData !== 0) {
-    initFreqResult = initFreqResult.slice(
-      includeData === -1 ? initFreqResult.length - 1 : includeData - 1,
-      initFreqResult.length
-    );
-  }
-  //@ts-ignore
-  let startNS = includeData === 0 ? initFreqResult[0].ts : leftStartNs;
-  //处理对应的state泳道被框选的第一个数据
-  //@ts-ignore
-  let includeStateData = initStateResult.findIndex((a) => a.ts >= startNS);
-  if (includeStateData !== 0) {
-    initStateResult = initStateResult.slice(
-      includeStateData === -1 ? initStateResult.length - 1 : includeStateData - 1,
-      initStateResult.length
-    );
-  }
-  //@ts-ignore
-  if (initStateResult[0].ts < startNS && includeStateData !== 0 && includeStateData !== -1) {
+  let handle = (result: Array<unknown>, startNS: number): Array<unknown> => {
     //@ts-ignore
-    initStateResult[0].ts = startNS;
+    let firstDataIndex = result.findIndex((a) => a.ts > startNS);
+    if (firstDataIndex !== 0) {
+      result = result.slice(
+        firstDataIndex === -1 ? result.length - 1 : firstDataIndex - 1,
+        result.length
+      );
+      // @ts-ignore
+      result[0].ts = startNS;
+    }
+    return result 
   }
+
+  // @ts-ignore
+  let startNS = Math.max(initFreqResult[0].ts, initStateResult[0].ts, leftStartNs);
+  initFreqResult = handle(initFreqResult, startNS);
+  initStateResult = handle(initStateResult, startNS);
   //处理被框选的freq最后一个数据
   //@ts-ignore
   if (initFreqResult[initFreqResult.length - 1].ts !== rightEndNs) {

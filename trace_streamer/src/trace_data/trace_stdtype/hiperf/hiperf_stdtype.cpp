@@ -23,9 +23,12 @@ size_t PerfCallChain::AppendNewPerfCallChain(const PerfCallChainRow &context)
     depths_.emplace_back(context.depth);
     ips_.emplace_back(context.ip);
     vaddrInFiles_.emplace_back(context.vaddrInFile);
+    offsetToVaddrs_.emplace_back(context.offsetToVaddr);
     fileIds_.emplace_back(context.fileId);
     symbolIds_.emplace_back(context.symbolId);
     names_.emplace_back(INVALID_UINT64);
+    sourceFileIds_.emplace_back(INVALID_DATAINDEX);
+    lineNumbers_.emplace_back(INVALID_UINT64);
     return Size() - 1;
 }
 const std::deque<uint32_t> &PerfCallChain::CallChainIds() const
@@ -44,6 +47,10 @@ const std::deque<uint64_t> &PerfCallChain::VaddrInFiles() const
 {
     return vaddrInFiles_;
 }
+const std::deque<uint64_t> &PerfCallChain::OffsetToVaddrs() const
+{
+    return offsetToVaddrs_;
+}
 const std::deque<uint64_t> &PerfCallChain::FileIds() const
 {
     return fileIds_;
@@ -57,6 +64,14 @@ const std::deque<DataIndex> &PerfCallChain::Names() const
 {
     return names_;
 }
+const std::deque<DataIndex> &PerfCallChain::SourceFileIds() const
+{
+    return sourceFileIds_;
+}
+const std::deque<uint64_t> &PerfCallChain::LineNumbers() const
+{
+    return lineNumbers_;
+}
 void PerfCallChain::SetName(uint64_t index, DataIndex name)
 {
     names_[index] = name;
@@ -68,9 +83,12 @@ void PerfCallChain::Clear()
     depths_.clear();
     ips_.clear();
     vaddrInFiles_.clear();
+    offsetToVaddrs_.clear();
     fileIds_.clear();
     symbolIds_.clear();
     names_.clear();
+    sourceFileIds_.clear();
+    lineNumbers_.clear();
 }
 void PerfCallChain::UpdateSymbolId(size_t index, DataIndex symbolId)
 {
@@ -78,12 +96,24 @@ void PerfCallChain::UpdateSymbolId(size_t index, DataIndex symbolId)
         symbolIds_[index] = symbolId;
     }
 }
-void PerfCallChain::UpdateSymbolRelatedData(size_t index, uint64_t vaddrInFile, uint64_t symbolId, DataIndex nameIndex)
+void PerfCallChain::UpdateSymbolRelatedData(size_t index,
+                                            uint64_t vaddrInFile,
+                                            uint64_t offsetToVaddr,
+                                            uint64_t symbolId,
+                                            DataIndex nameIndex)
 {
     if (index < Size()) {
         vaddrInFiles_[index] = vaddrInFile;
+        offsetToVaddrs_[index] = offsetToVaddr;
         symbolIds_[index] = symbolId;
         names_[index] = nameIndex;
+    }
+}
+void PerfCallChain::SetSourceFileNameAndLineNumber(size_t index, DataIndex SourceFileIndex, uint64_t lineNumber)
+{
+    if (index < Size()) {
+        sourceFileIds_[index] = SourceFileIndex;
+        lineNumbers_[index] = lineNumber;
     }
 }
 size_t PerfFiles::AppendNewPerfFiles(uint64_t fileIds, uint32_t serial, DataIndex symbols, DataIndex filePath)

@@ -21,6 +21,7 @@
 #include <memory>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <zlib.h>
 
 #include "log.h"
 #include "codec_cov.h"
@@ -32,6 +33,7 @@
 
 namespace SysTuning {
 namespace base {
+#define ZLIB_CHUNK_SIZE 65536
 static TraceParserStatus g_status = TRACE_PARSER_ABNORMAL;
 
 void SetAnalysisResult(TraceParserStatus stat)
@@ -105,6 +107,12 @@ bool UnZipFile(const std::string &zipFile, std::string &traceFile)
     return localZip.Unzip(traceFile);
 }
 
+bool UnZlibFile(const std::string &zlibFile, std::string &traceFile)
+{
+    LocalZip localZip(zlibFile);
+    return localZip.Unzlib(traceFile);
+}
+
 LocalZip::LocalZip(const std::string &file) : filePath_(file)
 {
     buf_ = std::make_unique<char[]>(bufSize_);
@@ -133,6 +141,14 @@ bool LocalZip::IsZipFile()
     char buf[magicNumLen_];
     zipIfstream.read(buf, magicNumLen_);
     return buf[0] == 'P' && buf[1] == 'K';
+}
+
+bool LocalZip::IsZlibFile()
+{
+    std::ifstream zlibIfstream(filePath_);
+    unsigned char buf[ZLIB_MAGIC_NUM_LEN];
+    zlibIfstream.read(reinterpret_cast<char *>(buf), ZLIB_MAGIC_NUM_LEN);
+    return buf[0] == ZLIB_CMF && buf[1] == ZLIB_FLG;
 }
 
 bool LocalZip::CreateDir(const std::filesystem::path &dirName, bool del)
@@ -165,24 +181,24 @@ bool LocalZip::WriteFile(const unzFile &uzf, const std::filesystem::path &fileNa
         if (!parentPath.empty()) {
             CreateDir(parentPath);
         }
-        auto err = unzReadCurrentFile(uzf, buf_.get(), bufSize_);
-        if (err < 0) {
-            TS_LOGE("unzReadCurrentFile error.");
+#ifdef _WIN32
+        FILE *fout = fopen(Utf8ToGbk(fileName.u8string().c_str()).c_str(), "wb");
+#else
+        FILE *fout = fopen(fileName.c_str(), "wb");
+#endif
+        if (fout == nullptr) {
+            unzCloseCurrentFile(uzf);
             return false;
         }
-        if (err > 0) {
-#ifdef _WIN32
-            FILE *fout = fopen(Utf8ToGbk(fileName.u8string().c_str()).c_str(), "wb");
-#else
-            FILE *fout = fopen(fileName.c_str(), "wb");
-#endif
+        int err = 1;
+        while (err >= 0) {
+            err = unzReadCurrentFile(uzf, buf_.get(), bufSize_);
             if (fwrite(buf_.get(), (unsigned)err, 1, fout) != 1) {
                 TS_LOGE("error in writing extracted filee.");
-                err = UNZ_ERRNO;
-                return false;
+                break;
             }
-            fclose(fout);
         }
+        fclose(fout);
         unzCloseCurrentFile(uzf);
     }
     return true;
@@ -215,7 +231,13 @@ bool LocalZip::Unzip(std::string &traceFile)
 #ifdef _WIN32
         auto fileName = std::filesystem::path(tmpDir_).append(String2WString(filenameInZip));
 #else
-        auto fileName = std::filesystem::path(tmpDir_).append(filenameInZip);
+        std::string tempFileName = filenameInZip;
+        if (base::GetCoding(reinterpret_cast<const uint8_t *>(tempFileName.c_str()), tempFileName.length()) !=
+            base::CODING::UTF8) {
+            tempFileName =
+                "temp_" + std::to_string(i) + ((tempFileName.back() == '/' || tempFileName.back() == '\\') ? "/" : "");
+        }
+        auto fileName = std::filesystem::path(tmpDir_).append(tempFileName);
 #endif
         // 是目录，则创建目录; 是文件，打开 -> 读取 -> 写入解压文件 -> 关闭
         auto isDir = fileName.string().back() == '/' || fileName.string().back() == '\\';
@@ -240,6 +262,56 @@ bool LocalZip::Unzip(std::string &traceFile)
         return true;
     }
     return false;
+}
+
+bool LocalZip::Unzlib(std::string &traceFile)
+{
+    if (!IsFileExist() || !IsZlibFile() || !CreateDir(tmpDir_, true)) {
+        return false;
+    }
+    std::ifstream srcFile(filePath_, std::ios::binary);
+    TS_CHECK_TRUE(srcFile.is_open(), false, "Failed to open source file: %s.", filePath_.c_str());
+    auto writeFilePath = std::filesystem::path(tmpDir_).append("unzlib_file.txt");
+    std::ofstream destFile(writeFilePath.string(), std::ios::binary);
+    TS_CHECK_TRUE(destFile.is_open(), false, "Failed to open destination file: %s.", writeFilePath.string().c_str());
+    if (!WriteFile(srcFile, destFile)) {
+        return false;
+    }
+    traceFile = writeFilePath.string();
+    return true;
+}
+
+bool LocalZip::WriteFile(std::ifstream &srcFile, std::ofstream &destFile)
+{
+    z_stream strm;
+    strm.zalloc = Z_NULL;
+    strm.zfree = Z_NULL;
+    strm.opaque = Z_NULL;
+    TS_CHECK_TRUE(inflateInit(&strm) == Z_OK, false, "inflateInit failed.");
+
+    unsigned char inputBuf[ZLIB_CHUNK_SIZE];
+    unsigned char outBuf[ZLIB_CHUNK_SIZE];
+    int flushFlag = Z_NO_FLUSH;
+    do {
+        srcFile.read(reinterpret_cast<char *>(inputBuf), ZLIB_CHUNK_SIZE);
+        strm.avail_in = srcFile.gcount();
+        if (srcFile.bad()) {
+            inflateEnd(&strm);
+            TS_LOGE("Error reading source file.");
+            return false;
+        }
+        flushFlag = srcFile.eof() ? Z_FINISH : Z_NO_FLUSH;
+        strm.next_in = inputBuf;
+        do {
+            strm.avail_out = ZLIB_CHUNK_SIZE;
+            strm.next_out = outBuf;
+            inflate(&strm, flushFlag);
+            size_t haveUnzlibSize = ZLIB_CHUNK_SIZE - strm.avail_out;
+            destFile.write(reinterpret_cast<char *>(outBuf), haveUnzlibSize);
+        } while (strm.avail_out == 0);
+    } while (flushFlag != Z_FINISH);
+    inflateEnd(&strm);
+    return true;
 }
 } // namespace base
 } // namespace SysTuning

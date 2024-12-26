@@ -16,6 +16,7 @@
 #ifndef EXPORT_TEST_H
 #define EXPORT_TEST_H
 
+#include <filesystem>
 #include <string>
 #include "trace_streamer_selector.h"
 namespace SysTuning {
@@ -24,6 +25,7 @@ constexpr size_t G_FILE_PERMISSION = 664;
 constexpr uint8_t RAW_TRACE_PARSE_MAX = 2;
 constexpr size_t G_CHUNK_SIZE = 1024 * 1024;
 bool ParseTraceFile(TraceStreamerSelector &ts, const std::string &tracePath);
+void RemoveDirectory(const std::filesystem::path &dirPath);
 } // namespace TraceStreamer
 } // namespace SysTuning
 

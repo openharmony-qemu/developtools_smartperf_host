@@ -89,7 +89,9 @@ bool RawTraceParser::InitRawTraceFileHeader(std::deque<uint8_t>::iterator &packa
 bool RawTraceParser::InitEventFormats(const std::string &buffer)
 {
 #ifdef IS_WASM
-    restCommDataCnt_ = INVALID_UINT8; // ensure that the restCommData is parsed only once
+    if (!isWasmReadFile_) {
+        restCommDataCnt_ = INVALID_UINT8; // ensure that the restCommData is parsed only once
+    }
 #endif
     std::string line;
     std::istringstream iss(buffer);
@@ -226,10 +228,11 @@ bool RawTraceParser::ParseLastCommData(uint8_t type, const std::string &buffer)
             break;
         default:
 #ifdef IS_WASM
-            return false;
-#else
-            break;
+            if (!isWasmReadFile_) {
+                return false;
+            }
 #endif
+            break;
     }
     ++restCommDataCnt_;
     return true;

@@ -23,8 +23,22 @@ jest.mock('../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
 jest.mock('../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
   return {};
 });
-import { TabPaneFlag } from '../../../../../src/trace/component/trace/timer-shaft/TabPaneFlag';
+jest.mock('../../../../../src/js-heap/model/DatabaseStruct', () => {
+    return {};
+});
 
+import { TabPaneFlag } from '../../../../../src/trace/component/trace/timer-shaft/TabPaneFlag';
+class ResizeObserver {
+    callback: any;
+    constructor(callback) {
+      this.callback = callback;
+    }
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  }
+
+global.ResizeObserver = ResizeObserver;
 describe('TabPaneFlag Test', () => {
   const canvas = document.createElement('canvas');
   canvas.width = 1;

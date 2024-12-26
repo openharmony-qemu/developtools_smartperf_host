@@ -40,6 +40,7 @@
 #include "sched_stdtype.h"
 #include "syscall_stdtype.h"
 #include "task_pool_stdtype.h"
+#include "xpower_stdtype.h"
 namespace SysTuning {
 namespace TraceStreamer {
 using namespace TraceStdtype;
@@ -197,6 +198,12 @@ public:
     CpuDumpInfo cpuDumpInfo_;
     ProfileMemInfo profileMemInfo_;
     RSImageDumpInfo rsImageDumpInfo_;
+    XPowerAppStatistic xPowerAppStatisticInfo_;
+    XPowerAppDetailCPU xPowerAppDetailCPUInfo_;
+    XPowerAppDetailGPU xPowerAppDetailGPUInfo_;
+    XPowerAppDetailWifi xPowerAppDetailWifiInfo_;
+    XPowerAppDetailDisplay xPowerAppDetailDisplayInfo_;
+    XPowerComponentTop xPowerComponentTopInfo_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

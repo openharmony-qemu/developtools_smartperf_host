@@ -45,6 +45,7 @@ window.ResizeObserver =
     unobserve: jest.fn(),
   }));
 describe('TabPaneBinderDataCut Test', () => {
+  global.scrollTo = jest.fn();
   document.body.innerHTML = `<div><tabpane-binder-datacut id="binder-datacut"></tabpane-binder-datacut></div>`;
   let tabPaneBinderDataCut = document.querySelector<TabPaneBinderDataCut>('#binder-datacut');
   SpSegmentationChart.binderRow = new TraceRow<BinderStruct>;
@@ -64,7 +65,10 @@ describe('TabPaneBinderDataCut Test', () => {
     leftNs: 12222,
     rightNs: 654233,
     hasFps: false,
-    statisticsSelectData: undefined
+    statisticsSelectData: undefined,
+    range: {
+        refresh: true,
+    }
   };
   let binderItem = [{
     title: 'test title',
@@ -108,6 +112,7 @@ describe('TabPaneBinderDataCut Test', () => {
     idx: 2,
     isSelected: true
   }]
+  SpSegmentationChart.setBinderChartData =  jest.fn();
   tabPaneBinderDataCut.data = threadStatesParam;
   let loopFuncNameCycle = sqlite.queryLoopFuncNameCycle;
   let loopFuncNameCycleData = [{

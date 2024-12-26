@@ -444,7 +444,7 @@ describe('ProcedureLogicWorkerPerf Test', () => {
         weightPercent: '0.0%',
       },
     ];
-    expect(procedureLogicWorkerPerf.findSearchNode(sampleArray, 'da', false)).toBeUndefined();
+    expect(procedureLogicWorkerPerf.markSearchNode(sampleArray, 'da', false)).toBeUndefined();
   });
   it('ProcedureLogicWorkerPerfTest56', function () {
     let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
@@ -500,7 +500,7 @@ describe('ProcedureLogicWorkerPerf Test', () => {
         filter: jest.fn(() => true),
       },
     };
-    expect(procedureLogicWorkerPerf.mergeChildrenByIndex(currentNode, [], 9, [], true)).toBeUndefined();
+    expect(procedureLogicWorkerPerf.mergeChildrenByIndex(currentNode, [{name:'sf'}], 0, [], true)).toBeUndefined();
   });
   it('ProcedureLogicWorkerPerfTest62', function () {
     let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
@@ -654,18 +654,18 @@ describe('ProcedureLogicWorkerPerf Test', () => {
     window.postMessage = jest.fn(() => true);
     let perfBottomUpStruct = {
       addChildren: jest.fn(() => true),
-      tsArray: []
+      tsArray: [],
     };
-    expect(procedureLogicWorkerPerf.copyParentNode(perfBottomUpStruct, { parentNode: 1 ,tsArray: []})).toBeUndefined();
+    expect(procedureLogicWorkerPerf.copyParentNode(perfBottomUpStruct, { parentNode: 1, tsArray: [] })).toBeUndefined();
   });
   it('ProcedureLogicWorkerPerfTest75', function () {
     let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
     window.postMessage = jest.fn(() => true);
     let perfBottomUpStruct = {
       addChildren: jest.fn(() => true),
-      tsArray: []
+      tsArray: [],
     };
-    expect(procedureLogicWorkerPerf.copyParentNode(perfBottomUpStruct, { parentNode: 1, tsArray: []})).toBeUndefined();
+    expect(procedureLogicWorkerPerf.copyParentNode(perfBottomUpStruct, { parentNode: 1, tsArray: [] })).toBeUndefined();
   });
   it('PerfCallChainTest76', function () {
     expect(PerfCallChain.setNextNode([], []));
@@ -676,18 +676,284 @@ describe('ProcedureLogicWorkerPerf Test', () => {
   it('PerfCallChainTest78', function () {
     expect(PerfCallChain.merageCallChain([], []));
   });
+  it('PerfCallChainTest79', function () {
+    let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
+    expect(procedureLogicWorkerPerf.perfReset()).toBeUndefined();
+  });
   it('PerfCallChainTest80', function () {
     let currentNode = {
       symbolName: '',
-      tsArray: []
+      tsArray: [],
     };
     let callChain = {
       vaddrInFile: {
         toString: jest.fn(() => true),
       },
     };
-    expect(PerfCallChainMerageData.merageCallChainSample(currentNode, callChain, {
-      ts: ''
-    }, true));
+    expect(
+      PerfCallChainMerageData.merageCallChainSample(
+        currentNode,
+        callChain,
+        {
+          ts: '',
+        },
+        true
+      )
+    );
+  });
+  it('PerfCallChainTest81', function () {
+    let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
+    let data = {
+      id: 18,
+      type: 'perf-async',
+    };
+    procedureLogicWorkerPerf.perfAsync = jest.fn(() => true);
+    procedureLogicWorkerPerf.handle(data);
+    expect(procedureLogicWorkerPerf.perfAsync).toHaveBeenCalled();
+  });
+  it('PerfCallChainTest82', function () {
+    let perfCallChain = new PerfCallChain();
+    perfCallChain.startNS = 10;
+    perfCallChain.dur = 10;
+    perfCallChain.sampleId = 10;
+    perfCallChain.vaddrInFile = 10;
+    perfCallChain.callChainId = 10;
+    perfCallChain.tid = 10;
+    expect(perfCallChain.startNS).toEqual(10);
+    expect(perfCallChain.dur).toEqual(10);
+    expect(perfCallChain.sampleId).toEqual(10);
+    expect(perfCallChain.vaddrInFile).toEqual(10);
+    expect(perfCallChain.callChainId).toEqual(10);
+    expect(perfCallChain.tid).toEqual(10);
+  });
+  it('PerfCallChainTest83', function () {
+    let perfCallChainMerageData = new PerfCallChainMerageData();
+    perfCallChainMerageData.totalEvent = 80;
+    expect(perfCallChainMerageData.totalEvent).toEqual(80);
+  });
+  it('PerfCallChainTest84', function () {
+    let perfThread = new PerfThread();
+    perfThread.tid = 80;
+    expect(perfThread.tid).toEqual(80);
+  });
+  it('PerfCallChainTest85', function () {
+    let perfFile = new PerfFile();
+    perfFile.symbol = '80';
+    perfFile.path = 'C:/myfile';
+    let data = {
+      path: 'C:/myfile',
+    };
+    expect(perfFile.setFileName()).toBeUndefined();
+  });
+  it('PerfCallChainTest86', function () {
+    let data = {
+      path: 'C:/myfile',
+      fileId: 5,
+      symbol: 'f',
+      fileName: 'myfile',
+      setFileName: 'sfd',
+    };
+    expect(PerfFile.setFileName(data)).toBeUndefined();
+  });
+  it('PerfCallChainTest87', function () {
+    let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
+    let data = new PerfCountSample();
+    data.sampleId = 10;
+    expect(procedureLogicWorkerPerf.getBottomUp()).not.toBeUndefined();
+  });
+  it('PerfCallChainTest88', function () {
+    let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
+    expect(procedureLogicWorkerPerf.combineCallChainForAnalysis()).not.toBeUndefined();
+  });
+  it('PerfCallChainTest90', function () {
+    let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
+    let data = {
+      id: 18,
+      type: 'perf-reset',
+    };
+    procedureLogicWorkerPerf.perfReset = jest.fn(() => true);
+    procedureLogicWorkerPerf.handle(data);
+    expect(procedureLogicWorkerPerf.perfReset).toHaveBeenCalled();
+  });
+  it('PerfCallChainTest91', function () {
+    let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
+    let data = {
+      id: 18,
+      type: 'perf-reset',
+    };
+    procedureLogicWorkerPerf.perfReset = jest.fn(() => true);
+    procedureLogicWorkerPerf.handle(data);
+    expect(procedureLogicWorkerPerf.perfReset).toHaveBeenCalled();
+  });
+  it('PerfCallChainTest92', function () {
+    let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
+    let data = [{ funcArgs: [1, 2, 3] }];
+    expect(procedureLogicWorkerPerf.setLib(data)).toBeUndefined();
+  });
+  it('PerfCallChainTest93', function () {
+    let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
+    let data = [{ funcArgs: [1, 2, 3] }];
+    expect(procedureLogicWorkerPerf.setSymbol(data)).toBeUndefined();
+  });
+  it('PerfCallChainTest94', function () {
+    let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
+    let data = [
+      { funcName: 'getCallChainsBySampleIds', funcArgs: [1, 8, 5] },
+      { funcName: 'hideSystemLibrary', funcArgs: [1, 8, 5] },
+      { funcName: 'hideThreadState', funcArgs: [1, 8, 5] },
+      { funcName: 'hideThread', funcArgs: [1, 8, 5] },
+    ];
+    procedureLogicWorkerPerf.lib = { name: 'getCallChainsBySampleIds' };
+    expect(procedureLogicWorkerPerf.calReturnData(data)).not.toBeUndefined();
+  });
+  it('PerfCallChainTest95', function () {
+    let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
+    let data = [
+      { funcName: 'getCallChainsBySampleIds', funcArgs: [1, 8, 5] },
+      { funcName: 'hideSystemLibrary', funcArgs: [1, 8, 5] },
+      { funcName: 'hideThreadState', funcArgs: [1, 8, 5] },
+      { funcName: 'hideThread', funcArgs: [1, 8, 5] },
+    ];
+    procedureLogicWorkerPerf.symbol = { name: 'hideThread' };
+    expect(procedureLogicWorkerPerf.calReturnData(data)).not.toBeUndefined();
+  });
+  it('PerfCallChainTest96', function () {
+    let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
+    let data = [
+      { startNS: 50, dur: 8, sampleId: 1, callChainId: 4 },
+      { startNS: 50, dur: 8, sampleId: 80, callChainId: 4 },
+    ];
+    expect(procedureLogicWorkerPerf.initPerfCallChainTopDown(data)).toBeUndefined();
+  });
+  it('PerfCallChainTest97', function () {
+    let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
+    let perfCountSample = new PerfCountSample();
+    let perfThread = new PerfThread();
+    perfThread.processName = 'a';
+    procedureLogicWorkerPerf.threadData[0] =  perfThread;
+    let perfCallChainMerageData = new PerfCallChainMerageData();
+    perfCallChainMerageData.tid = 0;
+    procedureLogicWorkerPerf.currentTreeMapData['sf'] = perfCallChainMerageData;
+    let list: PerfCallChain[] = [
+      { startNS: 50, dur: 8, sampleId: 1, callChainId: 4 },
+      { startNS: 50, dur: 8, sampleId: 80, callChainId: 4 },
+    ];
+    expect(procedureLogicWorkerPerf.addOtherCallchainsData(perfCountSample, list)).toBeUndefined();
+  });
+  it('PerfCallChainTest98', function () {
+    let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
+    let perfThread = new PerfThread();
+    perfThread.processName = 'a';
+    procedureLogicWorkerPerf.threadData[0] =  perfThread;
+    let perfCallChainMerageData = new PerfCallChainMerageData();
+    perfCallChainMerageData.tid = 0;
+    procedureLogicWorkerPerf.currentTreeMapData['sf'] = perfCallChainMerageData;
+    expect(procedureLogicWorkerPerf.mergeNodeData(5, 8)).not.toBeUndefined();
+  });
+  it('PerfCallChainTest99', function () {
+    let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
+    let perfCountSample = new PerfCountSample();
+    perfCountSample.sampleId = 0;
+    perfCountSample.tid = 0;
+    let perfThread = new PerfThread();
+    perfThread.processName = 'a';
+    procedureLogicWorkerPerf.threadData[0] =  perfThread;
+    let perfCallChain = new PerfCallChain();
+    perfCallChain.name = '0';
+    procedureLogicWorkerPerf.callChainData[0] = [perfCallChain];
+    expect(procedureLogicWorkerPerf.freshPerfCallchains([perfCountSample], true)).toBeUndefined();
+  });
+  it('PerfCallChainTest100', function () {
+    let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
+    let perf = new PerfCallChainMerageData();
+    procedureLogicWorkerPerf.currentTreeList = [perf];
+    expect(procedureLogicWorkerPerf.handleCurrentTreeList(100, 8)).toBeUndefined();
+  });
+  it('PerfCallChainTest101', function () {
+    let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
+    let perfThread = new PerfThread();
+    perfThread.processName = 'a';
+    procedureLogicWorkerPerf.threadData[0] = perfThread;
+    let perfCallChainMerageData = new PerfCallChainMerageData();
+    perfCallChainMerageData.tid = 0;
+    procedureLogicWorkerPerf.currentTreeMapData['sf'] = perfCallChainMerageData;
+    let perf = new PerfCallChainMerageData();
+    let perfCallChain = new PerfCallChain();
+    perfCallChain.name = '0';
+    let callChainDataList = [perfCallChain];
+    procedureLogicWorkerPerf.callChainData[0] = [perfCallChain];
+    let perfCountSample = new PerfCountSample();
+    procedureLogicWorkerPerf.currentTreeList = [perf];
+    expect(
+      procedureLogicWorkerPerf.mergeChildrenByIndex(
+        perfCallChainMerageData,
+        callChainDataList,
+        100,
+        perfCountSample,
+        true
+      )
+    ).toBeUndefined();
+  });
+  it('PerfCallChainTest102', function () {
+    let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
+    let perf = new PerfCallChainMerageData();
+    expect(procedureLogicWorkerPerf.hasSearchNode(perf)).not.toBeUndefined();
+  });
+  it('PerfCallChainTest103', function () {
+    let data = new PerfCallChainMerageData();
+    let sampleArray = [data];
+    let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
+    expect(procedureLogicWorkerPerf.kernelCombination()).toBeUndefined();
+    expect(procedureLogicWorkerPerf.markSearchNode(sampleArray, 's', true)).toBeUndefined();
+  });
+  it('PerfCallChainTest104', function () {
+    let data = [{funcName: 'a', funcArgs: [0,1,2]}];
+    let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
+    expect(procedureLogicWorkerPerf.resolvingAction(data)).not.toBeUndefined();
+  });
+  it('PerfCallChainTest105', function () {
+    let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
+    let perf = new PerfCallChainMerageData();
+    procedureLogicWorkerPerf.currentTreeList = [perf];
+    perf.parentNode = new PerfCallChainMerageData();
+    perf.parentNode.parentId = '10';
+    expect(procedureLogicWorkerPerf.handleCurrentTreeList(100, 8)).toBeUndefined();
+  });
+  it('PerfCallChainTest106', function () {
+    let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
+    let perf = new PerfCallChainMerageData();
+    let samples = [perf];
+    expect(procedureLogicWorkerPerf.splitPerfTree(samples, '8', true, false)).toBeUndefined();
+  });
+  it('PerfCallChainTest107', function () {
+    let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
+    let perf = new PerfCallChainMerageData();
+    let samples = [perf];
+    procedureLogicWorkerPerf.recursionPerfChargeInitTree = jest.fn();
+    expect(procedureLogicWorkerPerf.splitPerfTree(samples, '8', false, false)).toBeUndefined();
+  });
+  it('PerfCallChainTest108', function () {
+    let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
+    let perf = new PerfCallChainMerageData();
+    procedureLogicWorkerPerf.recursionPerfChargeInitTree = jest.fn();
+    expect(procedureLogicWorkerPerf.recursionPerfChargeInitTree(perf, '8', false)).toBeUndefined();
+  });
+  it('PerfCallChainTest109', function () {
+    let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
+    procedureLogicWorkerPerf.recursionPerfChargeInitTree = jest.fn();
+    let sample = {
+      symbolName: '8',
+      initChildren: {
+        length: 2,
+        forEach: jest.fn(() => true),
+      },
+    };
+    expect(procedureLogicWorkerPerf.recursionPerfPruneInitTree(sample, '8', true)).toBeUndefined();
+  });
+  it('PerfCallChainTest110', function () {
+    let procedureLogicWorkerPerf = new ProcedureLogicWorkerPerf();
+    let perf = new PerfCallChainMerageData();
+    procedureLogicWorkerPerf.recursionPerfChargeInitTree = jest.fn();
+    expect(procedureLogicWorkerPerf.recursionPerfPruneInitTree(perf, '8', true)).toBeUndefined();
   });
 });

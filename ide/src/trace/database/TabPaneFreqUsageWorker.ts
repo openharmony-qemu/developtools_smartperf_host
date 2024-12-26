@@ -32,6 +32,8 @@ function orgnazitionMap(
     leftNs: number;
     rightNs: number;
     cpuArray: number[];
+    broCpuData: unknown[];
+    recordStartNS: number;
   }
 ): Array<RunningFreqData> {
   let result: Map<string, Array<RunningData>> = new Map();
@@ -68,7 +70,7 @@ function orgnazitionMap(
     });
     sum += args.runData[i].dur;
   }
-  return dealCpuFreqData(args.cpuFreqData, result, sum, args.cpuArray);
+  return dealCpuFreqData(args.cpuFreqData, result, sum, args.cpuArray, args.broCpuData, args.recordStartNS);
 }
 
 /**
@@ -82,7 +84,9 @@ function dealCpuFreqData(
   cpuFreqData: Array<CpuFreqData>,
   result: Map<string, Array<RunningData>>,
   sum: number,
-  cpuList: number[]
+  cpuList: number[],
+  broCpuData: unknown[],
+  recordStartNS: number
 ): Array<RunningFreqData> {
   let runningFreqData: Map<string, Array<RunningFreqData>> = new Map();
   result.forEach((item, key) => {
@@ -97,7 +101,12 @@ function dealCpuFreqData(
             item[i].ts < cpuFreqData[j].ts + cpuFreqData[j].dur &&
             item[i].dur < cpuFreqData[j].ts + cpuFreqData[j].dur - item[i].ts
           ) {
-            resultList.push(returnObj(item[i], cpuFreqData[j], sum, (flag = 1))!);
+            if (Array.isArray(returnObj(item[i], cpuFreqData[j], sum, (flag = 1), broCpuData, recordStartNS)!)) {
+              resultList = resultList.concat(returnObj(item[i], cpuFreqData[j], sum, (flag = 1), broCpuData, recordStartNS)!);
+            } else {
+              // @ts-ignore
+              resultList.push(returnObj(item[i], cpuFreqData[j], sum, (flag = 1), broCpuData, recordStartNS)!);
+            }
             item.splice(i, 1);
             i--;
             break;
@@ -108,7 +117,12 @@ function dealCpuFreqData(
             item[i].dur >= cpuFreqData[j].ts + cpuFreqData[j].dur - item[i].ts
           ) {
             // 当running状态数据的开始时间大于频点数据开始时间,小于频点结束时间。且running数据的持续时间大于等于频点结束时间减去running数据开始时间的差值的情况
-            resultList.push(returnObj(item[i], cpuFreqData[j], sum, (flag = 2))!);
+            if (Array.isArray(returnObj(item[i], cpuFreqData[j], sum, (flag = 2), broCpuData, recordStartNS)!)) {
+              resultList = resultList.concat(returnObj(item[i], cpuFreqData[j], sum, (flag = 2), broCpuData, recordStartNS)!);
+            } else {
+              // @ts-ignore
+              resultList.push(returnObj(item[i], cpuFreqData[j], sum, (flag = 2), broCpuData, recordStartNS)!);
+            }
           }
           // 当running状态数据的开始时间小于等于频点数据开始时间,结束时间大于频点开始时间。且running数据的持续时间减去频点数据开始时间的差值小于频点数据持续时间的情况
           if (
@@ -116,7 +130,12 @@ function dealCpuFreqData(
             item[i].ts + item[i].dur > cpuFreqData[j].ts &&
             item[i].dur + item[i].ts - cpuFreqData[j].ts < cpuFreqData[j].dur
           ) {
-            resultList.push(returnObj(item[i], cpuFreqData[j], sum, (flag = 3))!);
+            if (Array.isArray(returnObj(item[i], cpuFreqData[j], sum, (flag = 3), broCpuData, recordStartNS)!)) {
+              resultList = resultList.concat(returnObj(item[i], cpuFreqData[j], sum, (flag = 3), broCpuData, recordStartNS)!);
+            } else {
+              // @ts-ignore
+              resultList.push(returnObj(item[i], cpuFreqData[j], sum, (flag = 3), broCpuData, recordStartNS)!);
+            }
             item.splice(i, 1);
             i--;
             break;
@@ -127,21 +146,36 @@ function dealCpuFreqData(
             item[i].dur + item[i].ts - cpuFreqData[j].ts >= cpuFreqData[j].dur
           ) {
             // 当running状态数据的开始时间小于等于频点数据开始时间,结束时间大于频点开始时间。且running数据的持续时间减去频点数据开始时间的差值大于等于频点数据持续时间的情况
-            resultList.push(returnObj(item[i], cpuFreqData[j], sum, (flag = 4))!);
+            if (Array.isArray(returnObj(item[i], cpuFreqData[j], sum, (flag = 4), broCpuData, recordStartNS)!)) {
+              resultList = resultList.concat(returnObj(item[i], cpuFreqData[j], sum, (flag = 4), broCpuData, recordStartNS)!);
+            } else {
+              // @ts-ignore
+              resultList.push(returnObj(item[i], cpuFreqData[j], sum, (flag = 4), broCpuData, recordStartNS)!);
+            }
           }
           if (
             item[i].ts <= cpuFreqData[j].ts &&
             item[i].ts + item[i].dur <= cpuFreqData[j].ts
           ) {
             // 当running状态数据的开始时间小于等于频点数据开始时间,结束时间小于等于频点开始时间的情况
-            resultList.push(returnObj(item[i], cpuFreqData[j], sum, (flag = 5))!);
+            if (Array.isArray(returnObj(item[i], cpuFreqData[j], sum, (flag = 5), broCpuData, recordStartNS)!)) {
+              resultList = resultList.concat(returnObj(item[i], cpuFreqData[j], sum, (flag = 5), broCpuData, recordStartNS)!);
+            } else {
+              // @ts-ignore
+              resultList.push(returnObj(item[i], cpuFreqData[j], sum, (flag = 5), broCpuData, recordStartNS)!);
+            }
             item.splice(i, 1);
             i--;
             break;
           }
         } else {
           if (!cpuList.includes(item[i].cpu)) {
-            resultList.push(returnObj(item[i], cpuFreqData[j], sum, (flag = 5))!);
+            if (Array.isArray(returnObj(item[i], cpuFreqData[j], sum, (flag = 5), broCpuData, recordStartNS)!)) {
+              resultList = resultList.concat(returnObj(item[i], cpuFreqData[j], sum, (flag = 5), broCpuData, recordStartNS)!);
+            } else {
+              // @ts-ignore
+              resultList.push(returnObj(item[i], cpuFreqData[j], sum, (flag = 5), broCpuData, recordStartNS)!);
+            }
             item.splice(i, 1);
             i--;
             break;
@@ -160,13 +194,16 @@ function dealCpuFreqData(
  * @param cpuFreqData 频点数据
  * @param sum running总和
  * @param flag 标志位，根据不同值返回不同结果
+ * @param broCpuData 所有CPU数据
  * @returns 返回新的对象
  */
 function returnObj(
   item: RunningData,
   cpuFreqData: CpuFreqData,
   sum: number,
-  flag: number
+  flag: number,
+  broCpuData: Array<unknown>,
+  recordStartNS: number
 ): RunningFreqData | undefined {
   const PERCENT: number = 100;
   const FREQ_MUTIPLE: number = 1000;
@@ -183,7 +220,9 @@ function returnObj(
         dur: item.dur,
         percent: (item.dur / sum) * PERCENT,
         consumpower: computorPower * item.dur,
-        cpuload: (computorPower * item.dur) / (timeZones * maxCommpuPower) * PERCENT
+        cpuload: (computorPower * item.dur) / (timeZones * maxCommpuPower) * PERCENT,
+        // @ts-ignore
+        ts: item.ts - recordStartNS
       };
       break;
     case 2:
@@ -195,7 +234,9 @@ function returnObj(
         dur: cpuFreqData.ts + cpuFreqData.dur - item.ts,
         percent: ((cpuFreqData.ts + cpuFreqData.dur - item.ts) / sum) * PERCENT,
         consumpower: computorPower * (cpuFreqData.ts + cpuFreqData.dur - item.ts),
-        cpuload: (computorPower * (cpuFreqData.ts + cpuFreqData.dur - item.ts)) / (timeZones * maxCommpuPower) * PERCENT
+        cpuload: (computorPower * (cpuFreqData.ts + cpuFreqData.dur - item.ts)) / (timeZones * maxCommpuPower) * PERCENT,
+        // @ts-ignore
+        ts: item.ts - recordStartNS
       };
       break;
     case 3:
@@ -207,7 +248,9 @@ function returnObj(
         dur: item.dur + item.ts - cpuFreqData.ts,
         percent: ((item.dur + item.ts - cpuFreqData.ts) / sum) * PERCENT,
         consumpower: computorPower * (item.dur + item.ts - cpuFreqData.ts),
-        cpuload: (computorPower * (item.dur + item.ts - cpuFreqData.ts)) / (timeZones * maxCommpuPower) * PERCENT
+        cpuload: (computorPower * (item.dur + item.ts - cpuFreqData.ts)) / (timeZones * maxCommpuPower) * PERCENT,
+        // @ts-ignore
+        ts: (cpuFreqData.ts - recordStartNS)
       };
       break;
     case 4:
@@ -219,7 +262,9 @@ function returnObj(
         dur: cpuFreqData.dur,
         percent: (cpuFreqData.dur / sum) * PERCENT,
         consumpower: computorPower * cpuFreqData.dur,
-        cpuload: (computorPower * cpuFreqData.dur) / (timeZones * maxCommpuPower) * PERCENT
+        cpuload: (computorPower * cpuFreqData.dur) / (timeZones * maxCommpuPower) * PERCENT,
+        // @ts-ignore
+        ts: (cpuFreqData.ts - recordStartNS)
       };
       break;
     case 5:
@@ -231,11 +276,76 @@ function returnObj(
         dur: item.dur,
         percent: (item.dur / sum) * PERCENT,
         consumpower: 0,
-        cpuload: 0
+        cpuload: 0,
+        // @ts-ignore
+        ts: (item.ts - recordStartNS)
       };
       break;
   }
-  return result;
+  // @ts-ignore
+  if (comPower && (comPower!.get(item.cpu).broId || comPower!.get(item.cpu).broId === 0) && comPower!.get(item.cpu).smtRate) {
+    // @ts-ignore
+    let broCpuDataList = broCpuData.filter((e) => (e.cpu === comPower!.get(item.cpu).broId) && !(e.startTime >= result!.ts + result!.dur || e.endTime <= result!.ts));
+    let parallelDur = 0;
+    broCpuDataList.forEach((e) => {
+      // @ts-ignore
+      if (e.startTime <= result!.ts && e.endTime >= result!.ts + result!.dur) {
+        parallelDur += result!.dur;
+        // @ts-ignore
+      } else if (e.startTime <= result!.ts && e.endTime < result!.ts + result!.dur && e.endTime >= result!.ts) {
+        // @ts-ignore
+        parallelDur += e.endTime - result!.ts;
+        // @ts-ignore
+      } else if (e.startTime > result!.ts && e.endTime >= result!.ts + result!.dur && e.startTime <= result!.ts + result!.dur) {
+        // @ts-ignore
+        parallelDur += result!.ts + result!.dur - e.startTime;
+      } else {
+        // @ts-ignore
+        parallelDur += e.dur;
+      }
+    });
+    if (parallelDur === 0) {
+      return result;
+    } else if (parallelDur === result!.dur) {
+      // @ts-ignore
+      result.consumpower = result.consumpower * comPower!.get(item.cpu).smtRate;
+      // @ts-ignore
+      result.frequency = cpuFreqData.value / FREQ_MUTIPLE + ': ' + computorPower * comPower!.get(item.cpu).smtRate + '*';
+      return result;
+    } else {
+      let resultArr = [
+        {
+          thread: item.pid + '_' + item.tid,
+          consumption: cpuFreqData.value * (result!.dur - parallelDur),
+          cpu: item.cpu,
+          frequency: computorPower ? cpuFreqData.value / FREQ_MUTIPLE + ': ' + computorPower : cpuFreqData.value / FREQ_MUTIPLE,
+          dur: result!.dur - parallelDur,
+          percent: ((result!.dur - parallelDur) / sum) * PERCENT,
+          consumpower: computorPower * (result!.dur - parallelDur),
+          cpuload: (computorPower * (result!.dur - parallelDur)) / (timeZones * maxCommpuPower) * PERCENT,
+          // @ts-ignore
+          ts: item.ts - recordStartNS
+        },
+        {
+          thread: item.pid + '_' + item.tid,
+          consumption: cpuFreqData.value * parallelDur,
+          cpu: item.cpu,
+          // @ts-ignore
+          frequency: computorPower ? cpuFreqData.value / FREQ_MUTIPLE + ': ' + computorPower * comPower!.get(item.cpu).smtRate + '*' : cpuFreqData.value / FREQ_MUTIPLE,
+          dur: parallelDur,
+          percent: (parallelDur / sum) * PERCENT,
+          consumpower: computorPower * parallelDur,
+          cpuload: (computorPower * parallelDur) / (timeZones * maxCommpuPower) * PERCENT,
+          // @ts-ignore
+          ts: item.ts - recordStartNS
+        }
+      ];
+      // @ts-ignore
+      return resultArr;
+    }
+  } else {
+    return result;
+  }
 }
 
 /**

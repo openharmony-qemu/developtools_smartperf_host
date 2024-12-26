@@ -20,7 +20,7 @@ import { SpSystemTrace } from '../../../SpSystemTrace';
 import { TraceRow } from '../../base/TraceRow';
 import { LitSearch } from '../../search/Search';
 import { resizeObserver } from '../SheetUtils';
-import { getTabSlicesAsyncFunc, getTabSlicesAsyncCatFunc } from '../../../../database/sql/Func.sql';
+import { getTabSlicesAsyncFunc, getTabSlicesAsyncCatFunc, getParentDetail, getFuncChildren } from '../../../../database/sql/Func.sql';
 import { getTabSlices } from '../../../../database/sql/ProcessThread.sql';
 import { FuncStruct } from '../../../../database/ui-worker/ProcedureWorkerFunc';
 import { Utils } from '../../base/Utils';
@@ -147,19 +147,53 @@ export class TabPaneSlices extends BaseElement {
     };
 
     this.slicesTbl!.loading = true;
-    Promise.all([result1(), result2(), result3()]).then(res => {
+    Promise.all([result1(), result2(), result3()]).then(async res => {
       let processSlicesResult = (res[0] || []).concat(res[1] || []).concat(res[2] || []);
       if (processSlicesResult !== null && processSlicesResult.length > 0) {
+        let funcIdArr: Array<number> = [];
+        let minStartTS = Infinity;
+        let maxEndTS = -Infinity;
+        // @ts-ignore
+        let parentDetail: [{ startTS: number, endTS: number, depth: number, id: number, name: string }] = await getParentDetail(slicesParam.processIds, slicesParam.funTids, slicesParam.leftNs, slicesParam.rightNs);
+        // @ts-ignore
+        parentDetail.forEach(item => {
+          funcIdArr.push(item.id);
+          if (item.depth === 0) {
+            if (item.startTS < minStartTS) {
+              minStartTS = item.startTS;
+            }
+            if (item.endTS > maxEndTS) {
+              maxEndTS = item.endTS;
+            }
+          }
+        });
+
+        let FuncChildrenList = await getFuncChildren(funcIdArr, slicesParam.processIds, slicesParam.funTids, minStartTS, maxEndTS, false);
+        let childDurMap: Map<number, Map<number, number>> = new Map();
+        FuncChildrenList.forEach((it: any) => {
+          if (!childDurMap.has(it.parentId)) {
+            childDurMap.set(it.parentId, it.duration);
+          } else {
+            let dur = childDurMap.get(it.parentId)
+            dur += it.duration
+            childDurMap.set(it.parentId, dur!);
+          }
+        });
         let sumWall = 0.0;
         let sumOcc = 0;
+        let sumSelf = 0.0;
         let processSlicesResultMap: Map<string, unknown> = new Map();
         for (let processSliceItem of processSlicesResult) {
+          //@ts-ignore
+          processSliceItem.selfTime = childDurMap.has(processSliceItem.id) ? parseFloat(((processSliceItem.wallDuration - childDurMap.get(processSliceItem.id)) / 1000000).toFixed(5)) : parseFloat((processSliceItem.wallDuration / 1000000).toFixed(5));
           //@ts-ignore
           processSliceItem.name = processSliceItem.name === null ? '' : processSliceItem.name;
           //@ts-ignore
           sumWall += processSliceItem.wallDuration;
           //@ts-ignore
           sumOcc += processSliceItem.occurrences;
+          //@ts-ignore
+          sumSelf += processSliceItem.selfTime;
           //@ts-ignore
           processSliceItem.wallDuration = parseFloat((processSliceItem.wallDuration / 1000000.0).toFixed(5));
           //@ts-ignore
@@ -185,7 +219,10 @@ export class TabPaneSlices extends BaseElement {
         count.process = ' ';
         count.wallDuration = parseFloat((sumWall / 1000000.0).toFixed(5));
         count.occurrences = sumOcc;
+        count.selfTime = parseFloat(sumSelf.toFixed(5));
         count.tabTitle = 'Summary';
+        //@ts-ignore
+        count.avgDuration = parseFloat((count.wallDuration / count.occurrences).toFixed(5));
         // @ts-ignore
         count.allName = processSlicesResultsValue.map((item: unknown) => item.name);
         processSlicesResultsValue.splice(0, 0, count); //@ts-ignore
@@ -204,6 +241,10 @@ export class TabPaneSlices extends BaseElement {
     });
   }
   async orgnazitionData(data: Object): Promise<void> {
+    // @ts-ignore
+    if (data!.tabTitle === 'Summary') {
+      FuncStruct.funcSelect = true;
+    }
     let spApplication = document.querySelector('body > sp-application');
     let spSystemTrace = spApplication?.shadowRoot?.querySelector(
       'div > div.content > sp-system-trace'
@@ -336,6 +377,8 @@ export class TabPaneSlices extends BaseElement {
             </lit-table-column>
             <lit-table-column class="slices-column" title="Occurrences" width="1fr" data-index="occurrences" 
             key="occurrences"  align="flex-start" order tdJump>
+            </lit-table-column>
+            <lit-table-column class="slices-column" title="selfTime(ms)" width="1fr" data-index="selfTime" key="selfTime" align="flex-start" order>
             </lit-table-column>
         </lit-table>
         `;

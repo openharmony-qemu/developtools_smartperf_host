@@ -30,6 +30,7 @@ using namespace SysTuning::TraceStreamer;
 
 namespace SysTuning {
 namespace TraceStreamer {
+namespace DiskioParserUnitTest {
 const uint64_t TS = 100;
 const uint64_t RD_01 = 100;
 const uint64_t WR_01 = 101;
@@ -237,5 +238,6 @@ HWTEST_F(PbreaderDiskioParserTest, ParsePbreaderDiskioWithMultipleDiskioData, Te
     EXPECT_EQ(diskIOData.WrCountDatas()[1], WR_03);
     EXPECT_EQ(diskIOData.WrCountDatas()[2], WR_04);
 }
+} // namespace DiskioParserUnitTest
 } // namespace TraceStreamer
 } // namespace SysTuning

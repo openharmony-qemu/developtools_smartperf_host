@@ -72,6 +72,8 @@ import {
   findFreeSizeAlgorithm,
   getCurrentDataTime,
   indexedDataToBufferData,
+  isZipFile,
+  isZlibFile,
   postLog,
   readTraceFileBuffer,
   TraceMode,
@@ -133,7 +135,6 @@ export class SpApplication extends BaseElement {
   private spKeyboard: SpKeyboard | undefined | null;
   private spFlags: SpFlags | undefined | null;
   private spRecordTrace: SpRecordTrace | undefined | null;
-  private spRecordTemplate: SpRecordTrace | undefined | null;
   private spSchedulingAnalysis: SpSchedulingAnalysis | undefined | null;
   private mainMenu: LitMainMenu | undefined | null;
   private menu: HTMLDivElement | undefined | null;
@@ -176,6 +177,7 @@ export class SpApplication extends BaseElement {
   private currentPageNum: number = 1;
   private currentDataTime: string[] = [];
   static traceType: String = '';
+  private isZipFile: boolean = false;
 
   static get observedAttributes(): Array<string> {
     return ['server', 'sqlite', 'wasm', 'dark', 'vs', 'query-sql', 'subsection'];
@@ -293,7 +295,6 @@ export class SpApplication extends BaseElement {
     this.spKeyboard = this.shadowRoot!.querySelector<SpKeyboard>('#sp-keyboard') as SpKeyboard;
     this.spFlags = this.shadowRoot!.querySelector<SpFlags>('#sp-flags') as SpFlags;
     this.spRecordTrace = this.shadowRoot!.querySelector<SpRecordTrace>('#sp-record-trace');
-    this.spRecordTemplate = this.shadowRoot!.querySelector<SpRecordTrace>('#sp-record-template');
     this.spSchedulingAnalysis = this.shadowRoot!.querySelector<SpSchedulingAnalysis>('#sp-scheduling-analysis');
     this.mainMenu = this.shadowRoot?.querySelector('#main-menu') as LitMainMenu;
     this.menu = this.mainMenu.shadowRoot?.querySelector('.menu-button') as HTMLDivElement;
@@ -401,18 +402,16 @@ export class SpApplication extends BaseElement {
       this.spSchedulingAnalysis,
       this.spInfoAndStats,
       this.spHelp,
-      this.spRecordTemplate,
       this.spFlags,
       this.spKeyboard,
       this.spThirdParty,
     ];
   }
 
-  private openLongTraceFile(ev: unknown, isRecordTrace: boolean = false): void {
+  private openLongTraceFile(ev: CustomEvent, isRecordTrace: boolean = false): void {
     this.returnOriginalUrl();
     this.wasm = true;
     this.openFileInit(true);
-    // @ts-ignore
     let detail = ev.detail;
     let initRes = this.longTraceFileInit(isRecordTrace, detail);
     if (!isRecordTrace && initRes) {
@@ -626,7 +625,7 @@ export class SpApplication extends BaseElement {
     }
   }
 
-  private openTraceFile(ev: unknown, isClickHandle?: boolean): void {
+  private openTraceFile(ev: File): void {
     SpApplication.isTraceLoaded = false;
     this.returnOriginalUrl();
     this.removeAttribute('custom-color');
@@ -644,13 +643,11 @@ export class SpApplication extends BaseElement {
       this.importConfigDiv.style.display = 'none';
       this.closeKeyPath.style.display = 'none';
     }
-    //@ts-ignore
     let fileName = ev.name;
     this.traceFileName = fileName;
     let showFileName = fileName.lastIndexOf('.') === -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'));
     window.sessionStorage.setItem('fileName', showFileName);
     TraceRow.rangeSelectObject = undefined;
-    //@ts-ignore
     let typeStr = ev.slice(0, 100);
     let reader: FileReader | null = new FileReader();
     reader.readAsText(typeStr);
@@ -659,28 +656,41 @@ export class SpApplication extends BaseElement {
       let typeHeader;
       if (isIncludeMark) {
         let markLength = `${reader?.result}`.split('->')[0].replace('MarkPositionJSON', '');
-        //@ts-ignore
         typeHeader = ev.slice(markLength.length + parseInt(markLength), markLength.length + parseInt(markLength) + 6);
       } else {
-        //@ts-ignore
         typeHeader = ev.slice(0, 6);
       }
-      let fileReader: FileReader | null = new FileReader();
-      fileReader.readAsText(typeHeader);
-      fileReader.onload = (event): void => {
-        let headerStr: string = `${fileReader?.result}`;
-        SpApplication.traceType = headerStr;
-        if (headerStr.indexOf('SQLite') === 0) {
-          info('Parse trace headerStr sql mode');
-          this.wasm = false;
-          //@ts-ignore
-          this.handleSqliteMode(ev, showFileName, ev.size, fileName);
-        } else {
-          info('Parse trace using wasm mode ');
-          this.wasm = true;
-          //@ts-ignore
-          this.handleWasmMode(ev, showFileName, ev.size, fileName);
-        }
+      this.judgeDBOrWasm(ev, typeHeader, showFileName);
+      this.judgeZip(typeHeader);
+    };
+  }
+
+  private judgeDBOrWasm(ev: File, typeHeader: Blob, showFileName: string) {
+    let fileReader: FileReader | null = new FileReader();
+    fileReader.readAsText(typeHeader);
+    fileReader.onload = (event): void => {
+      let headerStr: string = `${fileReader?.result}`;
+      SpApplication.traceType = headerStr;
+      if (headerStr.indexOf('SQLite') === 0) {
+        info('Parse trace headerStr sql mode');
+        this.wasm = false;
+        this.handleSqliteMode(ev, showFileName, ev.size, ev.name);
+      } else {
+        info('Parse trace using wasm mode ');
+        this.wasm = true;
+        this.handleWasmMode(ev, showFileName, ev.size, ev.name);
+      }
+    }
+  }
+
+  private judgeZip(typeHeader: Blob) {
+    const fileReader = new FileReader();
+    fileReader.readAsArrayBuffer(typeHeader);
+    fileReader.onload = (event):void => {
+      const uint8Array = new Uint8Array(event.target!.result as ArrayBuffer);
+      this.isZipFile = isZipFile(uint8Array) || isZlibFile(uint8Array);
+      if (this.isZipFile) {
+        this.cutTraceFile!.style.display = this.isZipFile ? 'none' : 'block';
       }
     };
   }
@@ -779,7 +789,7 @@ export class SpApplication extends BaseElement {
           //@ts-ignore
           let item = e.dataTransfer.items[0];
           if (item.webkitGetAsEntry()?.isFile) {
-            this.openTraceFile(item.getAsFile());
+            this.openTraceFile(item.getAsFile()!);
           } else if (item.webkitGetAsEntry()?.isDirectory) {
             this.litSearch!.setPercent('This File is not supported!', -1);
             this.progressEL!.loading = false;
@@ -884,7 +894,7 @@ export class SpApplication extends BaseElement {
             title: 'Open trace file',
             icon: 'folder',
             fileChoose: true,
-            fileHandler: (ev: InputEvent): void => {
+            fileHandler: (ev: CustomEvent): void => {
               Utils.currentTraceMode = TraceMode.NORMAL;
               this.openTraceFile(ev.detail);
             },
@@ -912,11 +922,11 @@ export class SpApplication extends BaseElement {
             title: 'Open long trace',
             icon: 'folder',
             fileChoose: true,
-            clickHandler: (ev: InputEvent): void => {
+            clickHandler: (ev: CustomEvent): void => {
               Utils.currentTraceMode = TraceMode.LONG_TRACE;
               this.openLongTraceFile(ev, true);
             },
-            fileHandler: (ev: InputEvent): void => {
+            fileHandler: (ev: CustomEvent): void => {
               Utils.currentTraceMode = TraceMode.LONG_TRACE;
               this.openLongTraceFile(ev);
             },
@@ -999,18 +1009,20 @@ export class SpApplication extends BaseElement {
   private clickHandleByRecordNewTrace(): void {
     this.returnOriginalUrl();
     this.spRecordTrace!.synchronizeDeviceList();
-    this.spRecordTemplate!.record_template = false;
+    this.spRecordTrace!.record_template = 'false';
+    this.spRecordTrace!.reConfigPage();
     this.spRecordTrace!.refreshConfig(true);
     this.showContent(this.spRecordTrace!);
   }
 
   private clickHandleByRecordTemplate(): void {
     this.returnOriginalUrl();
-    this.spRecordTemplate!.refreshHint();
-    this.spRecordTemplate!.record_template = true;
-    this.spRecordTemplate!.refreshConfig(false);
-    this.spRecordTemplate!.synchronizeDeviceList();
-    this.showContent(this.spRecordTemplate!);
+    this.spRecordTrace!.refreshHint();
+    this.spRecordTrace!.record_template = 'true';
+    this.spRecordTrace!.reConfigPage();
+    this.spRecordTrace!.refreshConfig(false);
+    this.spRecordTrace!.synchronizeDeviceList();
+    this.showContent(this.spRecordTrace!);
   }
 
   private changeUrl(): void {
@@ -1230,7 +1242,7 @@ export class SpApplication extends BaseElement {
         if (headerStr.indexOf('OHOSPROF') !== 0 && rowTraceStr.indexOf('49df') !== 0) {
           isAllowTrace = false;
         }
-        this.cutTraceFile!.style.display = 'block';
+        this.cutTraceFile!.style.display = this.isZipFile ? 'none' : 'block';
         this.exportRecord!.style.display = 'block';
         setThreadPoolTraceBuffer('1', null);
       }
@@ -2534,12 +2546,11 @@ export class SpApplication extends BaseElement {
           clearInterval(timer);
         }, 4000);
         // 存入缓存
-        await caches.open(`${fileName}`).then(async (cache) => {
-          let headers = new Headers();
-          headers.append('Content-type', 'application/octet-stream');
-          headers.append('Content-Transfer-Encoding', 'binary');
-          return cache.put(`${fileName}`, new Response(reqBufferDB, { status: 200 }));
-        });
+        const blob = new Blob([reqBufferDB]);
+        const response = new Response(blob)
+        caches.open('DB-file').then(cache => {
+          return cache.put(`/${fileName}`, response);
+        })
       },
       'download-db'
     );

@@ -140,6 +140,40 @@ bool RpcServer::SaveAndParseZipTraceData(const uint8_t *data, size_t len, Result
     std::filesystem::remove_all(outTraceName);
     return true;
 }
+bool RpcServer::DetermineZlibTrace(const uint8_t *data, size_t len)
+{
+    if (len < ZLIB_MAGIC_NUM_LEN) {
+        return false;
+    }
+    return data[0] == ZLIB_CMF && data[1] == ZLIB_FLG;
+}
+bool RpcServer::SaveAndParseZlibTraceData(const uint8_t *data, size_t len, ResultCallBack resultCallBack, bool isFinish)
+{
+    auto zlibFileName = "zlibFile.zlib";
+    static std::ofstream zlibFile(zlibFileName, std::ios::binary | std::ios::app);
+    if (!zlibFile.is_open()) {
+        TS_LOGE("zlibFile open filed!");
+        return false;
+    }
+    zlibFile.write(reinterpret_cast<const char *>(data), len);
+    if (zlibFile.fail() || zlibFile.bad()) {
+        TS_LOGE("Failed to write data!");
+        zlibFile.close();
+        return false;
+    }
+    if (!isFinish) {
+        return true;
+    }
+    zlibFile.close();
+    std::string outTraceName;
+    UnZlibFile(zlibFileName, outTraceName);
+    if (!ReadAndParseData(outTraceName)) {
+        std::filesystem::remove_all(outTraceName);
+        return false;
+    }
+    std::filesystem::remove_all(outTraceName);
+    return true;
+}
 bool RpcServer::SendConvertedFfrtFile(const std::string &fileName, ResultCallBack resultCallBack)
 {
     if (!resultCallBack) {
@@ -170,16 +204,23 @@ bool RpcServer::ReadAndParseData(const std::string &filePath)
         TS_LOGE("can not open %s.", filePath.c_str());
         return false;
     }
+    uint8_t curParseCnt = 1;
     while (true) {
         std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(G_CHUNK_SIZE);
         inputFile.read(reinterpret_cast<char *>(buf.get()), G_CHUNK_SIZE);
         auto readSize = inputFile.gcount();
-        ts_->ParseTraceDataSegment(std::move(buf), readSize, false, inputFile.eof());
-        if (inputFile.eof()) {
+        if (!ts_->ParseTraceDataSegment(std::move(buf), readSize, false, inputFile.eof(), true)) {
+            return false;
+        }
+        // for rawtrace next parse.the first parse is for last comm data;
+        if (inputFile.eof() && ts_->GetFileType() == TRACE_FILETYPE_RAW_TRACE && curParseCnt < RAW_TRACE_PARSE_MAX) {
+            ++curParseCnt;
+            inputFile.clear();
+            inputFile.seekg(0, std::ios::beg);
+        } else if (inputFile.eof()) {
             break;
         }
     }
-    ts_->WaitForParserEnd();
     inputFile.close();
     return true;
 }
@@ -692,18 +733,16 @@ int32_t RpcServer::WasmExportDatabase(ResultCallBack resultCallBack)
 }
 
 #if IS_WASM
-void RpcServer::CreateFilePath(const std::string &filePath)
+void RpcServer::CreateFilePath(const std::string &directory)
 {
-    if (std::filesystem::exists(filePath)) {
-        TS_LOGE("%s exist", filePath.c_str());
-    } else {
-        if (std::filesystem::create_directories(filePath)) {
-            TS_LOGI("create_directories success");
-        } else {
-            TS_LOGI("create_directories failed!");
-        }
+    if (std::filesystem::exists(directory)) {
+        return;
     }
-    TS_LOGI("filePath = %s", filePath.c_str());
+    if (std::filesystem::create_directories(directory)) {
+        TS_LOGI("create directory success.");
+    } else {
+        TS_LOGI("create directory failed!");
+    }
 }
 
 bool RpcServer::WriteToFile(const std::string &fileName, const uint8_t *data, size_t len)
@@ -724,26 +763,27 @@ bool RpcServer::WriteToFile(const std::string &fileName, const uint8_t *data, si
     return false;
 }
 
-bool RpcServer::ClearPathFile(std::string &symbolsPath, int32_t finish, ParseELFFileCallBack &parseELFFile)
+bool RpcServer::ReloadSymbolsAndClearELFs(const std::string &directory,
+                                          const std::string &fileName,
+                                          int32_t finish,
+                                          ParseELFFileCallBack &parseELFFile)
 {
     if (finish) {
-        if (!ts_->ReloadSymbolFiles(symbolsPath, symbolsPathFiles_)) {
-            symbolsPathFiles_.clear();
+        if (!ts_->ReloadSymbolFiles(directory, {fileName})) {
             if (parseELFFile) {
                 parseELFFile("formaterror\r\n", SEND_FINISH);
             }
             return false;
         }
-        symbolsPathFiles_.clear();
         if (parseELFFile) {
             parseELFFile("ok\r\n", SEND_FINISH);
         }
-        std::filesystem::remove_all(symbolsPath);
+        std::filesystem::remove_all(directory);
     }
     return true;
 }
 
-bool RpcServer::DownloadELFCallback(const std::string &fileName,
+bool RpcServer::DownloadELFCallback(const std::string &filePath,
                                     size_t totalLen,
                                     const uint8_t *data,
                                     size_t len,
@@ -751,18 +791,16 @@ bool RpcServer::DownloadELFCallback(const std::string &fileName,
                                     ParseELFFileCallBack parseELFFile)
 {
     g_fileLen += len;
-    std::string filePath = "";
-    TS_LOGI("fileName = %s", fileName.c_str());
-    std::string symbolsPath = fileName.substr(0, fileName.find("/"));
-    TS_LOGI("symbolsPath = %s", symbolsPath.c_str());
-    filePath = fileName.substr(0, fileName.find_last_of("/"));
-    CreateFilePath(filePath);
+    std::filesystem::path stdFilePath(filePath);
+    const std::string fileName = stdFilePath.filename().string();
+    const std::string directory = stdFilePath.parent_path().string();
+    CreateFilePath(directory);
     if (g_fileLen < totalLen) {
-        return WriteToFile(fileName, data, len);
+        return WriteToFile(filePath, data, len);
     }
     g_fileLen = 0;
     if (g_importFileFd == nullptr) {
-        g_importFileFd = fopen(fileName.c_str(), "a+");
+        g_importFileFd = fopen(filePath.c_str(), "a+");
         if (g_importFileFd == nullptr) {
             TS_LOGE("wasm file create failed");
             return false;
@@ -775,13 +813,10 @@ bool RpcServer::DownloadELFCallback(const std::string &fileName,
         TS_LOGE("wasm write file failed");
         return false;
     }
-    TS_LOGI("symbolsPath = %s, fileName = %s", symbolsPath.c_str(), fileName.c_str());
-    std::filesystem::path stdFileName(fileName);
-    symbolsPathFiles_.emplace_back(stdFileName.filename().string());
     parseELFFile("file send over\r\n", SEND_FINISH);
     // When the transfer is completed, reload the symbol file, clear the symbol path file list, call the callback
     // function, and delete the symbol path and all files under it
-    if (!ClearPathFile(symbolsPath, finish, parseELFFile)) {
+    if (!ReloadSymbolsAndClearELFs(directory, fileName, finish, parseELFFile)) {
         return false;
     }
     return true;

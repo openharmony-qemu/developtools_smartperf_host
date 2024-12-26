@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import { TabPaneGpufreqDataCut } from '../../../../../../src/trace/component/trace/sheet/gpufreq/tabPaneGpufreqDataCut';
-import '../../../../../../src/trace/component/trace/sheet/gpufreq/tabPaneGpufreqDataCut';
+import { TabPaneGpufreqDataCut } from '../../../../../../src/trace/component/trace/sheet/gpufreq/TabPaneGpufreqDataCut';
+import '../../../../../../src/trace/component/trace/sheet/gpufreq/TabPaneGpufreqDataCut';
 import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 import '../../../../../../src/base-ui/table/lit-table';
 import { SpSegmentationChart } from '../../../../../../src/trace/component/chart/SpSegmentationChart';
 import { TraceRow } from "../../../../../../src/trace/component/trace/base/TraceRow";
 import { CpuFreqExtendStruct } from "../../../../../../src/trace/database/ui-worker/ProcedureWorkerFreqExtend";
-
+import { SelectionParam } from "../../../../../../src/trace/bean/BoxSelection";
 jest.mock('../../../../../../src/trace/database/ui-worker/cpu/ProcedureWorkerCPU', () => {
   return {};
 });
@@ -46,20 +46,7 @@ const sqlite = require('../../../../../../src/trace/database/sql/Perf.sql');
 jest.mock('../../../../../../src/trace/database/sql/Perf.sql');
 
 describe('TabPaneGpufreqDataCut.test Test', () => {
-  let threadStatesParam = {
-    cpus: [],
-    threadIds: [1, 2, 3],
-    trackIds: [23, 56, 77],
-    funTids: [675, 75],
-    heapIds: [11, 223],
-    processIds: [114, 23],
-    nativeMemory: [],
-    leftNs: 12222,
-    rightNs: 654233,
-    hasFps: false,
-    statisticsSelectData: undefined,
-  }
-
+  let threadStatesParam = new SelectionParam();
   let dataCut = [{
     funName: 'funName',
     startTime: 0,
@@ -122,23 +109,25 @@ describe('TabPaneGpufreqDataCut.test Test', () => {
   it('TabPaneSchedSwitchTest01', function () {
     SpSegmentationChart.GpuRow = new TraceRow<CpuFreqExtendStruct>;
     gpufreqDataCut.data = threadStatesParam;
-
     expect(gpufreqDataCut.threadStatesTbl.loading).toBeTruthy();
   });
 
   it('TabPaneSchedSwitchTest02', function () {
+    gpufreqDataCut.initElements();
     gpufreqDataCut.data = threadStatesParam;
-    gpufreqDataCut.validationFun('', '', '', '', '', '', '');
+    gpufreqDataCut.validationFun('', '', '');
     expect(gpufreqDataCut._threadId.getAttribute('placeholder')).toEqual('Please input thread id');
   });
 
   it('TabPaneSchedSwitchTest03', function () {
     gpufreqDataCut.data = threadStatesParam;
+    gpufreqDataCut.initElements();
     gpufreqDataCut.validationFun('1', 'name', '1px solid red', '1px solid green', 'placeholder', 'placeholder', 'single');
     expect(gpufreqDataCut._threadId.getAttribute('placeholder')).toEqual('Please input thread id');
   });
 
   it('TabPaneSchedSwitchTest04', function () {
+    gpufreqDataCut.initElements();
     gpufreqDataCut.data = threadStatesParam;
     gpufreqDataCut.validationFun('1', 'name', '1px solid red', '1px solid green', 'placeholder', 'thread function placeholder', 'loop');
     expect(gpufreqDataCut._threadFunc.getAttribute('placeholder')).toEqual('Please input function name');
@@ -149,6 +138,7 @@ describe('TabPaneGpufreqDataCut.test Test', () => {
   });
 
   it('TabPaneSchedSwitchTest06', function () {
+    gpufreqDataCut.initElements();
     gpufreqDataCut.RetainDecimals = jest.fn(() => true);
     expect(gpufreqDataCut.createTree(initData)).not.toBeUndefined();
   });

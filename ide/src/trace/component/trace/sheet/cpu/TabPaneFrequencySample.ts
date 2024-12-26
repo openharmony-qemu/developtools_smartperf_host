@@ -186,7 +186,6 @@ export class TabPaneFrequencySample extends BaseElement {
     });
     let tmpCpuArr = Array.from(sampleMap.entries());
     let weightMapArr = Array.from(weightMap.entries());
-    console.log(tmpCpuArr, weightMap);
     for (let j = 0; j < weightMapArr.length; j++) {
       // @ts-ignore
       let singleCpuArr = tmpCpuArr.filter((item) => item[1].filterId && item[1].filterId === Number(weightMapArr[j][1].filterId));
@@ -200,8 +199,10 @@ export class TabPaneFrequencySample extends BaseElement {
       }
       // @ts-ignore
       let tmpPosition = tmpCpuArr.findIndex(item => item[1].filterId === weightMapArr[j][1].filterId);
+      if(singleCpuArr[0] && singleCpuArr[0].length >= 2){
       // @ts-ignore
-      tmpCpuArr.splice(tmpPosition, 0, [`${weightMapArr[j][1].filterId}-0`, { counter: `${singleCpuArr[0][1].counter}:( WA )`, time: tmpTotalTime, valueStr: ColorUtils.formatNumberComma(Math.round(tmpTotalCount / (tmpTotalTime / 1000000))) }]);
+        tmpCpuArr.splice(tmpPosition, 0, [`${weightMapArr[j][1].filterId}-0`, { counter: `${singleCpuArr[0][1].counter}:( WA )`, time: tmpTotalTime, valueStr: ColorUtils.formatNumberComma(Math.round(tmpTotalCount / (tmpTotalTime / 1000000))) }]);
+      }
     };
     sampleMap = new Map(tmpCpuArr);
     sampleMap.forEach((a): void => {
@@ -281,7 +282,7 @@ export class TabPaneFrequencySample extends BaseElement {
       return;
     }
     // @ts-ignore
-    let includeData = initFreqResult.findIndex((a) => a.ts >= leftStartNs);
+    let includeData = initFreqResult.findIndex((a) => a.ts > leftStartNs);
     if (includeData !== 0) {
       initFreqResult = initFreqResult.slice(
         includeData === -1 ? initFreqResult.length - 1 : includeData - 1,

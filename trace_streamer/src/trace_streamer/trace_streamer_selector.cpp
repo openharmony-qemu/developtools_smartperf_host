@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdlib>
+#include <fstream>
 #include <functional>
 #include <regex>
 #include "animation_filter.h"
@@ -33,20 +34,20 @@
 #endif
 #include "irq_filter.h"
 #include "measure_filter.h"
-#include "task_pool_filter.h"
-#include "ptreader_parser.h"
 #include "pbreader_parser.h"
-#ifdef ENABLE_RAWTRACE
-#include "rawtrace_parser.h"
-#endif
 #ifdef ENABLE_HIPERF
 #include "perf_data_filter.h"
 #endif
 #include "process_filter.h"
+#include "ptreader_parser.h"
+#ifdef ENABLE_RAWTRACE
+#include "rawtrace_parser.h"
+#endif
 #include "slice_filter.h"
 #include "stat_filter.h"
 #include "string_help.h"
 #include "system_event_measure_filter.h"
+#include "task_pool_filter.h"
 
 namespace {
 const uint32_t CHUNK_SIZE = 1024 * 1024;
@@ -289,7 +290,10 @@ void TraceStreamerSelector::InitializeParser()
     }
 }
 
-void TraceStreamerSelector::ProcessTraceData(std::unique_ptr<uint8_t[]> data, size_t size, int32_t isFinish)
+void TraceStreamerSelector::ProcessTraceData(std::unique_ptr<uint8_t[]> data,
+                                             size_t size,
+                                             int32_t isFinish,
+                                             bool isWasmReadFile)
 {
     if (fileType_ == TRACE_FILETYPE_H_TRACE) {
         pbreaderParser_->ParseTraceDataSegment(std::move(data), size);
@@ -303,6 +307,11 @@ void TraceStreamerSelector::ProcessTraceData(std::unique_ptr<uint8_t[]> data, si
 #endif
     } else if (fileType_ == TRACE_FILETYPE_RAW_TRACE) {
 #ifdef ENABLE_RAWTRACE
+#ifdef IS_WASM
+        if (isWasmReadFile && !rawTraceParser_->IsWasmReadFile()) {
+            rawTraceParser_->SetWasmReadFile(true);
+        }
+#endif
         rawTraceParser_->ParseTraceDataSegment(std::move(data), size, isFinish);
 #endif
     }
@@ -313,7 +322,8 @@ void TraceStreamerSelector::ProcessTraceData(std::unique_ptr<uint8_t[]> data, si
 bool TraceStreamerSelector::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> data,
                                                   size_t size,
                                                   bool isSplitFile,
-                                                  int32_t isFinish)
+                                                  int32_t isFinish,
+                                                  bool isWasmReadFile)
 {
     if (size == 0) {
         return true;
@@ -344,7 +354,7 @@ bool TraceStreamerSelector::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> dat
     traceDataCache_->SetSplitFileMinTime(minTs_);
     traceDataCache_->SetSplitFileMaxTime(maxTs_);
     traceDataCache_->isSplitFile_ = isSplitFile;
-    ProcessTraceData(std::move(data), size, isFinish);
+    ProcessTraceData(std::move(data), size, isFinish, isWasmReadFile);
 
 #if !IS_WASM
     // in the linux,isFinish = 1,clear markinfo
@@ -408,13 +418,23 @@ int32_t TraceStreamerSelector::ExportEbpfReadableText(const std::string &outputN
     return traceDataCache_->ExportEbpfReadableText(outputName, resultCallBack);
 }
 
-bool TraceStreamerSelector::ReloadSymbolFiles(std::string &directory, std::vector<std::string> &symbolsPaths)
+bool TraceStreamerSelector::ReloadSymbolFiles(const std::string &directory, const std::vector<std::string> &fileNames)
 {
-    TS_LOGE("directory is %s", directory.c_str());
-    for (auto file : symbolsPaths) {
-        TS_LOGE("files is %s", file.c_str());
+    bool result = false;
+    bool ret = false;
+    for (auto fileName : fileNames) {
+        std::filesystem::path filePath(fileName);
+        if (std::filesystem::exists(filePath) && std::filesystem::is_regular_file(filePath)) {
+            ret = pbreaderParser_->ReparseSymbolFileAndResymbolization(filePath.parent_path().string(),
+                                                                       filePath.filename().string());
+        } else if (std::filesystem::exists(std::filesystem::path(directory) / fileName)) {
+            ret = pbreaderParser_->ReparseSymbolFileAndResymbolization(directory, fileName);
+        }
+        if (ret) {
+            result = true;
+        }
     }
-    return pbreaderParser_->ReparseSymbolFilesAndResymbolization(directory, symbolsPaths);
+    return result;
 }
 void TraceStreamerSelector::Clear()
 {

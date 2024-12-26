@@ -58,6 +58,7 @@ config("hiperf_parser_cfg") {
     "${SRC}/trace_data/trace_stdtype/hisysevent",
     "${SRC}/trace_data/trace_stdtype/htrace",
     "${SRC}/trace_data/trace_stdtype/measure",
+    "${SRC}/trace_data/trace_stdtype/xpower",
   ]
   include_dirs += [
     "${THIRD_PARTY}/googletest/googletest/include",
@@ -70,6 +71,12 @@ config("hiperf_parser_cfg") {
     "${COMMON_LIBRARY}/base/include",
     "${THIRD_PARTY}/sqlite",
   ]
+  if (enable_addr2line) {
+    include_dirs += [
+      "${LLVM_ROOT}/include",
+      "$root_gen_dir/llvm/include",
+    ]
+  }
   if (is_mingw || is_mac) {
     include_dirs += [ "${THIRD_PARTY}/libbpf/include/uapi" ]
   }
@@ -89,4 +96,14 @@ ohos_static_library("hiperf_parser") {
     "${THIRD_PARTY}/protobuf:protobuf_static",
     "//third_party/perf_include/hiviewdfx:libfaultloggerd",
   ]
+  if (enable_addr2line) {
+    public_deps += [
+      "${LLVM_ROOT}/lib/DebugInfo/DWARF",
+      "${LLVM_ROOT}/lib/DebugInfo/PDB",
+      "${LLVM_ROOT}/lib/DebugInfo/Symbolize",
+      "${LLVM_ROOT}/lib/Demangle",
+      "${LLVM_ROOT}/lib/Object",
+      "${LLVM_ROOT}/lib/Support",
+    ]
+  }
 }

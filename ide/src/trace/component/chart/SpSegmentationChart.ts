@@ -43,7 +43,9 @@ export class SpSegmentationChart {
   // 数据切割联动
   static setChartData(type: string, data: Array<FreqChartDataStruct>): void {
     SpSegmentationChart.tabHoverObj = { key: '', cycle: -1 };
-    SpSegmentationChart.trace.traceSheetEL!.systemLogFlag = undefined;
+    if (SpSegmentationChart.trace.traceSheetEL) {
+      SpSegmentationChart.trace.traceSheetEL.systemLogFlag = undefined;
+    }
     if (type === 'CPU-FREQ') {
       setCpuData(data);
     } else if (type === 'GPU-FREQ') {
@@ -126,7 +128,7 @@ export class SpSegmentationChart {
       SpSegmentationChart.binderRow!.style.height = `${BinderStruct.maxHeight > MIN_HEIGHT ? BinderStruct.maxHeight * UNIT_HEIGHT + UNIT_HEIGHT : 40}px`;
       SpSegmentationChart.binderRow!.funcMaxHeight = BinderStruct.maxHeight > MIN_HEIGHT ? BinderStruct.maxHeight * UNIT_HEIGHT + UNIT_HEIGHT : 40;
     }
-    TraceRow.range!.refresh = true;
+    TraceRow.range && (TraceRow.range.refresh = true);
     SpSegmentationChart.binderRow!.needRefresh = true;
     SpSegmentationChart.binderRow!.draw(false);
     if (SpSegmentationChart.binderRow!.collect) {
@@ -135,7 +137,9 @@ export class SpSegmentationChart {
         value: SpSegmentationChart.binderRow!.funcMaxHeight - 40,
       });
     }
-    SpSegmentationChart.trace.favoriteChartListEL?.scrollTo(0, 0);
+    if (SpSegmentationChart.trace.favoriteChartListEL) {
+      SpSegmentationChart.trace.favoriteChartListEL.scrollTo(0, 0);
+    }
     SpSegmentationChart.trace.refreshCanvas(false);
   }
   // 悬浮联动
@@ -219,7 +223,7 @@ export class SpSegmentationChart {
           for (let key in v.freqInfo) {
             mapData.set(Number(key), Number(v.freqInfo[key]));
           }
-          SpSegmentationChart.freqInfoMapData.set(v.cpuId, {'smtRate': v.smtRate, mapData});
+          SpSegmentationChart.freqInfoMapData.set(v.cpuId, {'broId':v.broId,'smtRate': v.smtRate, mapData});
           mapData = new Map();
         });
         TabPaneFreqUsage.refresh();

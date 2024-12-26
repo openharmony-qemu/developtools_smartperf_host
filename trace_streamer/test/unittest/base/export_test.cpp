@@ -86,6 +86,16 @@ bool ParseTraceFile(TraceStreamerSelector &ts, const std::string &tracePath)
     return true;
 }
 
+void RemoveDirectory(const std::filesystem::path &dirPath)
+{
+    if (std::filesystem::exists(dirPath) && std::filesystem::is_directory(dirPath)) {
+        std::filesystem::remove_all(dirPath);
+        std::cout << "Successfully removed: " << dirPath << std::endl;
+    } else {
+        std::cout << "Directory does not exist: " << dirPath << std::endl;
+    }
+}
+
 /**
  * @tc.name: ExportPerfReadableText
  * @tc.desc: Export Perf Readable Text

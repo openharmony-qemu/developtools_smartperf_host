@@ -32,7 +32,11 @@ class TraceStreamerSelector {
 public:
     TraceStreamerSelector();
     ~TraceStreamerSelector();
-    bool ParseTraceDataSegment(std::unique_ptr<uint8_t[]> data, size_t size, bool isSplitFile, int32_t isFinish);
+    bool ParseTraceDataSegment(std::unique_ptr<uint8_t[]> data,
+                               size_t size,
+                               bool isSplitFile,
+                               int32_t isFinish,
+                               bool isWasmReadFile = false);
     void EnableMetaTable(bool enabled);
     void EnableFileSave(bool enabled);
     static void SetCleanMode(bool cleanMode);
@@ -40,7 +44,7 @@ public:
     int32_t ExportPerfReadableText(const std::string &outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
     int32_t ExportHookReadableText(const std::string &outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
     int32_t ExportEbpfReadableText(const std::string &outputName, TraceDataDB::ResultCallBack resultCallBack = nullptr);
-    bool ReloadSymbolFiles(std::string &directory, std::vector<std::string> &symbolsPaths);
+    bool ReloadSymbolFiles(const std::string &directory, const std::vector<std::string> &fileNames);
     std::vector<std::string> SearchData();
     int32_t OperateDatabase(const std::string &sql);
     int32_t SearchDatabase(const std::string &sql, TraceDataDB::ResultCallBack resultCallBack);
@@ -95,7 +99,7 @@ public:
         return streamFilters_.get();
     }
     void InitializeParser();
-    void ProcessTraceData(std::unique_ptr<uint8_t[]> data, size_t size, int32_t isFinish);
+    void ProcessTraceData(std::unique_ptr<uint8_t[]> data, size_t size, int32_t isFinish, bool isWasmReadFile);
 
     // Used to obtain markinfo,skip under Linux
     void ClearMarkPositionInfo()

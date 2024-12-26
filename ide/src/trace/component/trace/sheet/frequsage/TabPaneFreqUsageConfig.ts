@@ -114,6 +114,7 @@ export interface RunningFreqData {
   consumpower: number;
   cpuload: number;
   children?: Array<RunningFreqData>;
+  ts?:number;
 }
 
 export interface CpuFreqTd {

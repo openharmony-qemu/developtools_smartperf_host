@@ -78,6 +78,7 @@ private:
     void InitRenderServiceDB();
     void InitMemoryDB();
     void InitHisysEventDB();
+    void InitXPowerDB();
     void ExportPerfSampleToFile(std::string &perfBufferLine,
                                 int32_t perfFd,
                                 const std::string &outputName,

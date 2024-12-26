@@ -74,12 +74,12 @@ export const SpAiAnalysisPageHtml = `
                             诊断报告
                         </h4>
                     </div>
-                    <lit-table id="tb-contents" style="height: auto">
+                    <lit-table id="tb-contents">
                         <lit-table-column class="cpu-fre-column" width="40px" title="序号" data-index="id" key="id" align="flex-start">
                         </lit-table-column>
-                        <lit-table-column class="cpu-fre-column" width="1fr" title="类型" data-index="type" key="type" align="flex-start">
+                        <lit-table-column class="cpu-fre-column" width="1fr" title="问题类型" data-index="type" key="type" align="flex-start">
                         </lit-table-column>
-                        <lit-table-column class="cpu-fre-column" width="1fr" title="原因" data-index="description" key="description" align="flex-start">
+                        <lit-table-column class="cpu-fre-column" width="1fr" title="问题原因" data-index="description" key="description" align="flex-start">
                         </lit-table-column>
                     </lit-table>
                     <div class="data-record"></div>
@@ -135,11 +135,11 @@ export const SpAiAnalysisPageHtml = `
         display: flex;
         justify-content: center;
         align-items: center;
-        width: 320px;
+        width: 90%;
         height: 50%;
         position: absolute;
         top: 23%;
-        left: 44%;
+        left: 45%;
         transform: translateX(-50%);
         background-color: sky-blue;
     }
@@ -626,6 +626,21 @@ export const SpAiAnalysisPageHtml = `
         width:100%;
         height:25px;
         margin-top:10px;
+    }
+
+     .getSgtBtn {
+        display: inline-block;
+        border: 1px #999 solid;
+        padding: 2px 20px;
+        border-radius: 15px;
+        font-size: 12px;
+        color:#999;
+        cursor:pointer;
+    }
+
+    .getSgtBtn:hover {
+        color:#000;
+        border-color:@000;
     }
 </style>
 `;

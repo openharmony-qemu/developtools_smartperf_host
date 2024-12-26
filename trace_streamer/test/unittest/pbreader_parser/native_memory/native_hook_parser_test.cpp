@@ -32,7 +32,7 @@ using namespace SysTuning::TraceStreamer;
 
 namespace SysTuning {
 namespace TraceStreamer {
-bool ParseTraceFile(TraceStreamerSelector &ts_, const std::string &tracePath);
+namespace NativeMemoryUnitTest {
 const uint32_t INDEX_SIZE_02 = 2;
 const uint32_t INDEX_SIZE_03 = 3;
 const uint32_t INDEX_SIZE_04 = 4;
@@ -1639,5 +1639,6 @@ HWTEST_F(NativeHookParserTest, ParseOfflineSymMixedStack, TestSize.Level1)
     auto &statAndInfo = stream_.traceDataCache_->GetConstStatAndInfo();
     EXPECT_TRUE(1 == statAndInfo.GetValue(TRACE_NATIVE_HOOK_MALLOC, STAT_EVENT_RECEIVED));
 }
+} // namespace NativeMemoryUnitTest
 } // namespace TraceStreamer
 } // namespace SysTuning

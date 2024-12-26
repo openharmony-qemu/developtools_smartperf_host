@@ -76,7 +76,7 @@ export const SpRecordSettingHtml = `
    outline: none;
    border: 1px solid #ccc;
 }
-.buffer-size{
+.buffer-size, .snapShot{
     height: min-content;
     display: grid;
     grid-template-rows: 1fr;
@@ -122,7 +122,7 @@ button{
     vertical-align: middle;
 }
 
-.max_duration_result, .memory_buffer_result, .max_size_result{
+.max_duration_result, .memory_buffer_result, .max_size_result, .snapShot_result{
     background-color: var(--dark-background5,#F2F2F2);
     color:var(--dark-color,#6a6f77);
     border: none;
@@ -134,7 +134,7 @@ button{
     margin: 5px 0 5px 5px;
 }
 
-.resultValue, .resultSize{
+.resultValue, .resultSize, .snapShotResultValue{
     -webkit-appearance:none;
     color:var(--dark-color,#6a6f77);
     border-radius:20px;
@@ -149,7 +149,7 @@ button{
     border:1px solid var(--dark-border,#c8cccf);
 }
 
-#memory-buffer, #max-duration, #max-size {
+#memory-buffer, #max-duration, #max-size, #snapShot {
     margin: 0 8px;
     grid-column: span 2;
 }
@@ -213,7 +213,20 @@ button{
         <input class="max_duration_result" type="text" value = '00:00:30' >
         <span style="text-align: center; margin: 8px 8px 8px 0"> h:m:s </span>
     </div>
-    
+  </div>
+  <div class="snapShot">
+    <div class="record-title">
+        <span class="record-mode" >SnapShot</span>
+        <span class="record-prompt"> (max snapShot value is 1000MS) </span>
+    </div>
+    <lit-slider id="snapShot" defaultColor="var(--dark-color4,#cdcafa)" open dir="right">
+    </lit-slider>
+    <div class='snapShotResultValue'>
+        <input class="snapShot_result" type="text" value = '0' onkeyup="this.value=this.value.replace(/\\D/g,'')" 
+        oninput="if(this.value < 0){this.value = '0'} if(this.value > 1000){this.value = '1000'} if(this.value > 0 && 
+        this.value.toString().startsWith('0')){ this.value = Number(this.value) }">
+        <span style="text-align: center; margin: 8px 8px 8px 0"> MS </span>
+    </div>
   </div>
 </div>
 `;

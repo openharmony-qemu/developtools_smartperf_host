@@ -21,6 +21,7 @@ export const chartProcessActualDataSql = (args: Args): string => {
                (a.ts - ${args.recordStartNS}) AS ts,
                a.dur,
                ${args.pid} as pid,
+               t.tid as tid,
                a.id,
                a.vsync AS name,
                a.type,
@@ -28,6 +29,7 @@ export const chartProcessActualDataSql = (args: Args): string => {
                a.dst AS dstSlice,
                a.depth
         FROM frame_slice AS a
+        LEFT JOIN thread AS t ON a.itid = t.id
         WHERE a.type = 0
           AND a.flag <> 2
           AND a.ipid in (select p.ipid from process AS p where p.pid = ${args.pid})
@@ -40,6 +42,7 @@ export const chartProcessActualProtoDataSql = (args: Args): string => {
                (a.ts - ${args.recordStartNS}) AS ts,
                a.dur,
                ${args.pid} as pid,
+               t.tid as tid,
                a.id,
                a.vsync AS name,
                a.type,
@@ -50,11 +53,11 @@ export const chartProcessActualProtoDataSql = (args: Args): string => {
     (args.endNS - args.startNS) / args.width
   )}) + (a.depth * ${args.width})  AS px
         FROM frame_slice AS a
+        LEFT JOIN thread AS t ON a.itid = t.id
         WHERE a.type = 0
           AND a.flag <> 2
           AND a.ipid in (select p.ipid from process AS p where p.pid = ${args.pid})
           AND (a.ts - ${args.recordStartNS}) + dur >= ${Math.floor(args.startNS)}
-          
           AND (a.ts - ${args.recordStartNS}) <= ${Math.floor(args.endNS)}
         group by px
         ORDER BY a.ipid;`;
@@ -89,6 +92,7 @@ function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): v
     processActual.dur[index] = itemData.dur; //@ts-ignore
     processActual.ts[index] = itemData.ts; //@ts-ignore
     processActual.pid[index] = itemData.pid; //@ts-ignore
+    processActual.tid[index] = itemData.tid; //@ts-ignore
     processActual.id[index] = itemData.id; //@ts-ignore
     processActual.name[index] = itemData.name; //@ts-ignore
     processActual.type[index] = itemData.type; //@ts-ignore
@@ -109,6 +113,7 @@ function postProcessActualMessage(data: unknown, transfer: boolean, processActua
             dur: processActual.dur.buffer,
             ts: processActual.ts.buffer,
             pid: processActual.pid.buffer,
+            tid: processActual.tid.buffer,
             id: processActual.id.buffer,
             name: processActual.name.buffer,
             type: processActual.type.buffer,
@@ -125,6 +130,7 @@ function postProcessActualMessage(data: unknown, transfer: boolean, processActua
           processActual.dur.buffer,
           processActual.ts.buffer,
           processActual.pid.buffer,
+          processActual.tid.buffer,
           processActual.type.buffer,
           processActual.id.buffer,
           processActual.name.buffer,
@@ -139,6 +145,7 @@ class ProcessActual {
   ts: Float64Array;
   dur: Float64Array;
   pid: Int32Array;
+  tid: Int32Array;
   id: Int32Array;
   name: Int32Array;
   type: Int32Array;
@@ -150,6 +157,7 @@ class ProcessActual {
     this.ts = new Float64Array(transfer ? len : data.params.sharedArrayBuffers.ts); //@ts-ignore
     this.dur = new Float64Array(transfer ? len : data.params.sharedArrayBuffers.dur); //@ts-ignore
     this.pid = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.pid); //@ts-ignore
+    this.tid = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.tid); //@ts-ignore
     this.id = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.id); //@ts-ignore
     this.name = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.name); //@ts-ignore
     this.type = new Int32Array(transfer ? len : data.params.sharedArrayBuffers.type); //@ts-ignore

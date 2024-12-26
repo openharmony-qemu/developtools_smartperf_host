@@ -403,7 +403,7 @@ export class TabPaneFilter extends BaseElement {
     if (thirdList) {
       this.setAttribute('third', '');
     }
-    thtml += `<lit-select default-value="" id="third-select" class="spacing" placeholder="please choose" tabselect>`;
+    thtml += `<lit-select show-search default-value="" id="third-select" class="spacing" placeholder="please choose">`
     if (thirdList) {
       if (thirdTitle !== '') {
         thtml += `<lit-select-option  value="${thirdTitle}" disabled>${thirdTitle}</lit-select-option>`;
@@ -714,7 +714,6 @@ export class TabPaneFilter extends BaseElement {
         this.value = this.value.replace(/\D/g, '');
       };
       e.addEventListener('keyup', (event: unknown): void => {
-        SpSystemTrace.isKeyUp = true;
         // @ts-ignore
         event.stopPropagation();
         // @ts-ignore

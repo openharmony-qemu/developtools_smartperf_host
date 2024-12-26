@@ -131,4 +131,9 @@ describe('ProcedureWorkerCpuProfiler Test', () => {
     TraceRow.range.startNS = jest.fn(() => 1);
     expect(jsCpuProfilerRender.renderMainThread(data, new TraceRow<JsCpuProfilerStruct>())).toBeUndefined();
   });
+  it('JsCpuProfilerStructTest06', () => {
+    let data = new JsCpuProfilerStruct();
+    data.name = 'ds';
+    expect(data.name).toEqual('ds');
+  });
 });

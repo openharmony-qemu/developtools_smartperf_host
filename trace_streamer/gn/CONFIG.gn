@@ -20,6 +20,8 @@ is_sdkdemo = false
 is_sdkdemo_test = false
 is_spb = false
 target_cpu = "x64"
+build_llvm_with_ts = true
+
 declare_args() {
   ar = "ar"
   is_debug = true
@@ -33,14 +35,21 @@ declare_args() {
   is_mac = false
   is_spb = false
   target = "trace_streamer"
+  enable_addr2line = false
 }
 if (target_os == "linux") {
   is_linux = true
+  current_cpu = target_cpu
+  current_os = host_os
 } else if (target_os == "macx") {
   is_mac = true
+  current_cpu = target_cpu
+  current_os = host_os
 } else if (target_os == "windows") {
   is_win = true
   is_mingw = true
+  current_cpu = target_cpu
+  current_os = host_os
 } else {
   print("unknown platform " + target_os)
   exit(-1)
@@ -92,8 +101,14 @@ if (!is_debug) {
   hiperf_default_configs += [ "//gn:release" ]
 }
 
+llvm_include_configs = []
+if (enable_addr2line) {
+  llvm_include_configs += [ "//llvm/utils/gn/build:llvm_code" ]
+}
+
 set_defaults("static_library") {
   configs = default_configs
+  configs += llvm_include_configs
 }
 
 set_defaults("ohos_source_set") {
@@ -105,6 +120,7 @@ set_defaults("ohos_shared_library") {
 }
 set_defaults("executable") {
   configs = default_configs
+  configs += llvm_include_configs
   configs += [ "//gn:executable" ]
 }
 if (use_wasm) {
@@ -112,3 +128,5 @@ if (use_wasm) {
 } else {
   set_default_toolchain("//gn/toolchain:gcc_like")
 }
+
+host_toolchain = "//gn/toolchain:gcc_like"

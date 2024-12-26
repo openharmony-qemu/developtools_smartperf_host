@@ -18,6 +18,19 @@ import crypto from 'crypto';
 
 import '../../../../../../src/trace/component/trace/sheet/TabPaneFilter';
 
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+  return {};
+});
+jest.mock('../../../../../../src/trace/bean/AbilityMonitor', () => {
+  return {};
+});
+jest.mock('../../../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
+
 // @ts-ignore
 window.ResizeObserver =
   window.ResizeObserver ||

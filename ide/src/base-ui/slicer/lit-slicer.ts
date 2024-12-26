@@ -153,6 +153,8 @@ export class LitSlicerTrack extends HTMLElement {
             ) {
               previousElementSibling!.style.width = preWidth + e1.pageX - preX + 'px';
               nextElementSibling!.style.width = nextWidth + preX - e1.pageX + 'px';
+            } else {
+              this.draging = false;
             }
           }
         };

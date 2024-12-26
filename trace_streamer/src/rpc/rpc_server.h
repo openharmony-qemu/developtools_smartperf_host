@@ -81,12 +81,17 @@ public:
 #ifdef IS_WASM
     bool SaveAndParseFfrtData(const uint8_t *data, size_t len, ResultCallBack resultCallBack, bool isFinish);
     bool SaveAndParseZipTraceData(const uint8_t *data, size_t len, ResultCallBack resultCallBack, bool isFinish);
+    bool DetermineZlibTrace(const uint8_t *data, size_t len);
+    bool SaveAndParseZlibTraceData(const uint8_t *data, size_t len, ResultCallBack resultCallBack, bool isFinish);
     bool ReadAndParseData(const std::string &filePath);
     bool SendConvertedFfrtFile(const std::string &fileName, ResultCallBack resultCallBack);
-    void CreateFilePath(const std::string &filePath);
+    void CreateFilePath(const std::string &directory);
     bool WriteToFile(const std::string &fileName, const uint8_t *data, size_t len);
-    bool ClearPathFile(std::string &symbolsPath, int32_t finish, ParseELFFileCallBack &parseELFFile);
-    bool DownloadELFCallback(const std::string &fileName,
+    bool ReloadSymbolsAndClearELFs(const std::string &directory,
+                                   const std::string &fileName,
+                                   int32_t finish,
+                                   ParseELFFileCallBack &parseELFFile);
+    bool DownloadELFCallback(const std::string &filePath,
                              size_t totalLen,
                              const uint8_t *data,
                              size_t len,
@@ -105,7 +110,6 @@ private:
 private:
     std::unique_ptr<TraceStreamerSelector> ts_ = std::make_unique<TraceStreamerSelector>();
     size_t lenParseData_ = 0;
-    std::vector<std::string> symbolsPathFiles_;
     std::vector<std::unique_ptr<TraceTimeSnap>> vTraceTimeSnap_;
     bool ffrtConvertEnabled_ = false;
     int64_t startParseTime_ = 0;

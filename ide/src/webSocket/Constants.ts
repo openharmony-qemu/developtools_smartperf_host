@@ -17,8 +17,12 @@ export class Constants {
     static INTERVAL_TIME = 30000;
     static LOGIN_PARAM = { type: 0, cmd: 1 };
     static LOGIN_CMD = 2;// cmd 2 有效 3无效
+    static SESSION_EXCEED = 3; // session满了
     static GET_CMD = 1;
     static UPDATE_CMD = 3;
+    static GET_VERSION_CMD = 1;
+    static UPDATE_SUCCESS_CMD = 2; // 升级成功
+    static UPDATE_FAIL_CMD = 4; // 升级失败
 }
 
 export class TypeConstants {
@@ -28,4 +32,13 @@ export class TypeConstants {
     static DIAGNOSIS_TYPE = 8;
     static SENDDB_CMD = 1;
     static DIAGNOSIS_CMD = 3;
+    static ARKTS_TYPE = 9;
+    static PROCESS_TYPE = 3;
+    static USB_TYPE = 10;
+    static USB_SN_CMD = 1;
+    static USB_GET_PROCESS = 2;
+    static USB_GET_CPU_COUNT = 3;
+    static USB_GET_EVENT = 4;
+    static USB_GET_APP = 5;
+    static USB_GET_VERSION = 6;
 }

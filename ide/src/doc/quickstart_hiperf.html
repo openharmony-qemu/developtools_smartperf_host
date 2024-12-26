@@ -969,9 +969,9 @@ Backtrace：栈顶的调用栈名称。
       <h3 class="mume-header fontColor" id="header-index-5">Hiperf支持多种Options展示风格</h3>
 
       <p class="fontColor">
-        点击Perf Profile的Tab页底部的Options，会有四个CheckBox复选框。
+        点击Perf Profile的Tab页底部的Options，会有5个CheckBox复选框。
         <br />
-        <img src="../figures/perf/Options.jpg" alt="GitHub Logo" />
+        <img src="../figures/perf/Options.jpg" alt="GitHub Logo">
       </p>
       <ul class="fontColor">
         <li>
@@ -995,6 +995,12 @@ Hide Thread：隐藏线程。
         <li>
           <pre class="smartperf-text fontColor light">
 Hide Thread State：隐藏线程状态。
+</pre
+          >
+        </li>
+        <li>
+          <pre class="smartperf-text fontColor light">
+Only Kernel：只展示内核调用栈，会使每个函数的Lib名不为[kernel.kallsyms]的从调用者中移除，只保留内核栈。
 </pre
           >
         </li>
@@ -1052,6 +1058,8 @@ Hide Thread State：隐藏线程状态。
         current Process，% in all Process。
         <br />
         <img src="../figures/perf/flameshow.jpg" alt="GitHub Logo" />
+        <p>支持导入so离线符号化，符号化函数后，对elf文件中每个函数的地址定位到具体哪个源文件，以及显示该源文件的具体行号功能。</p>
+        <img src="../figures/perf/perf_so.jpg" alt="GitHub Logo" />
       </p>
       <h3 class="mume-header fontColor" id="header-index-11">Hiperf的show event count功能</h3>
 
@@ -1084,9 +1092,6 @@ Hide Thread State：隐藏线程状态。
         <br />
         <img src="../figures/perf/perf_jumpframe.jpg" alt="GitHub Logo" />
         <br />
-        筛选面板新增Hide Thread、Hide Thread State筛选选项，Hiperf可隐藏线程和线程状态。
-        <br />
-        <img src="../figures/perf/perf_hide.jpg" alt="GitHub Logo" />
       </p>
     </div>
 

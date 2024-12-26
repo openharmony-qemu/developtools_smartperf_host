@@ -1067,13 +1067,13 @@ export const queryFlowsData = (
   Promise<Array<unknown>> =>
   query(
     'queryFlowsData',
-    `
-    SELECT fs.vsync AS name,
+    `SELECT CASE WHEN p.pid != t.tid THEN fs.vsync || '-' || T.tid ELSE fs.vsync END AS name,
         p.pid,
         p.name  AS cmdline,
         fs.type
     FROM frame_slice AS fs
     LEFT JOIN process AS p ON fs.ipid = p.ipid
+    LEFT JOIN thread as t ON fs.itid = t.id
     WHERE fs.type = 0
         AND fs.id IN (${src_slice.join(',')});`
   );
@@ -1104,7 +1104,8 @@ export const queryFrameTimeData = (): //@ts-ignore
         SELECT DISTINCT p.pid
         FROM frame_slice AS a
             LEFT JOIN process AS p
-            ON a.ipid = p.ipid;`
+            ON a.ipid = p.ipid
+        WHERE vsync IS NOT NULL;`
   );
 
 export const queryAllSnapshotNames = (): Promise<Array<FileInfo>> =>

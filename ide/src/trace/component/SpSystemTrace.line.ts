@@ -172,17 +172,18 @@ function selectJankApp(
     endRowEl = endParentRow;
     endOffSetY = 10 * (findJankEntry!.depth! + 0.5);
   }
+  // 应用泳道折叠
   //@ts-ignore
-  let startY = startRow!.translateY! + 20 * (selectJankStruct!.depth! + 0.5);
+  let startY = startRow!.translateY! + 10 * (selectJankStruct!.depth! + 0.5);
   let startRowEl = startRow;
-  let startOffSetY = 20 * (selectJankStruct!.depth! + 0.5);
+  let startOffSetY = 10 * (selectJankStruct!.depth! + 0.5);
   expansionFlag = collectionHasJank(startRow, collectList);
+  // 应用泳道展开 或者ActualTime 已收藏
   //@ts-ignore
-  if (startParentRow && !startParentRow.expansion && expansionFlag) {
+  if ((startParentRow && startParentRow.expansion) || !expansionFlag) {
     //@ts-ignore
-    startY = startParentRow!.translateY! + 10 * (selectJankStruct!.depth! + 0.5);
-    startRowEl = startParentRow;
-    startOffSetY = 10 * (selectJankStruct!.depth! + 0.5);
+    startY = startRowEl!.translateY! + 20 * (selectJankStruct!.depth! + 0.5);
+    startOffSetY = 20 * (selectJankStruct!.depth! + 0.5);
   }
   let startX = ns2xByTimeShaft(tts, sp.timerShaftEL!);
   let endX = ns2xByTimeShaft(findJankEntry.ts!, sp.timerShaftEL!);
@@ -215,7 +216,7 @@ function findJankApp(
   //@ts-ignore
   if (!endParentRow.expansion && expansionFlag) {
     //@ts-ignore
-    endY = endParentRow!.translateY! + 10 * (findJankEntry!.depth! + 0.5);
+    endY = endParentRow!.translateY! + 5 * (findJankEntry!.depth! + 0.5);
     endRowEl = endParentRow;
     endOffSetY = 10 * (findJankEntry!.depth! + 0.5);
   }

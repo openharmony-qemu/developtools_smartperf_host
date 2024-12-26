@@ -28,6 +28,9 @@ namespace SysTuning {
 namespace base {
 #define TS_PERMISSION_RW 0600
 #define TS_PERMISSION_RWX 777
+#define ZLIB_CMF 0x78
+#define ZLIB_FLG 0x9C
+#define ZLIB_MAGIC_NUM_LEN 2
 constexpr uint32_t K_FILE_MODE_INVALID = 0xFFFFFFFF;
 enum TraceParserStatus {
     TRACE_PARSER_NORMAL = 0,
@@ -51,6 +54,7 @@ std::vector<std::string> GetFilesNameFromDir(const std::string &path, bool onlyF
 #endif
 
 bool UnZipFile(const std::string &zipFile, std::string &traceFile);
+bool UnZlibFile(const std::string &zlibFile, std::string &traceFile);
 
 bool LocalUnzip(const std::string &zipFile, const std::string &dstDir);
 
@@ -58,12 +62,15 @@ class LocalZip {
 public:
     explicit LocalZip(const std::string &file);
     bool Unzip(std::string &traceFile);
+    bool Unzlib(std::string &traceFile);
 
 private:
     bool IsFileExist();
     bool IsZipFile();
+    bool IsZlibFile();
     static bool CreateDir(const std::filesystem::path &dirName, bool del = false);
     bool WriteFile(const unzFile &uzf, const std::filesystem::path &fileName);
+    bool WriteFile(std::ifstream &srcFile, std::ofstream &destFile);
     std::string filePath_;
     std::string tmpDir_;
     uint32_t bufSize_ = 512000000;

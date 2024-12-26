@@ -28,6 +28,7 @@ export function processActualDataSender(pid: number, row: TraceRow<JankStruct>):
       pid: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       type: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       id: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
+      tid: new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT * MAX_COUNT),
       ts: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
       dur: new SharedArrayBuffer(Float64Array.BYTES_PER_ELEMENT * MAX_COUNT),
     };
@@ -58,6 +59,7 @@ function arrayBufferHandler(buffers: unknown, len: number): JankStruct[] {
   let name = new Int32Array(buffers.name); //@ts-ignore
   let id = new Int32Array(buffers.id); //@ts-ignore
   let pid = new Int32Array(buffers.pid); //@ts-ignore
+  let tid = new Int32Array(buffers.tid); //@ts-ignore
   let type = new Int32Array(buffers.type); //@ts-ignore
   let ts = new Float64Array(buffers.ts); //@ts-ignore
   let dur = new Float64Array(buffers.dur);
@@ -71,6 +73,7 @@ function arrayBufferHandler(buffers: unknown, len: number): JankStruct[] {
       pid: pid[i],
       type: type[i],
       id: id[i],
+      tid: tid[i],
       ts: ts[i],
       dur: dur[i],
       jank_tag: jank_tag[i],

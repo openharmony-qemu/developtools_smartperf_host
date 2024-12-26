@@ -16,6 +16,10 @@ patch='patch'
 sed='sed'
 cp='cp'
 rm='rm'
+root_dir=`pwd`
+echo "build root dir is $root_dir"
+
+git config --global core.longpaths true
 case "$OSTYPE" in
   darwin*)  sed="gsed" ;;
 esac
@@ -197,5 +201,19 @@ if [ ! -f "profiler/device/plugins/ftrace_plugin/include/ftrace_common_type.h" ]
         $cp developtools_profiler/device/plugins/ftrace_plugin/include/ftrace_common_type.h profiler/device/plugins/ftrace_plugin/include
         $cp developtools_profiler/device/plugins/ftrace_plugin/include/ftrace_namespace.h profiler/device/plugins/ftrace_plugin/include
         rm -rf developtools_profiler
+    fi
+fi
+
+if [ ! -d "llvm-project" ];then
+    rm -rf llvm-project
+    git clone --depth=1 git@gitee.com:openharmony/third_party_llvm-project.git
+    if [ -d "third_party_llvm-project" ];then
+        mv third_party_llvm-project llvm-project
+        cd llvm-project
+        $patch -p1 < ../../prebuilts/patch_llvm/llvm.patch
+        cd $root_dir
+        # Symbolic link llvm sub folder of llvm-project source code to build root.
+        # REF: https://gitee.com/openharmony/third_party_llvm-project/blob/master/llvm/utils/gn/.gn
+        ln -s $root_dir/third_party/llvm-project/llvm llvm
     fi
 fi

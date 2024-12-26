@@ -23,7 +23,18 @@ import '../../../../../../src/trace/component/chart/FrameChart';
 jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
-
+jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {
+    return {};
+});
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+    return {};
+});
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+    return {};
+});
+jest.mock('../../../../../../src/trace/component/SpSystemTrace', () => {
+    return {};
+});
 import crypto from 'crypto';
 import { showButtonMenu } from '../../../../../../src/trace/component/trace/sheet/SheetUtils';
 

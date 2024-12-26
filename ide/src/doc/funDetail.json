@@ -32,12 +32,6 @@
             "flag": "0"
         },
         {
-            "slice": "FlushLayoutTask",
-            "CN": "组件的布局,这一块可以确认是什么组件在创建或者复用",
-            "EN": "this is an english translate for CN",
-            "flag": "0"
-        },
-        {
             "slice": "CreateTaskMeasure",
             "CN": "组件的测量。这一块可以确认是什么组件在创建",
             "EN": "this is an english translate for CN",
@@ -46,12 +40,6 @@
         {
             "slice": "SendCommands",
             "CN": "发送绘制指令给图形Render_Service。transactionFalg的坐标可以标识这条指令与Render_Service侧的接收帧对应起来",
-            "EN": "this is an english translate for CN",
-            "flag": "0"
-        },
-        {
-            "slice": "JSAnimation",
-            "CN": "如果FlushVsync下面出现这个trace点,说明触发了ArkUI的动效,例如使用了属性动画animation属性或者显示动画animateTo。可以排查一下代码看一下这种场景是否需要触发这个动画,有时候会因为组件的刷新而出现该动画的冗余绘制",
             "EN": "this is an english translate for CN",
             "flag": "0"
         },
@@ -184,6 +172,378 @@
         {
             "slice": "ML:cmobe_v3_compile_multiple_shaders",
             "CN": "触发了shader编译,需要通过与之shader来避免。shader缓存是业界通用方案,在动效前几次执行的时候会概率性出现,用于创建该场景的着色器并将其缓存,以使之后的操作可以直接复用原有的着丝琪,从而提升系统的性能。但shader编译耗时太长导致RS侧丢帧造成动效卡顿",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "OnVsyncEvent now",
+            "CN": "收到Vsync信号,渲染流程开始",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "UITaskScheduler::FlushTask",
+            "CN": "刷新UI界面，包括布局、渲染和动画等",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "FlushMessages",
+            "CN": "发送消息通知图形侧进行渲染",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "FlushRenderTask",
+            "CN": "总渲染任务执行",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "Layout",
+            "CN": "节点布局",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "FrameNode::RenderTask",
+            "CN": "单个渲染任务执行",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "ListLayoutAlgorithm::MeasureListItem:",
+            "CN": "计算列表项的布局尺寸",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "ListLayoutAlgorithm::MeasureListItemGroup:",
+            "CN": "计算列表ListItemGroup项的布局尺寸",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "HandleDragStart, id:",
+            "CN": "拖拽开始",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "HandleDragUpdate, mainDelta",
+            "CN": "拖拽中",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "HandleDragEnd, mainPosition:",
+            "CN": "拖拽结束",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "Scrollable friction animation start,",
+            "CN": "抛滑动画开始",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "Scrollable friction animation finish, id:",
+            "CN": "抛滑动画结束",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "StopFrictionAnimation, id:",
+            "CN": "关闭抛滑动画",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "Scrollable spring animation start, start:",
+            "CN": "过界回弹动画开始",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "Scrollable spring animation finish, id:",
+            "CN": "过界回弹动画结束",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "Scrollable spring animation update, start:",
+            "CN": "更新过界回弹动画开始",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "StopSpringAnimation, id:",
+            "CN": "关闭过界回弹动画",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "Scroll snap animation start, start:",
+            "CN": "Scroll的限位动画开始",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "Scroll snap animation finish, id:",
+            "CN": "Scroll的限位动画结束",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "List start snap animation, start:",
+            "CN": "List的限位动画开始",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "List snap animation finish, id:",
+            "CN": "List的限位动画结束",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "StopSnapAnimation isSnapAnimationStop_:",
+            "CN": "关闭限位动画",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "APP_LIST_FLING",
+            "CN": "滑动阶段（包括所有的拖拽，抛滑、回弹、滚动控制器动画）",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "TRAILING_ANIMATION id:",
+            "CN": "动画的拖尾阶段",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "HandleTouchDown, panDirection:",
+            "CN": "手指按下",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "HandleTouchUp, isDragging_:",
+            "CN": "手指抬起（新增）",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "HandleTouchCancel, id:",
+            "CN": "取消手势",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "ScrollAbort, no OnScrollStart, id:",
+            "CN": "ScrollAbort为true，触发OnScrollStart失败，（一般出现在抛滑后调用滚动控制器启动滚动动画）",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "OnScrollStart, id:",
+            "CN": "触发OnScrollStart成功",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "ScrollAbort, no OnScrollStop, id:",
+            "CN": "ScrollAbort为true，触发OnScrollStop失败（一般出现在抛滑后调用滚动控制器启动滚动动画）",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "OnScrollStop, id:",
+            "CN": "触发OnScrollStop成功",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "ScrollBy, offset:",
+            "CN": "滚动控制器触发ScrollBy",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "ScrollTo with animation, position:",
+            "CN": "滚动控制器触发带动画的ScrollTo",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "ScrollTo without animation, position:",
+            "CN": "滚动控制器触发不带动画的ScrollTo",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "ScrollPage with animation, position",
+            "CN": "滚动控制器触发带动画的Scrollpage",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "ScrollPage without animation, position:",
+            "CN": "滚动控制器触发不带动画的Scrollpage",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "Fling, flingVelocity:",
+            "CN": "滚动控制器触发惯性滚动",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "Scroll ScrollToEdge scrollEdgeType:",
+            "CN": "Scroll触发ScrollEdge",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "ScrollToEdge scrollEdgeType:",
+            "CN": "滚动控制器触发的ScrollEdge",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "ScrollToIndex, index:",
+            "CN": "滚动控制器触发ScrollToIndex",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "CUSTOM_ANIMATOR_SCROLLER_ANIMATION",
+            "CN": "滚动控制器触发ScrollTo滑动动画",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "HandleScroll, initOffset:",
+            "CN": "嵌套滚动处理偏移量",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "HandleScrollVelocity, IsOutOfBoundary:",
+            "CN": "嵌套滚动中处理离手速度",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "HandleOverScroll, IsOutOfBoundary:",
+            "CN": "离手时处理过界滚动",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "SCROLLER_FIX_VELOCITY_ANIMATION",
+            "CN": "控制器触发按固定速度滚动到边缘",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "CheckRestartSpring, sizeDiminished is true, do ProcessSpringUpdate, id:",
+            "CN": "回弹动画期间组件大小被修改导致触发回弹更新动画",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "CheckRestartSpring, do ProcessScrollOver, id:",
+            "CN": "在静态场景下因组件大小修改原因导致组件处于过界状态，触发回弹动画恢复到未过界状态",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "ListItemGroup:",
+            "CN": "设置lane的ListItemGroup列表布局",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "ListItem:",
+            "CN": "设置lane的列表布局",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "change direction in spring animation and start fling animation, distance::",
+            "CN": "过界回弹动效中出现方向改变，并启动抛滑动效",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "scrollPause set true to stop ProcessScrollMotion, canOverScroll:",
+            "CN": "抛滑动效期间达成停止条件从而关闭抛滑动效，并触发结束回调（一般出现在快速抛滑过界的场景）",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "Tabs.onChange index ",
+            "CN": "tabs页面切换后",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "Tabs/Swiper drag start",
+            "CN": "跟手拖拽开始",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "Tabs/Swiper drag end",
+            "CN": "跟手拖拽结束",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "Tabs/Swiper start property animation, X:",
+            "CN": "属性动画开始",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "Tabs/Swiper finish property animation, X: ",
+            "CN": "属性动画结束",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "Tabs/Swiper start spring animation",
+            "CN": "回弹动画开始",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "Tabs/Swiper finish spring animation, offset:",
+            "CN": "回弹动画结束",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "Tabs/Swiper start translate animation",
+            "CN": "自定义属性动画开始",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "Tabs/Swiper finish translate animation",
+            "CN": "自定义属性动画结束",
+            "EN": "this is an english translate for CN",
+            "flag": "0"
+        },
+        {
+            "slice": "FlushVsync",
+            "CN": "刷新视图同步事件，包括记录帧信息、刷新任务、绘制渲染上下文、处理用户输入",
             "EN": "this is an english translate for CN",
             "flag": "0"
         }

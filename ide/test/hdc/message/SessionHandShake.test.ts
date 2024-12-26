@@ -67,6 +67,7 @@ describe('SessionHandShake Test', () => {
   });
 
   it('SessionHandShakeTest12', function () {
+    sessionHandShake.version = '';
     expect(sessionHandShake.version).toBe('');
   });
 

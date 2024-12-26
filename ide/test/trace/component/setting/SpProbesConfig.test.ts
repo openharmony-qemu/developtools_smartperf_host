@@ -28,7 +28,7 @@ describe('SpProbesConfig Test', () => {
   it(' SpProbesConfig get Default attrValue', function () {
     let spEle = document.querySelector('#spconfig') as SpProbesConfig;
     expect(spEle.traceConfig).toEqual(['Scheduling details', 'CPU Frequency and idle states', 'Hitrace categories']);
-    expect(spEle.traceEvents.length).toEqual(24);
+    expect(spEle.traceEvents.length).toEqual(25);
     expect(spEle.memoryConfig).toEqual([]);
   });
   it('new SpProbesConfig02', function () {

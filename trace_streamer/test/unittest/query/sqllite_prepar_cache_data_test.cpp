@@ -32,6 +32,7 @@ using namespace SysTuning;
 using namespace SysTuning::TraceStreamer;
 namespace SysTuning {
 namespace TraceStreamer {
+namespace SqlitePreparCacheUnitTest {
 const int32_t PROCESS_ID = 100;
 const int32_t CPU = 101;
 const int32_t PID = 102;
@@ -1211,5 +1212,6 @@ HWTEST_F(SqllitePreparCacheDataTest, ParseBatchSphCpuAbilityData, TestSize.Level
     EXPECT_EQ(batchsphCpuAbilityDataRes.values(0).cpu_ability_data().start_ns(), START_NS);
     EXPECT_EQ(batchsphCpuAbilityDataRes.values(0).cpu_ability_data().dur(), DUR);
 }
+} // namespace SqlitePreparCacheUnitTest
 } // namespace TraceStreamer
 } // namespace SysTuning

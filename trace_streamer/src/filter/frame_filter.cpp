@@ -52,12 +52,54 @@ void FrameFilter::BeginVsyncEvent(const BytraceLine &line,
         vsyncRenderSlice_[itid] = frameVec;
     }
 }
+void FrameFilter::BeginUVTraceEvent(const BytraceLine &line, uint32_t callStackSliceId)
+{
+    auto frame = std::make_shared<FrameSlice>();
+    frame->startTs_ = line.ts;
+    frame->callStackSliceId_ = callStackSliceId;
+    frame->isUVTrace_ = true;
+    auto itid = streamFilters_->processFilter_->GetInternalTid(line.pid);
+    auto ipid = streamFilters_->processFilter_->GetInternalPid(line.tgid);
+    frame->frameSliceRow_ =
+        traceDataCache_->GetFrameSliceData()->AppendFrame(line.ts, ipid, itid, INVALID_UINT32, callStackSliceId);
 
-bool FrameFilter::MarkRSOnDoCompositionEvent(uint64_t ts, uint32_t itid)
+    if (vsyncRenderSlice_.count(itid)) {
+        vsyncRenderSlice_[itid].push_back(frame);
+    } else {
+        std::vector<std::shared_ptr<FrameSlice>> frameVec;
+        frameVec.push_back(frame);
+        vsyncRenderSlice_[itid] = frameVec;
+    }
+}
+
+bool FrameFilter::UpdateVsyncId(const BytraceLine &line, uint32_t vsyncId)
+{
+    // only app no main thread needs to update
+    auto itid = streamFilters_->processFilter_->GetInternalTid(line.pid);
+    auto it = vsyncRenderSlice_.find(itid);
+    if (it == vsyncRenderSlice_.end() || it->second.size() == 0) {
+        return false;
+    }
+    // only process not main thread.
+    auto ipid = traceDataCache_->GetThreadData(itid)->internalPid_;
+    auto process = traceDataCache_->GetProcessData(ipid);
+    auto mainThreadId = process->pid_;
+    if (mainThreadId == line.pid) {
+        return false;
+    }
+    auto lastFrame = it->second.back();
+    lastFrame->vsyncId_ = vsyncId;
+    traceDataCache_->GetFrameSliceData()->SetVsync(lastFrame->frameSliceRow_, vsyncId);
+    auto mainItid = streamFilters_->processFilter_->GetInternalTid(mainThreadId);
+    lastFrame->expectedEndTs_ = traceDataCache_->GetFrameSliceData()->GetExpectEndByItidAndVsyncId(mainItid, vsyncId);
+    return true;
+}
+
+bool FrameFilter::MarkRSOnDoCompositionEvent(uint32_t itid)
 {
     auto frame = vsyncRenderSlice_.find(itid);
     if (frame == vsyncRenderSlice_.end()) {
-        TS_LOGD("BeginOnDoCompositionEvent find for itid:%u failed, ts:%" PRIu64 "", itid, ts);
+        TS_LOGD("BeginOnDoCompositionEvent find for itid:%u failed", itid);
         return false;
     }
     if (!frame->second.size()) {
@@ -69,30 +111,27 @@ bool FrameFilter::MarkRSOnDoCompositionEvent(uint64_t ts, uint32_t itid)
     return true;
 }
 // for app
-bool FrameFilter::BeginRSTransactionData(uint64_t ts, uint32_t itid, uint32_t franeNum)
+bool FrameFilter::BeginRSTransactionData(uint32_t currentThreadId, uint32_t frameNum, uint32_t mainThreadId)
 {
-    auto frame = vsyncRenderSlice_.find(itid);
+    auto frame = vsyncRenderSlice_.find(currentThreadId);
     if (frame == vsyncRenderSlice_.end()) {
-        TS_LOGD("BeginRSTransactionData find for itid:%u failed", itid);
+        TS_LOGD("BeginRSTransactionData find for itid:%u failed", currentThreadId);
         return false;
     }
     if (!frame->second.size()) {
-        TS_LOGD("BeginRSTransactionData find for itid:%u failed", itid);
+        TS_LOGD("BeginRSTransactionData find for itid:%u failed", currentThreadId);
         return false;
     }
-    frame->second.begin()->get()->frameNum_ = franeNum;
-    if (!dstRenderSlice_.count(itid)) {
+    frame->second.begin()->get()->frameNum_ = frameNum;
+    if (!dstRenderSlice_.count(mainThreadId)) {
         std::unordered_map<uint32_t /* frameNum */, std::shared_ptr<FrameSlice>> frameMap;
-        dstRenderSlice_.emplace(std::make_pair(itid, std::move(frameMap)));
+        dstRenderSlice_.emplace(std::make_pair(mainThreadId, std::move(frameMap)));
     }
-    dstRenderSlice_[itid][franeNum] = frame->second[0];
+    dstRenderSlice_[mainThreadId][frameNum] = frame->second[0];
     return true;
 }
 // for RS
-bool FrameFilter::BeginProcessCommandUni(uint64_t ts,
-                                         uint32_t itid,
-                                         const std::vector<FrameMap> &frames,
-                                         uint32_t sliceIndex)
+bool FrameFilter::BeginProcessCommandUni(uint32_t itid, const std::vector<FrameMap> &frames, uint32_t sliceIndex)
 {
     auto frame = vsyncRenderSlice_.find(itid);
     TS_CHECK_TRUE_RET(frame != vsyncRenderSlice_.end(), false);
@@ -117,10 +156,15 @@ bool FrameFilter::BeginProcessCommandUni(uint64_t ts,
         TraceStdtype::FrameSlice *frameSlice = traceDataCache_->GetFrameSliceData();
         (void)traceDataCache_->GetFrameMapsData()->AppendNew(frameSlice, srcFrame->second->frameSliceRow_,
                                                              srcFrame->second->dstFrameSliceId_);
-        (void)traceDataCache_->GetFrameMapsData()->AppendNew(frameSlice, srcFrame->second->frameExpectedSliceRow_,
-                                                             srcFrame->second->dstExpectedFrameSliceId_);
+        if (srcFrame->second->frameExpectedSliceRow_ != INVALID_UINT64) {
+            (void)traceDataCache_->GetFrameMapsData()->AppendNew(frameSlice, srcFrame->second->frameExpectedSliceRow_,
+                                                                 srcFrame->second->dstExpectedFrameSliceId_);
+        }
+
         frameSlice->SetDst(srcFrame->second->frameSliceRow_, srcFrame->second->dstFrameSliceId_);
-        frameSlice->SetDst(srcFrame->second->frameExpectedSliceRow_, srcFrame->second->dstExpectedFrameSliceId_);
+        if (srcFrame->second->frameExpectedSliceRow_ != INVALID_UINT64) {
+            frameSlice->SetDst(srcFrame->second->frameExpectedSliceRow_, srcFrame->second->dstExpectedFrameSliceId_);
+        }
         if (srcFrame->second->endTs_ != INVALID_UINT64) {
             // erase Source
             sourceFrameMap->second.erase(it.frameNum);
@@ -148,19 +192,21 @@ bool FrameFilter::EndVsyncEvent(uint64_t ts, uint32_t itid)
     lastFrameSlice->vsyncEnd_ = true;
     if (lastFrameSlice->isRsMainThread_) {
         if (lastFrameSlice->gpuEnd_) {
-            traceDataCache_->GetFrameSliceData()->SetEndTimeAndFlag(
-                lastFrameSlice->frameSliceRow_, ts, lastFrameSlice->expectedDur_, lastFrameSlice->expectedEndTs_);
+            traceDataCache_->GetFrameSliceData()->SetEndTimeAndFlag(lastFrameSlice->frameSliceRow_, ts,
+                                                                    lastFrameSlice->expectedEndTs_);
             lastFrameSlice->endTs_ = ts;
             // for Render serivce
             frame->second.pop_back();
         }
     } else { // for app
-        traceDataCache_->GetFrameSliceData()->SetEndTimeAndFlag(
-            lastFrameSlice->frameSliceRow_, ts, lastFrameSlice->expectedDur_, lastFrameSlice->expectedEndTs_);
+        traceDataCache_->GetFrameSliceData()->SetEndTimeAndFlag(lastFrameSlice->frameSliceRow_, ts,
+                                                                lastFrameSlice->expectedEndTs_);
         if (lastFrameSlice->frameNum_ == INVALID_UINT32) {
             // if app's frame num not received
             traceDataCache_->GetFrameSliceData()->Erase(lastFrameSlice->frameSliceRow_);
-            traceDataCache_->GetFrameSliceData()->Erase(lastFrameSlice->frameExpectedSliceRow_);
+            if (lastFrameSlice->frameExpectedSliceRow_ != INVALID_UINT64) {
+                traceDataCache_->GetFrameSliceData()->Erase(lastFrameSlice->frameExpectedSliceRow_);
+            }
             frame->second.pop_back();
             return false;
         }
@@ -206,7 +252,6 @@ bool FrameFilter::EndFrameQueue(uint64_t ts, uint32_t itid)
     if (firstFrameSlicePos->get()->vsyncEnd_) {
         firstFrameSlicePos->get()->endTs_ = ts;
         traceDataCache_->GetFrameSliceData()->SetEndTimeAndFlag(firstFrameSlicePos->get()->frameSliceRow_, ts,
-                                                                firstFrameSlicePos->get()->expectedDur_,
                                                                 firstFrameSlicePos->get()->expectedEndTs_);
         // if vsync ended
         frame->second.erase(firstFrameSlicePos);

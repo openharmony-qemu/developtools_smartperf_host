@@ -43,4 +43,5 @@ export interface Args {
   scratchId: number;
   minDur: number;
   xpowerName: string;
+  valueType: string
 }

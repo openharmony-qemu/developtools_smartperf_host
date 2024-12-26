@@ -14,6 +14,8 @@
  */
 
 import { TabPaneHiLogSummary } from '../../../../../../src/trace/component/trace/sheet/hilog/TabPaneHiLogSummary';
+const sqlLite = require('../../../../../../src/trace/database/sql/SqlLite.sql');
+jest.mock('../../../../../../src/trace/database/sql/SqlLite.sql');
 
 window.ResizeObserver =
   window.ResizeObserver ||
@@ -25,10 +27,26 @@ window.ResizeObserver =
 
 describe('TabPaneHilogSummary Test', () => {
   let summaryTab = new TabPaneHiLogSummary();
+  let queryLogAllData = sqlLite.queryLogAllData;
+  let data = [
+    {
+      id: 1,
+      domain: "d",
+      processName: "s",
+      level: 1,
+      context: "60",
+      startTs: 5,
+      dur: 511,
+      tag: "5",
+      originTime: 48,
+    }
+  ];
+  queryLogAllData.mockResolvedValue(data);
 
   let summaryData = {
     leftNs: 0,
     rightNs: 33892044011,
+    hiLogs: [''],
     sysAlllogsData: [{
       id: 2,
       pid: 1119,

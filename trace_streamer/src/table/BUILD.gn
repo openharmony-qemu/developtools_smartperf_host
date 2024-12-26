@@ -37,6 +37,7 @@ ohos_source_set("table") {
     "${SRC}/trace_data/trace_stdtype/hisysevent",
     "${SRC}/trace_data/trace_stdtype/htrace",
     "${SRC}/trace_data/trace_stdtype/measure",
+    "${SRC}/trace_data/trace_stdtype/xpower",
   ]
   if (!is_independent_compile) {
     configs = [ "${TS_DIR}/gn:ts_config" ]
@@ -65,5 +66,6 @@ ohos_source_set("table") {
     "js_memory:js_memory_tables",
     "monitor:monitor_tables",
     "native_hook:native_hook_tables",
+    "xpower:xpower_tables",
   ]
 }

@@ -65,8 +65,9 @@ import { TraceMode } from '../../../SpApplicationPublicFunc';
 import { threadPool, threadPool2 } from '../../../database/SqlLite';
 import { threadNearData } from '../../../database/data-trafic/SliceSender';
 import { HangStruct } from '../../../database/ui-worker/ProcedureWorkerHang';
-import { BaseStruct } from '../../../bean/BaseStruct';
-import {XpowerStruct} from '../../../database/ui-worker/ProcedureWorkerXpower'; 
+import { XpowerStruct } from '../../../database/ui-worker/ProcedureWorkerXpower';
+import { XpowerAppDetailStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerAppDetail';
+import { convertBytesToReadableSize, XpowerWifiStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerWifi';
 
 const INPUT_WORD =
   'This is the interval from when the task became eligible to run \n(e.g.because of notifying a wait queue it was a suspended on) to\n when it started running.';
@@ -115,6 +116,36 @@ export function getTimeString(ns: number): string {
     res += currentTimeNs.toFixed(0) + 'ns ';
   }
   return res;
+}
+
+function compare(property: string, sort: number, type: string) {
+  return function (xpowerSortLeftData: SortData, xpowerSortRightData: SortData): number {
+    if (type === 'number') {
+      return sort === 2 // @ts-ignore
+        ? parseFloat(xpowerSortRightData[property]) - parseFloat(xpowerSortLeftData[property]) // @ts-ignore
+        : parseFloat(xpowerSortLeftData[property]) - parseFloat(xpowerSortRightData[property]);
+    } else if (type === 'duration') {
+      return sort === 2
+        ? xpowerSortRightData.dur - xpowerSortLeftData.dur
+        : xpowerSortLeftData.dur - xpowerSortRightData.dur;
+    } else if (type === 'bytes') {
+      return sort === 2
+        ? xpowerSortRightData.bytes - xpowerSortLeftData.bytes
+        : xpowerSortLeftData.bytes - xpowerSortRightData.bytes;
+    } {
+      // @ts-ignore
+      if (xpowerSortRightData[property] > xpowerSortLeftData[property]) {
+        return sort === 2 ? 1 : -1;
+      } else {
+        // @ts-ignore
+        if (xpowerSortRightData[property] === xpowerSortLeftData[property]) {
+          return 0;
+        } else {
+          return sort === 2 ? -1 : 1;
+        }
+      }
+    }
+  };
 }
 
 @element('tabpane-current-selection')
@@ -414,7 +445,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       } else {
         this.handleNonBinder(data, list, name, information);
       }
-    } else if (data.funName!.startsWith('H:Et') && (data.depth === 1 || data.depth === 0)) {
+    } else if (data.funName && data.funName!.startsWith('H:Et') && (data.depth === 1 || data.depth === 0)) {
       list.push({
         name: 'StartTime(Relative)',
         value: getTimeString(data.startTs || 0),
@@ -860,6 +891,98 @@ export class TabPaneCurrentSelection extends BaseElement {
     list.push({ name: 'Duration', value: getTimeString(data.dur || 0) });
     this.currentSelectionTbl!.dataSource = list;
     let startTimeAbsolute = (data.startNS || 0) + Utils.getInstance().getRecordStartNS();
+    this.addClickToTransfBtn(startTimeAbsolute, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
+  }
+
+  async setXpowerDisplayData(data: XpowerAppDetailStruct): Promise<void> {
+    if (SpApplication.traceType.indexOf('SQLite') === -1) {
+      await this.setRealTime();
+    }
+    this.setTableHeight('auto');
+    this.tabCurrentSelectionInit('Display Details');
+    let list: unknown[] = [];
+    list.push({
+      name: 'StartTime(Relative)',
+      value: getTimeString(data.startTime || 0),
+    });
+    this.createStartTimeNode(list, data.startTime || 0, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
+    let vals: { name: string, dur: number, value: string }[] = [];
+    let column = ['1hz', '5hz', '10hz', '15hz', '24hz', '30hz', '45hz', '60hz', '90hz', '120hz', '180hz'];
+    column.forEach((item) => {
+      // @ts-ignore
+      data['c' + item] !== 0 && vals.push({
+        name: item,
+        // @ts-ignore
+        dur: data['c' + item],
+        // @ts-ignore
+        value: Utils.timeFormat(data['c' + item]),
+      });
+    });
+    // @ts-ignore
+    vals.sort(compare('value', 2, 'duration'));
+    list.push(...vals);
+    this.currentSelectionTbl!.dataSource = list;
+    let startTimeAbsolute = (data.startTime || 0) + Utils.getInstance().getRecordStartNS();
+    this.addClickToTransfBtn(startTimeAbsolute, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
+  }
+
+  async setXpowerWifiBytesData(data: XpowerWifiStruct): Promise<void> {
+    if (SpApplication.traceType.indexOf('SQLite') === -1) {
+      await this.setRealTime();
+    }
+    this.setTableHeight('auto');
+    this.tabCurrentSelectionInit('WIFIBytes Details');
+    let list: unknown[] = [];
+    list.push({
+      name: 'StartTime(Relative)',
+      value: getTimeString(data.startTime || 0),
+    });
+    this.createStartTimeNode(list, data.startTime || 0, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
+    let vals: { name: string, bytes: number, value: string }[] = [];
+    data.tx !== 0 && vals.push({
+      name: 'send',
+      bytes: data.tx,
+      value: convertBytesToReadableSize(data.tx),
+    });
+    data.rx !== 0 && vals.push({
+      name: 'receiver',
+      bytes: data.rx,
+      value: convertBytesToReadableSize(data.rx),
+    });
+    // @ts-ignore
+    vals.sort(compare('value', 2, 'bytes'));
+    list.push(...vals);
+    this.currentSelectionTbl!.dataSource = list;
+    let startTimeAbsolute = (data.startTime || 0) + Utils.getInstance().getRecordStartNS();
+    this.addClickToTransfBtn(startTimeAbsolute, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
+  }
+
+  async setXpowerWifiPacketsData(data: XpowerWifiStruct): Promise<void> {
+    if (SpApplication.traceType.indexOf('SQLite') === -1) {
+      await this.setRealTime();
+    }
+    this.setTableHeight('auto');
+    this.tabCurrentSelectionInit('WIFIPackets Details');
+    let list: unknown[] = [];
+    list.push({
+      name: 'StartTime(Relative)',
+      value: getTimeString(data.startTime || 0),
+    });
+    this.createStartTimeNode(list, data.startTime || 0, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
+    let vals: { name: string, value: string }[] = [];
+    data.tx !== 0 && vals.push({
+      name: 'send',
+      value: data.tx.toString(),
+    });
+    data.rx !== 0 && vals.push({
+      name: 'receiver',
+      value: data.rx.toString(),
+    });
+    // @ts-ignore
+    vals.sort(compare('value', 2, 'number'));
+    list.push(...vals);
+    this.currentSelectionTbl!.dataSource = list;
+    let startTimeAbsolute = (data.startTime || 0) + Utils.getInstance().getRecordStartNS();
     this.addClickToTransfBtn(startTimeAbsolute, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
   }
 
@@ -2350,4 +2473,10 @@ class FunDetail {
   slice: string = '';
   CN: string = '';
   EN: string = '';
+}
+
+class SortData {
+  value: string = '';
+  dur: number = 0;
+  bytes: number = 0;
 }

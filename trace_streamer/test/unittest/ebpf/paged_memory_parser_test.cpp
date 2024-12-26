@@ -26,6 +26,7 @@ using namespace testing::ext;
 using namespace SysTuning::TraceStreamer;
 using namespace SysTuning::EbpfStdtype;
 namespace SysTuning ::TraceStreamer {
+namespace PagedMemoryParserUnitTest {
 const std::string COMMAND_LINE = "hiebpf --events ptrace --duration 50";
 const uint64_t START_TIME = 1725645867369;
 const uint64_t END_TIME = 1725645967369;
@@ -200,4 +201,5 @@ HWTEST_F(EbpfPagedMemoryParserTest, EbpfPagedMemoryParserCorrectWithMultipleCall
     EXPECT_EQ(stream_.traceDataCache_->GetConstEbpfCallStackData().Ips()[0],
               ebpfDataParser->ConvertToHexTextIndex(ips[1]));
 }
+} // namespace PagedMemoryParserUnitTest
 } // namespace SysTuning::TraceStreamer

@@ -326,6 +326,7 @@ export const getTabSlicesAsyncFunc = (
   let sql = `
     SELECT 
       c.name AS name,
+      c.id,
       sum( c.dur ) AS wallDuration,
       count( c.name ) AS occurrences 
       FROM
@@ -368,6 +369,7 @@ export const getTabDetails = (
       SELECT 
         c.name AS name,
         c.dur AS duration,
+        c.id,
         P.pid AS processId,
         P.name AS process,
         A.tid AS threadId,
@@ -408,6 +410,7 @@ export const getSfDetails = (
         P.name AS process,
         A.tid AS threadId,
         A.name AS thread,
+        c.id,
         c.ts - D.start_ts as startNs
         FROM
         (SELECT id, ts, parent_id, dur, name from callstack where cookie NOT NULL) C,
@@ -422,6 +425,73 @@ export const getSfDetails = (
           not ((C.ts - D.start_ts + C.dur < ${leftNS}) or (C.ts - D.start_ts > ${rightNS})) ${condition}
     `;
   return query('getSfDetails', sql, {});
+};
+export const getParentDetail = (
+  asyncPid: Array<number>,
+  funTids: Array<number>,
+  leftNS: number,
+  rightNS: number):
+  Promise<Array<unknown>> =>
+  query(
+    'getParentTime',
+    ` SELECT
+        C.ts - D.start_ts AS startTS,
+        C.ts - D.start_ts + C.dur AS endTS,
+        C.depth,
+        c.id,
+        c.name 
+      FROM
+        thread A
+        JOIN trace_range D
+        LEFT JOIN process P ON P.id = A.ipid
+        LEFT JOIN callstack C ON A.id = C.callid 
+      WHERE
+        C.ts > 0 
+        AND C.dur >= - 1 
+        AND NOT (
+          ( C.ts - D.start_ts + C.dur < ${leftNS} ) 
+          OR ( C.ts - D.start_ts > ${rightNS} ) 
+        )
+        AND C.cookie IS NULL 
+        AND A.tid IN (${funTids!.join(',')}) 
+        AND P.pid IN (${asyncPid.join(',')}) 
+        `
+  );
+export const getFuncChildren = (
+  funcIds: Array<number>,
+  asyncPid: Array<number>,
+  funTids: Array<number>,
+  leftNS: number,
+  rightNS: number,
+  isChild: boolean
+): //@ts-ignore
+  Promise<Array<unknown>> => {
+  let durStr = isChild ? 'C.dur AS duration,' : 'SUM(COALESCE(C.dur, 0)) AS duration,';
+  let condition = isChild ? '' : 'group by parentName';
+  let sql = `
+        SELECT 
+          c.parent_id parentId,
+          ${durStr}
+          c.id,
+          c.name,
+          c1.name parentName
+        FROM
+          thread A,trace_range D
+          LEFT JOIN process P ON P.id = A.ipid
+          LEFT JOIN callstack C ON A.id = C.callid
+          LEFT JOIN callstack C1 ON c.parent_id = C1.id
+        where
+            C.ts > 0
+          and
+            c.dur >= -1
+          and
+            not ((C.ts - D.start_ts + C.dur < ${leftNS}) or (C.ts - D.start_ts > ${rightNS})) 
+          and A.tid in (${funTids!.join(',')})
+          and c.cookie is null
+          and P.pid in (${asyncPid.join(',')})
+          and c.parent_id in (${funcIds.join(',')})${condition}
+      `;
+  return query('getTabDetails', sql, {});
 };
 export const getGhDetails = (
   asyncNames: Array<string>,
@@ -476,6 +546,7 @@ export const getTabSlicesAsyncCatFunc = (
     `
         select
           c.name as name,
+          c.id,
           sum(c.dur) as wallDuration,
           count(c.name) as occurrences
         from

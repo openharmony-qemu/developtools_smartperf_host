@@ -30,6 +30,7 @@ using namespace SysTuning::TraceStreamer;
 
 namespace SysTuning {
 namespace TraceStreamer {
+namespace PbReaderCpuDataParserUnitTest {
 const uint64_t TS = 104;
 const uint64_t TOTALLOAD_01 = 4;
 const uint64_t USERLOAD_01 = 44;
@@ -230,5 +231,6 @@ HWTEST_F(HtraceCpuDataParserTest, ParseHtraceWithMultipleCpuData, TestSize.Level
     EXPECT_EQ(cpuUsageInfoData.SystemLoad()[1], SYSTEMLOAD_03);
     EXPECT_EQ(cpuUsageInfoData.SystemLoad()[2], SYSTEMLOAD_04);
 }
+} // namespace PbReaderCpuDataParserUnitTest
 } // namespace TraceStreamer
 } // namespace SysTuning

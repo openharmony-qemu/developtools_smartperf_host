@@ -512,7 +512,7 @@ export function createNativePluginConfig(
   if (spAllocations!.appProcess !== '' && spAllocations!.startSamp) {
     let nativeConfig = initNativePluginConfig(spAllocations, selectVersion);
     let maxProcessSize = 4;
-    if (selectVersion !== undefined && selectVersion !== '3.2') {
+    if (selectVersion !== undefined && selectVersion !== '3.2' && selectVersion !=='unknown') {
       nativeConfig.callframeCompress = true;
       nativeConfig.recordAccurately = spAllocations!.record_accurately;
       nativeConfig.offlineSymbolization = spAllocations!.offline_symbolization;
@@ -552,7 +552,7 @@ function initNativePluginConfig(spAllocations: SpAllocations, selectVersion: str
   let appProcess = spAllocations!.appProcess;
   let processName = '';
   let processId = '';
-  if (spAllocations!.startup_mode && selectVersion !== '3.2') {
+  if (spAllocations!.startup_mode && selectVersion !== '3.2'&& selectVersion !=='unknown') {
     processName = appProcess;
   } else {
     if (appProcess.indexOf('(') !== -1) {
@@ -905,7 +905,7 @@ export function createTraceEvents(traceConfig: Array<string>): Array<string> {
   return ftraceEventsArray;
 }
 
-export function createXPowerConfig( 
+export function createXPowerConfig(
   spXPower: SpXPowerRecord,
   request: CreateSessionRequest
 ): void {
@@ -915,7 +915,9 @@ export function createXPowerConfig(
   let type = spXPower.getXpowerConfig();
   let typeList: Array<string> = [];
   typeList = type!.split(',');
+  let bundleName = spXPower.process || '';
   let xPowerConfig = {
+    bundle_name: bundleName,
     messageType: typeList
   };
   request.pluginConfigs.push({

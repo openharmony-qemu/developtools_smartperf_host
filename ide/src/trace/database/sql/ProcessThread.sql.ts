@@ -1215,6 +1215,7 @@ export const getTabSlices = (
     `
     select
       c.name as name,
+      c.id,
       sum(c.dur) as wallDuration,
       count(c.name) as occurrences
     from

@@ -44,6 +44,16 @@ public:
     {
         return rawTraceSplitCommData_;
     }
+#ifdef IS_WASM
+    bool IsWasmReadFile()
+    {
+        return isWasmReadFile_;
+    }
+    void SetWasmReadFile(const bool isWasmReadFile)
+    {
+        isWasmReadFile_ = isWasmReadFile;
+    }
+#endif
 
 private:
     bool ParseDataRecursively(std::deque<uint8_t>::iterator &packagesCurIter);
@@ -64,6 +74,9 @@ private:
     std::unique_ptr<KernelSymbolsProcessor> ksymsProcessor_ = nullptr;
     TraceDataCache *traceDataCache_ = nullptr;
     bool hasGotHeader_ = false;
+#ifdef IS_WASM
+    bool isWasmReadFile_ = false;
+#endif
     uint8_t fileType_ = 0;
     uint8_t restCommDataCnt_ = 0;
     uint32_t curCpuCoreNum_ = 0;

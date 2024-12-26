@@ -17,7 +17,7 @@
 
 App startup 的泳道图展示：
 ![GitHub Logo](../../figures/appstartup/appstartuprow.jpg)
-应用启动包括六个阶段，分别是 Process Creating(应用进程创建阶段)、Application Launching(加载应用阶段)、UI Ability Launching(加载 UI Ability)、UI Ability OnForeground(应用进入前台)、First Frame - APP Phase(首帧渲染提交-应用)、First Frame - Render Phase(首帧渲染提交-Render Service)。每个阶段的 Slice 上都会显示出该阶段的时延。
+应用启动包括八个阶段，分别是ProcessTouchEvent(处理点击事件阶段)、StartUIAbilityBySCB(SCB发送请求阶段)、LoadAbility(AMS加载Ability阶段) 、Application Launching(加载应用阶段)、UI Ability Launching(加载UI Ability)、UI Ability OnForeground(应用进入前台)、First Frame - APP Phase(首帧渲染提交-应用)、First Frame - Render Phase(首帧渲染提交-Render Service)。每个阶段的Slice上都会显示出该阶段的时延。
 
 ### App startup 泳道图点选功能
 

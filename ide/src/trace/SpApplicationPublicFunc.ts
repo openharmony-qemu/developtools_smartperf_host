@@ -398,9 +398,7 @@ export const applicationHtml: string = `
                 </sp-ai-analysis>
                 <sp-system-trace style="visibility:hidden;z-index: 101;" id="sp-system-trace">
                 </sp-system-trace>
-                <sp-record-trace style="overflow:auto;width:100%;height:100%;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 102" id="sp-record-trace">
-                </sp-record-trace>
-                <sp-record-trace record_template='' style="overflow:auto;width:100%;height:100%;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 102" id="sp-record-template">
+                <sp-record-trace record_template='false' style="overflow:auto;width:100%;height:100%;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 102" id="sp-record-trace">
                 </sp-record-trace>
                 <sp-scheduling-analysis style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0;left:0;right:0;bottom:0;position:absolute;" id="sp-scheduling-analysis"></sp-scheduling-analysis>
                 <sp-metrics style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0;left:0;right:0;bottom:0;position:absolute;z-index: 105" id="sp-metrics">
@@ -530,4 +528,53 @@ export function getCurrentDataTime(): string[] {
   let minutes = ('0' + current.getMinutes()).slice(-2);
   let seconds = ('0' + current.getSeconds()).slice(-2);
   return [year, month, day, hours, minutes, seconds];
+}
+
+// 定义ZIP文件的文件头常量
+const ZIP_HEADER = [0x50, 0x4B, 0x03, 0x04];
+// 定义ZLIB文件的文件头常量
+const ZLIB_HEADER = [0x78, 0x9c];
+
+/**
+ * 验证Uint8Array实例并检查长度是否满足要求
+ * @param uint8Array 待验证的Uint8Array实例
+ * @param requiredLength 所需的最小长度
+ * @returns 如果uint8Array是一个Uint8Array实例且长度大于等于requiredLength，则返回true，否则返回false
+ */
+function validateUint8Array(uint8Array: Uint8Array, requiredLength: number): boolean {
+  return uint8Array instanceof Uint8Array && uint8Array.length >= requiredLength;
+}
+
+/**
+ * 检查Uint8Array是否表示一个ZIP文件
+ * @param uint8Array 待检查的Uint8Array实例
+ * @returns 如果uint8Array表示的是一个ZIP文件，则返回true，否则返回false
+ */
+export function isZipFile(uint8Array: Uint8Array): boolean {
+  if (!validateUint8Array(uint8Array, ZIP_HEADER.length)) {
+    return false;
+  }
+  for (let i = 0; i < ZIP_HEADER.length; i++) {
+    if (uint8Array[i] !== ZIP_HEADER[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * 检查Uint8Array是否表示一个ZLIB文件
+ * @param uint8Array 待检查的Uint8Array实例
+ * @returns 如果uint8Array表示的是一个ZLIB文件，则返回true，否则返回false
+ */
+export function isZlibFile(uint8Array: Uint8Array): boolean {
+  if (!validateUint8Array(uint8Array, ZLIB_HEADER.length)) {
+    return false;
+  }
+  for (let i = 0; i < ZLIB_HEADER.length; i++) {
+    if (uint8Array[i] !== ZLIB_HEADER[i]) {
+      return false;
+    }
+  }
+  return true;
 }

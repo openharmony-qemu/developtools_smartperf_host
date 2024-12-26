@@ -14,12 +14,23 @@
  */
 
 import { TabPaneBoxChild } from '../../../../../../src/trace/component/trace/sheet/cpu/TabPaneBoxChild';
-const sqlit = require('../../../../../../src/trace/database/sql/ProcessThread.sql');
+const sqlite = require('../../../../../../src/trace/database/sql/ProcessThread.sql');
 jest.mock('../../../../../../src/trace/database/sql/ProcessThread.sql');
 jest.mock('../../../../../../src/trace/bean/NativeHook', () => {
   return {};
 });
-
+jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {
+  return {};
+});
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+  return {};
+});
+jest.mock('../../../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({
@@ -33,19 +44,10 @@ describe('TabPaneBoxChild Test', () => {
   let element = document.querySelector('#div') as HTMLDivElement;
   let tabPaneBoxChild = new TabPaneBoxChild();
   element.appendChild(tabPaneBoxChild);
-  tabPaneBoxChild.loadDataInCache = true;
-  let getTabBox = sqlit.getTabBoxChildData;
+  let getTabBox = sqlite.queryArgsById;
   let data = [
     {
-      process: '',
-      processId: 12,
-      thread: '',
-      state: 2,
-      threadId: 3,
-      duration: 1,
-      startNs: 17,
-      cpu: 2,
-      priority: 1,
+      id: 0,
     },
   ];
   getTabBox.mockResolvedValue(data);
@@ -58,24 +60,34 @@ describe('TabPaneBoxChild Test', () => {
     leftNs: 0,
     rightNs: 233,
     hasFps: false,
-    state:'',
-    processId:0,
-    threadId: 0
+    state: '',
+    processId: 0,
+    threadId: 0,
   };
+  tabPaneBoxChild.initElements();
+  const mockParentElement = document.createElement('div');
+  mockParentElement.style.height = '100px';
+  Object.defineProperty(tabPaneBoxChild, 'parentElement', {
+    value: mockParentElement,
+    writable: true,
+  });
 
-
-  it('TabPaneBoxChildTest01', function () {
+  tabPaneBoxChild.initElements = jest.fn();
+  it('TabPaneBoxChildTest01', () => {
+    expect(tabPaneBoxChild.initElements()).toBeUndefined();
+    expect(tabPaneBoxChild.initHtml()).not.toBeUndefined();
+  });
+  it('TabPaneBoxChildTest02', function () {
     expect(
       tabPaneBoxChild.sortByColumn({
         key: 'number',
+        sort: 1,
       })
     ).toBeUndefined();
-  });
-
-  it('TabPaneCounterTest02', function () {
     expect(
       tabPaneBoxChild.sortByColumn({
-        sort: () => {},
+        key: 'number',
+        sort: 2,
       })
     ).toBeUndefined();
   });
@@ -87,6 +99,10 @@ describe('TabPaneBoxChild Test', () => {
         state: true,
         processId: 3,
         threadId: 1,
+        traceId: 0,
+        cpus: 0,
+        isJumpPage: 0,
+        currentId: 0,
       },
     ];
     expect(tabPaneBoxChild.getDataByDB(val)).toBeUndefined();

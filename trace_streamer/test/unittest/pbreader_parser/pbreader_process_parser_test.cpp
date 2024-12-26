@@ -30,6 +30,7 @@ using namespace SysTuning::TraceStreamer;
 
 namespace SysTuning {
 namespace TraceStreamer {
+namespace PbreaderProcessParserUnitTest {
 uint64_t TS = 100;
 const uint32_t PID_01 = 311;
 const std::string NAME_01 = "resource_schedu01";
@@ -217,5 +218,6 @@ HWTEST_F(HtraceProcessParserTest, ParseHtraceProcessWithMultipleProcessData, Tes
     EXPECT_EQ(liveProcessData.UserName()[1], std::to_string(UID_03));
     EXPECT_EQ(liveProcessData.UserName()[2], std::to_string(UID_04));
 }
+} // namespace PbreaderProcessParserUnitTest
 } // namespace TraceStreamer
 } // namespace SysTuning

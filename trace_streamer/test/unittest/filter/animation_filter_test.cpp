@@ -93,7 +93,8 @@ HWTEST_F(AnimationFilterTest, InvalidCallStack, TestSize.Level1)
         "H:RSUniRender::Process:[xxx]",
     };
     // invalid parentId
-    for (size_t i = 0, depth = 0; i < callStackNames.size(); i++) {
+    uint8_t depth = 0;
+    for (size_t i = 0; i < callStackNames.size(); i++) {
         std::optional<uint64_t> parentId = 0;
         CallStackInternalRow callStackInternalRow = {INVALID_TIME,   INVALID_TIME,      INVALID_UINT32,
                                                      INVALID_UINT64, callStackNames[i], ++depth};
@@ -104,7 +105,8 @@ HWTEST_F(AnimationFilterTest, InvalidCallStack, TestSize.Level1)
     }
     // the current or the parent callStackNames haven't WindowScene_
     uint64_t index = INVALID_UINT64;
-    for (size_t i = 0, depth = 0; i < callStackNames.size(); i++) {
+    depth = 0;
+    for (size_t i = 0; i < callStackNames.size(); i++) {
         std::optional<uint64_t> parentId;
         if (index != INVALID_UINT64) {
             parentId = index;
@@ -242,7 +244,8 @@ HWTEST_F(AnimationFilterTest, UpdateDynamicFrameInfo, TestSize.Level1)
     uint64_t index = INVALID_UINT64;
     uint64_t startTime = 59557002299000;
     uint64_t dur = ONE_MILLION_NANOSECONDS;
-    for (size_t i = 0, depth = 0; i < callStackNames.size(); i++) {
+    uint8_t depth = 0;
+    for (size_t i = 0; i < callStackNames.size(); i++) {
         std::optional<uint64_t> parentId;
         if (index != INVALID_UINT64) {
             parentId = index;

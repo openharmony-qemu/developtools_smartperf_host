@@ -379,5 +379,29 @@ const RSImageDumpInfo &TraceDataCacheReader::GetConstRSImageDumpInfo() const
 {
     return rsImageDumpInfo_;
 }
+const XPowerAppStatistic &TraceDataCacheReader::GetConstXPowerAppStatisticInfo() const
+{
+    return xPowerAppStatisticInfo_;
+}
+const XPowerAppDetailCPU &TraceDataCacheReader::GetConstXPowerAppDetailCPUInfo() const
+{
+    return xPowerAppDetailCPUInfo_;
+}
+const XPowerAppDetailGPU &TraceDataCacheReader::GetConstXPowerAppDetailGPUInfo() const
+{
+    return xPowerAppDetailGPUInfo_;
+}
+const XPowerAppDetailWifi &TraceDataCacheReader::GetConstXPowerAppDetailWifiInfo() const
+{
+    return xPowerAppDetailWifiInfo_;
+}
+const XPowerAppDetailDisplay &TraceDataCacheReader::GetConstXPowerAppDetailDisplayInfo() const
+{
+    return xPowerAppDetailDisplayInfo_;
+}
+const XPowerComponentTop &TraceDataCacheReader::GetConstXPowerComponentTopInfo() const
+{
+    return xPowerComponentTopInfo_;
+}
 } // namespace TraceStreamer
 } // namespace SysTuning

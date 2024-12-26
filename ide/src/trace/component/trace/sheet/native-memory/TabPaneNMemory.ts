@@ -135,7 +135,20 @@ export class TabPaneNMemory extends BaseElement {
       this.tblData!.recycleDataSource = [];
       this.setNmMemoryLoading(false);
       if (results.length > 0) {
-        results.forEach((item) => {
+        let isTwoArray: boolean = results.some(item => {
+          return Array.isArray(item);
+        })
+        let dataList: unknown = [];
+        if (isTwoArray) {
+          results.forEach(v => {
+            // @ts-ignore
+            dataList = dataList.concat(v);
+          })
+        } else {
+          dataList = results;
+        }
+        // @ts-ignore
+        dataList.forEach((item) => {
           //@ts-ignore
           let tmpNumber = item.addr.split('x');
           //@ts-ignore

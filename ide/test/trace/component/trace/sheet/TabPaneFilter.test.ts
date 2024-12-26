@@ -14,7 +14,9 @@
  */
 
 import { TabPaneFilter } from '../../../../../src/trace/component/trace/sheet/TabPaneFilter';
-
+jest.mock('../../../../../src/js-heap/model/DatabaseStruct', () => {
+    return {};
+});
 describe('TabPaneFilter Test', () => {
   let tabPaneFilter = new TabPaneFilter();
 

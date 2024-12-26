@@ -777,7 +777,7 @@ export class TabPaneSchedSwitch extends BaseElement {
       }
       </style>
       <div id='data-cut'>
-        <input id="cut-threadid" type="text" placeholder="Please input threadId" value='' oninput="this.value=this.value.replace(/\\D/g,'')"/>
+        <input id="cut-threadid" type="text" placeholder="Please input threadId" value='' onblur="this.value=this.value.replace(/\\D/g,'')"/>
         <input id="cut-thread-func" type="text" placeholder="Please input funcName" value='' />
         <div style="width:20%;height: 100%;display:flex;justify-content: space-around;">
             <button class="single-btn cut-button">Single</button>

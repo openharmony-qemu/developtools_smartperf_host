@@ -65,6 +65,21 @@ import { TabPaneCpuFreqLimits } from '../sheet/freq/TabPaneCpuFreqLimits';
 import { TabpaneNMCalltree } from '../sheet/native-memory/TabPaneNMCallTree';
 import { TabPaneClockCounter } from '../sheet/clock/TabPaneClockCounter';
 import { TabPaneXpowerCounter } from '../sheet/xpower/TabPaneXpowerCounter';
+import { TabPaneXpowerComponentTop } from '../sheet/xpower/TabPaneXpowerComponentTop'
+import { TabPaneXpowerComponentAudio } from '../sheet/xpower/TabPaneXpowerComponentAudio'
+import { TabPaneXpowerComponentDisplay } from '../sheet/xpower/TabPaneXpowerComponentDisplay'
+import { TabPaneXpowerComponentCamera } from '../sheet/xpower/TabPaneXpowerComponentCamera'
+import { TabPaneXpowerComponentCpu } from '../sheet/xpower/TabPaneXpowerComponentCpu'
+import { TabPaneXpowerStatistic } from '../sheet/xpower/TabPaneXpowerStatistic';
+import { TabPaneXpowerWifiBytes } from '../sheet/xpower/TabPaneXpowerWifiBytes';
+import { TabPaneXpowerWifiPackets } from '../sheet/xpower/TabPaneXpowerWifiPackets';
+import { TabPaneXpowerDisplay } from '../sheet/xpower/TabPaneXpowerAppDetailDisplay';
+import { TabPaneXpowerStatisticCurrentData } from '../sheet/xpower/TabPaneXpowerStatisticCurrentData';
+import { TabPaneXpowerThreadEnergy } from '../sheet/xpower/TabPaneXpowerThreadEnergy';
+import { TabPaneXpowerThreadLoad } from '../sheet/xpower/TabPaneXpowerThreadLoad';
+import { TabPaneXpowerThreadInfoSelection } from '../sheet/xpower/TabPaneXpowerThreadInfoSelection';
+import { TabPaneXpowerGpuFreq } from '../sheet/xpower/TabPaneXpowerGpuFreq';
+import { TabPaneXpowerGpuFreqSelection } from '../sheet/xpower/TabPaneXpowerGpuFreqSelection';
 import { TabPaneHang } from '../sheet/hang/TabPaneHang';
 import { TabPaneHangSummary } from '../sheet/hang/TabPaneHangSummary';
 import { TabPaneIrqCounter } from '../sheet/irq/TabPaneIrqCounter';
@@ -127,9 +142,6 @@ import { TabPaneHiSysEventSummary } from '../sheet/hisysevent/TabPaneHiSysEventS
 import { TabPaneBinders } from '../sheet/binder/TabPaneBinders';
 import { TabPaneGpufreq } from '../sheet/gpufreq/TabPaneGpufreqUsage';
 import { TabPaneSampleInstruction } from '../sheet/bpftrace/TabPaneSampleInstruction';
-import { TabPaneSampleInstructionDistributions } from '../sheet/bpftrace/TabPaneSampleInstructionDistributions';
-import { TabPaneSampleInstructionTotalTime } from '../sheet/bpftrace/TabPaneSampleInstructionSelectionTotalTime';
-import { TabPaneSampleInstructionSelection } from '../sheet/bpftrace/TabPaneSampleInstructionSelection';
 import { TabPaneDataCut } from '../sheet/TabPaneDataCut';
 import { TabPaneGpuCounterSelection } from '../sheet/gpu-counter/TabPaneGpuCounterSelection';
 import { TabPaneGpuCounter } from '../sheet/gpu-counter/TabPaneGpuCounter';
@@ -253,10 +265,54 @@ export let tabConfig: {
     type: TabPaneClockCounter,
     require: (param: SelectionParam) => param.clockMapData.size > 0,
   },
-  'box-xpower-counters': { 
+  'box-xpower-counters': {
     title: 'Xpower Counters',
     type: TabPaneXpowerCounter,
     require: (param: SelectionParam) => param.xpowerMapData.size > 0,
+  },
+  'box-xpower-component-top': {
+    title: 'Xpower Component Top',
+    type: TabPaneXpowerComponentTop,
+    require: (param: SelectionParam) => param.xpowerComponentTopMapData.size > 0,
+  },
+  'box-xpower-statistic': {
+    title: 'Xpower Statistic',
+    type: TabPaneXpowerStatistic,
+    require: (param: SelectionParam) => param.xpowerStatisticMapData.size > 0,
+  },
+  'box-xpower-display': {
+    title: 'Xpower Display Detail',
+    type: TabPaneXpowerDisplay,
+    require: (param: SelectionParam) => param.xpowerDisplayMapData.size > 0,
+  },
+  'box-xpower-wifiPackets': {
+    title: 'Xpower WifiPackets',
+    type: TabPaneXpowerWifiPackets,
+    require: (param: SelectionParam) => param.xpowerWifiPacketsMapData.size > 0,
+  },
+  'box-xpower-wifiBytes': {
+    title: 'Xpower WifiBytes',
+    type: TabPaneXpowerWifiBytes,
+    require: (param: SelectionParam) => param.xpowerWifiBytesMapData.size > 0,
+  },
+  'box-xpower-statistic-current-data': {
+    title: 'Xpower Statistic Current Data',
+    type: TabPaneXpowerStatisticCurrentData,
+  },
+  'box-xpower-thread-energy': {
+    title: 'Xpower Thread energy',
+    type: TabPaneXpowerThreadEnergy,
+    require: (param: SelectionParam) => param.xpowerThreadEnergyMapData.size > 0,
+  },
+  'box-xpower-thread-load': {
+    title: 'Xpower Thread Load',
+    type: TabPaneXpowerThreadLoad,
+    require: (param: SelectionParam) => param.xpowerThreadLoadMapData.size > 0,
+  },
+  'box-xpower-gpu-freq': {
+    title: 'Xpower Gpu Frequency',
+    type: TabPaneXpowerGpuFreq,
+    require: (param: SelectionParam) => param.xpowerGpuFreqMapData.size > 0,
   },
   'box-hang': {
     title: 'Hangs',
@@ -699,21 +755,6 @@ export let tabConfig: {
     require: (param: SelectionParam) => param.threadIds.length > 0 ||
       (param.clockMapData.size > 0 && param.clockMapData.has('gpufreq Frequency') === true),
   },
-  'box-sample-instruction-selection': {
-    title: 'Data Selection',
-    type: TabPaneSampleInstructionSelection,
-    require: (param: SelectionParam) => param.sampleData.length > 0,
-  },
-  'box-sample-instruction-distribution-selection': {
-    title: 'Data Distribution',
-    type: TabPaneSampleInstructionDistributions,
-    require: (param: SelectionParam) => param.sampleData.length > 0,
-  },
-  'box-sample-instruction-totaltime-selection': {
-    title: 'Total Duration',
-    type: TabPaneSampleInstructionTotalTime,
-    require: (param: SelectionParam) => param.sampleData.length > 0,
-  },
   'box-sample-instruction': {
     title: 'Data Flow',
     type: TabPaneSampleInstruction,
@@ -750,4 +791,12 @@ export let tabConfig: {
     title: '',
     type: TabPaneSliceChild,
   },
+  'box-xpower-thread-info-selection': {
+    title: 'Thread Info Selection',
+    type: TabPaneXpowerThreadInfoSelection,
+  }, //xpower thread info click
+  'box-xpower-gpu-freq-selection': {
+    title: 'Gpu Freq Selection',
+    type: TabPaneXpowerGpuFreqSelection,
+  }, //xpower gpu freq click
 };

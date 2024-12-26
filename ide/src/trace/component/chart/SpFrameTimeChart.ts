@@ -180,6 +180,9 @@ export class SpFrameTimeChart {
         item.cmdline = this.pidToProcessNameMap.get(item.pid!);
         item.rs_name = this.idToProcessNameMap.get(Number(item.rs_name)!);
         item.type = '0';
+        if (item.pid !== item.tid){
+          item.name = `${item.name}-${item.tid}`
+        }
       });
       if (row && !row.isComplete && res.length > 0) {
         let maxHeight: number = maxDepth * unitHeight;
@@ -245,8 +248,8 @@ export class SpFrameTimeChart {
     let sourceTypeName = await querySourceTypen();
     this.flagConfig = FlagsConfig.getFlagsConfig('AnimationAnalysis');
     let appNameMap: Map<number, string> = new Map();
-    //@ts-ignore
-    if (this.flagConfig?.AnimationAnalysis === 'Enabled' && sourceTypeName[0].value !== 'txt-based-trace') {
+     // @ts-ignore
+    if (this.flagConfig?.AnimationAnalysis === 'Enabled' && sourceTypeName && sourceTypeName[0].value !== 'txt-based-trace') {
       if (process.processName?.startsWith('render_service')) {
         let targetRowList = processRow.childrenList.filter(
           (childRow) => childRow.rowType === 'thread' && childRow.name.startsWith('render_service')

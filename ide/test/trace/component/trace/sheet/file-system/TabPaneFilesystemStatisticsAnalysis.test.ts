@@ -23,6 +23,12 @@ jest.mock('../../../../../../src/trace/component/trace/sheet/SheetUtils', () => 
     initSort: ()=>{}
   };
 });
+jest.mock('../../../../../../src/trace/bean/AbilityMonitor', () => {
+  return {};
+});
+jest.mock('../../../../../../src/trace/component/SpSystemTrace', () => {
+  return {};
+});
 // @ts-ignore
 window.ResizeObserver =
   window.ResizeObserver ||

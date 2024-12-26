@@ -16,6 +16,10 @@
 import { SampleRender, SampleStruct } from '../../../../src/trace/database/ui-worker/ProcedureWorkerBpftrace';
 import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+  return {};
+});
+
 jest.mock('../../../../src/trace/database/ui-worker/cpu/ProcedureWorkerCPU', () => {
   return {};
 });

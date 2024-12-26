@@ -68,7 +68,9 @@ import {
 import { SpRecordTraceHtml } from './SpRecordTrace.html';
 import { SpFFRTConfig } from './setting/SpFFRTConfig';
 import { ShadowRootInput } from './trace/base/ShadowRootInput';
-
+import { WebSocketManager } from '../../webSocket/WebSocketManager';
+import { TypeConstants } from '../../webSocket/Constants';
+import { LitCheckBox } from '../../base-ui/checkbox/LitCheckBox';
 const DEVICE_NOT_CONNECT =
   '<div>1.请确认抓取设备上是否已勾选并确认总是允许smartPerf-Host调试的弹窗</div>' +
   '<div>2.请关闭DevEco Studio,DevEco Testing等会占用hdc端口的应用</div>' +
@@ -81,7 +83,7 @@ export class SpRecordTrace extends BaseElement {
   public static selectVersion: string | null;
   public static isVscode = false;
   public static cancelRecord = false;
-  static supportVersions = ['3.2', '4.0+', '5.0+'];
+  static supportVersions = ['unknown', '3.2', '4.0+', '5.0+'];
   public deviceSelect: HTMLSelectElement | undefined;
   public deviceVersion: HTMLSelectElement | undefined;
   private _menuItems: Array<MenuItem> | undefined;
@@ -122,23 +124,32 @@ export class SpRecordTrace extends BaseElement {
   private hintTimeOut: number = -1;
   private MenuItemArkts: MenuItem | undefined | null;
   private MenuItemArktsHtml: LitMainMenuItem | undefined | null;
-  private MenuItemEbpf: MenuItem | undefined | null;
-  private MenuItemEbpfHtml: LitMainMenuItem | undefined | null;
   private hdcList: Array<unknown> = [];
+  public useExtendCheck: LitCheckBox | undefined | null;
+  public static useExtend = false;
+  private useExtentTip: HTMLElement | undefined | null;
+  private usbSerialNum: Array<string> = [];
+  public static allProcessListStr: string;
+  public static usbGetCpuCount: string;
+  public static usbGetEvent: string;
+  public static usbGetApp: string;
+  private static usbGetVersion: string;
+  static snapShotList: Array<unknown> = [];
+  static snapShotDuration: number = 0;
 
-  set record_template(re: boolean) {
-    if (re) {
-      this.setAttribute('record_template', '');
+  set record_template(re: string) {
+    if (re === 'true') {
+      this.setAttribute('record_template', 'true');
     } else {
-      this.removeAttribute('record_template');
+      this.setAttribute('record_template', 'false');
     }
     if (this.recordSetting) {
-      this.recordSetting.isRecordTemplate = re;
+      this.recordSetting.isRecordTemplate = re === 'true' ? true : false;
     }
   }
 
-  get record_template(): boolean {
-    return this.hasAttribute('record_template');
+  get record_template(): string {
+    return this.getAttribute('record_template')!;
   }
 
   set vs(vs: boolean) {
@@ -196,10 +207,10 @@ export class SpRecordTrace extends BaseElement {
           let option = document.createElement('option');
           option.className = 'select';
           if (typeof dev.serialNumber === 'string') {
-              optionNum++;
-              option.value = dev.serialNumber;
-              option.textContent = dev!.serialNumber ? dev!.serialNumber!.toString() : 'hdc Device';
-              this.deviceSelect!.appendChild(option);
+            optionNum++;
+            option.value = dev.serialNumber;
+            option.textContent = dev!.serialNumber ? dev!.serialNumber!.toString() : 'hdc Device';
+            this.deviceSelect!.appendChild(option);
             if (dev.serialNumber === sn) {
               option.selected = true;
               this.recordButton!.hidden = false;
@@ -237,20 +248,6 @@ export class SpRecordTrace extends BaseElement {
           if (this.MenuItemArkts.clickHandler) {
             this.MenuItemArkts.clickHandler = undefined;
           }
-        }
-        try {
-          let kernelInfo = await HdcDeviceManager.shellResultAsString(CmdConstant.CMD_UNAME, false);
-          if (kernelInfo.includes('HongMeng')) {
-            if (this.MenuItemEbpf && this.MenuItemEbpfHtml) {//如果为鸿蒙内核，ebpf开关置灰不能点击
-              this.MenuItemEbpfHtml.style.color = 'gray';
-              this.MenuItemEbpfHtml.disabled = true;
-              if (this.MenuItemEbpf.clickHandler) {
-                this.MenuItemEbpf.clickHandler = undefined;
-              }
-            }
-          }
-        } catch (error) {
-          console.error('Failed to get kernel info:', error);
         }
         HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_VERSION, false).then((version) => {
           SpRecordTrace.selectVersion = this.getDeviceVersion(version);
@@ -410,7 +407,7 @@ export class SpRecordTrace extends BaseElement {
     this.litSearch = this.sp.shadowRoot?.querySelector('#lit-record-search') as LitSearch;
     this.menuGroup = this.shadowRoot.querySelector('#menu-group') as LitMainMenuGroup;
     this.addButton = this.shadowRoot.querySelector<LitButton>('.add');
-    if (this.record_template) {
+    if (this.record_template === 'true') {
       this.buildTemplateTraceItem();
     } else {
       this.buildNormalTraceItem();
@@ -425,6 +422,47 @@ export class SpRecordTrace extends BaseElement {
       this.disconnectButton!.hidden = true;
       this.recordButton.hidden = true;
       this.devicePrompt.innerText = 'Device not connected';
+    }
+    this.useExtendCheck = this.shadowRoot?.querySelector('#use-extend-check') as LitCheckBox;
+    this.useExtentTip = this.shadowRoot?.querySelector('#record_tip') as HTMLElement;
+    this.useExtendCheck?.addEventListener('change', (ev): void => {
+      // @ts-ignore
+      let detail = ev.detail;
+      SpRecordTrace.useExtend = detail.checked;
+      this.usbSerialNum = [];
+      SpRecordTrace.serialNumber = '';
+      this.recordButton!.hidden = true;
+      this.disconnectButton!.hidden = true;
+      // @ts-ignore
+      while (this.deviceSelect!.firstChild) {
+        this.deviceSelect!.removeChild(this.deviceSelect!.firstChild); // 删除子节点
+      }
+      this.devicePrompt!.innerText = 'Device not connected';
+      if (!detail.checked) {
+        this.spArkTs!.litSwitch!.checked = false;
+        this.spArkTs!.memoryDisable();
+        this.spArkTs!.disable();
+        this.useExtentTip!.style.display = 'none';
+        this.useExtentTip!.innerHTML = '';
+      }
+    });
+    this.spArkTs?.addEventListener('showTip', () => {
+      this.isShowTipFunc('Ark Ts', this.spArkTs!.isStartArkts);
+    });
+    this.recordSetting?.addEventListener('showTip', (event) => {// @ts-ignore
+      this.isShowTipFunc(event.detail.value, event.detail.isShow);
+    });
+  }
+
+  isShowTipFunc(text: string, isShow: boolean) {
+    if (isShow) {
+      let guideSrc = `https://${window.location.host.split(':')[0]}:${window.location.port}/application/?action=help_27`;
+      this.useExtentTip!.style.display = 'block';
+      // @ts-ignore
+      this.useExtentTip!.innerHTML = `若要抓取${text}，请勾选 Use local hdc 开关，启动后台扩展服务进行抓取，相关指导: [</span style="cursor: pointer;"><a href=${guideSrc} style="color: blue;" target="_blank">指导</a><span>]`;
+    } else {
+      this.useExtentTip!.style.display = 'none';
+      this.useExtentTip!.innerHTML = '';
     }
   }
 
@@ -458,6 +496,113 @@ export class SpRecordTrace extends BaseElement {
     this.probesConfig?.removeEventListener('addProbe', this.recordAddProbeEvent);
     this.spRecordTemplate?.removeEventListener('addProbe', this.recordTempAddProbe);
     this.spRecordTemplate?.removeEventListener('delProbe', this.recordTempDelProbe);
+  }
+
+  recordPluginFunc = (): void => {
+    this.useExtentTip!.style.display = 'none';
+    this.useExtentTip!.innerHTML = '';
+
+    this.sp!.search = true;
+    this.progressEL!.loading = true;
+    this.litSearch!.setPercent('Waiting to record...', -1);
+    this.initRecordCmdStatus();
+    let request = this.makeRequest(false);
+    let htraceCmd = PluginConvertUtils.createHdcCmd(
+      PluginConvertUtils.BeanToCmdTxt(request, false),
+      this.recordSetting!.output,
+      this.recordSetting!.maxDur
+    );
+
+    let encoder = new TextEncoder();
+    let processName = this.spArkTs!.process.trim();
+    let isRecordArkTs = (this.spArkTs!.isStartArkts && processName !== '') ? true : false; //是否抓取arkts trace
+    let isRecordHitrace = request.pluginConfigs.length > 0 ? true : false; // 是否抓取其他模块 hitrace
+
+    let isStartCpuProfiler = this.spArkTs!.isStartCpuProfiler; //cpu Profiler 开关是否打开
+    let isStartMemoryProfiler = this.spArkTs!.isStartMemoryProfiler; //memory Profiler 开关是否打开
+    let isCheckSnapshot = this.spArkTs!.radioBoxType === 0 ? true : false; // 是否check snapshot
+    let isCheckTimeLine = this.spArkTs!.radioBoxType === 1 ? true : false; // 是否 check timeline
+
+    let maxDur = this.recordSetting!.maxDur; // 抓取trace的时长
+    let snapShotDur = this.recordSetting!.snapShot;//截图
+    SpRecordTrace.snapShotDuration = snapShotDur;
+    let snapshotTimeInterval = this.spArkTs!.intervalValue;
+    let cpuProfTimeInt = this.spArkTs!.intervalCpuValue;
+    let captureNumericValue = this.spArkTs!.grabNumeric; // snapshot check box
+    let trackAllocations = this.spArkTs!.grabAllocations; // timeline check box
+    let enableCpuProfiler = this.spArkTs!.isStartCpuProfiler;
+
+    let params: any = {
+      isRecordArkTs: isRecordArkTs,
+      isRecordHitrace: isRecordHitrace,
+      type: '',
+      processName: processName,
+      maxDur: maxDur,
+      snapShotDur: snapShotDur,
+      snapshotTimeInterval: snapshotTimeInterval,
+      cpuProfilerInterval: cpuProfTimeInt,
+      captureNumericValue: captureNumericValue,
+      trackAllocations: trackAllocations,
+      enableCpuProfiler: enableCpuProfiler,
+      htraceCmd: htraceCmd,
+      output: this.recordSetting!.output,
+      serialNum: SpRecordTrace.serialNumber
+    };
+
+    if (isStartCpuProfiler && !isStartMemoryProfiler) {
+      params.type = 'cpuProf';
+    } else if (!isStartCpuProfiler && isStartMemoryProfiler && isCheckSnapshot) {
+      params.type = 'snapshot';
+    } else if (!isStartCpuProfiler && isStartMemoryProfiler && isCheckTimeLine) {
+      params.type = 'timeline';
+    } else if (isStartCpuProfiler && isStartMemoryProfiler && isCheckSnapshot) {
+      params.type = 'cpuProf_snapshot';
+    } else if (isStartCpuProfiler && isStartMemoryProfiler && isCheckTimeLine) {
+      params.type = 'cpuProf_timeline';
+    }
+
+    let onmessageCallBack = (cmd: number, result: any): void => {
+      if (cmd === 2 && result.byteLength > 0) {
+        let name = this.recordSetting!.output.split('/').reverse()[0];
+        let file = new File([result], name);
+        let main = this!.parentNode!.parentNode!.querySelector('lit-main-menu') as LitMainMenu;
+        let children = main.menus as Array<MenuGroup>;
+        let child = children[0].children as Array<MenuItem>;
+        let fileHandler = child[0].fileHandler;
+        if (fileHandler) {
+          this.refreshDisableStyle(false, false);
+          this.recordButton!.hidden = false;
+          fileHandler({
+            detail: file,
+          });
+        }
+      } else if (cmd === 3) {
+        this.sp!.search = false;
+        this.progressEL!.loading = false;
+        let errorMsg = new TextDecoder().decode(result);
+        this.useExtentTip!.style.display = 'block';
+        this.useExtentTip!.innerHTML = errorMsg;
+        this.refreshDisableStyle(false, false);
+        this.recordButton!.hidden = false;
+        this.sp!.search = false;
+        this.progressEL!.loading = false;
+      } else if (cmd === 4) {
+        let aElement = document.createElement('a');
+        aElement.href = URL.createObjectURL(new Blob([result!]));
+        aElement.download = 'arkts.htrace';
+        aElement.click();
+      } else if (cmd === 5) {
+        SpRecordTrace.snapShotList = JSON.parse(new TextDecoder('utf-8').decode(result)) as string[];
+      } else if (cmd === 6) {
+        this.litSearch!.setPercent('Start to record...', -1);
+      } else if (cmd === 7) {
+        this.litSearch!.setPercent('Tracing htrace down', -1);
+      } else if (cmd === 8) {
+        this.litSearch!.setPercent('Downloading Hitrace file...', -1);
+      }
+    };
+    WebSocketManager.getInstance()!.registerMessageListener(TypeConstants.ARKTS_TYPE, onmessageCallBack, this.eventCallBack);
+    WebSocketManager.getInstance()!.sendMessage(TypeConstants.ARKTS_TYPE, 1, encoder.encode(JSON.stringify(params)));
   }
 
   recordTempAddProbe = (ev: CustomEventInit<{ elementId: string }>): void => {
@@ -495,16 +640,151 @@ export class SpRecordTrace extends BaseElement {
   };
 
   addButtonClickEvent = (event: MouseEvent): void => {
-    if (this.vs) {
+    if (SpRecordTrace.useExtend) {
+      this.useExtentTip!.innerHTML = '';
+      this.useExtentTip!.style.display = 'none';
+      WebSocketManager.getInstance()!.registerMessageListener(TypeConstants.USB_TYPE, this.webSocketCallBackasync, this.eventCallBack);
+      WebSocketManager.getInstance()!.sendMessage(TypeConstants.USB_TYPE, TypeConstants.USB_SN_CMD);
+    } else if (this.vs) {
       this.refreshDeviceList();
     } else {
       // @ts-ignore
       HdcDeviceManager.findDevice().then((usbDevices): void => {
         log(usbDevices);
-        this.refreshDeviceList(usbDevices.serialNumber);
+        HdcDeviceManager.connect(usbDevices.serialNumber).then((res) => {
+          if (res) {
+            this.refreshDeviceList(usbDevices.serialNumber);
+          } else {
+            this.recordButton!.hidden = true;
+            this.disconnectButton!.hidden = true;
+            this.devicePrompt!.innerText = 'Device not connected';
+            this.hintEl!.innerHTML = DEVICE_NOT_CONNECT;
+            if (!this.showHint) {
+              this.showHint = true;
+            }
+          }
+        })
       });
     }
   };
+
+  eventCallBack = (result: string) => {
+    this.recordButton!.hidden = true;
+    this.disconnectButton!.hidden = true;
+    this.disconnectButtonClickEvent();
+    this.useExtentTip!.style.display = 'block';
+    // @ts-ignore
+    this.useExtentTip!.innerHTML = this.getStatusesPrompt()[result].prompt;
+  }
+
+  getStatusesPrompt(): unknown {
+    let guideSrc = `https://${window.location.host.split(':')[0]}:${window.location.port
+      }/application/?action=help_27`;
+    return {
+      unconnected: {
+        prompt: `未连接，请启动本地扩展程序再试！[</span style="cursor: pointer;"><a href=${guideSrc} style="color: blue;" target="_blank">指导</a><span>]`
+      },// 重连
+      connected: {
+        prompt: '扩展程序连接中，请稍后再试'
+      }, // 中间
+      logined: {
+        prompt: '扩展程序连接中，请稍后再试'
+      }, // 中间
+      loginFailedByLackSession: {
+        prompt: '当前所有会话都在使用中，请释放一些会话再试！'
+      }, // 重连
+      upgrading: {
+        prompt: '扩展程序连接中，请稍后再试！'
+      }, // 中间
+      upgradeSuccess: {
+        prompt: '扩展程序已完成升级，重启中，请稍后再试！'
+      }, // 重连
+      upgradeFailed: {
+        prompt: '刷新页面触发升级，或卸载扩展程序重装！'
+      },// 重连
+    }
+  }
+
+  webSocketCallBackasync = (cmd: number, result: Uint8Array): void => {
+    const decoder = new TextDecoder();
+    const jsonString = decoder.decode(result);
+    let jsonRes = JSON.parse(jsonString);
+    if (cmd === TypeConstants.USB_SN_CMD) {
+      this.hdcList = jsonRes.resultMessage;
+      HdcDeviceManager.findDevice().then((usbDevices): void => {
+        SpRecordTrace.serialNumber = usbDevices.serialNumber;
+        // let serialNum = jsonRes.resultMessage;
+        this.usbSerialNum = jsonRes.resultMessage;
+        let optionNum = 0;
+        if (this.usbSerialNum.length === 1 && this.usbSerialNum[0].includes('Empty')) {
+          this.usbSerialNum.shift();
+          this.recordButton!.hidden = true;
+          this.disconnectButton!.hidden = true;
+          this.devicePrompt!.innerText = 'Device not connected';
+          this.deviceSelect!.style!.border = '2px solid red';
+          setTimeout(() => {
+            this.deviceSelect!.style!.border = '1px solid #4D4D4D';
+          }, 3000);
+          this.useExtentTip!.style.display = 'block';
+          this.useExtentTip!.innerHTML = '手机连接有问题，请重新插拔一下手机，或者请使用系统管理员权限打开cmd窗口，并执行hdc shell';
+          return;
+        }
+        // @ts-ignore
+        while (this.deviceSelect!.firstChild) {
+          this.deviceSelect!.removeChild(this.deviceSelect!.firstChild); // 删除子节点
+        }
+        for (let len = 0; len < this.usbSerialNum.length; len++) {
+          let dev = this.usbSerialNum[len];
+          let option = document.createElement('option');
+          option.className = 'select';
+          optionNum++;
+          // @ts-ignore
+          option.value = dev;
+          // @ts-ignore
+          option.textContent = dev.toString();
+          this.deviceSelect!.appendChild(option);
+          if (dev.toString() === SpRecordTrace.serialNumber) {
+            option.selected = true;
+            this.recordButton!.hidden = false;
+            this.disconnectButton!.hidden = false;
+            this.devicePrompt!.innerText = '';
+            this.hintEl!.textContent = '';
+            // @ts-ignore
+            WebSocketManager.getInstance()!.sendMessage(TypeConstants.USB_TYPE, TypeConstants.USB_GET_VERSION, new TextEncoder().encode(dev));
+            setTimeout(() => {
+              if (SpRecordTrace.usbGetVersion) {
+                SpRecordTrace.selectVersion = this.getDeviceVersion(SpRecordTrace.usbGetVersion);
+                this.setDeviceVersionSelect(SpRecordTrace.selectVersion);
+                this.nativeMemoryHideBySelectVersion();
+              }
+            }, 1000);
+          }
+        }
+        if (!optionNum) {
+          this.deviceSelect!.style!.border = '2px solid red';
+          setTimeout(() => {
+            this.deviceSelect!.style!.border = '1px solid #4D4D4D';
+          }, 3000);
+          this.recordButton!.hidden = true;
+          this.disconnectButton!.hidden = true;
+          this.devicePrompt!.innerText = 'Device not connected';
+          this.useExtentTip!.style.display = 'block';
+          this.useExtentTip!.innerHTML = '手机连接有问题，请重新插拔一下手机，或者请使用系统管理员权限打开cmd窗口，并执行hdc shell';
+        }
+      });
+    } else if (cmd === TypeConstants.USB_GET_PROCESS) {
+      // @ts-ignore
+      SpRecordTrace.allProcessListStr = jsonRes.resultMessage;
+    } else if (cmd === TypeConstants.USB_GET_CPU_COUNT) {
+      SpRecordTrace.usbGetCpuCount = jsonRes.resultMessage;
+    } else if (cmd === TypeConstants.USB_GET_EVENT) {
+      SpRecordTrace.usbGetEvent = jsonRes.resultMessage;
+    } else if (cmd === TypeConstants.USB_GET_APP) {
+      SpRecordTrace.usbGetApp = jsonRes.resultMessage;
+    } else if (cmd === TypeConstants.USB_GET_VERSION) {
+      SpRecordTrace.usbGetVersion = jsonRes.resultMessage;
+    }
+  }
 
   deviceSelectMouseDownEvent = (evt: MouseEvent): void => {
     if (this.deviceSelect!.options.length === 0) {
@@ -522,6 +802,14 @@ export class SpRecordTrace extends BaseElement {
       this.disconnectButton!.hidden = true;
       this.devicePrompt!.innerText = 'Device not connected';
     }
+
+    if (SpRecordTrace.useExtend) {
+      let deviceItem = this.deviceSelect!.options[this.deviceSelect!.selectedIndex];
+      let value = deviceItem.value;
+      SpRecordTrace.serialNumber = value;
+      return;
+    }
+
     let deviceItem = this.deviceSelect!.options[this.deviceSelect!.selectedIndex];
     let value = deviceItem.value;
     SpRecordTrace.serialNumber = value;
@@ -576,7 +864,7 @@ export class SpRecordTrace extends BaseElement {
   };
 
   disconnectButtonClickEvent = (): void => {
-    // --------------我修改的
+    this.setDeviceVersionSelect('unknown')
     let index = this.deviceSelect!.selectedIndex;
     if (index !== -1 && this.deviceSelect!.options.length > 0) {
       for (let i = 0; i < this.deviceSelect!.options.length; i++) {
@@ -627,7 +915,7 @@ export class SpRecordTrace extends BaseElement {
     this.spWebShell = new SpWebHdcShell();
     this.spRecordTemplate = new SpRecordTemplate(this);
     this.appContent = this.shadowRoot?.querySelector('#app-content') as HTMLElement;
-    if (this.record_template) {
+    if (this.record_template === 'true') {
       this.appContent.append(this.spRecordTemplate);
     } else {
       this.appContent.append(this.recordSetting);
@@ -645,10 +933,24 @@ export class SpRecordTrace extends BaseElement {
     }
   }
 
+  reConfigPage() {
+    this.appContent = this.shadowRoot?.querySelector('#app-content') as HTMLElement;
+    this.appContent.innerHTML = '';
+    this._menuItems = [];
+    if (this.record_template === 'true') {
+      this.appContent.append(this.spRecordTemplate!);
+      this.buildTemplateTraceItem();
+    } else {
+      this.appContent.append(this.recordSetting!);
+      this.buildNormalTraceItem();
+    }
+    this.initMenuItems();
+  }
+
   private nativeMemoryHideBySelectVersion(): void {
     let divConfigs = this.spAllocations?.shadowRoot?.querySelectorAll<HTMLDivElement>('.version-controller');
     if (divConfigs) {
-      if (SpRecordTrace.selectVersion !== '3.2') {
+      if (SpRecordTrace.selectVersion !== '3.2' && SpRecordTrace.selectVersion !== 'unknown') {
         for (let divConfig of divConfigs) {
           divConfig!.style.zIndex = '1';
         }
@@ -669,11 +971,11 @@ export class SpRecordTrace extends BaseElement {
     SpRecordTrace.supportVersions.forEach((supportVersion) => {
       let option = document.createElement('option');
       option.className = 'select';
-      option.selected = supportVersion === '4.0+';
-      option.textContent = `OpenHarmony-${supportVersion}`;
+      option.selected = supportVersion === 'unknown';
+      option.textContent = supportVersion === 'unknown' ? 'unknown' : `OpenHarmony-${supportVersion}`;
       option.setAttribute('device-version', supportVersion);
       this.deviceVersion!.append(option);
-      SpRecordTrace.selectVersion = '4.0+';
+      SpRecordTrace.selectVersion = 'unknown';
       this.nativeMemoryHideBySelectVersion();
     });
   }
@@ -771,6 +1073,7 @@ export class SpRecordTrace extends BaseElement {
   }
 
   private initMenuItems(): void {
+    this.menuGroup!.innerHTML = '';
     this._menuItems?.forEach((item): void => {
       let th = new LitMainMenuItem();
       th.setAttribute('icon', item.icon || '');
@@ -786,17 +1089,16 @@ export class SpRecordTrace extends BaseElement {
           item.clickHandler(item);
         }
       });
-      if (item.title === 'Ark Ts') {
-        this.MenuItemArkts = item;
-        this.MenuItemArktsHtml = th;
-      } else if (item.title === 'eBPF Config') {
-        this.MenuItemEbpf = item;
-        this.MenuItemEbpfHtml = th;
+      if (item.title === 'eBPF Config') {
+        if (th && item) {//ebpf开关置灰不能点击
+          th.style.color = 'gray';
+          th.disabled = true;
+          if (item.clickHandler) {
+            item.clickHandler = undefined;
+          }
+        }
       }
       this.menuGroup!.appendChild(th);
-      if (item.title === 'Ark Ts') { 
-        this.menuGroup!.removeChild(th);
-      }
     });
   }
 
@@ -901,7 +1203,7 @@ export class SpRecordTrace extends BaseElement {
       this.buildMenuItem('Ark Ts', 'file-config', this.spArkTs!),
       this.buildMenuItem('FFRT', 'file-config', this.spFFRTConfig!),
       this.buildMenuItem('Hilog', 'realIntentionBulb', this.spHiLog!),
-      this.buildMenuItem('Xpower', 'externaltools', this.spXPower!), 
+      this.buildMenuItem('Xpower', 'externaltools', this.spXPower!),
     ];
   }
 
@@ -1048,12 +1350,23 @@ export class SpRecordTrace extends BaseElement {
   recordButtonListener(): void {
     SpRecordTrace.cancelRecord = false;
     let request = this.makeRequest();
-    this.showHint = true;
-    if (request.pluginConfigs.length === 0) {
-      this.hintEl!.textContent = "It looks like you didn't add any probes. Please add at least one";
+    let isRecordArkTs = (this.spArkTs!.isStartArkts && this.spArkTs!.process.trim() !== '') ? true : false;
+    if (request.pluginConfigs.length === 0 && !isRecordArkTs) {
+      this.useExtentTip!.style.display = 'block';
+      this.useExtentTip!.innerHTML = "It looks like you didn't add any probes. Please add at least one";
       return;
     }
-    this.showHint = false;
+    this.useExtentTip!.style.display = 'none';
+    this.useExtentTip!.innerHTML = '';
+    if (SpRecordTrace.useExtend) {
+      this.recordButton!.hidden = true;
+      this.buttonDisable(true, true);
+      this.freshMenuDisable(true);
+      this.freshConfigMenuDisable(true);
+      this.recordPluginFunc();
+      return;
+    }
+
     let traceCommandStr = PluginConvertUtils.createHdcCmd(
       PluginConvertUtils.BeanToCmdTxt(request, false),
       this.recordSetting!.output,
@@ -1377,9 +1690,9 @@ export class SpRecordTrace extends BaseElement {
     }
   }
 
-  private makeRequest = (): CreateSessionRequest => {
+  private makeRequest = (isCreateArkTsConfig = true): CreateSessionRequest => {
     let request = createSessionRequest(this.recordSetting!);
-    if (this.record_template) {
+    if (this.record_template === 'true') {
       let templateConfigs = this.spRecordTemplate?.getTemplateConfig();
       templateConfigs?.forEach((config) => {
         request.pluginConfigs.push(config);
@@ -1403,7 +1716,9 @@ export class SpRecordTrace extends BaseElement {
       createSystemConfig(this.spFileSystem!, this.recordSetting!, request);
       createSdkConfig(this.spSdkConfig!, request);
       createHiSystemEventPluginConfig(this.spHiSysEvent!, request);
-      createArkTsConfig(this.spArkTs!, this.recordSetting!, request);
+      if (isCreateArkTsConfig) {
+        createArkTsConfig(this.spArkTs!, this.recordSetting!, request);
+      }
       createHiLogConfig(reportingFrequency, this.spHiLog!, request);
       createFFRTPluginConfig(this.spFFRTConfig!, SpRecordTrace.selectVersion, request);
       createXPowerConfig(this.spXPower!, request);
@@ -1441,18 +1756,23 @@ export class SpRecordTrace extends BaseElement {
     this.recordButton!.style.pointerEvents = disable ? 'none' : 'auto';
   }
 
-  private buttonDisable(disable: boolean): void {
+  private buttonDisable(disable: boolean, isUseExtend = false): void {
     let pointerEventValue = 'auto';
     this.recordButtonText!.textContent = this.record;
     if (disable) {
       pointerEventValue = 'none';
-      this.recordButtonText!.textContent = this.stop;
+      if (!isUseExtend) {
+        this.recordButtonText!.textContent = this.stop;
+      }
     }
-    this.cancelButtonShow(disable);
+    if (!isUseExtend) {
+      this.cancelButtonShow(disable);
+    }
     this.disconnectButton!.style.pointerEvents = pointerEventValue;
     this.addButton!.style.pointerEvents = pointerEventValue;
     this.deviceSelect!.style.pointerEvents = pointerEventValue;
     this.deviceVersion!.style.pointerEvents = pointerEventValue;
+    this.useExtendCheck!.style.pointerEvents = pointerEventValue;// arkts trace 
   }
 
   private freshMenuItemsStatus(currentValue: string): void {
@@ -1468,14 +1788,16 @@ export class SpRecordTrace extends BaseElement {
     if (SpRecordTrace.serialNumber !== '') {
       for (let i = 0; i < this.hdcList.length; i++) {
         let dev = this.hdcList[i];
+        // @ts-ignore
+        let serialNumber = typeof (dev) === 'string' ? dev : dev.serialNumber;
         let option = document.createElement('option');
         option.className = 'select';
         //@ts-ignore
-        option.selected = dev.serialNumber === SpRecordTrace.serialNumber;
+        option.selected = serialNumber === SpRecordTrace.serialNumber;
         //@ts-ignore
-        option.value = dev.serialNumber;
+        option.value = serialNumber;
         //@ts-ignore
-        option.textContent = dev.serialNumber;
+        option.textContent = serialNumber;
         this.deviceSelect!.appendChild(option);
         this.recordButton!.hidden = false;
         this.disconnectButton!.hidden = false;

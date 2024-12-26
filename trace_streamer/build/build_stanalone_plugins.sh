@@ -24,7 +24,7 @@ function check_plugin_true() {
 function enable_plugin() {
     check_params $1
     set_enable_plugin_array "false"
-    read -ra plugins <<< "$1"
+    IFS=',' read -ra plugins <<< "$1"
     local flag='false'
     for plugin in "${plugins[@]}"; do
         for enable_plugin in "${enable_plugin_array[@]}"; do
@@ -54,6 +54,24 @@ function enable_extend_plugin() {
         done
         check_plugin_true $flag_extend $plugin
         flag_extend="false"
+    done
+}
+
+function enable_macro() {
+    check_params $1
+    set_enable_macro_switch_array "false"
+    IFS=',' read -ra macro_switchs <<< "$1"
+    local flag='false'
+    for macro_switch in "${macro_switchs[@]}"; do
+        for enable_macro_switch in "${enable_macro_switch_array[@]}"; do
+            if [[ "$enable_macro_switch" == *"$macro_switch"* ]]; then
+                eval "$enable_macro_switch=\"true\""
+                echo "$enable_macro_switch=${!enable_macro_switch}"
+                flag="true"
+            fi
+        done
+        check_plugin_true $flag $macro_switch
+        flag="false"
     done
 }
 

@@ -20,6 +20,7 @@ if (is_test) {
   ohos_unittest("trace_streamer_ut") {
     sources = [
       "unittest/base/export_test.cpp",  # Don't comment, for common method
+      "unittest/base/file_test.cpp",
       "unittest/ebpf/bio_parser_test.cpp",
       "unittest/ebpf/ebpf_file_system_test.cpp",
       "unittest/ebpf/ebpf_parser_test.cpp",
@@ -59,6 +60,7 @@ if (is_test) {
       "unittest/pbreader_parser/pbreader_process_parser_test.cpp",
       "unittest/pbreader_parser/pbreader_sys_mem_parser_test.cpp",
       "unittest/pbreader_parser/pbreader_sys_vmem_parser_test.cpp",
+      "unittest/pbreader_parser/pbreader_xpower_parser_test.cpp",
       "unittest/pbreader_parser/smaps_parser_test.cpp",
       "unittest/ptreader_parser/event_parser_test.cpp",
       "unittest/ptreader_parser/ptreader_parser_test.cpp",
@@ -87,6 +89,7 @@ if (is_test) {
       "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/network_data:ts_network_data_cpp",
       "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/process_data:ts_process_data_cpp",
       "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/test_data:test_data_cpp",
+      "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/xpower_data:ts_xpower_data_cpp",
       "${SRC}/parser/rawtrace_parser:rawtrace_parser",
       "${THIRD_PARTY}/bounds_checking_function:libsec_static",
       "${THIRD_PARTY}/googletest:gtest",
@@ -174,6 +177,7 @@ if (is_test) {
       "-limited-coverage-experimental=true",
       "-fno-use-cxa-atexit",
       "-DIS_UT",
+      "-DIS_WASM",
     ]
     if (is_mac) {
       lib_dirs = [ "/usr/local/opt/llvm/lib" ]

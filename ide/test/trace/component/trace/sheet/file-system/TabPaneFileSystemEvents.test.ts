@@ -19,6 +19,9 @@ import { TabPaneFileSystemEvents } from '../../../../../../src/trace/component/t
 import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 import crypto from 'crypto';
 import { TabPaneFilter } from '../../../../../../src/trace/component/trace/sheet/TabPaneFilter';
+jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {
+    return {};
+});
 // @ts-ignore
 window.ResizeObserver =
   window.ResizeObserver ||

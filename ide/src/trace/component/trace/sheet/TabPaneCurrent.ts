@@ -210,7 +210,6 @@ export class TabPaneCurrent extends BaseElement {
       tr[i].querySelector<HTMLInputElement>('#text-input')!.value = this.slicesTimeList[i - 1].text;
       // //  点击色块修改颜色
       tr[i].querySelector('#text-input')?.addEventListener('keyup', (event: unknown) => {
-        SpSystemTrace.isKeyUp = true;
         if (
           // @ts-ignore
           this.tableDataSource[i].startTime === this.slicesTimeList[i - 1].startTime &&

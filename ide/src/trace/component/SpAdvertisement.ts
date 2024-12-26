@@ -54,9 +54,11 @@ export class SpAdvertisement extends BaseElement {
                         this.message = resp.data.data;
                         localStorage.setItem('message', this.message);
                         let parts = this.message.split(';');
-                        let linkInfo = parts[2].match(/链接:([^\s]+)/)![1] || '';
-                        let link = `<a href="${linkInfo}" target="_blank">${parts[1]}</a>`;
-                        let finalString = `${parts[0]}<br>${link}`;
+                        let registrationLinkInfo = (parts[2].match(/报名链接:([^\s]+)/) || [])[1] || '';
+                        let onlineMeetingLinkInfo = (parts[3].match(/线上会议链接:([^\s]+)/) || [])[1] || '';
+                        let registrationLink = `<a href="${registrationLinkInfo}" target="_blank">报名链接</a>`;
+                        let onlineMeetingLink = `<a href="${onlineMeetingLinkInfo}" target="_blank">线上会议链接</a>`;
+                        let finalString = `${parts[0]}<br>${parts[1]}<br>${registrationLink} &nbsp; ${onlineMeetingLink}<br>${parts[4]}`;
                         this.noticeEl!.innerHTML = `<p>${finalString}</p>`;
                         if (publish) {
                             if (resp.data.data !== publish) {

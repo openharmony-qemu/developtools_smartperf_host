@@ -196,3 +196,8 @@ export function initSort(table: LitTable, sortKey: string, sortType: number, fil
     });
   }
 }
+
+export class SortDetail {
+    sort: number = 0;
+    key: string = '';
+}

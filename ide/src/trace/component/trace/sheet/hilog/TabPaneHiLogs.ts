@@ -281,15 +281,6 @@ export class TabPaneHiLogs extends BaseElement {
         tagElement.append(tag);
         tagElement.append(closeButton);
         this.tagFilterDiv!.append(tagElement);
-        this.tagFilterInput!.value = '';
-        this.tagFilterInput!.placeholder = 'Filter by tag...';
-      }
-    } else if (e.key === 'Backspace') {
-      let index = this.tagFilterDiv!.childNodes.length - defaultIndex;
-      if (index >= 0 && inputValue === '') {
-        let childNode = this.tagFilterDiv!.childNodes[index];
-        this.tagFilterDiv!.removeChild(childNode);
-        this.allowTag.delete(childNode.textContent!.trim().toLowerCase());
       }
     }
     this.tableTimeHandle?.();
@@ -314,18 +305,35 @@ export class TabPaneHiLogs extends BaseElement {
   private isFilterLog(data: LogStruct): boolean {
     let level = this.levelFilterInput?.selectedIndex || 0;
     let search = this.searchFilterInput?.value.toLowerCase() || '';
+    let tagData = this.tagFilterInput?.value.toLowerCase() || '';
+    tagData = tagData.replace(/\s/g, '');
     search = search.replace(/\s/g, '');
     let processSearch = this.processFilter?.value.toLowerCase() || '';
     processSearch = processSearch.replace(/\s/g, '');
+     // @ts-ignore
     return (
       (data.startTs || 0) >= TraceRow.range!.startNS &&
       (data.startTs || 0) <= TraceRow.range!.endNS &&
       (level === 0 || this.optionLevel.indexOf(data.level!) >= level) &&
-      (this.allowTag.size === 0 || this.allowTag.has(data.tag!.toLowerCase())) &&
+      (this.allowTag.size === 0 || this.filterTag(data.tag!.toLowerCase().replace(/\s/g, ''))) &&
       (search === '' || data.context!.toLowerCase().replace(/\s/g, '').indexOf(search) >= 0) &&
       (processSearch === '' ||
         (data.processName !== null && data.processName!.toLowerCase().replace(/\s/g, '').indexOf(processSearch) >= 0))
     );
+  }
+
+  // 模糊过滤tag
+  private filterTag(tagAllName:unknown){
+    if(this.allowTag.size === 0){
+      return;
+    }
+    for (const value of this.allowTag) {
+      // @ts-ignore
+      if(tagAllName.indexOf(value) >= 0){
+        return true;
+      }
+    }
+      return false;
   }
 
   private refreshTable(): void {

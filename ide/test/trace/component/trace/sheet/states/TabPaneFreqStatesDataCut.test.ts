@@ -186,9 +186,9 @@ describe('TabPaneFreqStatesDataCut Test', () => {
   });
   it('TabPaneFreqStatesDataCutTest02', () => {
     let filterState = [
-      {pid: 1, state: 'R'},
-      {pid: 2, state: 'D'},
-      {pid: 1, state: 'Running'},
+      {pid: 1, state: 'R', dur:0},
+      {pid: 2, state: 'D', dur:0},
+      {pid: 1, state: 'Running', dur:0},
     ];
     tabPaneFreqStatesDataCut.currentSelectionParam = {
       rightNs: 1000,

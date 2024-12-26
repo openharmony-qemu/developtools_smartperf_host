@@ -48,6 +48,7 @@ config("parser_base_cfg") {
     "${SRC}/trace_data/trace_stdtype/hisysevent",
     "${SRC}/trace_data/trace_stdtype/htrace",
     "${SRC}/trace_data/trace_stdtype/measure",
+    "${SRC}/trace_data/trace_stdtype/xpower",
   ]
   if (!is_independent_compile) {
     configs = [ "${TS_DIR}/gn:ts_config" ]

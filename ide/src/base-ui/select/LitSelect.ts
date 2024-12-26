@@ -459,6 +459,13 @@ export class LitSelect extends BaseElement {
       if (this.hasAttribute('disabled')) {
         return;
       }
+      // @ts-ignore
+      if (this.selectInputEl.value.length > 0) {
+        // @ts-ignore
+        this.selectInputEl.placeholder = this.selectInputEl.value;
+        // @ts-ignore
+        this.selectInputEl.value = '';
+      }
       if (this.hasAttribute('show-search')) {
         // @ts-ignore
         this.selectSearchEl.style.display = 'flex'; // @ts-ignore
@@ -475,57 +482,57 @@ export class LitSelect extends BaseElement {
     // @ts-ignore
     this.selectInputEl.onkeydown = (ev: KeyboardEvent): void => {
       ev.stopPropagation();
-    if (this.hasAttribute('tabselect')) {
-      // @ts-ignore
-      this.selectInputEl.readOnly = true;
-    } else {
-      // @ts-ignore
-      if (ev.key === 'Backspace') {
-        if (this.isMultiple()) {
-          // @ts-ignore
-          let tag = this.selectMultipleRootEl.lastElementChild.previousElementSibling;
-          if (tag) {
-            this.querySelector(`lit-select-option[value=${tag.value}]`)?.removeAttribute('selected');
-            tag.remove();
-            if (this.shadowRoot!.querySelectorAll('.tag').length === 0) {
-              // @ts-ignore
-              this.selectInputEl.style.width = 'auto'; // @ts-ignore
-              this.selectInputEl.placeholder = this.defaultPlaceholder;
-            }
-          }
-        } else {
-          this.clear();
-          this.dispatchEvent(new CustomEvent('onClear', { detail: ev })); //向外派发清理事件
-        } // @ts-ignore
-      } else if (ev.key === 'Enter') {
-        if (!this.canInsert) {
-          let filter = [...this.querySelectorAll('lit-select-option')].filter(
-            // @ts-ignore
-            (a: unknown) => a.style.display !== 'none'
-          );
-          if (filter.length > 0) {
-            // @ts-ignore
-            this.selectInputEl.value = filter[0].textContent; // @ts-ignore
-            this.selectInputEl.placeholder = filter[0].textContent;
-            this.blur();
-            // @ts-ignore
-            this.value = filter[0].getAttribute('value');
-            this.dispatchEvent(
-              new CustomEvent('change', {
-                detail: {
-                  selected: true,
-                  value: filter[0].getAttribute('value'),
-                  text: filter[0].textContent,
-                },
-              })
-            );
-          }
-        }// @ts-ignore
-      } else if (ev.key === '0' && ev.target.value.length === 1 && ev.target.value === '0') {
+      if (this.hasAttribute('tabselect')) {
         // @ts-ignore
-        ev.preventDefault();
+        this.selectInputEl.readOnly = true;
+      } else {
+        // @ts-ignore
+        if (ev.key === 'Backspace') {
+          if (this.isMultiple()) {
+            // @ts-ignore
+            let tag = this.selectMultipleRootEl.lastElementChild.previousElementSibling;
+            if (tag) {
+              this.querySelector(`lit-select-option[value=${tag.value}]`)?.removeAttribute('selected');
+              tag.remove();
+              if (this.shadowRoot!.querySelectorAll('.tag').length === 0) {
+                // @ts-ignore
+                this.selectInputEl.style.width = 'auto'; // @ts-ignore
+                this.selectInputEl.placeholder = this.defaultPlaceholder;
+              }
+            }
+          } else {
+            this.clear();
+            this.dispatchEvent(new CustomEvent('onClear', { detail: ev })); //向外派发清理事件
+          } // @ts-ignore
+        } else if (ev.key === 'Enter') {
+          if (!this.canInsert) {
+            let filter = [...this.querySelectorAll('lit-select-option')].filter(
+              // @ts-ignore
+              (a: unknown) => a.style.display !== 'none'
+            );
+            if (filter.length > 0) {
+              // @ts-ignore
+              this.selectInputEl.value = filter[0].textContent; // @ts-ignore
+              this.selectInputEl.placeholder = filter[0].textContent;
+              this.blur();
+              // @ts-ignore
+              this.value = filter[0].getAttribute('value');
+              this.dispatchEvent(
+                new CustomEvent('change', {
+                  detail: {
+                    selected: true,
+                    value: filter[0].getAttribute('value'),
+                    text: filter[0].textContent,
+                  },
+                })
+              );
+            }
+          }// @ts-ignore
+        } else if (ev.key === '0' && ev.target.value.length === 1 && ev.target.value === '0') {
+          // @ts-ignore
+          ev.preventDefault();
+        }
       }
-    }
     };
   }
 

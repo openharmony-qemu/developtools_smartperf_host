@@ -116,7 +116,7 @@ describe('TabPaneFreqDataCut Test', () => {
     ];
     tabPaneFreqDataCut.mergeTotalData(threadArr, totalData);
     expect(threadArr).toEqual([
-      {pid: 1, tid: 1, children: [{pid: 1, tid: 1, thread: 'TotalData'}]},
+      {pid: 1, tid: 1, children: [{pid: 1, tid: 1, thread: 'TotalData', flag: "t_cycle"}]},
       {pid: 2, tid: 2, children: []},
     ]);
   });

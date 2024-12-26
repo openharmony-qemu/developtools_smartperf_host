@@ -89,12 +89,16 @@ export class LitTable extends HTMLElement {
     ];
   }
 
+  get slotArr(): Array<Element> {
+    return this.st!.assignedElements()
+  }
+
   set mode(mode: TableMode) {
     this._mode = mode;
   }
 
   set loading(value: boolean) {
-    this.exportProgress!.loading = value;
+    this.exportProgress && (this.exportProgress.loading = value);
   }
 
   get hideDownload(): boolean {

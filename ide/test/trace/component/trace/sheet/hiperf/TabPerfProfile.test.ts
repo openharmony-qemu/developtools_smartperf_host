@@ -19,6 +19,18 @@ import { showButtonMenu } from '../../../../../../src/trace/component/trace/shee
 jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
+jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {
+    return {};
+});
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+    return {};
+});
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+    return {};
+});
+jest.mock('../../../../../../src/trace/component/SpSystemTrace', () => {
+    return {};
+});
 // @ts-ignore
 window.ResizeObserver =
   window.ResizeObserver ||

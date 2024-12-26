@@ -19,6 +19,10 @@ jest.mock('../../../../src/trace/component/SpSystemTrace', () => {
 });
 import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
 import { FlagsConfig } from '../../../../src/trace/component/SpFlags';
+import { JanksStruct } from '../../../../src/trace/bean/JanksStruct';
+import { BaseStruct } from '../../../../src/trace/bean/BaseStruct';
+import { FrameDynamicStruct } from '../../../../src/trace/database/ui-worker/ProcedureWorkerFrameDynamic';
+import { FrameSpacingStruct } from '../../../../src/trace/database/ui-worker/ProcedureWorkerFrameSpacing';
 
 const intersectionObserverMock = () => ({
   observe: () => null,
@@ -44,7 +48,6 @@ window.ResizeObserver =
     observe: jest.fn(),
     unobserve: jest.fn(),
   }));
-
 describe('SpFrameTimeChart Test', () => {
   let htmlElement: any = document.createElement('sp-system-trace');
   let spFrameTimeChart = new SpFrameTimeChart(htmlElement);
@@ -98,7 +101,7 @@ describe('SpFrameTimeChart Test', () => {
 
   let frameAnimation = sqlite.queryFrameAnimationData;
   let frameAnimationData = [
-    {animationId: 1, dynamicEndTs: 4774481414, dynamicStartTs: 4091445476, ts: 4091445476},
+    { animationId: 1, dynamicEndTs: 4774481414, dynamicStartTs: 4091445476, ts: 4091445476 },
     {
       animationId: 2,
       dynamicEndTs: 8325095997,
@@ -113,8 +116,8 @@ describe('SpFrameTimeChart Test', () => {
     {
       id: 12,
       name: 'test name',
-      pid: 255
-    }
+      pid: 255,
+    },
   ];
   allProcessNames.mockResolvedValue(allProcessNameData);
 
@@ -122,8 +125,8 @@ describe('SpFrameTimeChart Test', () => {
   let data = [
     {
       id: 12,
-      appName: 'name'
-    }
+      appName: 'name',
+    },
   ];
   dynamicIdAndName.mockResolvedValue(data);
 
@@ -132,25 +135,24 @@ describe('SpFrameTimeChart Test', () => {
     {
       status: 'Response delay',
       startTs: 225,
-      endTs: 6355
-    }
+      endTs: 6355,
+    },
   ];
   animationTimeRange.mockResolvedValue(rangeData);
-
 
   let animationIdAndName = sqlite.queryAnimationIdAndNameData;
   let animationIdAndNameData = [
     {
       id: 12,
       name: 'test',
-      info: '{}'
-    }
+      info: '{}',
+    },
   ];
   animationIdAndName.mockResolvedValue(animationIdAndNameData);
 
   let frameDynamic = sqlite.queryFrameDynamicData;
   let frameDynamicData = [
-    {alpha: '1.00', appName: 'test0', height: 2772, id: 74, ts: 28565790, width: 1344, x: 0, y: 0},
+    { alpha: '1.00', appName: 'test0', height: 2772, id: 74, ts: 28565790, width: 1344, x: 0, y: 0 },
     {
       alpha: '1.00',
       appName: 'test0',
@@ -196,8 +198,9 @@ describe('SpFrameTimeChart Test', () => {
   frameSpacing.mockResolvedValue(frameSpacingData);
 
   let physical = sqlite.queryPhysicalData;
-  let physicalData = [{physicalFrameRate: 90, physicalHeight: 2772, physicalWidth: 1344}];
+  let physicalData = [{ physicalFrameRate: 90, physicalHeight: 2772, physicalWidth: 1344 }];
   physical.mockResolvedValue(physicalData);
+  let traceRow = new TraceRow<JanksStruct>();
 
   it('TabPaneFramesTest01', function () {
     expect(spFrameTimeChart.init()).toBeTruthy();
@@ -211,6 +214,7 @@ describe('SpFrameTimeChart Test', () => {
         pid: 1,
         processName: 'render_service',
       },
+      TraceRow.skeleton(),
       TraceRow.skeleton()
     );
   });
@@ -219,5 +223,30 @@ describe('SpFrameTimeChart Test', () => {
   });
   it('TabPaneFramesTest04', function () {
     expect(spFrameTimeChart.frameExpandTimeOut()).toBeTruthy();
+  });
+  it('TabPaneFramesTest05', function () {
+    expect(spFrameTimeChart.expectedChartSupplierFrame(traceRow)).toBeUndefined();
+  });
+  it('TabPaneFramesTest06', function () {
+    expect(spFrameTimeChart.actualChartSupplierFrame(traceRow)).toBeUndefined();
+  });
+  it('TabPaneFramesTest07', function () {
+    let traceRow = new TraceRow<FrameDynamicStruct>();
+    expect(spFrameTimeChart.dynamicCurveChartThreadHandler(traceRow, [])).toBeUndefined();
+  });
+  it('TabPaneFramesTest08', function () {
+    let traceRow = new TraceRow<FrameSpacingStruct>();
+    expect(spFrameTimeChart.FrameSpacingThreadHandler(traceRow, [], 10)).toBeUndefined();
+  });
+  it('TabPaneFramesTest09', function () {
+    let traceRow = new TraceRow<BaseStruct>();
+    let systemConfigList = [{ name: 'config1' }];
+    expect(spFrameTimeChart.addSystemConfigButton(traceRow, systemConfigList, 'configName', true)).toBeUndefined();
+  });
+  it('TabPaneFramesTest10', function () {
+    expect(spFrameTimeChart.actualChartSupplierFrame(traceRow)).toBeUndefined();
+  });
+  it('TabPaneFramesTest11', function () {
+    expect(spFrameTimeChart.actualChartSupplierFrame(traceRow)).toBeUndefined();
   });
 });

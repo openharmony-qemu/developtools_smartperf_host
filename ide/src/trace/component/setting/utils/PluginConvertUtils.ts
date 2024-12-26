@@ -230,7 +230,7 @@ export class PluginConvertUtils {
         //@ts-ignore
       }: ${arrValue.toString()}${this.crlf}`;
       //@ts-ignore
-    } else if (arrValue.startsWith('REAL_BATTERY') || arrValue.startsWith('THERMAL_REPORT')) { 
+    } else if (messageTypeAll.some(type => arrValue.startsWith(type))) {
       text = `${text + ' '.repeat(spacesNumber).repeat(indentation + 1) + this.humpToSnake(key)
         //@ts-ignore
         }: ${arrValue.toString()}${this.crlf}`;
@@ -295,3 +295,10 @@ export const ffrtEnumList: string[] = ['BOOTTIME', 'REALTIME', 'REALTIME_COARSE'
   'MONOTONIC_COARSE', 'MONOTONIC_RAW'];
 
 const configEnumList: string[] = [...LevelConfigEnumList, ...ffrtEnumList];
+
+export const realBattery =  'REAL_BATTERY';
+export const thermalReport =  'THERMAL_REPORT';
+export const componentTop = 'COMPONENT_TOP';
+export const appStatistic = 'APP_STATISTIC';
+export const appDetail = 'APP_DETAIL';
+export const messageTypeAll = [realBattery, thermalReport, componentTop, appStatistic, appDetail];

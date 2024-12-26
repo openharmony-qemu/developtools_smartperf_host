@@ -38,6 +38,7 @@ window.ResizeObserver =
   }));
 
 describe('RangeRuler Test', () => {
+  global.Worker = jest.fn();
   const canvas = document.createElement('canvas');
   canvas.width = 1;
   canvas.height = 1;

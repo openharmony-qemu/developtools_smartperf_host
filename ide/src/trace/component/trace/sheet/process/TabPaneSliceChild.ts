@@ -18,7 +18,7 @@ import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionData, SelectionParam, SliceBoxJumpParam } from '../../../../bean/BoxSelection';
 import { Utils } from '../../base/Utils';
 import { resizeObserver } from '../SheetUtils';
-import { getTabDetails, getGhDetails, getSfDetails } from '../../../../database/sql/Func.sql';
+import { getTabDetails, getGhDetails, getSfDetails, getParentDetail, getFuncChildren } from '../../../../database/sql/Func.sql';
 
 @element('box-slice-child')
 export class TabPaneSliceChild extends BaseElement {
@@ -120,14 +120,46 @@ export class TabPaneSliceChild extends BaseElement {
       return promises;
     };
     this.sliceChildTbl!.loading = true;
-    Promise.all([result1(), result2(), result3()]).then(res => {
+    Promise.all([result1(), result2(), result3()]).then(async res => {
       this.sliceChildTbl!.loading = false;
       let result: unknown = (res[0] || []).concat(res[1] || []).concat(res[2] || []);
       this.sliceChildTbl!.loading = false;
       // @ts-ignore
       if (result.length !== null && result.length > 0) {
+        let funcIdArr: Array<number> = [];
+        let minStartTS = Infinity;
+        let maxEndTS = -Infinity;
+        // @ts-ignore
+        let parentDetail: [{ startTS: number, endTS: number, depth: number, id: number, name: string }] = await getParentDetail(val.param.processId, val.param.threadId, val.param.leftNs, val.param.rightNs);
+
+        // @ts-ignore
+        parentDetail.forEach(item => {
+          funcIdArr.push(item.id);
+          if (item.depth === 0) {
+            if (item.startTS < minStartTS) {
+              minStartTS = item.startTS;
+            }
+            if (item.endTS > maxEndTS) {
+              maxEndTS = item.endTS;
+            }
+          }
+        });
+
+        let FuncChildrenList = await getFuncChildren(funcIdArr, val.param.processId, val.param.threadId, minStartTS, maxEndTS, true);
+        let childDurMap = new Map<number, number>();
+        FuncChildrenList.forEach((it: any) => {
+          if (!childDurMap.has(it.parentId)) {
+            childDurMap.set(it.parentId, it.duration);
+          } else {
+            let dur = childDurMap.get(it.parentId)
+            dur += it.duration
+            childDurMap.set(it.parentId, dur!);
+          }
+        });
         // @ts-ignore
         result.map((e: unknown) => {
+          // @ts-ignore
+          e.selfTime = childDurMap.has(e.id) ? (e.duration - childDurMap.get(e.id)) / 1000000 : e.duration / 1000000;
           // @ts-ignore
           e.startTime = Utils.getTimeString(e.startNs);
           // @ts-ignore
@@ -178,6 +210,8 @@ export class TabPaneSliceChild extends BaseElement {
             <lit-table-column order width="1fr" data-index="name" key="name" align="flex-start" title="Name">
             </lit-table-column>
             <lit-table-column order width="1fr" data-index="duration" key="duration" title="duration(ms)" align="flex-start">
+            </lit-table-column>
+            <lit-table-column order width="1fr" data-index="selfTime" key="selfTime" title="selfTime(ms)" align="flex-start">
             </lit-table-column>
         </lit-table>
         `;

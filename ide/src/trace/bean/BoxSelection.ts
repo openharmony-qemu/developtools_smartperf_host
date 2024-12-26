@@ -33,6 +33,9 @@ import { JsCpuProfilerStruct } from '../database/ui-worker/ProcedureWorkerCpuPro
 import { SampleStruct } from '../database/ui-worker/ProcedureWorkerBpftrace';
 import { GpuCounterStruct } from '../database/ui-worker/ProcedureWorkerGpuCounter';
 import { Utils } from '../component/trace/base/Utils';
+import { XpowerStatisticStruct } from '../database/ui-worker/ProcedureWorkerXpowerStatistic';
+import { XpowerThreadInfoStruct } from '../database/ui-worker/ProcedureWorkerXpowerThreadInfo';
+import { THREAD_ENERGY, THREAD_LOAD } from '../component/chart/SpXpowerChart';
 
 export class SelectionParam {
   traceId: string | undefined | null;
@@ -74,6 +77,27 @@ export class SelectionParam {
   string,
   ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined
 >();
+xpowerComponentTopMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map<
+string,
+((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined
+>();
+  xpowerStatisticMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map();
+  xpowerDisplayMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map();
+  xpowerWifiPacketsMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map();
+  xpowerWifiBytesMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map();
+xpowerThreadEnergyMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map<
+string,
+((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined
+>();
+xpowerThreadLoadMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map<
+string,
+((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined
+>();
+xpowerGpuFreqMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map<
+string,
+((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined
+>();
+
   hangMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map();
   irqCallIds: Array<number> = [];
   softIrqCallIds: Array<number> = [];
@@ -1155,7 +1179,7 @@ export class SelectionParam {
 
   // @ts-ignore
   pushXpower(it: TraceRow<unknown>, sp: SpSystemTrace): void {
-    if (it.rowType === TraceRow.ROW_TYPE_XPOWER) { 
+    if (it.rowType === TraceRow.ROW_TYPE_XPOWER) {
       it.childrenList.forEach((it) => {
         it.childrenList.forEach((item) => {
           item.rangeSelect = true;
@@ -1164,7 +1188,7 @@ export class SelectionParam {
         });
       });
     }
-    if (it.rowType === TraceRow.ROW_TYPE_XPOWER_SYSTEM_GROUP) { 
+    if (it.rowType === TraceRow.ROW_TYPE_XPOWER_SYSTEM_GROUP) {
       it.childrenList.forEach((it) => {
         it.rangeSelect = true;
         it.checkType = '2';
@@ -1173,9 +1197,46 @@ export class SelectionParam {
     }
     if (it.rowType === TraceRow.ROW_TYPE_XPOWER_SYSTEM) {
       this.xpowerMapData.set(it.rowId || '', it.getCacheData);
+      if(it.rowId === 'Battery.RealCurrent'){
+        this.xpowerComponentTopMapData.set(it.rowId || '', it.getCacheData);
+      }
     }
+    if (it.rowType === TraceRow.ROW_TYPE_XPOWER_STATISTIC){
+      this.xpowerStatisticMapData.set(it.rowId || '', it.getCacheData);
+    }
+    if (it.rowType === TraceRow.ROW_TYPE_XPOWER_APP_DETAIL_DISPLAY){
+      this.xpowerDisplayMapData.set(it.rowId || '', it.getCacheData);
+    }
+    if (it.rowType === TraceRow.ROW_TYPE_XPOWER_WIFI_PACKETS) {
+      this.xpowerWifiPacketsMapData.set(it.rowId || '', it.getCacheData);
+    }
+    if (it.rowType === TraceRow.ROW_TYPE_XPOWER_WIFI_BYTES) {
+      this.xpowerWifiBytesMapData.set(it.rowId || '', it.getCacheData);
+    }
+    if (it.rowType === TraceRow.ROW_TYPE_XPOWER_THREAD_COUNT) {
+        this.xpowerMapData.set(it.rowId || '', it.getCacheData);
+      }
+      if (it.rowType === TraceRow.ROW_TYPE_XPOWER_GPU_COUNT) {
+        this.xpowerMapData.set(it.rowId || '', it.getCacheData);
+      }
   }
 
+  // @ts-ignore
+  pushXpowerThreadInfo(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_XPOWER_THREAD_INFO) {
+        if(it.rowId == THREAD_ENERGY){
+            this.xpowerThreadEnergyMapData.set(it.rowId || '', it.getCacheData);
+        }else if(it.rowId == THREAD_LOAD){
+            this.xpowerThreadLoadMapData.set(it.rowId || '', it.getCacheData);
+        }
+    }
+  }
+  // @ts-ignore
+  pushXpowerGpuFreq(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_XPOWER_GPU_FREQUENCY) {
+        this.xpowerGpuFreqMapData.set(it.rowId || '', it.getCacheData);
+    }
+  }
   // @ts-ignore
   pushHang(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_HANG_GROUP) {
@@ -1308,6 +1369,8 @@ export class SelectionParam {
     this.pushHiSysEvent(it, sp);
     this.pushSampleData(it);
     this.pushXpower(it, sp);
+    this.pushXpowerThreadInfo(it, sp);
+    this.pushXpowerGpuFreq(it, sp);
   }
 }
 
@@ -1346,6 +1409,7 @@ export class SelectionData {
   maxDuration: number = 0;
   maxDurationFormat: string = '';
   occurrences: number = 0;
+  selfTime: number = 0;
   state: string = '';
   trackId: number = 0;
   delta: string = '';
@@ -1355,7 +1419,10 @@ export class SelectionData {
   first: string = '';
   last: string = '';
   min: string = '';
+  minNumber: number = 0;
   max: string = '';
+  maxNumber: number = 0;
+  avg: string = '';
   stateJX: string = '';
   cpu: number = 0;
   recordStartNs: number = 0;
@@ -1368,6 +1435,11 @@ export class SelectionData {
   allName: string[] | undefined;
   asyncNames: Array<string> = [];
   asyncCatNames: Array<string> = [];
+  average: string = '';
+  avgNumber: number = 0;
+  energy: string = '';
+  timeStamp: string = '';
+  duration: string = '';
 }
 
 export class Counter {

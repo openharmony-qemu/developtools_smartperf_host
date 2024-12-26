@@ -247,7 +247,7 @@ export class RangeSelect {
     let favoriteLimit = favoriteRect!.top + favoriteRect!.height;
     this.rangeTraceRow = rows.filter((it): boolean => {
       let domRect = it.getBoundingClientRect();
-      let itRect = { x: domRect.x, y: domRect.y, width: domRect.width, height: domRect.height };
+      let itRect = { x: domRect.x, y: domRect.y, width: domRect.width, height: domRect.height } as Rect;
       if (itRect.y < favoriteLimit && !it.collect) {
         let offset = favoriteLimit - itRect.y;
         itRect.y = itRect.y + offset;
@@ -258,17 +258,7 @@ export class RangeSelect {
         itRect.height = 0;
       }
       let result: boolean;
-      if (
-        Rect.intersect(
-          itRect as Rect,
-          {
-            x: Math.min(this.startPageX, this.endPageX),
-            y: Math.min(this.startPageY, this.endPageY),
-            width: Math.abs(this.startPageX - this.endPageX),
-            height: Math.abs(this.startPageY - this.endPageY),
-          } as Rect
-        )
-      ) {
+      if (this.isIntersect(itRect, it.collect, favoriteLimit)) {
         if (!rangeSelect) {
           it.setTipLeft(0, null);
           rangeSelect = new RangeSelectStruct();
@@ -295,6 +285,28 @@ export class RangeSelect {
       }
       return result;
     });
+    this.updateRangeSelectionState();
+  }
+
+  private isIntersect(itRect: Rect, collect: boolean, favoriteLimit: number): boolean {
+    return (
+      Rect.intersect(itRect, {
+        x: Math.min(this.startPageX, this.endPageX),
+        y: Math.min(this.startPageY, this.endPageY),
+        width: Math.abs(this.startPageX - this.endPageX),
+        height: Math.abs(this.startPageY - this.endPageY),
+      } as Rect) && //所有框选情况 1.只框选收藏泳道
+      ((collect && this.startPageY < favoriteLimit) ||
+        // 2.只框选非收藏泳道
+        (!collect && this.startPageY > favoriteLimit) ||
+        // 3.框选收藏泳道和非收藏泳道 从上往下框
+        (this.startPageY < favoriteLimit && this.endPageY > favoriteLimit) ||
+        // 4.框选收藏泳道和非收藏泳道 从下往上框
+        (this.endPageY < favoriteLimit && this.startPageY > favoriteLimit))
+    );
+  }
+
+  private updateRangeSelectionState(): void {
     if (this.rangeTraceRow && this.rangeTraceRow.length) {
       if (this.rangeTraceRow[0].parentRowEl) {
         for (let i = 0; i < this.rangeTraceRow[0].parentRowEl.childrenList.length; i++) {

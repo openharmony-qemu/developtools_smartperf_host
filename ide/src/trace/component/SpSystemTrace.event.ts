@@ -54,7 +54,12 @@ import { BaseStruct } from '../bean/BaseStruct';
 import { GpuCounterStruct, gpuCounterStructOnClick } from '../database/ui-worker/ProcedureWorkerGpuCounter';
 import { HangStructOnClick } from '../database/ui-worker/ProcedureWorkerHang';
 import { XpowerStruct, XpowerStructOnClick } from '../database/ui-worker/ProcedureWorkerXpower';
+import { XpowerStatisticStruct, XpowerStatisticStructOnClick } from '../database/ui-worker/ProcedureWorkerXpowerStatistic';
 import { SpAiAnalysisPage } from './SpAiAnalysisPage';
+import { XpowerAppDetailStruct, XpowerAppDetailStructOnClick } from '../database/ui-worker/ProcedureWorkerXpowerAppDetail';
+import { XpowerWifiBytesStructOnClick, XpowerWifiPacketsStructOnClick, XpowerWifiStruct } from '../database/ui-worker/ProcedureWorkerXpowerWifi';
+import { XpowerThreadInfoStruct, XpowerThreadInfoStructOnClick } from '../database/ui-worker/ProcedureWorkerXpowerThreadInfo';
+import { XpowerGpuFreqStruct, XpowerGpuFreqStructOnClick } from '../database/ui-worker/ProcedureWorkerXpowerGpuFreq';
 
 function timeoutJudge(sp: SpSystemTrace): number {
   let timeoutJudge = window.setTimeout((): void => {
@@ -384,6 +389,12 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
     .then(() => CpuFreqLimitsStructOnClick(clickRowType, sp, entry as CpuFreqLimitsStruct))
     .then(() => ClockStructOnClick(clickRowType, sp, entry as ClockStruct))
     .then(() => XpowerStructOnClick(clickRowType, sp, entry as XpowerStruct))
+    .then(() => XpowerStatisticStructOnClick(clickRowType, sp, row as TraceRow<XpowerStatisticStruct>, entry as XpowerStatisticStruct))
+    .then(() => XpowerAppDetailStructOnClick(clickRowType, sp, entry as XpowerAppDetailStruct))
+    .then(() => XpowerWifiBytesStructOnClick(clickRowType, sp, entry as XpowerWifiStruct))
+    .then(() => XpowerWifiPacketsStructOnClick(clickRowType, sp, entry as XpowerWifiStruct))
+    .then(() => XpowerThreadInfoStructOnClick(clickRowType, sp, entry as XpowerThreadInfoStruct))
+    .then(() => XpowerGpuFreqStructOnClick(clickRowType, sp, entry as XpowerGpuFreqStruct))
     .then(() => HangStructOnClick(clickRowType, sp, scrollToFunc(sp)))
     .then(() => DmaFenceStructOnClick(clickRowType, sp, entry as DmaFenceStruct))
     .then(() => SnapshotStructOnClick(clickRowType, sp, row as TraceRow<SnapshotStruct>, entry as SnapshotStruct))
@@ -418,11 +429,7 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
       }
     })
     .catch((e): void => { });
-  // @ts-ignore
-  if (entry && entry.dur && (entry.startTime! || entry.startTs)) {
-    // @ts-ignore
-    SpAiAnalysisPage.selectChangeListener(entry.startTime || entry.startTs, (entry.startTime! || entry.startTs) + entry.dur);
-  }
+  SpAiAnalysisPage.selectChangeListener(TraceRow.range?.startNS!, TraceRow.range?.endNS!);
 }
 export default function spSystemTraceOnClickHandler(
   sp: SpSystemTrace,
@@ -621,7 +628,6 @@ export function spSystemTraceDocumentOnMouseOut(sp: SpSystemTrace, ev: MouseEven
 }
 
 export function spSystemTraceDocumentOnKeyPress(this: unknown, sp: SpSystemTrace, ev: KeyboardEvent): void {
-  SpSystemTrace.isKeyUp = false;
   if (!sp.loadTraceCompleted || SpSystemTrace.isAiAsk) {
     return;
   }
@@ -651,6 +657,7 @@ export function spSystemTraceDocumentOnKeyPress(this: unknown, sp: SpSystemTrace
     if (keyPress === 'f') {
       let search = document.querySelector('body > sp-application')!.shadowRoot!.querySelector<LitSearch>('#lit-search');
       if (search && search.searchValue !== '' && sp.currentRow !== undefined) {
+        sp.copyCurrentRow = sp.currentRow;
         sp.currentRow = undefined;
       }
       let isSelectSliceOrFlag = false;
@@ -771,6 +778,10 @@ export function spSystemTraceDocumentOnMouseUp(sp: SpSystemTrace, ev: MouseEvent
   if (!sp.loadTraceCompleted || !sp.mouseEventEnable) {
     return;
   }
+  //@ts-ignore
+  if ((window as unknown).isSheetMove) {
+    return;
+  }
   if (sp.isWASDKeyPress()) {
     ev.preventDefault();
     ev.stopPropagation();
@@ -786,10 +797,6 @@ export function spSystemTraceDocumentOnMouseUp(sp: SpSystemTrace, ev: MouseEvent
   }
   TraceRow.isUserInteraction = false;
   sp.rangeSelect.isMouseDown = false;
-  //@ts-ignore
-  if ((window as unknown).isSheetMove) {
-    return;
-  }
   if (sp.isMouseInSheet(ev)) {
     return;
   }
@@ -804,7 +811,6 @@ export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEven
   if (SpSystemTrace.isAiAsk) {
     return;
   }
-  SpSystemTrace.isKeyUp = true;
   if (sp.times.size > 0) {
     for (let timerId of sp.times) {
       clearTimeout(timerId);
@@ -841,6 +847,9 @@ export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEven
   let keyPress = ev.key.toLocaleLowerCase();
   if (keyPress === 'w' || keyPress === 'a' || keyPress === 's' || keyPress === 'd') {
     sp.keyPressMap.set(keyPress, false);
+  }
+  if (keyPress === 'f' && sp.copyCurrentRow) {
+    sp.currentRow = sp.copyCurrentRow;
   }
   TraceRow.isUserInteraction = false;
   sp.observerScrollHeightEnable = false;
@@ -954,8 +963,18 @@ function handleClickActions(sp: SpSystemTrace, x: number, y: number, ev: MouseEv
       strict = false;
       offset = true;
     }
+    let skip = false;
+    if (
+      rows[0].rowType === TraceRow.ROW_TYPE_XPOWER_WIFI_BYTES ||
+      rows[0].rowType === TraceRow.ROW_TYPE_XPOWER_WIFI_PACKETS ||
+      rows[0].rowType === TraceRow.ROW_TYPE_XPOWER_APP_DETAIL_DISPLAY ||
+      rows[0].rowType === TraceRow.ROW_TYPE_XPOWER_STATISTIC
+    ) {
+      skip = true;
+    }
     if (rows && rows[0] && (rows[0].getHoverStruct(strict, offset) ||
-      (rows[0].rowType === TraceRow.ROW_TYPE_GPU_COUNTER && rows[0].getHoverStruct(false)))) {
+      (rows[0].rowType === TraceRow.ROW_TYPE_GPU_COUNTER && rows[0].getHoverStruct(false) || skip))
+      ) {
       sp.onClickHandler(rows[0]!.rowType!, rows[0], rows[0].getHoverStruct(strict, offset));
       sp.documentOnMouseMove(ev);
     } else {

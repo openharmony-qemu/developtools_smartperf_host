@@ -86,7 +86,10 @@ describe(' ProcedureWorkerFuncTest', () => {
       dur: undefined || null || 0,
       funName: '',
     };
-    expect(FuncStruct.draw(ctx, data)).toBeUndefined();
+    const flagConfig = {
+        TaskPool: 'Enabled',
+    }
+    expect(FuncStruct.draw(ctx, data, flagConfig)).toBeUndefined();
   });
 
   it('FuncTest04', () => {
@@ -120,9 +123,12 @@ describe(' ProcedureWorkerFuncTest', () => {
       dur: 10,
       funName: 'H:Task PerformTask End: taskId : 1, executeId : 1, performResult : IsCanceled',
     };
+    const flagConfig = {
+        TaskPool: 'Enabled',
+    }
     TraceRow.range = jest.fn(() => true);
     TraceRow.range.startNS = jest.fn(() => 1);
-    expect(FuncStruct.draw(ctx, data)).toBeUndefined();
+    expect(FuncStruct.draw(ctx, data, flagConfig)).toBeUndefined();
     expect(funcRender.renderMainThread(data, new TraceRow<FuncStruct>())).toBeUndefined();
     expect(funcRender.render(data, [], [])).toBeUndefined();
   });

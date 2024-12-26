@@ -26,6 +26,7 @@ struct PerfCallChainRow {
     uint32_t depth = INVALID_UINT32;
     uint64_t ip = INVALID_UINT64;
     uint64_t vaddrInFile = INVALID_UINT64;
+    uint64_t offsetToVaddr = INVALID_UINT64;
     uint64_t fileId = INVALID_UINT64;
     uint64_t symbolId = INVALID_UINT64;
 };
@@ -37,22 +38,33 @@ public:
     const std::deque<uint32_t> &Depths() const;
     const std::deque<uint64_t> &Ips() const;
     const std::deque<uint64_t> &VaddrInFiles() const;
+    const std::deque<uint64_t> &OffsetToVaddrs() const;
     const std::deque<uint64_t> &FileIds() const;
     const std::deque<uint64_t> &SymbolIds() const;
     const std::deque<DataIndex> &Names() const;
+    const std::deque<DataIndex> &SourceFileIds() const;
+    const std::deque<uint64_t> &LineNumbers() const;
     void SetName(uint64_t index, DataIndex name);
     void UpdateSymbolId(size_t index, DataIndex symbolId);
     void Clear() override;
-    void UpdateSymbolRelatedData(size_t index, uint64_t vaddrInFile, uint64_t symbolId, DataIndex nameIndex);
+    void UpdateSymbolRelatedData(size_t index,
+                                 uint64_t vaddrInFile,
+                                 uint64_t offsetToVaddr,
+                                 uint64_t symbolId,
+                                 DataIndex nameIndex);
+    void SetSourceFileNameAndLineNumber(size_t index, DataIndex SourceFileIndex, uint64_t lineNumber);
 
 private:
     std::deque<uint32_t> callChainIds_ = {};
     std::deque<uint32_t> depths_ = {};
     std::deque<uint64_t> ips_ = {};
     std::deque<uint64_t> vaddrInFiles_ = {};
+    std::deque<uint64_t> offsetToVaddrs_ = {};
     std::deque<uint64_t> fileIds_ = {};
     std::deque<uint64_t> symbolIds_ = {};
     std::deque<DataIndex> names_ = {};
+    std::deque<DataIndex> sourceFileIds_ = {};
+    std::deque<uint64_t> lineNumbers_ = {};
 };
 
 class PerfFiles : public CacheBase {

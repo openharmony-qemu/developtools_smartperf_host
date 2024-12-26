@@ -29,12 +29,12 @@ declare_args() {
   enable_network = true
   enable_diskio = true
   enable_process = true
+  enable_xpower = true
   enable_stream_extend = false
 }
 
 if (is_independent_compile) {
   asdk_libs_dir = "."
-  host_toolchain = ""
   PERF_DIR = "//third_party"
   clang_x64_folder = "."
   enable_ts_utest = target == "test"
@@ -65,6 +65,7 @@ EXTEND_TEST = "${OHOS_TRACE_STREAMER_DIR}/trace_extend/test"
 PREBUILTS = "//prebuilts"
 THIRD_PARTY = "//third_party"
 kernel_version = "."
+LLVM_ROOT = "//llvm"
 
 OHOS_TRACE_STREAMER_DIR_PROTOC = get_path_info("./protoc.sh", "abspath")
 

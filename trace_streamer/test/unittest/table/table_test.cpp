@@ -484,7 +484,7 @@ HWTEST_F(TableTest, HisysEventMeasureTableTest, TestSize.Level1)
     int32_t type = 1;
     double numericValue = 0;
     DataIndex stringValue = stream_.traceDataCache_->GetDataIndex("stringValue");
-    HiSysEventMeasureDataRow hiSysEventMeasureDataRow = {ts, nameId, keyId, type, numericValue, stringValue, serial};
+    HiSysEventMeasureDataRow hiSysEventMeasureDataRow = {serial, ts, nameId, keyId, type, numericValue, stringValue};
     stream_.traceDataCache_->GetHiSysEventMeasureData()->AppendData(hiSysEventMeasureDataRow);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 1);
 }
@@ -554,10 +554,10 @@ HWTEST_F(TableTest, IoLatencySampleTableTest, TestSize.Level1)
     uint64_t filePathId = stream_.traceDataCache_->GetDataIndex("filePathId");
     uint64_t durPer4k = 1;
 
-    uint64_t callChainId1 = 2;
+    uint32_t callChainId1 = 2;
     uint64_t type1 = 2;
-    uint64_t ipid1 = 2;
-    uint64_t itid1 = 2;
+    uint32_t ipid1 = 2;
+    uint32_t itid1 = 2;
     uint64_t startTs1 = 1663869224160;
     uint64_t endTs1 = 1663869424160;
     uint64_t latencyDur1 = 200;
@@ -577,8 +577,8 @@ HWTEST_F(TableTest, IoLatencySampleTableTest, TestSize.Level1)
     stream_.traceDataCache_->GetHidumpData()->AppendNewHidumpInfo(timestamp1, fps1);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 2);
 
-    GetBioLatencySampleDataRow bioLatencySampleDataRow = {CALLCHAIN_ID, TYPE, IPID, ITID,        startTs,    endTs,
-                                                          latencyDur,   tier, size, blockNumber, filePathId, durPer4k};
+    BioLatencySampleDataRow bioLatencySampleDataRow = {CALLCHAIN_ID, TYPE, IPID, ITID,        startTs,    endTs,
+                                                       latencyDur,   tier, size, blockNumber, filePathId, durPer4k};
     stream_.traceDataCache_->GetBioLatencySampleData()->AppendNewData(bioLatencySampleDataRow);
     bioLatencySampleDataRow = {callChainId1, type1, ipid1, itid1,        startTs1,    endTs1,
                                latencyDur1,  tier1, size1, blockNumber1, filePathId1, durPer4k1};
@@ -748,7 +748,7 @@ HWTEST_F(TableTest, NativeHookTableTest, TestSize.Level1)
     int64_t memSize = 1;
     int64_t curMemSize = 1;
 
-    uint64_t callChainId1 = 2;
+    uint32_t callChainId1 = 2;
     uint32_t ipid1 = 2;
     uint32_t itid1 = 2;
     std::string eventType1 = "eventType1";
@@ -785,7 +785,7 @@ HWTEST_F(TableTest, NativeHookFrameTableTest, TestSize.Level1)
     std::string sqlSelect2 = "select * from native_hook_frame where callchain_id > 1";
     std::string sqlSelect3 = "select * from native_hook_frame where symbol_id >= 1";
     std::string sqlSelect4 = "select * from native_hook_frame where file_id < 2";
-    uint64_t depth = 1;
+    uint16_t depth = 1;
     uint64_t ip = 1;
     DataIndex symbolName = stream_.traceDataCache_->GetDataIndex("symbolName");
     DataIndex filePath = stream_.traceDataCache_->GetDataIndex("filePath");
@@ -793,7 +793,7 @@ HWTEST_F(TableTest, NativeHookFrameTableTest, TestSize.Level1)
     uint64_t symbolOffset = 1;
     const std::string vaddr = "addr";
 
-    uint64_t depth1 = 2;
+    uint16_t depth1 = 2;
     uint64_t ip1 = 2;
     DataIndex symbolName1 = stream_.traceDataCache_->GetDataIndex("symbolName1");
     DataIndex filePath1 = stream_.traceDataCache_->GetDataIndex("filePath1");
@@ -803,8 +803,9 @@ HWTEST_F(TableTest, NativeHookFrameTableTest, TestSize.Level1)
     NativeHookFrameVaddrRow nativeHookFrameVaddrRow = {CALLCHAIN_ID, depth,  ip,           symbolName,
                                                        filePath,     offset, symbolOffset, vaddr};
     stream_.traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(nativeHookFrameVaddrRow);
-    nativeHookFrameVaddrRow = {CALLCHAIN_ID1, depth1, ip1, symbolName1, filePath1, offset1, symbolOffset1, vaddr1};
-    stream_.traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(nativeHookFrameVaddrRow);
+    NativeHookFrameVaddrRow nativeHookFrameVaddrRow2 = {CALLCHAIN_ID1, depth1,  ip1,           symbolName1,
+                                                        filePath1,     offset1, symbolOffset1, vaddr1};
+    stream_.traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(nativeHookFrameVaddrRow2);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 1);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect2, false), 1);
@@ -852,14 +853,14 @@ HWTEST_F(TableTest, PerfCallchainTableTest, TestSize.Level1)
     std::string sqlSelect2 = "select * from perf_callchain where callchain_id > 1";
     std::string sqlSelect3 = "select * from perf_callchain where file_id < 1";
     std::string sqlSelect4 = "select * from perf_callchain where symbol_id >= 1";
-    uint64_t callChainId = stream_.traceDataCache_->GetDataIndex("callChain");
+    uint32_t callChainId = stream_.traceDataCache_->GetDataIndex("callChain");
     uint32_t depth = 0;
     uint64_t ip = 123;
     uint64_t vaddrInFile = 1;
     uint64_t fileId = stream_.traceDataCache_->GetDataIndex("file");
     uint64_t symbolId = stream_.traceDataCache_->GetDataIndex("symbolId");
 
-    uint64_t callChainId1 = 2;
+    uint32_t callChainId1 = 2;
     uint32_t depth1 = 1;
     uint64_t ip1 = 234;
     uint64_t vaddrInFile1 = 2;
@@ -873,7 +874,7 @@ HWTEST_F(TableTest, PerfCallchainTableTest, TestSize.Level1)
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 1);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect2, false), 2);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect3, false), 0);
-    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect4, false), 2);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect4, false), 0);
 }
 /**
  * @tc.name: PerfFilesTableTest
@@ -931,18 +932,18 @@ HWTEST_F(TableTest, PerfSampleTableTest, TestSize.Level1)
     std::string sqlSelect3 = "select * from perf_sample where thread_id < 1";
     std::string sqlSelect4 = "select * from perf_sample where event_type_id >= 1";
     std::string sqlSelect5 = "select * from perf_sample where cpu_id <= 1";
-    uint64_t sampleId = stream_.traceDataCache_->GetDataIndex("type");
-    uint64_t timeStamp = 1663869124160;
-    uint64_t tid = 1;
+    uint32_t sampleId = stream_.traceDataCache_->GetDataIndex("type");
+    uint64_t timestamp = 1663869124160;
+    uint32_t tid = 1;
     uint64_t eventCount = 2;
     uint64_t eventTypeId = 1;
     uint64_t timestampTrace = 1;
     uint64_t cpuId = 1;
     uint64_t threadState = stream_.traceDataCache_->GetDataIndex("threadState");
 
-    uint64_t sampleId1 = stream_.traceDataCache_->GetDataIndex("type1");
+    uint32_t sampleId1 = stream_.traceDataCache_->GetDataIndex("type1");
     uint64_t timestamp1 = 1663869124160;
-    uint64_t tid1 = 2;
+    uint32_t tid1 = 2;
     uint64_t eventCount1 = 3;
     uint64_t eventTypeId1 = 2;
     uint64_t timestampTrace1 = 2;
@@ -1096,16 +1097,16 @@ HWTEST_F(TableTest, SchedSliceTest, TestSize.Level1)
     uint64_t ts = 1663869124160;
     uint64_t dur = 200;
     uint64_t cpu = 1;
-    uint64_t internalTid = 1;
+    uint32_t internalTid = 1;
     uint64_t endState = 1;
-    uint64_t priority = 1;
+    int32_t priority = 1;
 
     uint64_t ts1 = 1663869224160;
     uint64_t dur1 = 200;
     uint64_t cpu1 = 2;
-    uint64_t internalTid1 = 2;
+    uint32_t internalTid1 = 2;
     uint64_t endState1 = 2;
-    uint64_t priority1 = 2;
+    int32_t priority1 = 2;
 
     SchedSliceRow schedSliceRow = {ts, dur, cpu, internalTid, endState, priority};
     SchedSliceRow schedSliceRow1 = {ts1, dur1, cpu1, internalTid1, endState1, priority1};
@@ -1165,8 +1166,7 @@ HWTEST_F(TableTest, StatTableTest, TestSize.Level1)
 {
     TS_LOGI("test31-37");
     std::string sqlSelect = "select * from stat";
-    stream_.traceDataCache_->GetStatAndInfo();
-    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 460);
+    EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), TRACE_EVENT_MAX * STAT_EVENT_MAX);
 }
 /**
  * @tc.name: SymbolsTableTest

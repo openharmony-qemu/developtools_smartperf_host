@@ -248,18 +248,15 @@ export class LitSearch extends BaseElement {
       this.searchBlurListener();
     });
     this.search!.addEventListener('keyup', (e: KeyboardEvent) => {
-      SpSystemTrace.isKeyUp = true;
       this._retarge_index!.value = '';
       this.searchKeyupListener(e);
     });
     //阻止事件冒泡
     this.search!.addEventListener('keydown', (e: KeyboardEvent) => {
-      SpSystemTrace.isKeyUp = false;
       e.stopPropagation();
     });
 
     this.search!.addEventListener('keypress', (e: KeyboardEvent) => {
-      SpSystemTrace.isKeyUp = false;
       e.stopPropagation();
     });
     this.shadowRoot?.querySelector('#arrow-left')?.addEventListener('click', (): void => {
@@ -283,12 +280,10 @@ export class LitSearch extends BaseElement {
     this.keyUpListener();
     //阻止事件冒泡
     this.shadowRoot?.querySelector("input[name='retarge_index']")?.addEventListener('keydown', (e: unknown) => {
-      SpSystemTrace.isKeyUp = false;
       // @ts-ignore
       e.stopPropagation();
     });
     this.shadowRoot?.querySelector("input[name='retarge_index']")?.addEventListener('keypress', (e: unknown) => {
-      SpSystemTrace.isKeyUp = false;
       // @ts-ignore
       e.stopPropagation();
     });
@@ -359,7 +354,6 @@ export class LitSearch extends BaseElement {
             this._retarge_index!.value = '';
           }, 2000);
         }
-        SpSystemTrace.isKeyUp = true;
         // @ts-ignore
         e.target.blur();
       }

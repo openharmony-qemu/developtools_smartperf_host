@@ -527,10 +527,14 @@ describe('ProcedureLogicWorkerNativeNemory Test', () => {
   });
   it('procedureLogicWorkerFileSystemTest69', function () {
     window.postMessage = jest.fn(() => true);
-    let paramMap = {
-      get: jest.fn(() => true),
-    };
-    expect(procedureLogicWorkerNativeMemory.groupCallchainSample(paramMap)).toBeUndefined();
+    let currentNode = new NativeHookCallInfo();
+    currentNode.symbol = '';
+    let callChain = new HeapTreeDataBean();
+    callChain.AllocationFunction = '';
+    let sample = new NativeHookStatistics();
+    sample.countArray = [0,1];
+    sample.tsArray = [0,1];
+    expect(procedureLogicWorkerNativeMemory.mergeCallChainSample(currentNode, callChain, sample)).toBeUndefined();
   });
   it('procedureLogicWorkerFileSystemTest70', function () {
     window.postMessage = jest.fn(() => true);
@@ -720,11 +724,13 @@ describe('ProcedureLogicWorkerNativeNemory Test', () => {
     expect(nativeHookCallInfo).toBeTruthy();
   });
   it('procedureLogicWorkerFileSystemTest87', function () {
-    let currentNode = {
-      symbol: '',
-      countArray: [],
-      tsArray: []
-    };
-    expect(NativeHookCallInfo.merageCallChainSample(currentNode, [], []));
+    window.postMessage = jest.fn(() => true);
+    let currentNode = new NativeHookCallInfo();
+    let callChain = new HeapTreeDataBean();
+    callChain.AllocationFunction = 'AllocationFunction';
+    let sample = new NativeHookStatistics();
+    sample.countArray = [];
+    sample.tsArray = [];
+    expect(procedureLogicWorkerNativeMemory.mergeCallChainSample(currentNode, callChain, sample)).toBeUndefined();
   });
 });

@@ -438,6 +438,33 @@ export class Utils {
     return res;
   }
 
+  public static timeFormat(ms: number): string {
+    let currentMsTime = ms;
+    let hours = 3600000;
+    let minute1 = 60000;
+    let second1 = 1000;
+    let res = '';
+    if (currentMsTime >= hours) {
+      res += `${Math.floor(currentMsTime / hours)} h `;
+      currentMsTime = currentMsTime - Math.floor(currentMsTime / hours) * hours;
+    }
+    if (currentMsTime >= minute1) {
+      res += `${Math.floor(currentMsTime / minute1)} min `;
+      currentMsTime = currentMsTime - Math.floor(currentMsTime / minute1) * minute1;
+    }
+    if (currentMsTime >= second1) {
+      res += `${Math.floor(currentMsTime / second1)} s `;
+      currentMsTime = currentMsTime - Math.floor(currentMsTime / second1) * second1;
+    }
+    if (currentMsTime > 0) {
+      currentMsTime = parseFloat(currentMsTime.toFixed(2));
+      res += `${currentMsTime} ms `;
+    } else if(res === ''){
+        res += '0 ms ';
+    }
+    return res;
+  }
+
   public static groupByMap(array: Array<unknown>, key: string): Map<unknown, unknown> {
     let result = new Map();
     array.forEach((item) => {

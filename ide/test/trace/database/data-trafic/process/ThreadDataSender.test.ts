@@ -17,6 +17,7 @@ import { TraceRow } from '../../../../../src/trace/component/trace/base/TraceRow
 import { threadPool } from '../../../../../src/trace/database/SqlLite';
 import { ThreadStruct } from '../../../../../src/trace/database/ui-worker/ProcedureWorkerThread';
 import { threadDataSender } from '../../../../../src/trace/database/data-trafic/process/ThreadDataSender';
+import { ProcessStruct } from '../../../../../src/trace/database/ui-worker/ProcedureWorkerProcess';
 jest.mock('../../../../../src/js-heap/model/DatabaseStruct', () => {});
 jest.mock('../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
   return {};
@@ -42,6 +43,8 @@ describe('ThreadDataSender Test', () => {
       callback(threadData, 1, true);
     });
     let threadTraceRow = TraceRow.skeleton<ThreadStruct>();
+    let parentTraceRow = TraceRow.skeleton<ProcessStruct>();
+    threadTraceRow.parentRowEl = parentTraceRow;
     threadDataSender(543, 12, threadTraceRow).then(result => {
       expect(result).toHaveLength(1);
     });

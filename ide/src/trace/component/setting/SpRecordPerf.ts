@@ -30,6 +30,8 @@ import { LitSearch } from '../trace/search/Search';
 import { Cmd } from '../../../command/Cmd';
 import { CmdConstant } from '../../../command/CmdConstant';
 import { SpRecordPerfHtml } from './SpRecordPerf.html';
+import { WebSocketManager } from '../../../webSocket/WebSocketManager';
+import { TypeConstants } from '../../../webSocket/Constants';
 
 @element('sp-record-perf')
 export class SpRecordPerf extends BaseElement {
@@ -309,6 +311,7 @@ export class SpRecordPerf extends BaseElement {
         this.sp!.search = false;
         this.recordPerfSearch!.clear();
       }
+
       if (SpRecordTrace.isVscode) {
         let cmd = Cmd.formatString(CmdConstant.CMD_GET_CPU_COUNT_DEVICES, [SpRecordTrace.serialNumber]);
         Cmd.execHdcCmd(cmd, (res: string) => {
@@ -320,6 +323,18 @@ export class SpRecordPerf extends BaseElement {
           }
           this.cpuSelect?.dataSource(this.cpuData, 'ALL-CPU');
         });
+      } else if (SpRecordTrace.useExtend) {
+        WebSocketManager.getInstance()!.sendMessage(TypeConstants.USB_TYPE, TypeConstants.USB_GET_CPU_COUNT, new TextEncoder().encode(SpRecordTrace.serialNumber));
+        setTimeout(() => {
+          if (SpRecordTrace.usbGetCpuCount) {
+            let cpuCount = SpRecordTrace.usbGetCpuCount!.trim();
+            let cpus = Number(cpuCount);
+            for (let index = 0; index < cpus; index++) {
+              this.cpuData.push(String(index));
+            }
+            this.cpuSelect?.dataSource(this.cpuData, 'ALL-CPU');
+          }
+        }, 1000);
       } else {
         HdcDeviceManager.connect(SpRecordTrace.serialNumber).then((conn) => {
           this.cpuData = [];
@@ -368,26 +383,55 @@ export class SpRecordPerf extends BaseElement {
           }
           this.eventSelect!.dataSource(this.eventData, '');
         });
+      } else if (SpRecordTrace.useExtend) {
+        WebSocketManager.getInstance()!.sendMessage(TypeConstants.USB_TYPE, TypeConstants.USB_GET_EVENT, new TextEncoder().encode(SpRecordTrace.serialNumber));
+        setTimeout(() => {
+          if (SpRecordTrace.usbGetEvent) {
+            let eventMap = this.parseEvent(SpRecordTrace.usbGetEvent);
+            let eventList = this.getSoftHardWareEvents(eventMap);
+            if (eventList) {
+              for (let eventListElement of eventList) {
+                this.eventData.push(eventListElement.trim());
+              }
+            }
+            this.eventSelect!.dataSource(this.eventData, '');
+          }
+        }, 1000);
       } else {
         HdcDeviceManager.connect(SpRecordTrace.serialNumber).then((conn) => {
           this.eventData = [];
-          if (conn) {
-            HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_HIPERF_EVENTS, false).then((res) => {
-              if (res) {
-                let eventMap = this.parseEvent(res);
-                let eventList = this.getSoftHardWareEvents(eventMap);
-                if (eventList) {
-                  for (let eventListElement of eventList) {
-                    this.eventData.push(eventListElement.trim());
-                  }
+          if (SpRecordTrace.allProcessListStr) {
+            // @ts-ignore
+            if (SpRecordTrace.allProcessListStr.event) {
+              // @ts-ignore
+              let eventMap = this.parseEvent(SpRecordTrace.allProcessListStr.event);
+              let eventList = this.getSoftHardWareEvents(eventMap);
+              if (eventList) {
+                for (let eventListElement of eventList) {
+                  this.eventData.push(eventListElement.trim());
                 }
-                this.eventSelect!.dataSource(this.eventData, '');
               }
-            });
+              this.eventSelect!.dataSource(this.eventData, '');
+            }
           } else {
-            this.sp!.search = true;
-            this.recordPerfSearch!.clear();
-            this.recordPerfSearch!.setPercent('please kill other hdc-server !', -2);
+            if (conn) {
+              HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_HIPERF_EVENTS, false).then((res) => {
+                if (res) {
+                  let eventMap = this.parseEvent(res);
+                  let eventList = this.getSoftHardWareEvents(eventMap);
+                  if (eventList) {
+                    for (let eventListElement of eventList) {
+                      this.eventData.push(eventListElement.trim());
+                    }
+                  }
+                  this.eventSelect!.dataSource(this.eventData, '');
+                }
+              });
+            } else {
+              this.sp!.search = true;
+              this.recordPerfSearch!.clear();
+              this.recordPerfSearch!.setPercent('please kill other hdc-server !', -2);
+            }
           }
         });
       }
@@ -459,10 +503,10 @@ export class SpRecordPerf extends BaseElement {
 placement="bottom" title="${
       //@ts-ignore
       config.title
-    }"  placeholder="${
+      }"  placeholder="${
       //@ts-ignore
       config.selectArray[0]
-    }">`;
+      }">`;
     //@ts-ignore
     config.selectArray.forEach((value: string) => {
       recordPerfSelect += `<lit-select-option value="${value}">${value}</lit-select-option>`;
@@ -494,11 +538,11 @@ placement="bottom" title="${
 class="silderclass config" title="${
       //@ts-ignore
       config.title
-    }"></lit-slider><input readonly class="sliderInput" 
+      }"></lit-slider><input readonly class="sliderInput" 
 type="text" value = '    ${defaultValue} ${
       //@ts-ignore
       config.litSliderStyle.resultUnit
-    }' ></div>`;
+      }' ></div>`;
     recordPerfDiv.innerHTML = recordPerfDiv.innerHTML + mapsilder;
     let maplitSlider = recordPerfDiv.querySelector<LitSlider>('.silderclass');
     //@ts-ignore
@@ -522,14 +566,14 @@ type="text" value = '    ${defaultValue} ${
 class="silderclass config" title="${
       //@ts-ignore
       config.title
-    }"></lit-slider><input readonly class="sliderInput" 
+      }"></lit-slider><input readonly class="sliderInput" 
 type="text" value = '    ${
       //@ts-ignore
       config.litSliderStyle.defaultValue
-    } ${
+      } ${
       //@ts-ignore
       config.litSliderStyle.resultUnit
-    }' >
+      }' >
 </div>`;
     recordPerfDiv.innerHTML = recordPerfDiv.innerHTML + sliderEl;
     let litSlider = recordPerfDiv.querySelector<LitSlider>('.silderclass');
@@ -557,7 +601,7 @@ type="text" value = '    ${
 mode="multiple" canInsert="" title="${
       //@ts-ignore
       config.title
-    }" rounded placement = "bottom" placeholder="${placeholder}">`;
+      }" rounded placement = "bottom" placeholder="${placeholder}">`;
     //@ts-ignore
     config.selectArray.forEach((value: string) => {
       html += `<lit-select-option value="${value}">${value}</lit-select-option>`;

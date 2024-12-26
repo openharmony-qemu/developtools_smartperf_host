@@ -18,6 +18,7 @@ cd "$(dirname "${SOURCE}")"
 . build/build_stanalone_plugins.sh
 set_enable_plugin_array "true"
 set_enable_extend_plugin_array "false"
+set_enable_macro_switch_array "false"
 ./pare_third_party.sh
 choose_os_type
 ./dl_tools.sh $gn_path
@@ -28,6 +29,9 @@ while [[ $# -gt 0 ]]; do
             shift 2;;
         -d)
             enable_extend_plugin "$2"
+            shift 2;;
+        -m)
+            enable_macro "$2"
             shift 2;;
         -h)
             help $0
@@ -59,6 +63,7 @@ if [ "$#" -ne "0" ];then
     if [ "$1" == "test" ];then
         target="test"
         set_enable_plugin_array "true"
+        set_enable_macro_switch_array "true"
     fi
     if [ "$1" == "fuzz" ];then
         target="fuzz"

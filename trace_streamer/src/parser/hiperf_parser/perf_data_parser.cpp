@@ -15,6 +15,9 @@
 #include "perf_data_parser.h"
 #include "clock_filter_ex.h"
 #include "file.h"
+#ifdef ENABLE_ADDR2LINE
+#include "llvm/DebugInfo/Symbolize/Symbolize.h"
+#endif
 #include "perf_data_filter.h"
 #include "perf_file_format.h"
 #include "stat_filter.h"
@@ -466,23 +469,62 @@ void PerfDataParser::ReloadPerfCallChain(const std::unique_ptr<SymbolsFile> &sym
             auto vaddr = symbolsFile->GetVaddrInSymbols(perfCallChainData->Ips()[row], dfxMap->begin, dfxMap->offset);
             auto dfxSymbol = symbolsFile->GetSymbolWithVaddr(vaddr);
             auto nameIndex = traceDataCache_->GetDataIndex(dfxSymbol.GetName());
-            perfCallChainData->UpdateSymbolRelatedData(row, dfxSymbol.funcVaddr_, dfxSymbol.index_, nameIndex);
+            perfCallChainData->UpdateSymbolRelatedData(row, dfxSymbol.funcVaddr_, dfxSymbol.offsetToVaddr_,
+                                                       dfxSymbol.index_, nameIndex);
         }
     }
 }
 
-void PerfDataParser::PerfReloadSymbolFiles(const std::vector<std::unique_ptr<SymbolsFile>> &symbolsFiles)
+void PerfDataParser::PerfReloadSymbolFile(const std::unique_ptr<SymbolsFile> &symbolsFile)
 {
-    for (const auto &symbolsFile : symbolsFiles) {
-        uint64_t fileId;
-        DataIndex filePathIndex;
-        if (!ReloadPerfFile(symbolsFile, fileId, filePathIndex)) {
+    if (symbolsFile == nullptr) {
+        return;
+    }
+    uint64_t fileId;
+    DataIndex filePathIndex;
+    if (!ReloadPerfFile(symbolsFile, fileId, filePathIndex)) {
+        return;
+    }
+    ReloadPerfCallChain(symbolsFile, fileId, filePathIndex);
+}
+#ifdef ENABLE_ADDR2LINE
+void PerfDataParser::ParseSourceLocation(const std::string &directory, const std::string &fileName)
+{
+    uint64_t fileId;
+    DataIndex filePathIndex;
+    std::tie(fileId, filePathIndex) = GetFileIdWithLikelyFilePath(fileName);
+    if (fileId == INVALID_UINT64 || filePathIndex == INVALID_UINT64) {
+        return;
+    }
+    llvm::symbolize::LLVMSymbolizer::Options Opts;
+    llvm::symbolize::LLVMSymbolizer symbolizer(Opts);
+
+    // Associate perf_callchain with perf_file
+    auto perfCallChainData = traceDataCache_->GetPerfCallChainData();
+    auto path = directory + "/" + fileName;
+    for (auto row = 0; row < perfCallChainData->Size(); row++) {
+        if (perfCallChainData->FileIds()[row] != fileId) {
             continue;
         }
-        ReloadPerfCallChain(symbolsFile, fileId, filePathIndex);
+        uint64_t vaddrInFile = perfCallChainData->VaddrInFiles()[row];
+        uint64_t offsetToVaddr = perfCallChainData->OffsetToVaddrs()[row];
+        if (vaddrInFile == 0 || offsetToVaddr == 0) {
+            continue;
+        }
+        llvm::object::SectionedAddress address = {vaddrInFile + offsetToVaddr,
+                                                  llvm::object::SectionedAddress::UndefSection};
+        auto inlinedContext = symbolizer.symbolizeInlinedCode(path, address);
+        if (inlinedContext && inlinedContext->getNumberOfFrames()) {
+            auto firstFrame = inlinedContext->getFrame(0);
+            auto sourceFileIndex = traceDataCache_->GetDataIndex(firstFrame.FileName);
+            perfCallChainData->SetSourceFileNameAndLineNumber(row, sourceFileIndex,
+                                                              static_cast<uint64_t>(firstFrame.Line));
+        } else {
+            TS_LOGD("symbolizeInlinedCode execute failed!");
+        }
     }
 }
-
+#endif
 bool PerfDataParser::LoadPerfData()
 {
     // try load the perf data
@@ -688,7 +730,8 @@ uint32_t PerfDataParser::UpdateCallChainUnCompressed(const std::unique_ptr<PerfR
         if (fileDataDictIdToFileId_.count(fileDataIndex) != 0) {
             fileId = fileDataDictIdToFileId_.at(fileDataIndex);
         }
-        PerfCallChainRow perfCallChainRow = {callChainId, depth++, frame->pc, frame->funcOffset, fileId, frame->index};
+        PerfCallChainRow perfCallChainRow = {callChainId,      depth++, frame->pc,   frame->funcOffset,
+                                             frame->mapOffset, fileId,  frame->index};
         traceDataCache_->GetPerfCallChainData()->AppendNewPerfCallChain(perfCallChainRow);
     }
     return callChainId;

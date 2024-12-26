@@ -23,6 +23,7 @@
 ### Frame timeline 泳道图展示
 
 Frame timeline 展开就可以看到泳道图，泳道图上可以显示帧编号。
+
 ![GitHub Logo](../../figures/Frame/framechart.jpg)
 
 -     Expected Timeline：理想帧泳道图。
@@ -32,7 +33,8 @@ Frame timeline 展开就可以看到泳道图，泳道图上可以显示帧编�
 
 可以对真实帧数据进行框选，框选后在最下方的弹出层中会展示框选数据的统计表格。
 Frames 的 Tab 页如图：
-![GitHub Logo](../../figures/Frame/frameprocess.jpg)
+
+![GitHub Logo](quickstart_Frametimeline.assets/frameprocess.jpg)
 
 -     Jank Type：卡顿类型。
 -     Min duration：最小持续时间。
@@ -44,21 +46,41 @@ Frames 的 Tab 页如图：
 
 通过点选理想帧和真实帧展示 Tab 页(Current Selection)。
 理想帧 Tab 页如下图：
+
 ![GitHub Logo](../../figures/Frame/frameexpectedtab.jpg)
 
--     Name：帧编号。
--     StartTime：启动时间。
--     Absolute Time：绝对时间。
--     Duration：持续时间。
--     Process：进程名。
+- Name：帧编号。
+
+- StartTime：启动时间。
+
+- Absolute Time：绝对时间。
+
+- Duration：持续时间。
+
+- Process：进程名。
+
   真实帧 Tab 页如下图：
   ![GitHub Logo](../../figures/Frame/frameactualtab.jpg)
--     Name：帧编号。
--     StartTime：启动时间。
--     Absolute Time：绝对时间。
--     Duration：持续时间。
--     Process：进程名。
--     Jank Type：卡顿类型。
--     Gpu Duration：GPU耗时。
--     FrameTimeLine flows：显示的是绘制一帧的完整过程,  由两个阶段组成应用的提交一帧。
+
+- Name：帧编号。
+
+- StartTime：启动时间。
+
+- Absolute Time：绝对时间。
+
+- Duration：持续时间。
+
+- Process：进程名。
+
+- Jank Type：卡顿类型。
+
+- Gpu Duration：GPU耗时。
+
+- FrameTimeLine flows：显示的是绘制一帧的完整过程,  由两个阶段组成应用的提交一帧。
+
 -     Following flows：展示真实帧包含的关联的帧，图中斜向上箭头点击会进行跳转功能直接定位到具体进程真实帧位置，点选的同时还将包含的关联帧通过线连起来，可以跨越多个进程。
+
+render_server真实帧的范围根据新的规则发生变化：
+
+![GitHub Logo](../../figures/Frame/frameRS.jpg)
+

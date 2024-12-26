@@ -94,14 +94,34 @@ void FrameSlice::SetSrcs(uint64_t row, const std::vector<uint64_t> &fromSlices)
 {
     std::string s = "";
     for (auto &&i : fromSlices) {
-        s += std::to_string(diskTableSize_ + i) + ",";
+        if (i != INVALID_UINT64) {
+            s += std::to_string(diskTableSize_ + i) + ",";
+        }
     }
-    s.pop_back();
-    srcs_[row] = s;
+    if (s.back() == ',') {
+        s.pop_back();
+        srcs_[row] = s;
+    }
 }
 void FrameSlice::SetFlags(uint64_t row, const uint32_t flags)
 {
     flags_[row] = flags;
+}
+void FrameSlice::SetVsync(uint64_t row, uint32_t vsync)
+{
+    vsyncIds_[row] = vsync;
+}
+
+uint64_t FrameSlice::GetExpectEndByItidAndVsyncId(uint32_t mainThreadId, uint32_t vsyncId) const
+{
+    auto row = Size();
+    while (row > 0) {
+        --row;
+        if (vsyncIds_[row] == vsyncId && internalTids_[row] == mainThreadId) {
+            return timeStamps_[row] + durs_[row];
+        }
+    }
+    return INVALID_UINT64;
 }
 const std::deque<uint32_t> FrameSlice::Ipids() const
 {
@@ -152,9 +172,8 @@ void FrameSlice::UpdateCallStackSliceId(uint64_t row, uint64_t callStackSliceId)
 {
     callStackIds_[row] = callStackSliceId;
 }
-void FrameSlice::SetEndTimeAndFlag(uint64_t row, uint64_t ts, uint64_t expectDur, uint64_t expectEnd)
+void FrameSlice::SetEndTimeAndFlag(uint64_t row, uint64_t ts, uint64_t expectEnd)
 {
-    Unused(expectDur);
     durs_[row] = ts - timeStamps_[row];
     if (flags_[row] != abnormalStartEndTimeState_) {
         flags_[row] = expectEnd >= ts ? 0 : 1;

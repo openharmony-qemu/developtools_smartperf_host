@@ -106,7 +106,12 @@
 #include "thread_state_table.h"
 #include "thread_table.h"
 #include "trace_config_table.h"
-
+#include "xpower_app_detaile_cpu_table.h"
+#include "xpower_app_detaile_display_table.h"
+#include "xpower_app_detaile_gpu_table.h"
+#include "xpower_app_detaile_wifi_table.h"
+#include "xpower_app_statistic_table.h"
+#include "xpower_component_top_table.h"
 namespace SysTuning {
 namespace TraceStreamer {
 constexpr uint8_t CPU_ID_FORMAT_WIDTH = 3;
@@ -219,6 +224,15 @@ void TraceDataCache::InitHisysEventDB()
     TableBase::TableDeclare<DeviceStateTable>(*db_, this, "device_state");
     TableBase::TableDeclare<SysEventAllEventTable>(*db_, this, "hisys_all_event");
 }
+void TraceDataCache::InitXPowerDB()
+{
+    TableBase::TableDeclare<XpowerAppDetaileDisplayTable>(*db_, this, "xpower_app_detail_display");
+    TableBase::TableDeclare<XpowerAppStatisticTable>(*db_, this, "xpower_app_statistic");
+    TableBase::TableDeclare<XpowerAppDetaileCpuTable>(*db_, this, "xpower_app_detail_cpu");
+    TableBase::TableDeclare<XpowerAppDetaileGpuTable>(*db_, this, "xpower_app_detail_gpu");
+    TableBase::TableDeclare<XpowerAppDetaileWifiTable>(*db_, this, "xpower_app_detail_wifi");
+    TableBase::TableDeclare<XpowerComponentTopTable>(*db_, this, "xpower_component_top");
+}
 void TraceDataCache::InitDB()
 {
     if (dbInited_) {
@@ -234,6 +248,7 @@ void TraceDataCache::InitDB()
     InitRenderServiceDB();
     InitMemoryDB();
     InitHisysEventDB();
+    InitXPowerDB();
     TableBase::TableDeclare<RawTable>(*db_, this, "raw");
     TableBase::TableDeclare<InstantsTable>(*db_, this, "instant");
     TableBase::TableDeclare<SchedSliceTable>(*db_, this, "sched_slice");

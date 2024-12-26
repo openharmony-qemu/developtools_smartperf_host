@@ -52,6 +52,7 @@ uint8_t *g_fileNameBuf;
 uint32_t g_fileNameSize;
 bool g_isSystrace = false;
 bool g_isZipTrace = false;
+bool g_isZlibTrace = false;
 bool g_hasDeterminedSystrace = false;
 
 void ResultCallback(const std::string &jsonResult, int32_t finish)
@@ -241,6 +242,9 @@ EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerParseDataEx(int32_t dataLen, bool isFi
     if (!g_hasDeterminedSystrace) {
         g_isSystrace = g_wasmTraceStreamer.DetermineSystrace(g_reqBuf, dataLen);
         g_isZipTrace = g_wasmTraceStreamer.DetermineZipTrace(g_reqBuf, dataLen);
+#if IS_WASM
+        g_isZlibTrace = g_wasmTraceStreamer.DetermineZlibTrace(g_reqBuf, dataLen);
+#endif
         g_hasDeterminedSystrace = true;
     }
     if (g_wasmTraceStreamer.GetFfrtConvertStatus() && g_isSystrace) {
@@ -248,7 +252,13 @@ EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerParseDataEx(int32_t dataLen, bool isFi
         return g_wasmTraceStreamer.SaveAndParseFfrtData(g_reqBuf, dataLen, &FfrtConvertedResultCallback, isFinish);
 #endif
     } else if (g_isZipTrace) {
-        return g_wasmTraceStreamer.SaveAndParseZipTraceData(g_reqBuf, dataLen, &FfrtConvertedResultCallback, isFinish);
+#if IS_WASM
+        return g_wasmTraceStreamer.SaveAndParseZipTraceData(g_reqBuf, dataLen, nullptr, isFinish) ? 0 : -1;
+#endif
+    } else if (g_isZlibTrace) {
+#if IS_WASM
+        return g_wasmTraceStreamer.SaveAndParseZlibTraceData(g_reqBuf, dataLen, nullptr, isFinish) ? 0 : -1;
+#endif
     } else if (g_wasmTraceStreamer.ParseData(g_reqBuf, dataLen, nullptr, isFinish)) {
         return 0;
     }
@@ -259,9 +269,9 @@ EMSCRIPTEN_KEEPALIVE int32_t TraceStreamerDownloadELFEx(int32_t totalLen,
                                                         int32_t dataLen,
                                                         int32_t finish)
 {
-    std::string fileName(reinterpret_cast<const char *>(g_fileNameBuf), fileNameLen);
+    std::string filePath(reinterpret_cast<const char *>(g_fileNameBuf), fileNameLen);
 #if IS_WASM
-    if (g_wasmTraceStreamer.DownloadELFCallback(fileName, totalLen, g_reqBuf, dataLen, finish, &ParseELFCallback)) {
+    if (g_wasmTraceStreamer.DownloadELFCallback(filePath, totalLen, g_reqBuf, dataLen, finish, &ParseELFCallback)) {
         return 0;
     }
 #endif

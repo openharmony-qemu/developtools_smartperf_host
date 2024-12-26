@@ -31,7 +31,7 @@ import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 
 const sqlit = require('../../../../../../src/trace/database/sql/SqlLite.sql');
 jest.mock('../../../../../../src/trace/database/sql/SqlLite.sql');
-
+global.Worker = jest.fn();
 window.ResizeObserver =
   window.ResizeObserver ||
   jest.fn().mockImplementation(() => ({

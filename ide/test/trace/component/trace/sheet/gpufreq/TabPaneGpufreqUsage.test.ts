@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { TabPaneGpufreq } from '../../../../../../src/trace/component/trace/sheet/gpufreq/tabPaneGpufreqUsage';
+import { TabPaneGpufreq } from '../../../../../../src/trace/component/trace/sheet/gpufreq/TabPaneGpufreqUsage';
 import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
 
 jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
