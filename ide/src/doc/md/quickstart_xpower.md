@@ -58,7 +58,7 @@ Xpower用于查看系统整机和应用功耗数据，当前支持：电源信�
 
 点击system下的任意通道图弹出Current Selection的tab页
 
-![GitHub Logo](../../figures/Xpower/xpower_kx_system1)
+![GitHub Logo](../../figures/Xpower/xpower_kx_system1.jpg)
 
 - StartTime(Relative)：相对时间
 - StartTime(Absolute) ：绝对时间

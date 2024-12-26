@@ -186,7 +186,7 @@ bool LocalZip::WriteFile(const unzFile &uzf, const std::filesystem::path &fileNa
 #else
         FILE *fout = fopen(fileName.c_str(), "wb");
 #endif
-        if (fout == NULL) {
+        if (fout == nullptr) {
             unzCloseCurrentFile(uzf);
             return false;
         }
