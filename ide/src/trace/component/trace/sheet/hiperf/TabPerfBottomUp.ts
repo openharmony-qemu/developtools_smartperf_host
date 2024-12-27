@@ -37,6 +37,8 @@ export class TabpanePerfBottomUp extends BaseElement {
   private progressEL: LitProgressBar | null | undefined;
   private searchValue: string = '';
   private currentSelection: SelectionParam | undefined;
+  private static instance: TabpanePerfBottomUp | null;;
+  static isStartGetData: boolean = true;
 
   public initElements(): void {
     this.bottomUpTable = this.shadowRoot?.querySelector('#callTreeTable') as LitTable;
@@ -58,6 +60,12 @@ export class TabpanePerfBottomUp extends BaseElement {
         this.bottomUpTable!.setStatus(this.bottomUpSource, true);
         this.setBottomUpTableData(this.bottomUpSource);
       }
+    });
+  }
+
+  public getBottomData(data: SelectionParam) {
+    this.getDataByWorker(data, (results: Array<PerfBottomUpStruct>) => {
+      this.setBottomUpTableData(results);
     });
   }
 
@@ -91,9 +99,16 @@ export class TabpanePerfBottomUp extends BaseElement {
     this.sortKey = '';
     this.sortType = 0;
     this.bottomUpFilter!.filterValue = '';
-    this.getDataByWorker(data, (results: Array<PerfBottomUpStruct>) => {
-      this.setBottomUpTableData(results);
-    });
+    if (TabpanePerfBottomUp.isStartGetData) {
+      this.getBottomData(data);
+    } else {
+      let timer = setInterval(() => {
+        if (TabpanePerfBottomUp.isStartGetData) {
+          this.getBottomData(data);
+          clearInterval(timer);
+        }
+      }, 1000)
+    }
   }
 
   private setBottomUpTableData(results: Array<PerfBottomUpStruct>): void {

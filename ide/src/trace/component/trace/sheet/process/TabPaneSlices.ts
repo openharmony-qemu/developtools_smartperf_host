@@ -93,7 +93,7 @@ export class TabPaneSlices extends BaseElement {
         this.isDbClick = true;
         FuncStruct.funcSelect = false;
         // @ts-ignore
-        data && this.orgnazitionData(data);
+        data && this.orgnazitionData(data, false);
       }
     });
     this.slicesTbl!.addEventListener('contextmenu', () => {
@@ -240,7 +240,8 @@ export class TabPaneSlices extends BaseElement {
       this.slicesTbl!.loading = false;
     });
   }
-  async orgnazitionData(data: Object): Promise<void> {
+  // @ts-ignore
+  async orgnazitionData(data: Object, isDbClick?: false): unknown {
     // @ts-ignore
     if (data!.tabTitle === 'Summary') {
       FuncStruct.funcSelect = true;
@@ -259,6 +260,10 @@ export class TabPaneSlices extends BaseElement {
     // @ts-ignore
     await spSystemTrace!.searchFunction([], asyncFuncArr, data.name).then((mixedResults) => {
       if (mixedResults && mixedResults.length === 0) {
+        FuncStruct.funcSelect = true;
+        if (!isDbClick) {
+          this.isDbClick = false;
+        }
         return;
       }
       // @ts-ignore
