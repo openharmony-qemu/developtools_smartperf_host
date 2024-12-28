@@ -148,7 +148,7 @@ export class TabPaneXpowerStatisticCurrentData extends BaseElement {
     if (detail.key === 'name') {
       // @ts-ignore
       this.xpowerStatisticSource.sort(this.compare(detail.key, detail.sort, 'string'));
-    } else if (detail.key === 'duration'){
+    } else if (detail.key === 'duration') {
       this.xpowerStatisticSource.sort(this.compare(detail.key, detail.sort, 'duration'));
     } else {
       this.xpowerStatisticSource.sort(this.compare(detail.key, detail.sort, 'number'));

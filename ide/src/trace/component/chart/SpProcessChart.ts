@@ -989,8 +989,8 @@ export class SpProcessChart {
       }
       if (type === 'actual') {
         struct.src_slice = this.processSrcSliceMap.get(res[j].id!);
-        if (struct.tid && struct.tid !== struct.pid){
-          struct.name = `${struct.name}-${struct.tid}`
+        if (struct.tid && struct.tid !== struct.pid) {
+          struct.name = `${struct.name}-${struct.tid}`;
         }
       }
       struct.cmdline = Utils.getInstance().getProcessMap().get(res[j].pid!); //@ts-ignore

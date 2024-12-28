@@ -405,7 +405,7 @@ export class XpowerStatisticStruct extends BaseStruct {
         <div style="line-height: 15px; flex-grow: 2; flex-shrink: 1; flex-basis: auto;">${key}:&nbsp;&nbsp;</div>
         <div style="line-height: 15px; flex-grow: 1; flex-shrink: 1; flex-basis: auto;">${energy || 0} mAh&nbsp;&nbsp;</div>
         <div style="line-height: 15px; flex-grow: 1; flex-shrink: 1; flex-basis: auto;">&nbsp;&nbsp;${Utils.timeFormat(dur)}</div>
-    </div>`
+    </div>`;
       }
     }
     node.hoverHtml = hoverHtml;

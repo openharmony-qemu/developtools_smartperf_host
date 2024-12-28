@@ -22,7 +22,7 @@ import { LitSelectV } from '../../../base-ui/select/LitSelectV';
 import { SpApplication } from '../../SpApplication';
 import { Cmd } from '../../../command/Cmd';
 import { SpRecordTrace } from '../SpRecordTrace';
-import { messageTypeAll, realBattery, thermalReport, appDetail, appStatistic, componentTop,} from './utils/PluginConvertUtils';
+import { messageTypeAll, realBattery, thermalReport, appDetail, appStatistic, componentTop, } from './utils/PluginConvertUtils';
 
 @element('sp-xpower')
 export class SpXPowerRecord extends BaseElement {
@@ -38,7 +38,7 @@ export class SpXPowerRecord extends BaseElement {
 
   get process(): string {
     if (this.xPowerSelectV!.value.length > 0) {
-      if (this.xPowerSelectV!.value == 'none') {
+      if (this.xPowerSelectV!.value === 'none') {
         return '';
       } else {
         return this.xPowerSelectV!.value;
@@ -120,7 +120,7 @@ export class SpXPowerRecord extends BaseElement {
     mode="multiple" canInsert="" title="${
       //@ts-ignore
       config.title
-    }" rounded placement = "bottom" placeholder="${placeholder}">`;
+      }" rounded placement = "bottom" placeholder="${placeholder}">`;
     //@ts-ignore
     config.selectArray.forEach((value: string) => {
       html += `<lit-select-option value="${value}">${value}</lit-select-option>`;
@@ -156,12 +156,12 @@ export class SpXPowerRecord extends BaseElement {
     this.xPowerSelectV!.shadowRoot?.querySelectorAll('lit-select-option').forEach((a) => {
       a.addEventListener('onSelected', (e: unknown) => {
         if (a.hasAttribute('selected')) {
-          if (this.xPowerSelectV!.value == '' || this.xPowerSelectV!.value == 'none') {
+          if (this.xPowerSelectV!.value === '' || this.xPowerSelectV!.value === 'none') {
             let messageValue = this.typeSelect!.value || '';
-            if (messageValue.length > 0) {
-              let selectedOptions = messageValue.split(',').map((option: any) => option.trim());
-              let filteredOptions = selectedOptions.filter(
-                (option: any) => ![appStatistic, appDetail].includes(option)
+            if (messageValue.length > 0) {// @ts-ignore
+              let selectedOptions = messageValue.split(',').map((option: unknown) => option.trim());
+              let filteredOptions = selectedOptions.filter(// @ts-ignore
+                (option: unknown) => ![appStatistic, appDetail].includes(option)
               );
               messageValue = filteredOptions.join(',');
               this.inputEvent!.value = messageValue;
@@ -179,7 +179,7 @@ export class SpXPowerRecord extends BaseElement {
 
   typeSelectClickHandler = (): void => {
     let messageType = [];
-    if (this.xPowerSelectV!.value == '' || this.xPowerSelectV!.value == 'none') {
+    if (this.xPowerSelectV!.value === '' || this.xPowerSelectV!.value === 'none') {
       messageType = [realBattery, thermalReport, componentTop];
     } else {
       messageType = messageTypeAll;

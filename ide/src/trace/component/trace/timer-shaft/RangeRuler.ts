@@ -636,7 +636,7 @@ export class RangeRuler extends Graph {
         if (startTime === midNs) {
           return;
         }
-        if(startTime * 2 < this.range.totalNS) {
+        if (startTime * 2 < this.range.totalNS) {
           this.range.startNS = 0;
           this.range.endNS = startTime * 2;
         } else {

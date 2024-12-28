@@ -56,13 +56,13 @@ export function xpowerGpuFreqCountDataSender(
         sharedArrayBuffers: row.sharedArrayBuffers,
       },
       (res: unknown, len: number, transfer: boolean): void => {
-        resolve(GpuFreqCountArrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
+        resolve(gpuFreqCountArrayBufferHandler(transfer ? res : row.sharedArrayBuffers, len));
       }
     );
   });
 }
 
-function GpuFreqCountArrayBufferHandler(buffers: unknown, len: number): XpowerGpuFreqCountStruct[] {
+function gpuFreqCountArrayBufferHandler(buffers: unknown, len: number): XpowerGpuFreqCountStruct[] {
   let outArr: XpowerGpuFreqCountStruct[] = [];
   // @ts-ignore
   let value = new Float64Array(buffers.value);

@@ -130,8 +130,18 @@ export class TabPaneSliceChild extends BaseElement {
         let minStartTS = Infinity;
         let maxEndTS = -Infinity;
         // @ts-ignore
-        let parentDetail: [{ startTS: number, endTS: number, depth: number, id: number, name: string }] = await getParentDetail(val.param.processId, val.param.threadId, val.param.leftNs, val.param.rightNs);
-
+        let parentDetail: [{ 
+          startTS: number, 
+          endTS: number, 
+          depth: number, 
+          id: number, 
+          name: string 
+        }] = await getParentDetail(
+          val.param.processId, 
+          val.param.threadId, 
+          val.param.leftNs, 
+          val.param.rightNs
+        );
         // @ts-ignore
         parentDetail.forEach(item => {
           funcIdArr.push(item.id);
@@ -147,12 +157,12 @@ export class TabPaneSliceChild extends BaseElement {
 
         let FuncChildrenList = await getFuncChildren(funcIdArr, val.param.processId, val.param.threadId, minStartTS, maxEndTS, true);
         let childDurMap = new Map<number, number>();
-        FuncChildrenList.forEach((it: any) => {
-          if (!childDurMap.has(it.parentId)) {
+        FuncChildrenList.forEach((it: unknown) => {// @ts-ignore
+          if (!childDurMap.has(it.parentId)) {// @ts-ignore
             childDurMap.set(it.parentId, it.duration);
-          } else {
-            let dur = childDurMap.get(it.parentId)
-            dur += it.duration
+          } else {// @ts-ignore
+            let dur = childDurMap.get(it.parentId); // @ts-ignore
+            dur += it.duration; // @ts-ignore
             childDurMap.set(it.parentId, dur!);
           }
         });

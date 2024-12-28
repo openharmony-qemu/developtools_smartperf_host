@@ -31,7 +31,7 @@ export const frameJankDataSql = (args: Args, configure: unknown): string => {
     case 'ExepectMemory':
       fsType = 1;
       flag = 'fs.flag as jankTag,';
-      condition = 'AND t.tid = pro.pid'
+      condition = 'AND t.tid = pro.pid';
       break;
     case 'ExpectedData':
       fsType = 1;
