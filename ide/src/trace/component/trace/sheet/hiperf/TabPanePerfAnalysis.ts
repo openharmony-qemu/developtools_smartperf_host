@@ -25,6 +25,7 @@ import { LitCheckBox } from '../../../../../base-ui/checkbox/LitCheckBox';
 import { initSort } from '../SheetUtils';
 import { TabpanePerfProfile } from './TabPerfProfile';
 import { TabPanePerfAnalysisHtml } from './TabPanePerfAnalysis.html';
+import { TabpanePerfBottomUp } from './TabPerfBottomUp';
 
 @element('tabpane-perf-analysis')
 export class TabPanePerfAnalysis extends BaseElement {
@@ -119,7 +120,7 @@ export class TabPanePerfAnalysis extends BaseElement {
         let perfProfileTab = this.parentElement?.parentElement?.querySelector<TabpanePerfProfile>(
           '#box-perf-profile > tabpane-perf-profile'
         );
-        if (detail.button === 2) {
+        if (detail.button === 2 && detail.tableName && detail.tableName !== '') {
           perfProfileTab!.cWidth = this.clientWidth;
           perfProfileTab!.currentLevel = this.currentLevel;
           if (this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
@@ -336,25 +337,25 @@ export class TabPanePerfAnalysis extends BaseElement {
       tip: (perfObj): string => {
         return `<div>
                                 <div>Process:${
-                                  // @ts-ignore
-                                  perfObj.obj.tableName
-                                }</div>
+          // @ts-ignore
+          perfObj.obj.tableName
+          }</div>
                                 <div>Sample Count:${
-                                  // @ts-ignore
-                                  perfObj.obj.count
-                                }</div>
+          // @ts-ignore
+          perfObj.obj.count
+          }</div>
                                 <div>Percent:${
-                                  // @ts-ignore
-                                  perfObj.obj.percent
-                                }%</div> 
+          // @ts-ignore
+          perfObj.obj.percent
+          }%</div> 
                                 <div>Event Count:${
-                                  // @ts-ignore
-                                  perfObj.obj.eventCount
-                                }</div>
+          // @ts-ignore
+          perfObj.obj.eventCount
+          }</div>
                                 <div>Percent:${
-                                  // @ts-ignore
-                                  perfObj.obj.eventPercent
-                                }%</div> 
+          // @ts-ignore
+          perfObj.obj.eventPercent
+          }%</div> 
                             </div>
                                `;
       },
@@ -1080,7 +1081,7 @@ export class TabPanePerfAnalysis extends BaseElement {
           // @ts-ignore
           other.percent = ((other.count / this.sumCount!) * 100).toFixed(2);
           // @ts-ignore
-          other.eventCount += res[i].eventCount; 
+          other.eventCount += res[i].eventCount;
           // @ts-ignore
           other.eventPercent = ((other.eventCount / this.sumEventCount!) * 100).toFixed(2);
         }
@@ -1110,6 +1111,7 @@ export class TabPanePerfAnalysis extends BaseElement {
       }
       this.progressEL!.loading = false;
       this.getHiperfProcess(val);
+      TabpanePerfBottomUp.isStartGetData = true;
     });
   }
 

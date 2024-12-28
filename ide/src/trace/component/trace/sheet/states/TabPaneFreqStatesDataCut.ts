@@ -785,34 +785,34 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
         </div>
         <div class="main-area">
             <lit-slicer style="width:100%">
-                <div style="width:65%;">
+                <div style="width:70%;">
                     <lit-table id="tb-binder-count" style="height: auto; overflow-x:auto;width:100%;" tree>
                         <lit-table-column width="250px" title="Process/Thread/Cycle" data-index="title" key="title"  align="flex-start" retract>
                         </lit-table-column>
-                        <lit-table-column width="1fr" title="Running count" data-index="RunningCount" key="RunningCoung" align="flex-start">
+                        <lit-table-column width="80px" title="Running count" data-index="RunningCount" key="RunningCoung" align="center">
                         </lit-table-column>
-                        <lit-table-column width="1fr" title="Running dur(ms)" data-index="RunningDur" key="RunningDur" align="flex-start">
+                        <lit-table-column width="80px" title="Running dur(ms)" data-index="RunningDur" key="RunningDur" align="center">
                         </lit-table-column>
-                        <lit-table-column width="1fr" title="Runnable count" data-index="RunnableCount" key="RunnableCount" align="flex-start">
+                        <lit-table-column width="80px" title="Runnable count" data-index="RunnableCount" key="RunnableCount" align="center">
                         </lit-table-column>
-                        <lit-table-column width="1fr" title="Runnable dur(ms)" data-index="RunnableDur" key="RunnableDur" align="flex-start">
+                        <lit-table-column width="80px" title="Runnable dur(ms)" data-index="RunnableDur" key="RunnableDur" align="center">
                         </lit-table-column>
-                        <lit-table-column width="1fr" title="Sleeping count" data-index="SleepingCount" key="SleepingCount" align="flex-start">
+                        <lit-table-column width="80px" title="Sleeping count" data-index="SleepingCount" key="SleepingCount" align="center">
                         </lit-table-column>
-                        <lit-table-column width="1fr" title="Sleeping dur(ms)" data-index="SleepingDur" key="SleepingDur" align="flex-start">
+                        <lit-table-column width="80px" title="Sleeping dur(ms)" data-index="SleepingDur" key="SleepingDur" align="center">
                         </lit-table-column>
-                        <lit-table-column width="1fr" title="D count" data-index="DCount" key="DCount" align="flex-start">
+                        <lit-table-column width="80px" title="D count" data-index="DCount" key="DCount" align="center">
                         </lit-table-column>
-                        <lit-table-column width="1fr" title="D dur(ms)" data-index="DDur" key="DDUR" align="flex-start">
+                        <lit-table-column width="80px" title="D dur(ms)" data-index="DDur" key="DDUR" align="center">
                         </lit-table-column>
-                        <lit-table-column width="1fr" title="Duration(ms)" data-index="cycleDur" key="cycleDur" align="flex-start">
+                        <lit-table-column width="80px" title="Duration(ms)" data-index="cycleDur" key="cycleDur" align="center">
                         </lit-table-column>
-                        <lit-table-column width="1fr"  title="Total" data-index="totalCount" key="totalCount" align="flex-start">
+                        <lit-table-column width="80px"  title="Total" data-index="totalCount" key="totalCount" align="center">
                         </lit-table-column>
                     </lit-table>
                 </div>
                 <lit-slicer-track ></lit-slicer-track>
-                <div style="width:35%;padding: 16px;height:auto;overflow:auto;" class="query-cycle-area">
+                <div style="width:30%;padding: 16px;height:auto;overflow:auto;" class="query-cycle-area">
                     <div >
                         <div id="cycle-a">
                             <span>Cycle A: </span>
