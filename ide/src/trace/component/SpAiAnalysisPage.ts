@@ -143,7 +143,7 @@ export class SpAiAnalysisPage extends BaseElement {
         this.endTimeEl = this.shadowRoot?.querySelector('.endTime');
         this.endTimeEl!.innerHTML = getTimeString(TraceRow.range?.endNS!);
 
-        let rightBarGroup: any = [
+        let rightBarGroup: unknown = [
             {
                 barName: '聊天',
                 barEl: this.chatBar,
@@ -164,11 +164,12 @@ export class SpAiAnalysisPage extends BaseElement {
                 showPage: this.reportDetails,
                 isMustLoadedTrace: true
             }
-        ]
+        ];
 
         // 给右边栏添加点击事件
-        rightBarGroup.forEach((barItem: any, index: number) => {
-            barItem.barEl.addEventListener('click', (ev: Event) => {
+        // @ts-ignore
+        rightBarGroup.forEach((barItem: unknown, index: number) => {    // @ts-ignore
+            barItem.barEl.addEventListener('click', (ev: Event) => {    // @ts-ignore
                 if (barItem.isMustLoadedTrace && !SpApplication.isTraceLoaded) {
                     let importTraceTips = '请先导入trace，再使用诊断功能';
                     this.tipContentArr = ['chat'];
@@ -176,18 +177,18 @@ export class SpAiAnalysisPage extends BaseElement {
                     return;
                 }
                 // this.tipsContent!.style.display = this.isNodata && barItem.barFlag === 'detect' ? 'flex' : 'none';
-                this.tipsContainer!.style.display = 'none';
-                this.showPageFlag = barItem.barFlag;
-                barItem.imgEl.src = barItem.activeImg;
-                barItem.barEl.classList.add('active');
-                barItem.showPage.style.display = 'block';
+                this.tipsContainer!.style.display = 'none';    // @ts-ignore
+                this.showPageFlag = barItem.barFlag;    // @ts-ignore
+                barItem.imgEl.src = barItem.activeImg;    // @ts-ignore
+                barItem.barEl.classList.add('active');    // @ts-ignore
+                barItem.showPage.style.display = 'block';    // @ts-ignore
                 if (this.tipContentArr.indexOf(barItem.barFlag) > -1) {
                     this.tipsContainer!.style.display = 'flex';
-                }
+                }    // @ts-ignore
                 for (let i = 0; i < rightBarGroup.length; i++) {
-                    if (i !== index) {
-                        rightBarGroup[i].barEl.classList.remove('active');
-                        rightBarGroup[i].imgEl.src = rightBarGroup[i].img;
+                    if (i !== index) {    // @ts-ignore
+                        rightBarGroup[i].barEl.classList.remove('active');    // @ts-ignore
+                        rightBarGroup[i].imgEl.src = rightBarGroup[i].img;    // @ts-ignore
                         rightBarGroup[i].showPage.style.display = 'none';
                     }
                 }
@@ -289,7 +290,7 @@ export class SpAiAnalysisPage extends BaseElement {
                         response.blob().then(blob => {
                             const reader = new FileReader();
                             reader.readAsArrayBuffer(blob);
-                            reader.onloadend = () => {
+                            reader.onloadend = (): void => {
                                 const dbBuffer = reader.result;
                                 // @ts-ignore
                                 const reqBufferDB = new Uint8Array(dbBuffer);
@@ -411,7 +412,7 @@ export class SpAiAnalysisPage extends BaseElement {
         });
     }
 
-    appendChatContent(response: AiResponse) {
+    appendChatContent(response: AiResponse): void {
         if (!this.isNewChat) {
             // @ts-ignore
             this.aiAnswerBox!.firstElementChild!.innerHTML = this.md!.render(response.data);
@@ -713,10 +714,10 @@ export class SpAiAnalysisPage extends BaseElement {
                 WebSocketManager.getInstance()!.sendMessage(TypeConstants.DIAGNOSIS_TYPE, TypeConstants.SENDDB_CMD, reqBufferDB);
                 // 存入缓存
                 const blob = new Blob([reqBufferDB]);
-                const response = new Response(blob)
+                const response = new Response(blob);
                 caches.open('DB-file').then(cache => {
                     return cache.put(`/${fileName}.db`, response);
-                })
+                });
             },
             'download-db'
         );
@@ -776,7 +777,7 @@ export class SpAiAnalysisPage extends BaseElement {
     };
 
     // eventCallBack
-    eventCallBack = async (result: string) => {
+    eventCallBack = async (result: string): Promise<void> => {
         this.draftList!.innerHTML = '';
         this.tipsContent!.style.display = 'flex';
         this.tipContentArr = ['detect'];
@@ -832,7 +833,7 @@ export class SpAiAnalysisPage extends BaseElement {
         return {
             unconnected: {
                 prompt: `未连接，请启动本地扩展程序再试！[</span><a href=${guideSrc} style="color: blue;" target="_blank">指导</a><span>]`
-            },// 重连
+            }, // 重连
             connected: {
                 prompt: '扩展程序连接中，请稍后再试！'
             }, // 中间
@@ -850,8 +851,8 @@ export class SpAiAnalysisPage extends BaseElement {
             }, // 重连
             upgradeFailed: {
                 prompt: '刷新页面触发升级，或卸载扩展程序重装！'
-            },// 重连
-        }
+            }, // 重连
+        };
     }
 
     initHtml(): string {

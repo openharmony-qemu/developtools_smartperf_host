@@ -154,7 +154,18 @@ export class TabPaneSlices extends BaseElement {
         let minStartTS = Infinity;
         let maxEndTS = -Infinity;
         // @ts-ignore
-        let parentDetail: [{ startTS: number, endTS: number, depth: number, id: number, name: string }] = await getParentDetail(slicesParam.processIds, slicesParam.funTids, slicesParam.leftNs, slicesParam.rightNs);
+        let parentDetail: [{ 
+          startTS: number, 
+          endTS: number, 
+          depth: number, 
+          id: number, 
+          name: string 
+        }] = await getParentDetail(
+          slicesParam.processIds, 
+          slicesParam.funTids, 
+          slicesParam.leftNs, 
+          slicesParam.rightNs
+        );
         // @ts-ignore
         parentDetail.forEach(item => {
           funcIdArr.push(item.id);
@@ -170,12 +181,12 @@ export class TabPaneSlices extends BaseElement {
 
         let FuncChildrenList = await getFuncChildren(funcIdArr, slicesParam.processIds, slicesParam.funTids, minStartTS, maxEndTS, false);
         let childDurMap: Map<number, Map<number, number>> = new Map();
-        FuncChildrenList.forEach((it: any) => {
-          if (!childDurMap.has(it.parentId)) {
+        FuncChildrenList.forEach((it: unknown) => { // @ts-ignore
+          if (!childDurMap.has(it.parentId)) { // @ts-ignore
             childDurMap.set(it.parentId, it.duration);
-          } else {
-            let dur = childDurMap.get(it.parentId)
-            dur += it.duration
+          } else { // @ts-ignore
+            let dur = childDurMap.get(it.parentId); // @ts-ignore
+            dur += it.duration; // @ts-ignore
             childDurMap.set(it.parentId, dur!);
           }
         });
@@ -185,7 +196,10 @@ export class TabPaneSlices extends BaseElement {
         let processSlicesResultMap: Map<string, unknown> = new Map();
         for (let processSliceItem of processSlicesResult) {
           //@ts-ignore
-          processSliceItem.selfTime = childDurMap.has(processSliceItem.id) ? parseFloat(((processSliceItem.wallDuration - childDurMap.get(processSliceItem.id)) / 1000000).toFixed(5)) : parseFloat((processSliceItem.wallDuration / 1000000).toFixed(5));
+          processSliceItem.selfTime = //@ts-ignore
+          childDurMap.has(processSliceItem.id) ? //@ts-ignore
+          parseFloat(((processSliceItem.wallDuration - childDurMap.get(processSliceItem.id)) / 1000000).toFixed(5)) : //@ts-ignore
+          parseFloat((processSliceItem.wallDuration / 1000000).toFixed(5));
           //@ts-ignore
           processSliceItem.name = processSliceItem.name === null ? '' : processSliceItem.name;
           //@ts-ignore

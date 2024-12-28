@@ -310,7 +310,7 @@ export class TabPaneHiLogs extends BaseElement {
     search = search.replace(/\s/g, '');
     let processSearch = this.processFilter?.value.toLowerCase() || '';
     processSearch = processSearch.replace(/\s/g, '');
-     // @ts-ignore
+    // @ts-ignore
     return (
       (data.startTs || 0) >= TraceRow.range!.startNS &&
       (data.startTs || 0) <= TraceRow.range!.endNS &&
@@ -323,17 +323,17 @@ export class TabPaneHiLogs extends BaseElement {
   }
 
   // 模糊过滤tag
-  private filterTag(tagAllName:unknown){
-    if(this.allowTag.size === 0){
+  private filterTag(tagAllName: unknown): boolean | undefined { 
+    if (this.allowTag.size === 0) {
       return;
     }
     for (const value of this.allowTag) {
       // @ts-ignore
-      if(tagAllName.indexOf(value) >= 0){
+      if (tagAllName.indexOf(value) >= 0) {
         return true;
       }
     }
-      return false;
+    return false;
   }
 
   private refreshTable(): void {
