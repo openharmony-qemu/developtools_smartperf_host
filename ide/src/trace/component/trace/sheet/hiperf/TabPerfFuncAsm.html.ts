@@ -53,14 +53,16 @@ export const TabPerfFuncAsmHtml = `
         <div class="title-box">
             <div class="title-item" id="function-name"><span class="title-label">Function Name:</span> </div>
             <div class="title-item" id="total-count"><span class="title-label">Total Count:</span> </div>
+            <div class="title-item" id="text-file-off" ><span class="title-label">.text Section File Off:</span> </div>
             <div class="title-item error-message" id="error-message"></div>
         </div>
         <lit-loading id="loading" class="loading" hidden></lit-loading>
         <lit-table id="perf-function-asm-table" style="display: grid;min-height: 380px" hideDownload>
-            <lit-table-column width="1fr" title="Self Count" data-index="selfcount" key="selfcount" align="flex-start" order></lit-table-column>
-            <lit-table-column width="1fr" title="%" data-index="percent" key="percent" align="flex-start" order></lit-table-column>
-            <lit-table-column width="1fr" title="Virtual Addr" data-index="addr" key="addr" align="flex-start" order></lit-table-column>
-            <lit-table-column width="1fr" title="Assembler" data-index="instruction" key="instruction" align="flex-start" order></lit-table-column>
+            <lit-table-column width="0.2fr" title="Self Count" data-index="selfcount" key="selfcount" align="flex-start" order></lit-table-column>
+            <lit-table-column width="0.2fr" title="%" data-index="percent" key="percent" align="flex-start" order></lit-table-column>
+            <lit-table-column width="0.4fr" title="Virtual Address" data-index="addr" key="addr" align="flex-start" order></lit-table-column>
+            <lit-table-column width="2fr" title="Source Line" data-index="sourceLine" key="sourceLine" align="flex-start" order hidden></lit-table-column>
+            <lit-table-column width="2fr" title="Assembler Instruction" data-index="instruction" key="instruction" align="flex-start" order></lit-table-column>
         </lit-table>
     </div>
 </div>

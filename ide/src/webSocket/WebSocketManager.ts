@@ -213,20 +213,32 @@ export class WebSocketManager {
      * 模块调用
     */
     registerMessageListener(type: number, callback: Function, eventCallBack: Function): void {
-        if (!this.distributeMap.has(type)) {
-            this.distributeMap.set(type, { 'messageCallbacks': [], 'eventCallBack': eventCallBack });
-        }
-        const callbackObj = this.distributeMap.get(type)!;
-        callbackObj.messageCallbacks.push(callback);
+        this.register(type, callback, eventCallBack);
     }
 
-    // 注册回调函数
+    /**
+     * 消息监听器
+     * listener是不同模块传来接收数据的函数
+     * 模块调用
+     */
     registerCallback(type: number, callback: Function): void {
-        if (!this.distributeMap.has(type)) {
-            this.distributeMap.set(type, { 'messageCallbacks': [], 'eventCallBack': () => {} });
+        this.register(type, callback);
+    }
+
+    private register(type: number, callback: Function, eventCallBack: Function = () => {}): void {
+        let callbackObj = this.distributeMap.get(type);
+        if (!callbackObj) {
+            callbackObj = {
+                messageCallbacks: [callback],
+                eventCallBack: eventCallBack
+            };
+            this.distributeMap.set(type, callbackObj);
+        } else {
+            if (!callbackObj.messageCallbacks.includes(callback)) {
+                callbackObj.messageCallbacks.push(callback);
+            }
+            callbackObj.eventCallBack = eventCallBack;
         }
-        const callbackObj = this.distributeMap.get(type)!;
-        callbackObj.messageCallbacks.push(callback);
     }
 
     // 删除回调函数
@@ -234,10 +246,7 @@ export class WebSocketManager {
         if (!this.distributeMap.has(type)) {
             return;
         }
-        // 获取指定类型的回调对象
         const callbackObj = this.distributeMap.get(type)!;
-
-        // 在回调数组中查找并移除与传入的回调函数匹配的项
         callbackObj.messageCallbacks = callbackObj.messageCallbacks.filter((cb) => cb !== callback);
 
         // 如果回调数组为空，同时 eventCallBack 也为空，则可以删除整个类型
@@ -276,7 +285,7 @@ export class WebSocketManager {
         this.websocket!.send(encode!);
     }
 
-    // 定时检查心跳  
+    // 定时检查心跳
     sendHeartbeat(): void {
         this.heartbeatInterval = window.setInterval(() => {
             if (this.status === GetStatuses.READY) {
@@ -316,7 +325,7 @@ export class WebSocketManager {
     }
 
     // 检查状态 中间状态，最终失败状态，最终成功状态
-    checkStatus(type: number): void { // 更改参数名称为 type，以反映实际传递的值
+    checkStatus(type: number): void {
         // @ts-ignore
         let statuses = this.getStatusesPrompt()[this.status];
         const distributeEntry = this.distributeMap.get(type);
@@ -325,11 +334,9 @@ export class WebSocketManager {
             if (statuses.type === INTERMEDIATE_STATE) {
                 distributeEntry.eventCallBack(this.status);
             } else if (statuses.type === FAILED_STATE) {
-                this.reconnect = type; // 确认这是您想要的逻辑
+                this.reconnect = type;
                 this.connectWebSocket();
             }
-        } else {
-            console.error('No valid eventCallBack found for type: ${type}');
         }
     }
 

@@ -358,7 +358,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   private perfGetVaddr(data: unknown) {
     // @ts-ignore
     const params = data.params;
-    this.backVaddrData(data)
+    this.backVaddrData(data);
   }
 
   backVaddrData(data: unknown) {
@@ -1270,9 +1270,6 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         break;
       case 'getCurrentDataFromDbBottomUp':
         this.queryDataFromDb(funcArgs, 'perf-bottomUp');
-      case 'getCurrentDataFromDb':
-        this.queryDataFromDb(funcArgs);
-        break;
       case 'getVaddrToFile':
         this.queryVaddrToFile(funcArgs);
         break;

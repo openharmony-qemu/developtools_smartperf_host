@@ -95,6 +95,7 @@ import { PerfToolStruct } from '../../../database/ui-worker/ProcedureWorkerPerfT
 import { GpuCounterStruct } from '../../../database/ui-worker/ProcedureWorkerGpuCounter';
 import { TabPaneGpuCounter } from '../sheet/gpu-counter/TabPaneGpuCounter';
 import { TabPaneSliceChild } from '../sheet/process/TabPaneSliceChild';
+import { TabPerfFuncAsm } from '../sheet/hiperf/TabPerfFuncAsm';
 import { XpowerStatisticStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerStatistic';
 import { XpowerAppDetailStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerAppDetail';
 import { XpowerWifiStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerWifi';
@@ -103,11 +104,11 @@ import { XpowerThreadInfoStruct } from '../../../database/ui-worker/ProcedureWor
 import { TabPaneXpowerThreadInfoSelection } from '../sheet/xpower/TabPaneXpowerThreadInfoSelection';
 import { TabPaneXpowerGpuFreqSelection } from '../sheet/xpower/TabPaneXpowerGpuFreqSelection';
 import { XpowerGpuFreqStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerGpuFreq';
-import {WebSocketManager} from "../../../../webSocket/WebSocketManager";
-import {Constants, TypeConstants} from "../../../../webSocket/Constants";
-import {SpStatisticsHttpUtil} from "../../../../statistics/util/SpStatisticsHttpUtil";
+import { WebSocketManager} from "../../../../webSocket/WebSocketManager";
+import { Constants, TypeConstants} from "../../../../webSocket/Constants";
 import { PerfFunctionAsmParam } from '../../../bean/PerfAnalysis';
-import { TabPerfFuncAsm } from '../sheet/hiperf/TabPerfFuncAsm';
+import { info,error } from '../../../../log/Log';
+
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -132,9 +133,7 @@ export class TraceSheet extends BaseElement {
   private optionsDiv: LitPopover | undefined | null;
   private optionsSettingTree: LitTree | undefined | null;
   private tabPaneHeight: string = '';
-  private enc = new TextEncoder();
-  private dec = new TextDecoder();
-  private REQ_BUF_SIZE = 4 * 1024 * 1024;
+  private REQ_BUF_SIZE = 1024 * 1024;
 
   static get observedAttributes(): string[] {
     return ['mode'];
@@ -314,21 +313,19 @@ export class TraceSheet extends BaseElement {
       (it): boolean =>
         it.id !== this.currentPaneID ? (it.hidden = true) : (it.hidden = false)
     );
-    let pane = this.getPaneByID("tab-perf-func-asm"); //通过Id找到需要展示的Tab页
-    pane.closeable = true;
-    pane.hidden = false;
+    let asmPane = this.getPaneByID("tab-perf-func-asm"); //通过Id找到需要展示的Tab页
+    asmPane.closeable = true;
+    asmPane.hidden = false;
     // @ts-ignore
-    pane.tab = evt.tableName; //设置Tab页标题
-    console.log("lbh: evt", evt);
-    console.log("lbh: vaadrlist", vaddrList);
+    asmPane.tab = evt.tableName; //设置Tab页标题
     let param = new PerfFunctionAsmParam();
     param.vaddrList = vaddrList;
     // @ts-ignore
     param.functionName = evt.tableName;
     // @ts-ignore
     param.totalCount = evt.count;
-    (pane.children.item(0) as TabPerfFuncAsm)!.data = param;
-    this.litTabs!.activeByKey(pane.key); //显示key值（sheetconfig里面对应的index是一个数字）对应的Tab页
+    (asmPane.children.item(0) as TabPerfFuncAsm)!.data = param;
+    this.litTabs!.activeByKey(asmPane.key); //显示key值（sheetconfig里面对应的index是一个数字）对应的Tab页
   }
 
   private nativeAnalysisListener(e: MouseEvent): void {
@@ -621,7 +618,9 @@ export class TraceSheet extends BaseElement {
 
   private async uploadSoOrAN(fileList: Array<File>): Promise<void> {
     if (fileList) {
-      fileList.sort((a, b) => b.size - a.size);
+      fileList.sort((a, b) => {
+        return b.size - a.size;
+      });
       await this.uploadAllFiles(fileList);
     }
   }
@@ -636,12 +635,12 @@ export class TraceSheet extends BaseElement {
       const file = filesToUpload[i];
       try {
         await this.uploadSingleFile(file);
-        console.log('File ${file.name} uploaded successfully.');
-      } catch (error) {
-        console.error('Failed to upload file: ${file.name}, error');
+        info(`File ${file.name} uploaded successfully.`);
+      } catch (err) {
+        error(`Failed to upload file: ${file.name}, error: `, err);
       }
     }
-    console.log("All files have been uploaded.");
+    info(`All files have been uploaded.`);
   }
 
 
@@ -668,16 +667,15 @@ export class TraceSheet extends BaseElement {
             let jsonRes = JSON.parse(jsonString);
             if (cmd === Constants.DISASSEMBLY_SAVE_BACK_CMD) {
               if (jsonRes.fileName === fileName && jsonRes.bufferIndex === bufferIndex) {
-                wsInstance!.unregisterCallback(TypeConstants.DISASSEMBLY_TYPE, onAckReceived)
+                wsInstance!.unregisterCallback(TypeConstants.DISASSEMBLY_TYPE, onAckReceived);
                 clearTimeout(timeout);
-                if (jsonRes.resultCode == 0) {
-                  console.log('ACK received for file: ${jsonRes.fileName}, index: ${jsonRes.bufferIndex}');
+                if (jsonRes.resultCode === 0) {
                   bufferIndex++;
                   // 当收到对应分片的 ACK 时，resolve Promise，继续上传下一个分片
                   resolve();
                 }else{
                   // 上传失败，拒绝 Promise 并返回
-                  reject(new Error('Upload failed for file: ${fileName}, index: ${jsonRes.bufferIndex})'));
+                  reject(new Error(`Upload failed for file: ${fileName}, index: ${jsonRes.bufferIndex})`));
                 }
               }
             }
@@ -712,7 +710,6 @@ export class TraceSheet extends BaseElement {
         buffer = null;
         blob = null;
       }
-      console.log('Upload complete for file: ${fileName}');
     }
   };
 
