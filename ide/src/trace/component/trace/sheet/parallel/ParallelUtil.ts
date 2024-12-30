@@ -43,6 +43,7 @@ export function HanldParalLogic(
         if (globalTs === minEndTs) {
             // @ts-ignore
             if (minIndex !== -1) { waitArr.splice(minIndex, 1) };
+            index++;
             continue;
         }
         let list = JSON.parse(JSON.stringify(waitArr));
@@ -82,6 +83,7 @@ export function HanldParalLogic(
                 globalTs = minEndTs;
                 // @ts-ignore
                 if (minIndex !== -1) { waitArr.splice(minIndex, 1) };
+                index++;
             }
         } else {
             dumpObj = {
@@ -93,6 +95,7 @@ export function HanldParalLogic(
             globalTs = minEndTs;
             // @ts-ignore
             if (minIndex !== -1) { waitArr.splice(minIndex, 1) };
+            index++;
         }
         param = func(dumpObj, value, param);
     }
