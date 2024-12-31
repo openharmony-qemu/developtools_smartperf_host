@@ -153,10 +153,9 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
         stateItemArr.map((stateItem) => {
           for (let i = 0; i < this.funcNameCycleArr!.length; i++) {
             if (
-              // @ts-ignore
-              stateItem.ts + stateItem.dur > this.funcNameCycleArr[i].cycleStartTime &&
-              // @ts-ignore
-              stateItem.ts + stateItem.dur < this.funcNameCycleArr[i].endTime &&
+              ((stateItem.ts > this.funcNameCycleArr![i].cycleStartTime && stateItem.ts < this.funcNameCycleArr![i].endTime) ||
+                (stateItem.ts + stateItem.dur! > this.funcNameCycleArr![i].cycleStartTime && stateItem.ts + stateItem.dur! < this.funcNameCycleArr![i].endTime) ||
+                (this.funcNameCycleArr![i].cycleStartTime > stateItem.ts && this.funcNameCycleArr![i].endTime < stateItem.ts + stateItem.dur!)) &&
               (stateItem.state === 'S' ||
                 stateItem.state === 'R' ||
                 stateItem.state === 'D' ||
@@ -164,11 +163,6 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
             ) {
               stateItem.startTs = stateItem.ts;
               stateItem.chartDur = stateItem.dur;
-              // @ts-ignore 周期第一条数据开始时间设置为周期开始时间
-              if (stateItem.ts + stateItem.dur > this.funcNameCycleArr[i].cycleStartTime && stateItem.ts < this.funcNameCycleArr[i].cycleStartTime) {
-                stateItem.dur = stateItem.ts + stateItem.dur! - this.funcNameCycleArr![i].cycleStartTime;
-                stateItem.ts = this.funcNameCycleArr![i].cycleStartTime;
-              }
               this.filterState!.push(stateItem);
             }
           }
@@ -225,10 +219,9 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
         stateItemArr.map((stateItem) => {
           for (let i = 0; i < this.funcNameCycleArr!.length; i++) {
             if (
-              // @ts-ignore
-              stateItem.ts + stateItem.dur > this.funcNameCycleArr[i].cycleStartTime &&
-              // @ts-ignore
-              stateItem.ts + stateItem.dur < this.funcNameCycleArr[i].endTime &&
+              ((stateItem.ts > this.funcNameCycleArr![i].cycleStartTime && stateItem.ts < this.funcNameCycleArr![i].endTime) ||
+                (stateItem.ts + stateItem.dur! > this.funcNameCycleArr![i].cycleStartTime && stateItem.ts + stateItem.dur! < this.funcNameCycleArr![i].endTime) ||
+                (this.funcNameCycleArr![i].cycleStartTime > stateItem.ts && this.funcNameCycleArr![i].endTime < stateItem.ts + stateItem.dur!)) &&
               (stateItem.state === 'S' ||
                 stateItem.state === 'R' ||
                 stateItem.state === 'D' ||
@@ -370,10 +363,9 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
         cycleItem.cycle = i;
         threadData.map((v) => {
           if (
-            // @ts-ignore
-            v.ts + v.dur > this.funcNameCycleArr[i].cycleStartTime &&
-            // @ts-ignore
-            v.dur + v.ts < this.funcNameCycleArr[i].endTime
+            (v.ts > this.funcNameCycleArr![i].cycleStartTime && v.ts < this.funcNameCycleArr![i].endTime) ||
+            (v.ts + v.dur! > this.funcNameCycleArr![i].cycleStartTime && v.ts + v.dur! < this.funcNameCycleArr![i].endTime) ||
+            (this.funcNameCycleArr![i].cycleStartTime > v.ts && this.funcNameCycleArr![i].endTime < v.ts + v.dur!)
           ) {
             cycleItem.totalCount! += 1;
             v.state === 'R'
@@ -593,7 +585,10 @@ export class TabPaneFreqStatesDataCut extends BaseElement {
   // 筛选出点击的线程数据
   filCycleData(pid: number, tid: number): Array<StateGroup> {
     return this.filterState?.filter((v: StateGroup) => {
-      return v.pid === pid && v.tid === tid && v.ts + v.dur! > this.cycleStartTime! && v.ts + v.dur! < this.cycleEndTime!;
+      return v.pid === pid && v.tid === tid && (
+        (v.ts > this.cycleStartTime! && v.ts < this.cycleEndTime!) ||
+        (v.ts + v.dur! > this.cycleStartTime! && v.ts + v.dur! < this.cycleEndTime!) ||
+        (this.cycleStartTime! > v.ts && this.cycleEndTime! < v.ts + v.dur!));
     })
   };
 
