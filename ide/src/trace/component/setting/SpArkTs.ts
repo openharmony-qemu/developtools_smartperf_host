@@ -189,7 +189,7 @@ export class SpArkTs extends BaseElement {
 
     if (detail.checked) {
       this.unDisable();
-      this.unMemoryDisable();
+      this.memoryDisable();
     } else {
       this.disable();
       this.memoryDisable();
@@ -298,6 +298,8 @@ export class SpArkTs extends BaseElement {
       item.disabled = false;
       item.checked = true;
     });
+    // @ts-ignore
+    this.memorySwitch?.checked = false;
     let interval = this.shadowRoot?.querySelectorAll<HTMLInputElement>('.inputstyle');
     interval!.forEach((item) => {
       item.disabled = false;

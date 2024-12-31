@@ -19,19 +19,19 @@ export function HanldParalLogic(
     func: (dumpObj: unknown, value?: unknown, param?: unknown) => unknown,
     value: unknown,
     param?: unknown): unknown {
-        // @ts-ignore
+    // @ts-ignore
     let arr = value.stateItem;
     let waitArr: unknown = [];
     let globalTs: number = 0;
     let index: number = 0;
     // @ts-ignore
-    while (index < arr.length || waitArr.length > 0) {
+    while (index < arr.length) {
         // @ts-ignore
         let minEndTs = Math.min(...waitArr.map((item: unknown) => item.endTs));
         // @ts-ignore
         let minIndex = waitArr.findIndex((item: unknown) => item.endTs === minEndTs);
         //当waitArr为空时
-      // @ts-ignore
+        // @ts-ignore
         if (waitArr.length === 0) {
             globalTs = arr[index].ts;
             // @ts-ignore
@@ -43,6 +43,7 @@ export function HanldParalLogic(
         if (globalTs === minEndTs) {
             // @ts-ignore
             if (minIndex !== -1) { waitArr.splice(minIndex, 1) };
+            index++;
             continue;
         }
         let list = JSON.parse(JSON.stringify(waitArr));
@@ -82,6 +83,7 @@ export function HanldParalLogic(
                 globalTs = minEndTs;
                 // @ts-ignore
                 if (minIndex !== -1) { waitArr.splice(minIndex, 1) };
+                index++;
             }
         } else {
             dumpObj = {
@@ -93,6 +95,7 @@ export function HanldParalLogic(
             globalTs = minEndTs;
             // @ts-ignore
             if (minIndex !== -1) { waitArr.splice(minIndex, 1) };
+            index++;
         }
         param = func(dumpObj, value, param);
     }

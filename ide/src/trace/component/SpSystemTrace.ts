@@ -1818,7 +1818,6 @@ export class SpSystemTrace extends BaseElement {
     //@ts-ignore
     window.subscribe(window.SmartEvent.UI.ImportRecord, (data: string) => {
       let record = JSON.parse(data);
-      if (record.leftNS !== undefined && record.rightNS !== undefined) {
         this.favoriteChartListEL?.removeAllCollectRow();
         let currentGroup = this.currentCollectGroup;
         if (record.G1) {
@@ -1844,8 +1843,7 @@ export class SpSystemTrace extends BaseElement {
         // @ts-ignore
         document.querySelector('body > sp-application').shadowRoot.querySelector('#lit-search').shadowRoot.querySelector('div.root > input')!.value = record.search ? record.search : '';
         // @ts-ignore
-        document.querySelector('body > sp-application').shadowRoot.querySelector('#lit-search')!.valueChangeHandler!(record.search ? record.search : '');
-      }
+        document.querySelector("body > sp-application").shadowRoot.querySelector("#lit-search")!.valueChangeHandler!(record.search?record.search:'');
     });
   }
 
@@ -1881,7 +1879,10 @@ export class SpSystemTrace extends BaseElement {
       }
     }
     // @ts-ignore
+    if(record.leftNS && record.rightNS){
+      // @ts-ignore
     this.timerShaftEL?.setRangeNS(record.leftNS, record.rightNS);
+    }
   }
 
   private restoreRecordScrollTop(mainScrollTop: number, favoriteScrollTop: number): void {

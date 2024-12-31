@@ -98,6 +98,21 @@ export class SpAiAnalysisPage extends BaseElement {
             html: true,
             typographer: true
         });
+        // 自定义 link_open 规则
+        // @ts-ignore
+        this.md.renderer.rules.link_open = (tokens, idx) => {
+            // @ts-ignore
+            const href = tokens![idx].attrIndex('href');
+            if (href < 0) {
+                return '';
+            }
+            // @ts-ignore
+            tokens[idx].attrPush(['target', '_blank']); // 添加 target="_blank"
+            // @ts-ignore
+            tokens[idx].attrPush(['rel', 'noopener noreferrer']); // 推荐添加 rel="noopener noreferrer" 以提高安全性
+            // @ts-ignore
+            return `<a href="${tokens[idx].attrs[href][1]}" target="_blank" rel="noopener noreferrer">`;
+        };
         let aiAssistant = document.querySelector('body > sp-application')!.shadowRoot!.querySelector('#sp-ai-analysis');
         this.chatBar = this.shadowRoot?.querySelector('.chatBar');
         let closeBtn = document.querySelector('body > sp-application')!.shadowRoot!.querySelector('#sp-ai-analysis')!.shadowRoot!.querySelector('div.rightTabBar > lit-icon')!.shadowRoot!.querySelector('#icon');
@@ -326,6 +341,7 @@ export class SpAiAnalysisPage extends BaseElement {
 
     // 重新导trace、db时，初始化诊断功能
     clear(): void {
+        this.tipContentArr = [];
         // 判断是否有上一次未完成的优化建议请求，如果有则断掉
         if (SpStatisticsHttpUtil.controllersMap.size > 0) {
             SpStatisticsHttpUtil.isInterrupt = true;

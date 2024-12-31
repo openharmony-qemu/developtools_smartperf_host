@@ -294,7 +294,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
 
   private clickRight(evt: unknown, title: string): void {
     // @ts-ignore
-    if (evt.detail.button === 2) {
+    if (evt.detail.button === 2 && evt.detail.tableName && evt.detail.tableName !== '') {
       let treeTab = this.parentElement?.parentElement?.querySelector<TabpaneNMCalltree>(
         '#box-native-calltree > tabpane-nm-calltree'
       );

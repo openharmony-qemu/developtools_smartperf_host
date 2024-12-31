@@ -733,8 +733,12 @@ export const queryStatesCut = (tIds: Array<number>, leftNS: number, rightNS: num
   where
     B.tid in (${tIds.join(',')})
   and
-    not ((B.ts + + ifnull(B.dur,0) < ($leftStartNs + C.start_ts)) 
-    or (B.ts + B.dur > ($rightEndNs + C.start_ts)))
+    ((B.ts + ifnull(B.dur,0) > ($leftStartNs + C.start_ts)) 
+    and (B.ts + B.dur < ($rightEndNs + C.start_ts))
+  or
+    (
+      B.ts > ($leftStartNs + C.start_ts) and B.ts < ($rightEndNs + C.start_ts)
+  ))
   order by
     B.pid;
         `,
