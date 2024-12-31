@@ -65,6 +65,7 @@ export class TabPanePerfAnalysis extends BaseElement {
   private tableArray: NodeListOf<LitTable> | undefined | null;
   private isComplete: boolean = true;
   private currentSelectionParam: SelectionParam | undefined | null;
+  static tabLoadingList: Array<string> = [];
 
   set data(val: SelectionParam) {
     if (val === this.currentSelection) {
@@ -79,6 +80,7 @@ export class TabPanePerfAnalysis extends BaseElement {
         initSort(table!, this.sortColumn, this.sortType);
       }
     }
+    TabPanePerfAnalysis.tabLoadingList = [];
     this.currentSelection = val;
     this.tabName!.textContent = '';
     this.hideProcessCheckBox!.checked = false;
@@ -91,6 +93,7 @@ export class TabPanePerfAnalysis extends BaseElement {
     this.currentSelectionParam = val;
     if (!this.callChainMap && this.isComplete) {
       this.isComplete = false;
+      TabPanePerfAnalysis.tabLoadingList.push('analysis');
       this.getCallChainDataFromWorker(val);
     }
   }
@@ -1111,6 +1114,9 @@ export class TabPanePerfAnalysis extends BaseElement {
       }
       this.progressEL!.loading = false;
       this.getHiperfProcess(val);
+      if (TabPanePerfAnalysis.tabLoadingList[0] === 'analysis') {
+        TabPanePerfAnalysis.tabLoadingList.shift();
+      }
       TabpanePerfBottomUp.isStartGetData = true;
     });
   }
