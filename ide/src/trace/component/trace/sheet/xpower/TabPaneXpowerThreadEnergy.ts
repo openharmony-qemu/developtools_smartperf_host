@@ -142,13 +142,13 @@ export class TabPaneXpowerThreadEnergy extends BaseElement {
         SelectThreadEnergyData.name = itemArray[0].threadName;
         SelectThreadEnergyData.count = itemArray.length;
         if (itemArray.length > 1) {
-          max = itemArray.map((item: { value: any }) => item.value).reduce((a: number, b: number) => Math.max(a, b));
-          min = itemArray.map((item: { value: any }) => item.value).reduce((a: number, b: number) => Math.min(a, b));
-          sum = itemArray.reduce((acc: any, obj: { value: any }) => acc + obj.value, 0);
+          max = itemArray.map((item: { value: unknown }) => item.value).reduce((a: number, b: number) => Math.max(a, b));
+          min = itemArray.map((item: { value: unknown }) => item.value).reduce((a: number, b: number) => Math.min(a, b));// @ts-ignore
+          sum = itemArray.reduce((acc: unknown, obj: { value: unknown }) => acc + obj.value, 0);
           SelectThreadEnergyData.avg = (sum / itemArray.length).toFixed(2) + ' mAh';
           SelectThreadEnergyData.max = max + ' mAh';
           SelectThreadEnergyData.min = min + ' mAh';
-        } else if (itemArray.length == 1) {
+        } else if (itemArray.length === 1) {
           let value = itemArray[0].value;
           SelectThreadEnergyData.avg = value + ' mAh';
           SelectThreadEnergyData.max = value + ' mAh';

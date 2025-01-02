@@ -77,7 +77,7 @@ import { XpowerAppDetailRender } from './ProcedureWorkerXpowerAppDetail';
 import { XpowerWifiRender } from './ProcedureWorkerXpowerWifi';
 import { XpowerGpuFreqCountRender } from './ProcedureWorkerXpowerGpuFreqCount';
 import { XpowerGpuFreqRender } from './ProcedureWorkerXpowerGpuFreq';
-import { SnapShotRender } from './ProcedureWorkerSnaps'
+import { SnapShotRender } from './ProcedureWorkerSnaps';
 
 let dataList: unknown = {};
 let dataList2: unknown = {};

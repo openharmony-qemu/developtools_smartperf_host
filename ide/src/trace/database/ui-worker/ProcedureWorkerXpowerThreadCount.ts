@@ -28,8 +28,8 @@ export class XpowerThreadCountRender extends Render {
     let xpowerThreadCountList = row.dataList;
     let xpowerThreadCountFilter = row.dataListCache;
     let maxValue = 0;
-    if (xpowerThreadCountFilter.length > 0) {
-      maxValue = xpowerThreadCountFilter.map((item) => item.value).reduce((a: any, b: any) => Math.max(a, b));
+    if (xpowerThreadCountFilter.length > 0) {// @ts-ignore
+      maxValue = xpowerThreadCountFilter.map((item) => item.value).reduce((a: unknown, b: unknown) => Math.max(a, b));
     }
     dataFilterHandler(xpowerThreadCountList, xpowerThreadCountFilter, {
       startKey: 'startNS',
@@ -97,7 +97,13 @@ private static calculateDrawHeight(data: XpowerThreadCountStruct, maxValue: numb
     return drawHeight === 0 ? 1 : drawHeight;
 }
 
-private static drawHoverState(xpowerContext: CanvasRenderingContext2D, data: XpowerThreadCountStruct, width: number, drawHeight: number, cutHeight: number): void {
+private static drawHoverState(
+  xpowerContext: CanvasRenderingContext2D, 
+  data: XpowerThreadCountStruct, 
+  width: number, 
+  drawHeight: number, 
+  cutHeight: number
+): void {
     xpowerContext.fillStyle = ColorUtils.colorForTid(XpowerThreadCountStruct.index);
     xpowerContext.strokeStyle = ColorUtils.colorForTid(XpowerThreadCountStruct.index);
     xpowerContext.lineWidth = 1;
@@ -127,7 +133,13 @@ private static drawHoverState(xpowerContext: CanvasRenderingContext2D, data: Xpo
     xpowerContext.stroke();
 }
 
-private static drawNormalState(xpowerContext: CanvasRenderingContext2D, data: XpowerThreadCountStruct, width: number, drawHeight: number, cutHeight: number): void {
+private static drawNormalState(
+  xpowerContext: CanvasRenderingContext2D, 
+  data: XpowerThreadCountStruct, 
+  width: number, 
+  drawHeight: number, 
+  cutHeight: number
+): void {
     xpowerContext.fillStyle = ColorUtils.colorForTid(XpowerThreadCountStruct.index);
     xpowerContext.strokeStyle = ColorUtils.colorForTid(XpowerThreadCountStruct.index);
     xpowerContext.lineWidth = 1;

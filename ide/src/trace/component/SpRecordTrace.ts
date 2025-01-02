@@ -9,7 +9,7 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * See the License for the specific language governing permissions and 
  * limitations under the License.
  */
 
@@ -454,7 +454,7 @@ export class SpRecordTrace extends BaseElement {
     });
   }
 
-  isShowTipFunc(text: string, isShow: boolean) {
+  isShowTipFunc(text: string, isShow: boolean): void {
     if (isShow) {
       let guideSrc = `https://${window.location.host.split(':')[0]}:${window.location.port}/application/?action=help_27`;
       this.useExtentTip!.style.display = 'block';
@@ -532,7 +532,7 @@ export class SpRecordTrace extends BaseElement {
     let trackAllocations = this.spArkTs!.grabAllocations; // timeline check box
     let enableCpuProfiler = this.spArkTs!.isStartCpuProfiler;
 
-    let params: any = {
+    let params: unknown = {
       isRecordArkTs: isRecordArkTs,
       isRecordHitrace: isRecordHitrace,
       type: '',
@@ -549,21 +549,21 @@ export class SpRecordTrace extends BaseElement {
       serialNum: SpRecordTrace.serialNumber
     };
 
-    if (isStartCpuProfiler && !isStartMemoryProfiler) {
+    if (isStartCpuProfiler && !isStartMemoryProfiler) { // @ts-ignore
       params.type = 'cpuProf';
-    } else if (!isStartCpuProfiler && isStartMemoryProfiler && isCheckSnapshot) {
+    } else if (!isStartCpuProfiler && isStartMemoryProfiler && isCheckSnapshot) {// @ts-ignore
       params.type = 'snapshot';
-    } else if (!isStartCpuProfiler && isStartMemoryProfiler && isCheckTimeLine) {
+    } else if (!isStartCpuProfiler && isStartMemoryProfiler && isCheckTimeLine) {// @ts-ignore
       params.type = 'timeline';
-    } else if (isStartCpuProfiler && isStartMemoryProfiler && isCheckSnapshot) {
+    } else if (isStartCpuProfiler && isStartMemoryProfiler && isCheckSnapshot) {// @ts-ignore
       params.type = 'cpuProf_snapshot';
-    } else if (isStartCpuProfiler && isStartMemoryProfiler && isCheckTimeLine) {
+    } else if (isStartCpuProfiler && isStartMemoryProfiler && isCheckTimeLine) {// @ts-ignore
       params.type = 'cpuProf_timeline';
     }
 
-    let onmessageCallBack = (cmd: number, result: any): void => {
+    let onmessageCallBack = (cmd: number, result: unknown): void => {// @ts-ignore
       if (cmd === 2 && result.byteLength > 0) {
-        let name = this.recordSetting!.output.split('/').reverse()[0];
+        let name = this.recordSetting!.output.split('/').reverse()[0];// @ts-ignore
         let file = new File([result], name);
         let main = this!.parentNode!.parentNode!.querySelector('lit-main-menu') as LitMainMenu;
         let children = main.menus as Array<MenuGroup>;
@@ -578,7 +578,7 @@ export class SpRecordTrace extends BaseElement {
         }
       } else if (cmd === 3) {
         this.sp!.search = false;
-        this.progressEL!.loading = false;
+        this.progressEL!.loading = false;// @ts-ignore
         let errorMsg = new TextDecoder().decode(result);
         this.useExtentTip!.style.display = 'block';
         this.useExtentTip!.innerHTML = errorMsg;
@@ -587,11 +587,11 @@ export class SpRecordTrace extends BaseElement {
         this.sp!.search = false;
         this.progressEL!.loading = false;
       } else if (cmd === 4) {
-        let aElement = document.createElement('a');
+        let aElement = document.createElement('a');// @ts-ignore
         aElement.href = URL.createObjectURL(new Blob([result!]));
         aElement.download = 'arkts.htrace';
         aElement.click();
-      } else if (cmd === 5) {
+      } else if (cmd === 5) {// @ts-ignore
         SpRecordTrace.snapShotList = JSON.parse(new TextDecoder('utf-8').decode(result)) as string[];
       } else if (cmd === 6) {
         this.litSearch!.setPercent('Start to record...', -1);
@@ -603,7 +603,7 @@ export class SpRecordTrace extends BaseElement {
     };
     WebSocketManager.getInstance()!.registerMessageListener(TypeConstants.ARKTS_TYPE, onmessageCallBack, this.eventCallBack);
     WebSocketManager.getInstance()!.sendMessage(TypeConstants.ARKTS_TYPE, 1, encoder.encode(JSON.stringify(params)));
-  }
+  };
 
   recordTempAddProbe = (ev: CustomEventInit<{ elementId: string }>): void => {
     if (
@@ -663,19 +663,19 @@ export class SpRecordTrace extends BaseElement {
               this.showHint = true;
             }
           }
-        })
+        });
       });
     }
   };
 
-  eventCallBack = (result: string) => {
+  eventCallBack = (result: string): void => {
     this.recordButton!.hidden = true;
     this.disconnectButton!.hidden = true;
     this.disconnectButtonClickEvent();
     this.useExtentTip!.style.display = 'block';
     // @ts-ignore
     this.useExtentTip!.innerHTML = this.getStatusesPrompt()[result].prompt;
-  }
+  };
 
   getStatusesPrompt(): unknown {
     let guideSrc = `https://${window.location.host.split(':')[0]}:${window.location.port
@@ -683,7 +683,7 @@ export class SpRecordTrace extends BaseElement {
     return {
       unconnected: {
         prompt: `未连接，请启动本地扩展程序再试！[</span style="cursor: pointer;"><a href=${guideSrc} style="color: blue;" target="_blank">指导</a><span>]`
-      },// 重连
+      }, // 重连
       connected: {
         prompt: '扩展程序连接中，请稍后再试'
       }, // 中间
@@ -701,9 +701,9 @@ export class SpRecordTrace extends BaseElement {
       }, // 重连
       upgradeFailed: {
         prompt: '刷新页面触发升级，或卸载扩展程序重装！'
-      },// 重连
-    }
-  }
+      }, // 重连
+    };
+  };
 
   webSocketCallBackasync = (cmd: number, result: Uint8Array): void => {
     const decoder = new TextDecoder();
@@ -713,7 +713,6 @@ export class SpRecordTrace extends BaseElement {
       this.hdcList = jsonRes.resultMessage;
       HdcDeviceManager.findDevice().then((usbDevices): void => {
         SpRecordTrace.serialNumber = usbDevices.serialNumber;
-        // let serialNum = jsonRes.resultMessage;
         this.usbSerialNum = jsonRes.resultMessage;
         let optionNum = 0;
         if (this.usbSerialNum.length === 1 && this.usbSerialNum[0].includes('Empty')) {
@@ -784,7 +783,7 @@ export class SpRecordTrace extends BaseElement {
     } else if (cmd === TypeConstants.USB_GET_VERSION) {
       SpRecordTrace.usbGetVersion = jsonRes.resultMessage;
     }
-  }
+  };
 
   deviceSelectMouseDownEvent = (evt: MouseEvent): void => {
     if (this.deviceSelect!.options.length === 0) {
@@ -864,7 +863,7 @@ export class SpRecordTrace extends BaseElement {
   };
 
   disconnectButtonClickEvent = (): void => {
-    this.setDeviceVersionSelect('unknown')
+    this.setDeviceVersionSelect('unknown');
     let index = this.deviceSelect!.selectedIndex;
     if (index !== -1 && this.deviceSelect!.options.length > 0) {
       for (let i = 0; i < this.deviceSelect!.options.length; i++) {
@@ -933,7 +932,7 @@ export class SpRecordTrace extends BaseElement {
     }
   }
 
-  reConfigPage() {
+  reConfigPage(): void {
     this.appContent = this.shadowRoot?.querySelector('#app-content') as HTMLElement;
     this.appContent.innerHTML = '';
     this._menuItems = [];

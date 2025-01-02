@@ -403,7 +403,7 @@ export class TabPaneFilter extends BaseElement {
     if (thirdList) {
       this.setAttribute('third', '');
     }
-    thtml += `<lit-select show-search default-value="" id="third-select" class="spacing" placeholder="please choose">`
+    thtml += `<lit-select show-search default-value="" id="third-select" class="spacing" placeholder="please choose">`;
     if (thirdList) {
       if (thirdTitle !== '') {
         thtml += `<lit-select-option  value="${thirdTitle}" disabled>${thirdTitle}</lit-select-option>`;

@@ -218,7 +218,7 @@ export class TabPaneXpowerGpuFreq extends BaseElement {
           );
           tabXpowerGpuFreqStruct.maxIdleTimeStr = Utils.timeFormat(maxIdleTime);
           tabXpowerGpuFreqStruct.minIdleTimeStr = Utils.timeFormat(minIdleTime);
-        } else if (itemArray.length == 1) {
+        } else if (itemArray.length === 1) {
           tabXpowerGpuFreqStruct = this.setTabXpowerGpuFreqStruct(
             itemArray[0].runTime,
             itemArray[0].idleTime,
@@ -265,7 +265,7 @@ export class TabPaneXpowerGpuFreq extends BaseElement {
     this.XpowerGpuFreqTbl!.recycleDataSource = this.XpowerGpuFreqSource;
   }
 
-  private setSortKey(detailKey: string) {
+  private setSortKey(detailKey: string): string { 
     let key = '';
     switch (detailKey) {
       case 'avgRunTimeStr':

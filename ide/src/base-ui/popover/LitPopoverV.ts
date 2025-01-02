@@ -463,7 +463,7 @@ export class LitPopover extends BaseElement {
     }; // @ts-ignore
     popover.onmouseleave = (): void => {
       this.focus();
-      if(this.haveCheckbox){
+      if (this.haveCheckbox) {
         // @ts-ignore
         this.visible = false;
       }

@@ -296,8 +296,8 @@ export const ffrtEnumList: string[] = ['BOOTTIME', 'REALTIME', 'REALTIME_COARSE'
 
 const configEnumList: string[] = [...LevelConfigEnumList, ...ffrtEnumList];
 
-export const realBattery =  'REAL_BATTERY';
-export const thermalReport =  'THERMAL_REPORT';
+export const realBattery = 'REAL_BATTERY';
+export const thermalReport = 'THERMAL_REPORT';
 export const componentTop = 'COMPONENT_TOP';
 export const appStatistic = 'APP_STATISTIC';
 export const appDetail = 'APP_DETAIL';

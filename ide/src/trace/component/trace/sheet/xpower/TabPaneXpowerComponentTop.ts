@@ -48,7 +48,7 @@ export class TabPaneXpowerComponentTop extends BaseElement {
     this.xpowerComponentTopRange!.textContent = `Selected range: ${parseFloat(
       ((xpowerComponentTopValue.rightNs - xpowerComponentTopValue.leftNs) / 1000000.0).toFixed(5)
     )} ms`;
-    if (xpowerComponentTopValue == this.currentXpowerComponentTopValue) {
+    if (xpowerComponentTopValue === this.currentXpowerComponentTopValue) {
       return;
     }
     this.componentTypeList = [
@@ -155,7 +155,7 @@ export class TabPaneXpowerComponentTop extends BaseElement {
     if (
       this.currentTabPane &&
       this.xpowerComponentTopTbl!.children.length > 0 &&
-      this.xpowerComponentTopTbl?.children[0] == this.currentTabPane
+      this.xpowerComponentTopTbl?.children[0] === this.currentTabPane
     ) {
       this.xpowerComponentTopTbl?.removeChild(this.currentTabPane);
     }
@@ -194,7 +194,7 @@ export class TabPaneXpowerComponentTop extends BaseElement {
     }
   }
 
-  private initOptions() {
+  private initOptions(): void {
     let optionsArr = Array.from(this.options);
     this.xpowerComponentTopSelect!.dataSource = optionsArr;
     // 默认选中第一个

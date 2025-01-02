@@ -602,7 +602,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
             symbolName = perfCallChains[topIndex].name;
           }
           // 只展示内核栈合并进程栈
-          const usePidAsKey = this.isOnlyKernel ? '': perfSample.pid;
+          const usePidAsKey = this.isOnlyKernel ? '' : perfSample.pid;
           let perfRootNode = this.currentTreeMapData[symbolName + usePidAsKey];
           if (perfRootNode === undefined) {
             perfRootNode = new PerfCallChainMerageData();
@@ -808,7 +808,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     this.allProcess.forEach((item: PerfCallChainMerageData): void => {
       item.children = [];
       // only kernel模式下第0层结构为调用栈，也需要变化
-      if (this.isOnlyKernel && (item.dur < startNum || item.dur > max)){
+      if (this.isOnlyKernel && (item.dur < startNum || item.dur > max)) {
         (this.splitMapData[numRuleName] = this.splitMapData[numRuleName] || []).push(item);
         item.isStore++;
       }
@@ -880,10 +880,10 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       return item;
     });
     // 记录待删除的节点索引
-    const removeList : number[] = [];
+    const removeList: number[] = [];
     // 用于记录所有有效的子节点
-    const effectChildList : PerfCallChainMerageData[] = [];
-    for(const sample of values) {
+    const effectChildList: PerfCallChainMerageData[] = [];
+    for (const sample of values) {
       if (sample.parentNode !== undefined && sample.isStore === 0 && sample.searchShow) {
         let parentNode = sample.parentNode;
         while (parentNode !== undefined && !(parentNode.isStore === 0 && parentNode.searchShow)) {
@@ -923,9 +923,9 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
    * @param children 调用链的子节点数组，这些子节点是待筛选的数据
    * @returns 返回一个新数组，包含所有非存储且标记为显示的子节点
    */
-  private findEffectChildren(children: PerfCallChainMerageData[]): PerfCallChainMerageData[]{
+  private findEffectChildren(children: PerfCallChainMerageData[]): PerfCallChainMerageData[] {
     let result: PerfCallChainMerageData[] = [];
-    for(let child of children){
+    for (let child of children) {
       // 如果搜索框有值，检查当前子树是否有任何一个节点的 isSearch 为 true
       if (this.searchValue === '' || this.hasSearchNode(child)) {
         // 如果当前节点非存储且需要显示，则直接添加到结果数组中
@@ -991,13 +991,13 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   }
 
   markSearchNode(sampleArray: PerfCallChainMerageData[], search: string, parentSearch: boolean): void {
-    for(const sample of sampleArray) {
+    for (const sample of sampleArray) {
       if (search === '') {
         sample.searchShow = true;
         sample.isSearch = false;
       } else {
         let isInclude = sample.symbol.toLocaleLowerCase().includes(search);
-        if ((sample.symbol &&  isInclude) || parentSearch) {
+        if ((sample.symbol && isInclude) || parentSearch) {
           sample.searchShow = true;
           sample.isSearch = sample.symbol !== undefined && isInclude;
           let parentNode = sample.parent;
@@ -1044,7 +1044,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
           }
         }
       }
-      if (this.isOnlyKernel){
+      if (this.isOnlyKernel) {
         this.dataSource = this.allProcess;
       } else {
         this.dataSource = this.allProcess.filter((process: PerfCallChainMerageData): boolean => {
@@ -1473,7 +1473,7 @@ export class PerfCallChainMerageData extends ChartStruct {
       if (callChain.path) {
         currentNode.path = callChain.path;
       }
-      if (callChain.sourceFileId){
+      if (callChain.sourceFileId) {
         currentNode.sourceFile = DataCache.getInstance().dataDict.get(callChain.sourceFileId) || '';
         const lines = lineMap.get(`${currentNode.sourceFile}_${currentNode.symbolName}`);
         if (lines) {
