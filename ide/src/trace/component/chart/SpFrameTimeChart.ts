@@ -180,8 +180,8 @@ export class SpFrameTimeChart {
         item.cmdline = this.pidToProcessNameMap.get(item.pid!);
         item.rs_name = this.idToProcessNameMap.get(Number(item.rs_name)!);
         item.type = '0';
-        if (item.pid !== item.tid){
-          item.name = `${item.name}-${item.tid}`
+        if (item.pid !== item.tid) {
+          item.name = `${item.name}-${item.tid}`;
         }
       });
       if (row && !row.isComplete && res.length > 0) {

@@ -265,7 +265,7 @@ export class TabPaneXpowerGpuFreq extends BaseElement {
     this.XpowerGpuFreqTbl!.recycleDataSource = this.XpowerGpuFreqSource;
   }
 
-  private setSortKey(detailKey: string): string {
+  private setSortKey(detailKey: string): string { 
     let key = '';
     switch (detailKey) {
       case 'avgRunTimeStr':

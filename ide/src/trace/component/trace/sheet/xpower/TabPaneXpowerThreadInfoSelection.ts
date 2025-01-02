@@ -31,12 +31,12 @@ export class TabPaneXpowerThreadInfoSelection extends BaseElement {
     this.tableEl!.recycleDataSource = [];
     this.init();
     if (dataList.length >= 1) {
-      dataList[0].valueType == THREAD_ENERGY ? (this.valueType = 'Energy') : (this.valueType = 'Load');
+      dataList[0].valueType === THREAD_ENERGY ? (this.valueType = 'Energy') : (this.valueType = 'Load');
     }
     dataList.forEach((data) => {
-      if (dataList[0].valueType == THREAD_ENERGY) {
+      if (dataList[0].valueType === THREAD_ENERGY) {
         data.valueStr = data.value + 'mAh';
-      } else if (dataList[0].valueType == THREAD_LOAD) {
+      } else if (dataList[0].valueType === THREAD_LOAD) {
         data.valueStr = data.value + '%';
       }
       data.startTimeStr = Utils.getTimeString(data.startNS);
@@ -110,7 +110,7 @@ export class TabPaneXpowerThreadInfoSelection extends BaseElement {
     this.tableEl!.recycleDataSource = this.threadInfoData;
   }
 
-  private setSortKey(detailKey: string) {
+  private setSortKey(detailKey: string): string {
     let key = '';
     switch (detailKey) {
       case 'threadTimeStr':

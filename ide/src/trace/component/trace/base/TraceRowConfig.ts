@@ -809,7 +809,7 @@ export class TraceRowConfig extends BaseElement {
             subsystemFavorite.parentRowEl.expansion = false;
             favoriteName = subsystemFavorite.parentRowEl!.name;
             // 三级泳道判断
-            if(subsystemFavorite.parentRowEl.parentRowEl){
+            if (subsystemFavorite.parentRowEl.parentRowEl) {
               subsystemFavorite.parentRowEl.parentRowEl.expansion = false;
               favoriteName = subsystemFavorite.parentRowEl.parentRowEl.name;
             }

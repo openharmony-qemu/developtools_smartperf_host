@@ -285,7 +285,8 @@ function returnObj(
   // @ts-ignore
   if (comPower && (comPower!.get(item.cpu).broId || comPower!.get(item.cpu).broId === 0) && comPower!.get(item.cpu).smtRate) {
     // @ts-ignore
-    let broCpuDataList = broCpuData.filter((e) => (e.cpu === comPower!.get(item.cpu).broId) && !(e.startTime >= result!.ts + result!.dur || e.endTime <= result!.ts));
+    let broCpuDataList = broCpuData.filter((e) => (e.cpu === comPower!.get(item.cpu).broId) && // @ts-ignore
+    !(e.startTime >= result!.ts + result!.dur || e.endTime <= result!.ts));
     let parallelDur = 0;
     broCpuDataList.forEach((e) => {
       // @ts-ignore

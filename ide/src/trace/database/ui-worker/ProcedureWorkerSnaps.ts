@@ -100,8 +100,8 @@ export class SnapShotStruct extends BaseStruct {
     if (!SnapShotStruct.imageCache[img]) {
       SnapShotStruct.imageCache[img] = new Promise((resolve, reject) => {
         const image = new Image();
-        image.onload = () => resolve(image);
-        image.onerror = (error) => reject(new Error(`Failed to load image: ${img},${error}`));
+        image.onload = (): void => resolve(image);
+        image.onerror = (error): void => reject(new Error(`Failed to load image: ${img},${error}`)); 
         image.src = img;
       });
     }

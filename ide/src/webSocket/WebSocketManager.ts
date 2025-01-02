@@ -96,7 +96,7 @@ export class WebSocketManager {
         } else if (decode.type === TypeConstants.UPDATE_TYPE) {// 升级
             this.updateMessage(decode);
         } else {// type其他
-            this.businessMessage(decode)
+            this.businessMessage(decode);
         }
     }
     
@@ -118,7 +118,7 @@ export class WebSocketManager {
     updateMessage(decode: MessageParam): void {
         if (decode.cmd === Constants.GET_VERSION_CMD) {
             // 小于则升级
-            let targetVersion = '1.0.5';
+            let targetVersion = '1.0.6';
             let currentVersion = new TextDecoder().decode(decode.data);
             let result = this.compareVersion(currentVersion, targetVersion);
             if (result === -1) {
@@ -277,7 +277,7 @@ export class WebSocketManager {
             // @ts-ignore
             obj.cmd = cmd;
             //@ts-ignore
-            obj.data = data
+            obj.data = data;
         }
     }
     
@@ -289,7 +289,7 @@ export class WebSocketManager {
             this.distributeMap.get(reconnect)!.eventCallBack(this.status);
         } else if (statuses.type === FAILED_STATE) {
             this.reconnect = reconnect;
-            this.connectWebSocket()
+            this.connectWebSocket();
         }
     }
 
@@ -310,7 +310,7 @@ export class WebSocketManager {
         return {
             unconnected: {
                 type: FAILED_STATE
-            },// 重连
+            }, // 重连
             connected: {
                 type: INTERMEDIATE_STATE
             }, // 中间
@@ -328,7 +328,7 @@ export class WebSocketManager {
             }, // 重连
             upgradeFailed: {
                 type: FAILED_STATE,
-            },// 重连
-        }
+            }, // 重连
+        };
     }
 }

@@ -189,7 +189,7 @@ export class XpowerGpuFreqStruct extends BaseStruct {
     req: { useCache: boolean; context: CanvasRenderingContext2D },
     data: XpowerGpuFreqStruct,
     row: TraceRow<XpowerGpuFreqStruct>
-  ) {
+  ): void {
     let startNS = TraceRow.range!.startNS;
     let endNS = TraceRow.range!.endNS;
     let totalNS = TraceRow.range!.totalNS;

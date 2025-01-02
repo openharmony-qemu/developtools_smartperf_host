@@ -649,7 +649,7 @@ export class SpSystemTrace extends BaseElement {
       GpuCounterStruct.selectGpuCounterStruct ||
       DmaFenceStruct.selectDmaFenceStruct ||
       XpowerThreadInfoStruct.selectXpowerStruct ||
-      XpowerGpuFreqStruct.selectXpowerStruct
+      XpowerGpuFreqStruct.selectXpowerStruct;
   }
   top: number = 0;
   handler: number = -1;
@@ -1771,7 +1771,7 @@ export class SpSystemTrace extends BaseElement {
     window.subscribe(window.SmartEvent.UI.ExportRecord, (params) => {
       let range = this.timerShaftEL?.rangeRuler?.range;
       // @ts-ignore
-      let searchVal = document.querySelector("body > sp-application").shadowRoot.querySelector("#lit-search").shadowRoot.querySelector("div.root > input")!.value;
+      let searchVal = document.querySelector('body > sp-application').shadowRoot.querySelector('#lit-search').shadowRoot.querySelector('div.root > input')!.value;
       if (range) {
         let expandRows =
           Array.from(this.rowsEL!.querySelectorAll<TraceRow<BaseStruct>>('trace-row[folder][expansion]')) || [];
@@ -1793,7 +1793,7 @@ export class SpSystemTrace extends BaseElement {
           drawFlag: this.timerShaftEL!.sportRuler!.flagList,
           //下载时存M和shiftM的信息
           markFlag: this.timerShaftEL!.sportRuler!.slicesTimeList,
-          search: searchVal?searchVal:''
+          search: searchVal ? searchVal : ''
         });
         this.downloadRecordFile(data).then(() => { });
       }
@@ -1818,7 +1818,6 @@ export class SpSystemTrace extends BaseElement {
     //@ts-ignore
     window.subscribe(window.SmartEvent.UI.ImportRecord, (data: string) => {
       let record = JSON.parse(data);
-      if (record.leftNS !== undefined && record.rightNS !== undefined) {
         this.favoriteChartListEL?.removeAllCollectRow();
         let currentGroup = this.currentCollectGroup;
         if (record.G1) {
@@ -1842,10 +1841,9 @@ export class SpSystemTrace extends BaseElement {
         this.refreshCanvas(true);
         this.restoreRecordScrollTop(record.scrollTop, record.favoriteScrollTop);
         // @ts-ignore
-        document.querySelector("body > sp-application").shadowRoot.querySelector("#lit-search").shadowRoot.querySelector("div.root > input")!.value = record.search?record.search:'';
+        document.querySelector('body > sp-application').shadowRoot.querySelector('#lit-search').shadowRoot.querySelector('div.root > input')!.value = record.search ? record.search : '';
         // @ts-ignore
         document.querySelector("body > sp-application").shadowRoot.querySelector("#lit-search")!.valueChangeHandler!(record.search?record.search:'');
-      }
     });
   }
 
@@ -1881,7 +1879,10 @@ export class SpSystemTrace extends BaseElement {
       }
     }
     // @ts-ignore
+    if(record.leftNS && record.rightNS){
+      // @ts-ignore
     this.timerShaftEL?.setRangeNS(record.leftNS, record.rightNS);
+    }
   }
 
   private restoreRecordScrollTop(mainScrollTop: number, favoriteScrollTop: number): void {

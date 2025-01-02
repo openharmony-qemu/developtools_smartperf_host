@@ -223,7 +223,7 @@ export class SpSegmentationChart {
           for (let key in v.freqInfo) {
             mapData.set(Number(key), Number(v.freqInfo[key]));
           }
-          SpSegmentationChart.freqInfoMapData.set(v.cpuId, {'broId':v.broId,'smtRate': v.smtRate, mapData});
+          SpSegmentationChart.freqInfoMapData.set(v.cpuId, { 'broId': v.broId, 'smtRate': v.smtRate, mapData });
           mapData = new Map();
         });
         TabPaneFreqUsage.refresh();

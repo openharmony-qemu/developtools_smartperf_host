@@ -234,12 +234,16 @@ export class Cmd {
           resolve(Cmd.convertOutProcessList(res));
         });
       } else if (SpRecordTrace.useExtend) {
-        WebSocketManager.getInstance()!.sendMessage(TypeConstants.USB_TYPE, TypeConstants.USB_GET_PROCESS, new TextEncoder().encode(SpRecordTrace.serialNumber));
+        WebSocketManager.getInstance()!.sendMessage(
+          TypeConstants.USB_TYPE, 
+          TypeConstants.USB_GET_PROCESS, 
+          new TextEncoder().encode(SpRecordTrace.serialNumber)
+        );
         setTimeout(() => {
           if (SpRecordTrace.allProcessListStr) {
             resolve(Cmd.convertOutProcessList(SpRecordTrace.allProcessListStr));
           }
-        }, 1000)
+        }, 1000);
       } else {
         HdcDeviceManager.connect(SpRecordTrace.serialNumber).then((conn): void => {
           if (conn) {
