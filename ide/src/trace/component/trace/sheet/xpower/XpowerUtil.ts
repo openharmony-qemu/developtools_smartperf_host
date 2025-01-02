@@ -46,36 +46,7 @@ export function sortByColumn(detail: SortDetail, dataSource: Array<any>, table: 
   if (detail.key === 'appNameStr') {
     dataSource.sort(compare(detail.key, detail.sort, 'string'));
   } else {
-    let key = setSortKey(detail.key);
-    dataSource.sort(compare(key, detail.sort, 'number'));
+    dataSource.sort(compare(detail.key, detail.sort, 'number'));
   }
   table!.recycleDataSource = dataSource;
-}
-
-export function setSortKey(detailKey: string) {
-  let key = '';
-  switch (detailKey) {
-    case 'backgroundDurationStr':
-      key = 'backgroundDuration';
-      break;
-    case 'foregroundDurationStr':
-      key = 'foregroundDuration';
-      break;
-    case 'screenOffDurationStr':
-      key = 'screenOffDuration';
-      break;
-    case 'screenOnDurationStr':
-      key = 'screenOnDuration';
-      break;
-    case 'startTimeStr':
-      key = 'startTime';
-      break;
-    case 'appUsageDurationStr':
-      key = 'appUsageDuration';
-      break;
-    default:
-      key = detailKey;
-      break;
-  }
-  return key;
 }

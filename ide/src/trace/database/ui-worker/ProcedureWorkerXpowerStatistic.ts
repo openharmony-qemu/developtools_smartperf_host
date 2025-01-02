@@ -17,7 +17,6 @@ import { BaseStruct, drawLoadingFrame, isFrameContainPoint, Rect, Render, ns2x }
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
 import { SpSystemTrace } from '../../component/SpSystemTrace';
-import { Utils } from '../../component/trace/base/Utils';
 
 enum Type {
   'AUDIO',
@@ -41,6 +40,8 @@ export class XpowerStatisticRender extends Render {
     },
     row: TraceRow<XpowerStatisticStruct>
   ): void {
+    // offsetW控制图例的横向偏移量 确保图例不超过画布边界 因收藏和非收藏时泳道的宽度不一致 offsetW根据情况调整
+    let offsetW: number = row.collect ? 40 : 266;
     let checkedType = row.rowSettingCheckedBoxList;
     let checkedValue = row.rowSettingCheckBoxList;
     let xpowerStatisticList = row.dataListCache.filter(
@@ -69,7 +70,7 @@ export class XpowerStatisticRender extends Render {
     xpowerStasticReq.context.closePath();
     let spApplication = document.getElementsByTagName('sp-application')[0];
     let isDark = spApplication && spApplication.hasAttribute('dark');
-    drawLegend(xpowerStasticReq, checkedType!, checkedValue!, isDark);
+    drawLegend(xpowerStasticReq, checkedType!, checkedValue!, offsetW, isDark);
   }
 }
 
@@ -193,6 +194,7 @@ export function drawLegend(
   req: { context: CanvasRenderingContext2D; useCache: boolean },
   checked: boolean[],
   checkedValue: string[],
+  offsetW: number,
   isDark?: boolean
 ): void {
   let textList: string[] = [];
@@ -205,7 +207,7 @@ export function drawLegend(
     let text = req.context.measureText(textList[index]);
     req.context.fillStyle = ColorUtils.colorForTid(checkedValue.indexOf(textList[index].toLowerCase()));
     req.context.globalAlpha = 1;
-    let canvasEndX = req.context.canvas.clientWidth - XpowerStatisticStruct.OFFSET_WIDTH;
+    let canvasEndX = req.context.canvas.clientWidth - offsetW;
     let textColor = isDark ? '#FFFFFF' : '#333';
     if (index === 0) {
       req!.context.fillRect(canvasEndX - textList.length * 80, 12, 8, 8);
@@ -247,7 +249,6 @@ export function XpowerStatisticStructOnClick(
 export class XpowerStatisticStruct extends BaseStruct {
   static rowHeight: number = 200;
   static maxEnergy: number = 0;
-  static OFFSET_WIDTH: number = 266;
   static currentTextWidth: number = 0;
   type: number = 0;
   typeStr: string = '';
@@ -403,9 +404,11 @@ export class XpowerStatisticStruct extends BaseStruct {
       if (energy !== 0) {
         hoverHtml += `<div style=" display: flex; flex-wrap: nowrap; justify-content: space-between;">
         <div style="line-height: 15px; flex-grow: 2; flex-shrink: 1; flex-basis: auto;">${key}:&nbsp;&nbsp;</div>
-        <div style="line-height: 15px; flex-grow: 1; flex-shrink: 1; flex-basis: auto;">${energy || 0} mAh&nbsp;&nbsp;</div>
-        <div style="line-height: 15px; flex-grow: 1; flex-shrink: 1; flex-basis: auto;">&nbsp;&nbsp;${Utils.timeFormat(dur)}</div>
-    </div>`
+        <div style="line-height: 15px; flex-grow: 1; flex-shrink: 1; flex-basis: auto;">${
+          energy || 0
+        } mAh&nbsp;&nbsp;</div>
+        <div style="line-height: 15px; flex-grow: 1; flex-shrink: 1; flex-basis: auto;">&nbsp;&nbsp;${dur + ' ms'}</div>
+    </div>`;
       }
     }
     node.hoverHtml = hoverHtml;

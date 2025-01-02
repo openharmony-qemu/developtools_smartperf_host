@@ -53,10 +53,6 @@ export class TabPaneXpowerThreadEnergy extends BaseElement {
       let sd = this.createSelectThreadEnergyData(res || []);
       dataSource = dataSource.concat(sd);
     }
-    let sumData = new SelectionData();
-    sumData.count = this.sumCount.toString();
-    sumData.process = ' ';
-    dataSource.splice(0, 0, sumData);
     this.XpowerThreadEnergyTbl!.loading = false;
     this.XpowerThreadEnergySource = dataSource;
     this.XpowerThreadEnergyTbl!.recycleDataSource = dataSource;
@@ -108,11 +104,11 @@ export class TabPaneXpowerThreadEnergy extends BaseElement {
             </lit-table-column>
             <lit-table-column data-index="count" title="Count" order key="count"  align="flex-start" width="1fr">
             </lit-table-column>
-            <lit-table-column title="Avg Energy" data-index="avg" order key="avg"  align="flex-start" width="1fr">
+            <lit-table-column title="Avg Energy(mAh)" data-index="avgNumber" order key="avgNumber" align="flex-start" width="1fr">
             </lit-table-column>
-            <lit-table-column title="Max Energy" align="flex-start" order data-index="max" key="max" width="1fr">
+            <lit-table-column title="Max Energy(mAh)" align="flex-start" order data-index="maxNumber" key="maxNumber" width="1fr">
             </lit-table-column>
-            <lit-table-column title="Min Energy" key="min" data-index="min" order align="flex-start" width="1fr">
+            <lit-table-column title="Min Energy(mAh)" key="minNumber" data-index="minNumber" order align="flex-start" width="1fr">
             </lit-table-column>
         </lit-table>
         `;
@@ -145,14 +141,14 @@ export class TabPaneXpowerThreadEnergy extends BaseElement {
           max = itemArray.map((item: { value: any }) => item.value).reduce((a: number, b: number) => Math.max(a, b));
           min = itemArray.map((item: { value: any }) => item.value).reduce((a: number, b: number) => Math.min(a, b));
           sum = itemArray.reduce((acc: any, obj: { value: any }) => acc + obj.value, 0);
-          SelectThreadEnergyData.avg = (sum / itemArray.length).toFixed(2) + ' mAh';
-          SelectThreadEnergyData.max = max + ' mAh';
-          SelectThreadEnergyData.min = min + ' mAh';
+          SelectThreadEnergyData.avgNumber = parseFloat((sum / itemArray.length).toFixed(2));
+          SelectThreadEnergyData.maxNumber = max;
+          SelectThreadEnergyData.minNumber = min;
         } else if (itemArray.length == 1) {
           let value = itemArray[0].value;
-          SelectThreadEnergyData.avg = value + ' mAh';
-          SelectThreadEnergyData.max = value + ' mAh';
-          SelectThreadEnergyData.min = value + ' mAh';
+          SelectThreadEnergyData.avgNumber = value;
+          SelectThreadEnergyData.maxNumber = value;
+          SelectThreadEnergyData.minNumber = value;
         }
         this.sumCount += itemArray.length;
         SelectThreadEnergyArray.push(SelectThreadEnergyData);

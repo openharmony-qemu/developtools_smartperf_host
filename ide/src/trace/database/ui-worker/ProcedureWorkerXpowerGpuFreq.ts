@@ -15,75 +15,142 @@
 
 import { BaseStruct, drawLoadingFrame, isFrameContainPoint, ns2x, Rect, Render } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
-import { ColorUtils } from '../../component/trace/base/ColorUtils';
 import { SpSystemTrace } from '../../component/SpSystemTrace';
+import { ColorUtils } from '../../component/trace/base/ColorUtils';
 
 export class XpowerGpuFreqRender extends Render {
   renderMainThread(
-    xpowerReq: {
+    xpowerStasticReq: {
       context: CanvasRenderingContext2D;
       useCache: boolean;
     },
     row: TraceRow<XpowerGpuFreqStruct>
   ): void {
-    let xpowerGpuFreqList = row.dataList;
-    let xpowerGpuFreqFilter = row.dataListCache;
-    gpuFreq(
-      xpowerGpuFreqList,
-      xpowerGpuFreqFilter,
-      TraceRow.range!.startNS,
-      TraceRow.range!.endNS,
-      TraceRow.range!.totalNS,
-      row.frame,
-      xpowerReq.useCache || !TraceRow.range!.refresh
+    // offsetW控制图例的横向偏移量 确保图例不超过画布边界 因收藏和非收藏时泳道的宽度不一致 offsetW根据情况调整
+    let offsetW: number = row.collect ? 160 : 400;
+    let checkedType = row.rowSettingCheckedBoxList;
+    let checkedValue = row.rowSettingCheckBoxList;
+    checkedValue!.forEach((item, index) => {
+      if (!XpowerGpuFreqStruct.colorMap.has(Number(item))) {
+        XpowerGpuFreqStruct.colorMap.set(Number(item), ColorUtils.MD_PALETTE[index]);
+      }
+    });
+    let xpowerGpuFreqList = row.dataListCache.filter(
+      // @ts-ignore
+      (item) => checkedType[checkedValue?.indexOf(item.frequency.toString())]
     );
-    drawLoadingFrame(xpowerReq.context, xpowerGpuFreqFilter, row);
-    xpowerReq.context.beginPath();
+    let xpowerMap = new Map<number, XpowerGpuFreqStruct[]>();
+    setGroupByTime(xpowerMap, xpowerGpuFreqList);
+    XpowerGpuFreqStruct.xpowerMap = xpowerMap;
+    setDataFrameAndHoverHtml(xpowerGpuFreqList, row);
+    drawLoadingFrame(xpowerStasticReq.context, xpowerGpuFreqList, row);
+    setMaxEnergyInfo(xpowerStasticReq.context, xpowerMap);
+
+    xpowerStasticReq.context.beginPath();
     let find = false;
-    for (let i = 0; i < xpowerGpuFreqFilter.length; i++) {
-      XpowerGpuFreqStruct.draw(xpowerReq, xpowerGpuFreqFilter[i], row);
-      if (
-        row.isHover &&
-        xpowerGpuFreqFilter[i].frame &&
-        isFrameContainPoint(xpowerGpuFreqFilter[i].frame!, row.hoverX, row.hoverY)
-      ) {
-        XpowerGpuFreqStruct.hoverXpowerStruct = xpowerGpuFreqFilter[i];
-        XpowerGpuFreqStruct.drawStroke(xpowerReq, xpowerGpuFreqFilter[i], row);
+    for (let re of xpowerGpuFreqList) {
+      XpowerGpuFreqStruct.draw(xpowerStasticReq, re, row, xpowerGpuFreqList.length);
+      if (row.isHover && re.frame && isFrameContainPoint(re.frame, row.hoverX, row.hoverY)) {
+        XpowerGpuFreqStruct.hoverXpowerStruct = re;
         find = true;
       }
     }
     if (!find) {
       XpowerGpuFreqStruct.hoverXpowerStruct = undefined;
     }
-    xpowerReq.context.closePath();
-    let maxValueStr = String(XpowerGpuFreqStruct.maxValue) + ' ms';
-    let textMetrics = xpowerReq.context.measureText(maxValueStr);
-    xpowerReq.context.globalAlpha = 0.8;
-    xpowerReq.context.fillStyle = '#f0f0f0';
-    xpowerReq.context.fillRect(0, 5, textMetrics.width + 8, 18);
-    xpowerReq.context.globalAlpha = 1;
-    xpowerReq.context.fillStyle = '#333';
-    xpowerReq.context.textBaseline = 'middle';
-    xpowerReq.context.fillText(maxValueStr, 4, 5 + 9);
+    xpowerStasticReq.context.closePath();
+    let spApplication = document.getElementsByTagName('sp-application')[0];
+    let isDark = spApplication && spApplication.hasAttribute('dark');
+    drawLegend(xpowerStasticReq, checkedType!, checkedValue!, offsetW, isDark);
   }
 }
 
-export function gpuFreq(
-  list: Array<XpowerGpuFreqStruct>,
-  res: Array<XpowerGpuFreqStruct>,
-  startNS: number,
-  endNS: number,
-  totalNS: number,
-  frame: Rect,
-  use: boolean
+function setGroupByTime(xpowerMap: Map<number, XpowerGpuFreqStruct[]>, xpowerGpuFreqList: XpowerGpuFreqStruct[]): void {
+  xpowerGpuFreqList.forEach((item, index) => {
+    if (xpowerMap.has(item.startNS)) {
+      let data = xpowerMap.get(item.startNS);
+      data!.push(item);
+      xpowerMap.set(item.startNS, data!);
+    } else {
+      xpowerMap.set(item.startNS, []);
+      let data = xpowerMap.get(item.startNS);
+      data!.push(item);
+      xpowerMap.set(item.startNS, data!);
+    }
+  });
+}
+
+function setDataFrameAndHoverHtml(filter: XpowerGpuFreqStruct[], row: TraceRow<XpowerGpuFreqStruct>): void {
+  filter.forEach((item) => {
+    XpowerGpuFreqStruct.setXPowerGpuFreqFrame(
+      item,
+      5,
+      TraceRow.range?.startNS ?? 0,
+      TraceRow.range?.endNS ?? 0,
+      TraceRow.range?.totalNS ?? 0,
+      row.frame
+    );
+  });
+  let hoverMap: Map<number, string> = new Map();
+  filter.forEach((item) => {
+    if (hoverMap.has(item.startNS)) {
+      hoverMap.set(item.startNS, hoverMap.get(item.startNS) + item.hoverHtml);
+    } else {
+      hoverMap.set(item.startNS, item.hoverHtml);
+    }
+  });
+  XpowerGpuFreqStruct.hoverMap = hoverMap;
+}
+
+function setMaxEnergyInfo(context: CanvasRenderingContext2D, xpowerMap: Map<number, XpowerGpuFreqStruct[]>): void {
+  XpowerGpuFreqStruct.computeMaxEnergy(xpowerMap);
+  let s = XpowerGpuFreqStruct.max + ' ms';
+  let textMetrics = context.measureText(s);
+  context.globalAlpha = 0.8;
+  context.fillStyle = '#f0f0f0';
+  context.fillRect(0, 5, textMetrics.width + 8, 18);
+  context.globalAlpha = 1;
+  context.fillStyle = '#333';
+  context.textBaseline = 'middle';
+  context.fillText(s, 4, 5 + 9);
+}
+
+export function drawLegend(
+  req: { context: CanvasRenderingContext2D; useCache: boolean },
+  checked: boolean[],
+  checkedValue: string[],
+  offsetW: number,
+  isDark?: boolean
 ): void {
-  list.length = 0;
-  if (use && res.length > 0) {
-    for (let index = 0; index < res.length; index++) {
-      let item = res[index];
-      XpowerGpuFreqStruct.setGpuFreqFrame(item, 5, startNS || 0, endNS || 0, totalNS || 0, frame);
+  let textList: string[] = [];
+  checkedValue.forEach((item, index) => {
+    if (checked[index]) {
+      textList.push(item.toUpperCase());
+    }
+  });
+  for (let index = 0; index < textList.length; index++) {
+    let text = req.context.measureText(textList[index]);
+    req.context.fillStyle = XpowerGpuFreqStruct.colorMap.get(Number(textList[index]))!;
+    req.context.globalAlpha = 1;
+    let canvasEndX = req.context.canvas.clientWidth - offsetW;
+    let textColor = isDark ? '#FFFFFF' : '#333';
+    if (index === 0) {
+      req!.context.fillRect(canvasEndX - textList.length * 80, 12, 8, 8);
+      req.context.globalAlpha = 0.8;
+      req.context.fillStyle = textColor;
+      req.context.textBaseline = 'middle';
+      req.context.fillText(textList[index], canvasEndX - textList.length * 80 + 10, 18);
+      XpowerGpuFreqStruct.currentTextWidth = canvasEndX - textList.length * 80 + 40 + text.width;
+    } else {
+      req!.context.fillRect(XpowerGpuFreqStruct.currentTextWidth, 12, 8, 8);
+      req.context.globalAlpha = 0.8;
+      req.context.fillStyle = textColor;
+      req.context.textBaseline = 'middle';
+      req!.context.fillText(textList[index], XpowerGpuFreqStruct.currentTextWidth + 12, 18);
+      XpowerGpuFreqStruct.currentTextWidth = XpowerGpuFreqStruct.currentTextWidth + 40 + text.width;
     }
   }
+  req.context.fillStyle = '#333';
 }
 
 export function XpowerGpuFreqStructOnClick(
@@ -95,7 +162,8 @@ export function XpowerGpuFreqStructOnClick(
     if (clickRowType === TraceRow.ROW_TYPE_XPOWER_GPU_FREQUENCY && (XpowerGpuFreqStruct.hoverXpowerStruct || entry)) {
       XpowerGpuFreqStruct.selectXpowerStruct = entry || XpowerGpuFreqStruct.hoverXpowerStruct;
       let startNs = XpowerGpuFreqStruct.selectXpowerStruct!.startNS;
-      sp.traceSheetEL?.displayXpowerGpuFreqData(XpowerGpuFreqStruct.gpuFreqStructMap.get(startNs) || []);
+      XpowerGpuFreqStruct.xpowerMap.get(startNs)!.length > 0 &&
+        sp.traceSheetEL?.displayXpowerGpuFreqData(XpowerGpuFreqStruct.xpowerMap.get(startNs) || []);
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
     } else {
@@ -105,76 +173,39 @@ export function XpowerGpuFreqStructOnClick(
 }
 
 export class XpowerGpuFreqStruct extends BaseStruct {
-  static maxValue: number = 0;
+  static rowHeight: number = 200;
+  static currentTextWidth: number = 0;
   static hoverXpowerStruct: XpowerGpuFreqStruct | undefined;
   static selectXpowerStruct: XpowerGpuFreqStruct | undefined;
-  static histogramHeightMap = new Map<number, number>();
-  static gpuFreqStructMap = new Map<number, Array<XpowerGpuFreqStruct>>();
-  static rowHeight: number = 200;
-  value: number = 0;
+
   startNS: number = 0;
-  dur: number = 0;
-  valueType: string = '';
+  startMS: number = 0;
   runTime: number = 0;
   idleTime: number = 0;
-  runTimeStr: string = '';
-  idleTimeStr: string = '';
-  startTimeStr: string = '';
   frequency: number = 0;
   count: number = 0;
-  static colorMap: Map<number, string> = new Map();
+  static max: number = 0;
+  hoverHtml: string = '';
+
+  static xpowerMap = new Map<number, XpowerGpuFreqStruct[]>();
+  static hoverMap: Map<number, string> = new Map();
+  static histogramHeightMap = new Map<number, number>();
+
   static flagTime: number = 0;
   static height: number = -1;
   static drawY: number = 0;
-
-  static setGpuFreqFrame(
-    powerNode: XpowerGpuFreqStruct,
-    padding: number,
-    startNS: number,
-    endNS: number,
-    totalNS: number,
-    frame: Rect
-  ): void {
-    let startPointX: number;
-    let endPointX: number;
-    //@ts-ignore
-    if ((powerNode.startNS || 0) < startNS) {
-      startPointX = 0;
-    } else {
-      startPointX = ns2x(powerNode.startNS || 0, startNS, endNS, totalNS, frame);
-    }
-    //@ts-ignore
-    if (powerNode.startNS + 3000000000 > endNS) {
-      //@ts-ignore
-      endPointX = frame.width;
-    } else {
-      //@ts-ignore
-      endPointX = ns2x(powerNode.startNS + 3000000000, startNS, endNS, totalNS, frame);
-    }
-    let frameWidth = endPointX - startPointX <= 1 ? 1 : endPointX - startPointX;
-    //@ts-ignore
-    if (!powerNode.frame) {
-      //@ts-ignore
-      powerNode.frame = {};
-    }
-    //@ts-ignore
-    powerNode.frame.x = Math.floor(startPointX);
-    //@ts-ignore
-    powerNode.frame.y = frame.y + padding;
-    //@ts-ignore
-    powerNode.frame.width = Math.ceil(frameWidth);
-    //@ts-ignore
-    powerNode.frame.height = Math.floor(frame.height - padding * 2);
-  }
+  static colorMap: Map<number, string> = new Map();
+  static gpuFreqStructMap = new Map<number, Array<XpowerGpuFreqStruct>>();
 
   static draw(
     req: { useCache: boolean; context: CanvasRenderingContext2D },
     data: XpowerGpuFreqStruct,
-    row: TraceRow<XpowerGpuFreqStruct>
+    row: TraceRow<XpowerGpuFreqStruct>,
+    length: number
   ): void {
     if (data.frame) {
       req.context.globalAlpha = 0.8;
-      if (data.startNS !== XpowerGpuFreqStruct.flagTime) {
+      if (data.startNS !== XpowerGpuFreqStruct.flagTime || length === 1) {
         this.height = -1;
       } else {
         this.height = this.drawY;
@@ -183,6 +214,10 @@ export class XpowerGpuFreqStruct extends BaseStruct {
       this.drawY = this.drawHistogram(req, data, row.frame);
     }
     XpowerGpuFreqStruct.drawStroke(req, data, row);
+  }
+
+  static equals(baseStruct: XpowerGpuFreqStruct, targetStruct: XpowerGpuFreqStruct): boolean {
+    return baseStruct === targetStruct;
   }
 
   static drawStroke(
@@ -207,6 +242,30 @@ export class XpowerGpuFreqStruct extends BaseStruct {
     }
   }
 
+  static drawHoverFrame(
+    data: XpowerGpuFreqStruct,
+    isHover: boolean,
+    wifiHeight: number,
+    req: { context: CanvasRenderingContext2D; useCache: boolean },
+    row: TraceRow<XpowerGpuFreqStruct>
+  ): void {
+    let startNS = TraceRow.range!.startNS;
+    let endNS = TraceRow.range!.endNS;
+    let totalNS = TraceRow.range!.totalNS;
+    if (
+      (data.startNS === XpowerGpuFreqStruct.hoverXpowerStruct?.startNS && isHover) ||
+      (XpowerGpuFreqStruct.selectXpowerStruct && data.startNS === XpowerGpuFreqStruct.selectXpowerStruct?.startNS)
+    ) {
+      let endPointX = ns2x((data.startNS || 0) + 3000000000, startNS, endNS, totalNS, row.frame);
+      let startPointX = ns2x(data.startNS || 0, startNS, endNS, totalNS, row.frame);
+      let frameWidth = endPointX - startPointX <= 1 ? 1 : endPointX - startPointX;
+      req.context.globalAlpha = 1;
+      req!.context.lineWidth = 2;
+      req.context.strokeStyle = '#9899a0';
+      req!.context.strokeRect(startPointX, wifiHeight, frameWidth, data.frame!.height);
+    }
+  }
+
   static drawHistogram(
     req: { useCache: boolean; context: CanvasRenderingContext2D },
     data: XpowerGpuFreqStruct,
@@ -228,7 +287,7 @@ export class XpowerGpuFreqStruct extends BaseStruct {
     let histogramColor = this.colorMap.get(data.frequency)!;
     req!.context.fillStyle = histogramColor;
     let drawStartY = 0;
-    let dataHeight: number = ((data.runTime || 0) * (this.rowHeight - 28)) / XpowerGpuFreqStruct.maxValue;
+    let dataHeight: number = ((data.runTime || 0) * (this.rowHeight - 28)) / XpowerGpuFreqStruct.max;
 
     if (data.runTime !== 0 && dataHeight < 1) {
       dataHeight = 1;
@@ -249,10 +308,49 @@ export class XpowerGpuFreqStruct extends BaseStruct {
     }
   }
 
-  static isHover(xpower: XpowerGpuFreqStruct): boolean {
-    return xpower === XpowerGpuFreqStruct.hoverXpowerStruct || xpower === XpowerGpuFreqStruct.selectXpowerStruct;
+  static computeMaxEnergy(map: Map<number, XpowerGpuFreqStruct[]>): void {
+    let maxRunTime = 0;
+    map.forEach((list, key) => {
+      let total = 0;
+      list.forEach((item) => {
+        total += item.runTime;
+      });
+      if (maxRunTime < total) {
+        maxRunTime = total;
+      }
+      let mapValue = Math.ceil(((total || 0) * (XpowerGpuFreqStruct.rowHeight - 28)) / XpowerGpuFreqStruct.max);
+      XpowerGpuFreqStruct.histogramHeightMap.set(list[0].startNS, mapValue);
+    });
+    XpowerGpuFreqStruct.max = maxRunTime;
   }
-  static equals(baseStruct: XpowerGpuFreqStruct, targetStruct: XpowerGpuFreqStruct): boolean {
-    return baseStruct === targetStruct;
+
+  static setXPowerGpuFreqFrame(
+    node: XpowerGpuFreqStruct,
+    padding: number,
+    startNS: number,
+    endNS: number,
+    totalNS: number,
+    frame: Rect
+  ): void {
+    let startPointX: number;
+    let endPointX: number;
+    if ((node.startNS || 0) < startNS) {
+      startPointX = 0;
+    } else {
+      startPointX = ns2x(node.startNS, startNS, endNS, totalNS, frame);
+    }
+    if (node.startNS + 3000000000 > endNS) {
+      endPointX = frame.width;
+    } else {
+      endPointX = ns2x(node.startNS + 3000000000, startNS, endNS, totalNS, frame);
+    }
+    let frameWidth = endPointX - startPointX <= 1 ? 1 : endPointX - startPointX;
+    if (!node.frame) {
+      node.frame = new Rect(0, 0, 0, 0);
+    }
+    node.frame.x = Math.floor(startPointX);
+    node.frame.y = frame.y + padding;
+    node.frame.width = Math.ceil(frameWidth);
+    node.frame.height = Math.floor(frame.height - padding * 2);
   }
 }

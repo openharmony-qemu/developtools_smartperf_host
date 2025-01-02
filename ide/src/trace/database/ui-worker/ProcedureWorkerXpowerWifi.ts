@@ -27,6 +27,8 @@ export class XpowerWifiRender extends Render {
     },
     row: TraceRow<XpowerWifiStruct>
   ): void {
+    // offsetW控制图例的横向偏移量 确保图例不超过画布边界 因收藏和非收藏时泳道的宽度不一致 offsetW根据情况调整
+    let offsetW: number = row.collect ? 40 : 260;
     let checkedType = row.rowSettingCheckedBoxList;
     let xpowerWifiList = row.dataListCache.map((item) => ({ ...item }));
     xpowerWifiList.forEach((item) => {
@@ -59,7 +61,7 @@ export class XpowerWifiRender extends Render {
     xpowerWifiReq.context.closePath();
     let spApplication = document.getElementsByTagName('sp-application')[0];
     let isDark = spApplication.hasAttribute('dark');
-    drawLegend(xpowerWifiReq, checkedType!, isDark);
+    drawLegend(xpowerWifiReq, checkedType!, offsetW, isDark);
   }
 }
 
@@ -82,6 +84,7 @@ function setDataFrameAndHoverHtml(filter: XpowerWifiStruct[], row: TraceRow<Xpow
 export function drawLegend(
   req: { context: CanvasRenderingContext2D; useCache: boolean; name: string },
   checkedType: boolean[],
+  offsetW: number,
   isDark?: boolean
 ): void {
   let textList: string[] = [];
@@ -91,7 +94,7 @@ export function drawLegend(
     let text = req.context.measureText(textList[index]);
     req.context.fillStyle = textList[index] === 'tx' ? ColorUtils.colorForTid(index) : ColorUtils.colorForTid(10);
     req.context.globalAlpha = 1;
-    let canvasEndX = req.context.canvas.clientWidth - XpowerWifiStruct.OFFSET_WIDTH;
+    let canvasEndX = req.context.canvas.clientWidth - offsetW;
     let textColor = isDark ? '#FFFFFF' : '#333';
     if (index === 0) {
       req!.context.fillRect(canvasEndX - textList.length * 60, 12, 8, 8);
@@ -121,7 +124,7 @@ function setMaxInfo(context: CanvasRenderingContext2D, dataList: XpowerWifiStruc
     }
   });
   XpowerWifiStruct.max = maxNumber;
-  let s = name === 'WIFIBytes' ? convertBytesToReadableSize(XpowerWifiStruct.max) : XpowerWifiStruct.max.toString();
+  let s = name === 'WIFIBytes' ? XpowerWifiStruct.max + ' B' : XpowerWifiStruct.max.toString();
   let textMetrics = context.measureText(s);
   context.globalAlpha = 0.8;
   context.fillStyle = '#f0f0f0';
@@ -166,21 +169,8 @@ export function XpowerWifiPacketsStructOnClick(
   });
 }
 
-export function convertBytesToReadableSize(bytes: number): string {
-  const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
-  let size = bytes;
-  let unitIndex = 0;
-  while (size >= 1000 && unitIndex < units.length - 1) {
-    size /= 1024;
-    unitIndex++;
-  }
-  size = parseFloat(size.toFixed(2));
-  return `${size} ${units[unitIndex]}`;
-}
-
 export class XpowerWifiStruct extends BaseStruct {
   static rowHeight: number = 100;
-  static OFFSET_WIDTH: number = 300;
   static currentTextWidth: number = 0;
   startTime: number = 0;
   rx: number = 0;
@@ -304,12 +294,12 @@ export class XpowerWifiStruct extends BaseStruct {
       let hoverTx =
         node.tx !== 0
           ? `<div style="text-align: left">tx_bytes:&nbsp;&nbsp;</div>
-      <div style="text-align: left">${convertBytesToReadableSize(node.tx || 0)}</div>`
+      <div style="text-align: left">${node.tx + ' B'}</div>`
           : '';
       let hoverRx =
         node.rx !== 0
           ? `<div style="text-align: left">rx_bytes:&nbsp;&nbsp;</div>
-      <div style="text-align: left">${convertBytesToReadableSize(node.rx || 0)}</div>`
+      <div style="text-align: left">${node.rx + ' B'}</div>`
           : '';
       hoverHtml = `<div style="display: grid; width: auto; grid-template-columns: 1fr 1fr;">
         ${hoverTx}

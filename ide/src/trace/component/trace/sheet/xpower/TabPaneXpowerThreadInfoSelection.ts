@@ -16,8 +16,7 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { XpowerThreadInfoStruct } from '../../../../database/ui-worker/ProcedureWorkerXpowerThreadInfo';
-import { THREAD_ENERGY, THREAD_LOAD } from '../../../chart/SpXpowerChart';
-import { Utils } from '../../base/Utils';
+import { THREAD_ENERGY } from '../../../chart/SpXpowerChart';
 import { SortDetail, resizeObserver } from '../SheetUtils';
 
 @element('tabpane-xpower-thread-info-selection')
@@ -31,16 +30,10 @@ export class TabPaneXpowerThreadInfoSelection extends BaseElement {
     this.tableEl!.recycleDataSource = [];
     this.init();
     if (dataList.length >= 1) {
-      dataList[0].valueType == THREAD_ENERGY ? (this.valueType = 'Energy') : (this.valueType = 'Load');
+      dataList[0].valueType == THREAD_ENERGY ? (this.valueType = 'Energy(mAh)') : (this.valueType = 'Load(%)');
     }
     dataList.forEach((data) => {
-      if (dataList[0].valueType == THREAD_ENERGY) {
-        data.valueStr = data.value + 'mAh';
-      } else if (dataList[0].valueType == THREAD_LOAD) {
-        data.valueStr = data.value + '%';
-      }
-      data.startTimeStr = Utils.getTimeString(data.startNS);
-      data.threadTimeStr = Utils.timeFormat(data.threadTime);
+      data.startMS = data.startNS / 1_000_000;
     });
     if (this.tabTitle && this.tabTitle!.querySelectorAll('.td')[2]) {
       this.tabTitle!.querySelectorAll('.td')[2]!.querySelector('label')!.innerHTML = this.valueType;
@@ -104,26 +97,9 @@ export class TabPaneXpowerThreadInfoSelection extends BaseElement {
     if (detail.key === 'threadName') {
       this.threadInfoData.sort(compare(detail.key, detail.sort, 'string'));
     } else {
-      let key = this.setSortKey(detail.key);
-      this.threadInfoData.sort(compare(key, detail.sort, 'number'));
+      this.threadInfoData.sort(compare(detail.key, detail.sort, 'number'));
     }
     this.tableEl!.recycleDataSource = this.threadInfoData;
-  }
-
-  private setSortKey(detailKey: string) {
-    let key = '';
-    switch (detailKey) {
-      case 'threadTimeStr':
-        key = 'threadTime';
-        break;
-      case 'startTimeStr':
-        key = 'startNS';
-        break;
-      default:
-        key = detailKey;
-        break;
-    }
-    return key;
   }
 
   initHtml(): string {
@@ -137,11 +113,11 @@ export class TabPaneXpowerThreadInfoSelection extends BaseElement {
     <lit-table class="tb-thread-info-selection" style="height: auto">
         <lit-table-column width="1fr" title="ThreadName" data-index="threadName" key="threadName" align="flex-start" order>
         </lit-table-column>
-        <lit-table-column width="1fr" title="TimeStamp" data-index="startTimeStr" key="startTimeStr"  align="flex-start" order>
+        <lit-table-column width="1fr" title="TimeStamp(ms)" data-index="startMS" key="startMS"  align="flex-start" order>
         </lit-table-column>
-        <lit-table-column width="1fr" title=${this.valueType} data-index="valueStr" key="valueStr" align="flex-start" order>
+        <lit-table-column width="1fr" title=${this.valueType} data-index="value" key="value" align="flex-start" order>
         </lit-table-column>
-        <lit-table-column width="1fr" title="Duration" data-index="threadTimeStr" key="threadTimeStr" align="flex-start" order>
+        <lit-table-column width="1fr" title="Duration(ms)" data-index="threadTime" key="threadTime" align="flex-start" order>
         </lit-table-column>
     </lit-table>
     `;
