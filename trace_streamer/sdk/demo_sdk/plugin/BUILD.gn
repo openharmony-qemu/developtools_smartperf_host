@@ -29,6 +29,7 @@ ohos_source_set("sdk_plugin") {
     "${THIRD_PARTY}/sqlite/include",
     "${OHOS_PROTO_GEN}/types/plugins/mock_data",
     "${THIRD_PARTY}/protobuf/src",
+    "${THIRD_PARTY}/zlib",
   ]
 
   public_deps = [ "../protos/types/plugins/mock_data:mock_data_cpp" ]

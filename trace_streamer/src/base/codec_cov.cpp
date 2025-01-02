@@ -73,7 +73,7 @@ bool IsGBK(const uint8_t *data, int32_t len)
     constexpr uint8_t firstByteEnd = 0xfe;
     constexpr uint8_t secondByteOne = 0x40;
     constexpr uint8_t secondByteTwoEnd = 0xfe;
-    constexpr uint8_t gbkMask = 0xf7;
+    constexpr uint8_t gbkMask = 0x7f;
     int32_t i = 0;
     while (i < len) {
         if (data[i] <= asciiEnd) {
