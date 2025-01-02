@@ -1843,7 +1843,7 @@ export class SpSystemTrace extends BaseElement {
         // @ts-ignore
         document.querySelector('body > sp-application').shadowRoot.querySelector('#lit-search').shadowRoot.querySelector('div.root > input')!.value = record.search ? record.search : '';
         // @ts-ignore
-        document.querySelector("body > sp-application").shadowRoot.querySelector("#lit-search")!.valueChangeHandler!(record.search?record.search:'');
+        document.querySelector('body > sp-application').shadowRoot.querySelector('#lit-search')!.valueChangeHandler!(record.search ? record.search : '');
     });
   }
 
