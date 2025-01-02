@@ -16,7 +16,7 @@ patch='patch'
 sed='sed'
 cp='cp'
 rm='rm'
-root_dir=`pwd`
+root_dir=$(pwd)
 echo "build root dir is $root_dir"
 
 git config --global core.longpaths true
