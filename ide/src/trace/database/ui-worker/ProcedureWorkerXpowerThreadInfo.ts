@@ -145,12 +145,10 @@ export class XpowerThreadInfoStruct extends BaseStruct {
   static height: number = -1;
   static drawY: number = 0;
   value: number = 0;
-  valueStr: string = '';
   startNS: number = 0;
-  startTimeStr: string = '';
+  startMS: number = 0;
   dur: number = 0;
   threadTime: number = 0;
-  threadTimeStr: string = '';
   threadName: string = '';
   threadNameId: number = -1;
   valueType: string = '';

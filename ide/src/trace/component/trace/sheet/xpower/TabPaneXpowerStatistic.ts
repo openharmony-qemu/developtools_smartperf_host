@@ -136,11 +136,11 @@ export class TabPaneXpowerStatistic extends BaseElement {
             </lit-table-column>
             <lit-table-column data-index="count" order title="Count"  key="count"  align="flex-start" width="1fr">
             </lit-table-column>
-            <lit-table-column title="Avg_Energy" key="average" order data-index="average" align="flex-start" width="1fr">
+            <lit-table-column title="Avg_Energy(mAh)" key="average" order data-index="average" align="flex-start" width="1fr">
             </lit-table-column>
-            <lit-table-column title="Max_Energy" order data-index="max" key="max"  align="flex-start" width="1fr">
+            <lit-table-column title="Max_Energy(mAh)" order data-index="max" key="max"  align="flex-start" width="1fr">
             </lit-table-column>
-            <lit-table-column data-index="min" title="Min_Energy" order key="min"  align="flex-start" width="1fr">
+            <lit-table-column data-index="min" title="Min_Energy(mAh)" order key="min"  align="flex-start" width="1fr">
             </lit-table-column>
         </lit-table>
         `;
@@ -161,9 +161,9 @@ export class TabPaneXpowerStatistic extends BaseElement {
         min > item.energy && (min = item.energy);
         total += item.energy;
       });
-      selectCounterData.max = max + ' mAh';
-      selectCounterData.min = min + ' mAh';
-      selectCounterData.average = (total / list.length).toFixed(2) + ' mAh';
+      selectCounterData.max = max.toString();
+      selectCounterData.min = min.toString();
+      selectCounterData.average = (total / list.length).toFixed(2);
     }
     return selectCounterData;
   }

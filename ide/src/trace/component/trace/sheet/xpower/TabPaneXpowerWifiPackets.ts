@@ -54,7 +54,7 @@ export class TabPaneXpowerWifiPackets extends BaseElement {
       this.traceRow = this.systemTrace!.shadowRoot?.querySelector<TraceRow<XpowerAppDetailStruct>>(
         `trace-row[row-id=${key}]`
       );
-      if (!this.traceRow){
+      if (!this.traceRow) {
         this.spChartList = this.systemTrace!.shadowRoot?.querySelector('div > sp-chart-list');
         this.traceRow = this.spChartList?.shadowRoot!.querySelector(`.root > div > trace-row[row-id=${key}]`);
       }
@@ -68,7 +68,7 @@ export class TabPaneXpowerWifiPackets extends BaseElement {
       });
       let xpowerWifiMap = new Map<string, number[]>();
       this.checkedValue.forEach((key) => {
-          // @ts-ignore
+        // @ts-ignore
         res!.forEach((item) => {
           // @ts-ignore
           let value = item[key];

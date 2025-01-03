@@ -20,7 +20,6 @@ import { resizeObserver } from '../SheetUtils';
 import { TraceRow } from '../../base/TraceRow';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { XpowerAppDetailStruct } from '../../../../database/ui-worker/ProcedureWorkerXpowerAppDetail';
-import { convertBytesToReadableSize } from '../../../../database/ui-worker/ProcedureWorkerXpowerWifi';
 import { SpChartList } from '../../SpChartList';
 
 @element('tabpane-xpower-wifibytes')
@@ -133,11 +132,11 @@ export class TabPaneXpowerWifiBytes extends BaseElement {
             </lit-table-column>
             <lit-table-column data-index="count" order title="Count"  key="count"  align="flex-start" width="1fr">
             </lit-table-column>
-            <lit-table-column title="Max" order data-index="max" key="max"  align="flex-start" width="1fr">
+            <lit-table-column title="Max(B)" order data-index="max" key="max"  align="flex-start" width="1fr">
             </lit-table-column>
-            <lit-table-column data-index="min" title="Min" order key="min"  align="flex-start" width="1fr">
+            <lit-table-column data-index="min" title="Min(B)" order key="min"  align="flex-start" width="1fr">
             </lit-table-column>
-            <lit-table-column title="Avg" key="average" order data-index="average" align="flex-start" width="1fr">
+            <lit-table-column title="Avg(B)" key="average" order data-index="average" align="flex-start" width="1fr">
             </lit-table-column>
         </lit-table>
         `;
@@ -156,12 +155,9 @@ export class TabPaneXpowerWifiBytes extends BaseElement {
         min > item && (min = item);
         total += item;
       });
-      selectCounterData.maxNumber = max;
-      selectCounterData.max = convertBytesToReadableSize(max);
-      selectCounterData.minNumber = min;
-      selectCounterData.min = convertBytesToReadableSize(min);
-      selectCounterData.avgNumber = Number((total / list.length).toFixed(2));
-      selectCounterData.average = convertBytesToReadableSize(Number((total / list.length).toFixed(2)));
+      selectCounterData.max = max.toString();
+      selectCounterData.min = min.toString();
+      selectCounterData.average = (total / list.length).toFixed(2);
     }
     return selectCounterData;
   }
@@ -177,22 +173,12 @@ export class TabPaneXpowerWifiBytes extends BaseElement {
           return sort === 2 // @ts-ignore
             ? parseFloat(xpowerCounterRightData[property]) - parseFloat(xpowerCounterLeftData[property]) // @ts-ignore
             : parseFloat(xpowerCounterLeftData[property]) - parseFloat(xpowerCounterRightData[property]);
-        } else if (type === 'max') {
-          return sort === 2
-            ? xpowerCounterRightData.maxNumber - xpowerCounterLeftData.maxNumber
-            : xpowerCounterLeftData.maxNumber - xpowerCounterRightData.maxNumber;
-        } else if (type === 'min') {
-          return sort === 2
-            ? xpowerCounterRightData.minNumber - xpowerCounterLeftData.minNumber
-            : xpowerCounterLeftData.minNumber - xpowerCounterRightData.minNumber;
-        } else if (type === 'average') {
-          return sort === 2
-            ? xpowerCounterRightData.avgNumber - xpowerCounterLeftData.avgNumber
-            : xpowerCounterLeftData.avgNumber - xpowerCounterRightData.avgNumber;
-        } else { // @ts-ignore
+        } else {
+          // @ts-ignore
           if (xpowerCounterRightData[property] > xpowerCounterLeftData[property]) {
             return sort === 2 ? 1 : -1;
-          } else { // @ts-ignore
+          } else {
+            // @ts-ignore
             if (xpowerCounterRightData[property] === xpowerCounterLeftData[property]) {
               return 0;
             } else {
@@ -204,12 +190,6 @@ export class TabPaneXpowerWifiBytes extends BaseElement {
     }
     if (detail.key === 'name') {
       this.xpowerBytesSource.sort(compare(detail.key, detail.sort, 'string'));
-    } else if (detail.key === 'max') {
-      this.xpowerBytesSource.sort(compare(detail.key, detail.sort, 'max'));
-    } else if (detail.key === 'min') {
-      this.xpowerBytesSource.sort(compare(detail.key, detail.sort, 'min'));
-    } else if (detail.key === 'average') {
-      this.xpowerBytesSource.sort(compare(detail.key, detail.sort, 'average'));
     } else {
       this.xpowerBytesSource.sort(compare(detail.key, detail.sort, 'number'));
     }

@@ -38,16 +38,6 @@ struct EbpfDataHeader {
     char cmdline[EBPF_COMMAND_MAX_SIZE] = {'\0'};
 };
 
-enum EBPF_DATA_TYPE {
-    ITEM_EVENT_MAPS = 0,
-    ITEM_SYMBOL_INFO,
-    ITEM_EVENT_FS,
-    ITEM_EVENT_VM,
-    ITEM_EVENT_BIO,
-    ITEM_EVENT_STR,
-    ITEM_EVENT_KENEL_SYMBOL_INFO = 0x10001,
-};
-
 struct EbpfTypeAndLength {
     uint32_t type = 0;
     uint32_t length = 0;

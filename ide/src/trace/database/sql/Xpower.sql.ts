@@ -89,7 +89,7 @@ export const queryXpowerData = (traceId?: string): Promise<
     'queryXpowerComponentTop',
     `
     select
-        (start_time - tr.start_ts) as startTime,
+        (start_time - tr.start_ts) as startNS,
         component_type_id as componentTypeId,
         appname as appName,
         background_duration as backgroundDuration,
@@ -109,6 +109,21 @@ export const queryXpowerData = (traceId?: string): Promise<
       xpower_component_top,
       trace_range as tr
     where
-      $leftNS <= startTime + ${dur} and $rightNS >= startTime
-    `, { $leftNS:leftNS,$rightNS:rightNS, traceId: traceId }
+      $leftNS <= startNS + ${dur} and $rightNS >= startNS
+    `, { $leftNS: leftNS, $rightNS: rightNS, traceId: traceId }
 );
+
+export const queryFreq = (traceId?: string): Promise<Array<{ frequency: number }>> =>
+  query(
+    'queryTraceConfig',
+    `
+  select
+    frequency
+  from
+    xpower_app_detail_gpu
+  order by
+    frequency
+`,
+    {},
+    { traceId: traceId }
+  );
