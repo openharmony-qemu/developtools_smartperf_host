@@ -17,7 +17,6 @@ import { BaseStruct, drawLoadingFrame, isFrameContainPoint, Rect, Render, ns2x }
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
 import { SpSystemTrace } from '../../component/SpSystemTrace';
-import { Utils } from '../../component/trace/base/Utils';
 
 enum Type {
   'C180HZ',
@@ -43,6 +42,8 @@ export class XpowerAppDetailRender extends Render {
   ): void {
     let checkedType = row.rowSettingCheckedBoxList;
     let checkedValue = row.rowSettingCheckBoxList;
+    // offsetW控制图例的横向偏移量 确保图例不超过画布边界 因收藏和非收藏时泳道的宽度不一致 offsetW根据情况调整
+    let offsetW: number = row.collect ? 60 : 300;
     let xpowerAppDetailList: XpowerAppDetailStruct[] = row.dataListCache.map((item) => ({ ...item }));
     xpowerAppDetailList.forEach((item) => {
       checkedValue?.forEach((type, index) => {
@@ -70,7 +71,7 @@ export class XpowerAppDetailRender extends Render {
     xpowerAppDetailReq.context.closePath();
     let spApplication = document.getElementsByTagName('sp-application')[0];
     let isDark = spApplication && spApplication.hasAttribute('dark');
-    drawLegend(xpowerAppDetailReq, checkedType!, checkedValue!, isDark);
+    drawLegend(xpowerAppDetailReq, checkedType!, checkedValue!, offsetW, isDark);
   }
 }
 
@@ -98,6 +99,7 @@ export function drawLegend(
   req: { context: CanvasRenderingContext2D; useCache: boolean },
   checked: boolean[],
   checkedValue: string[],
+  offsetW: number,
   isDark?: boolean
 ): void {
   let textList: string[] = [];
@@ -110,7 +112,7 @@ export function drawLegend(
     let text = req.context.measureText(textList[index]);
     req.context.fillStyle = ColorUtils.colorForTid(checkedValue.indexOf(textList[index]));
     req.context.globalAlpha = 1;
-    let canvasEndX = req.context.canvas.clientWidth - XpowerAppDetailStruct.OFFSET_WIDTH;
+    let canvasEndX = req.context.canvas.clientWidth - offsetW;
     let textColor = isDark ? '#FFFFFF' : '#333';
     if (index === 0) {
       let padding = 0;
@@ -157,7 +159,7 @@ function setMaxEnergyInfo(context: CanvasRenderingContext2D, filter: XpowerAppDe
     }
   });
   XpowerAppDetailStruct.maxEnergy = max;
-  let s = Utils.timeFormat(XpowerAppDetailStruct.maxEnergy);
+  let s = XpowerAppDetailStruct.maxEnergy + ' ms';
   let textMetrics = context.measureText(s);
   context.globalAlpha = 0.8;
   context.fillStyle = '#f0f0f0';
@@ -191,7 +193,6 @@ export function XpowerAppDetailStructOnClick(
 export class XpowerAppDetailStruct extends BaseStruct {
   static rowHeight: number = 200;
   static maxEnergy: number = 0;
-  static OFFSET_WIDTH: number = 300;
   static currentTextWidth: number = 0;
 
   startTime: number = 0;
@@ -319,7 +320,7 @@ export class XpowerAppDetailStruct extends BaseStruct {
       if (value !== 0) {
         hoverHtml += `<div style="display: grid; width:auto; grid-template-columns: 1fr 1fr;">
           <div style="text-align: left">${key}:&nbsp;&nbsp;</div>
-          <div style="text-align: left">${Utils.timeFormat(value) || 0}</div>
+          <div style="text-align: left">${value + ' ms'}</div>
         </div>`;
       }
     }

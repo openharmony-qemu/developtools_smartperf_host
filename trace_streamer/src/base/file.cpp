@@ -283,34 +283,42 @@ bool LocalZip::Unzlib(std::string &traceFile)
 
 bool LocalZip::WriteFile(std::ifstream &srcFile, std::ofstream &destFile)
 {
-    z_stream strm;
-    strm.zalloc = Z_NULL;
-    strm.zfree = Z_NULL;
-    strm.opaque = Z_NULL;
-    TS_CHECK_TRUE(inflateInit(&strm) == Z_OK, false, "inflateInit failed.");
+    auto strmDeleterFunc = [](z_stream *strmPtr) {
+        if (strmPtr) {
+            if (inflateEnd(strmPtr) != Z_OK) {
+                TS_LOGE("Error inflateEnd!");
+            }
+            delete strmPtr;
+            strmPtr = nullptr;
+        }
+    };
+    std::unique_ptr<z_stream, decltype(strmDeleterFunc)> strmPtr(new z_stream, strmDeleterFunc);
+    TS_CHECK_TRUE(strmPtr != nullptr, false, "Error construct strmPtr!");
+    strmPtr->zalloc = Z_NULL;
+    strmPtr->zfree = Z_NULL;
+    strmPtr->opaque = Z_NULL;
+    TS_CHECK_TRUE(inflateInit(strmPtr.get()) == Z_OK, false, "inflateInit failed.");
 
     unsigned char inputBuf[ZLIB_CHUNK_SIZE];
     unsigned char outBuf[ZLIB_CHUNK_SIZE];
     int flushFlag = Z_NO_FLUSH;
     do {
         srcFile.read(reinterpret_cast<char *>(inputBuf), ZLIB_CHUNK_SIZE);
-        strm.avail_in = srcFile.gcount();
-        if (srcFile.bad()) {
-            inflateEnd(&strm);
-            TS_LOGE("Error reading source file.");
-            return false;
-        }
+        TS_CHECK_TRUE(!srcFile.bad(), false, "Error reading source file!");
+        strmPtr->avail_in = srcFile.gcount();
         flushFlag = srcFile.eof() ? Z_FINISH : Z_NO_FLUSH;
-        strm.next_in = inputBuf;
+        strmPtr->next_in = inputBuf;
         do {
-            strm.avail_out = ZLIB_CHUNK_SIZE;
-            strm.next_out = outBuf;
-            inflate(&strm, flushFlag);
-            size_t haveUnzlibSize = ZLIB_CHUNK_SIZE - strm.avail_out;
+            strmPtr->avail_out = ZLIB_CHUNK_SIZE;
+            strmPtr->next_out = outBuf;
+            auto ret = inflate(strmPtr.get(), flushFlag);
+            // Z_BUF_ERROR means that there is still data that needs to be unziped
+            TS_CHECK_TRUE(ret >= Z_OK || ret == Z_BUF_ERROR, false, "Error inflate: %d!", ret);
+            size_t haveUnzlibSize = ZLIB_CHUNK_SIZE - strmPtr->avail_out;
             destFile.write(reinterpret_cast<char *>(outBuf), haveUnzlibSize);
-        } while (strm.avail_out == 0);
+            TS_CHECK_TRUE(!destFile.bad(), false, "DestFile error write!");
+        } while (strmPtr->avail_out == 0);
     } while (flushFlag != Z_FINISH);
-    inflateEnd(&strm);
     return true;
 }
 } // namespace base

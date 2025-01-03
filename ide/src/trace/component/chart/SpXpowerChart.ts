@@ -43,7 +43,7 @@ import {
   xpowerGpuFreqDataSender,
   xpowerGpuFreqCountDataSender,
 } from '../../database/data-trafic/xpower/XpowerGpuFrequencySender';
-import { queryTraceConfig, queryXpowerData, queryXpowerMeasureData } from '../../database/sql/Xpower.sql';
+import { queryTraceConfig, queryXpowerData, queryXpowerMeasureData, queryFreq } from '../../database/sql/Xpower.sql';
 import { BaseStruct } from '../../bean/BaseStruct';
 import {
   XpowerGpuFreqCountRender,
@@ -90,13 +90,12 @@ export class SpXpowerChart {
         await this.initXpowerStatisticData(this.bundleNameFolder, traceId);
         await this.initXpowerWifiData(this.bundleNameFolder, traceId);
         await this.initXpowerAppDetatilDisplayData(this.bundleNameFolder, traceId);
-
+        await this.initGpuFreqCountData(this.bundleNameFolder, traceId);
+        await this.initGpuFreqData(this.bundleNameFolder, traceId);
         await this.initThreadCountData(this.bundleNameFolder, traceId);
         for (let value of this.valueTypeList) {
           await this.initThreadInfoData(this.bundleNameFolder, value, traceId);
         }
-        await this.initGpuFreqCountData(this.bundleNameFolder, traceId);
-        await this.initGpuFreqData(this.bundleNameFolder, traceId);
         break;
       }
     }
@@ -588,34 +587,6 @@ export class SpXpowerChart {
     };
   }
 
-  async initGpuFreqData(folder: TraceRow<BaseStruct>, traceId?: string): Promise<void> {
-    let traceRow = TraceRow.skeleton<XpowerGpuFreqStruct>(traceId);
-    traceRow.rowId = 'gpu-frequency';
-    traceRow.rowType = TraceRow.ROW_TYPE_XPOWER_GPU_FREQUENCY;
-    traceRow.rowParentId = folder.rowId;
-    traceRow.style.height = `${ROW_HEIGHT}px`;
-    traceRow.name = 'GPU Freq';
-    traceRow.rowHidden = !folder.expansion;
-    traceRow.folderTextLeft = 40;
-    traceRow.setAttribute('children', '');
-    traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
-    traceRow.selectChangeHandler = this.trace.selectChangeHandler;
-    this.xpowerGpuFreqSupplierFrame(traceRow);
-    traceRow.getCacheData = (args: unknown): Promise<XpowerGpuFreqStruct[]> | undefined => {
-      let result: Promise<XpowerGpuFreqStruct[]> | undefined;
-      result = xpowerGpuFreqDataSender(traceRow, args);
-      return result;
-    };
-    traceRow.focusHandler = (ev): void => {
-      this.setGpuFreqTips(traceRow);
-    };
-    traceRow.findHoverStruct = (): void => {
-      XpowerGpuFreqStruct.hoverXpowerStruct = traceRow.getHoverStruct();
-    };
-    this.xpowerGpuFreqThreadHandler(traceRow);
-    folder.addChildTraceRow(traceRow);
-  }
-
   private xpowerGpuFreqSupplierFrame(traceRow: TraceRow<XpowerGpuFreqStruct>): void {
     traceRow.supplierFrame = (): Promise<XpowerGpuFreqStruct[]> => {
       let promiseData = xpowerGpuFreqDataSender(traceRow);
@@ -641,10 +612,21 @@ export class SpXpowerChart {
         data.push(item);
         gpuFreqStructMap.set(startNS, data);
       }
-      if (item.frequency && !XpowerGpuFreqStruct.colorMap.has(item.frequency)) {
-        let color = ColorUtils.MD_PALETTE[index % ColorUtils.MD_PALETTE.length];
-        XpowerGpuFreqStruct.colorMap.set(item.frequency, color);
+      let hoverHtml = '';
+      if (item.runTime > 0) {
+        hoverHtml = `<div style=" display: flex; flex-wrap: nowrap; justify-content: space-between;">
+            <div style="line-height: 20px; flex-grow: 1; flex-shrink: 1; flex-basis: auto;">frequency: ${
+              item.frequency! || 0
+            }</div>
+            <div style=" line-height: 20px; flex-grow: 2; flex-shrink: 1; flex-basis: auto;">&nbsp;&nbsp;runTime: ${
+              item.runTime! || 0
+            }&nbsp;ms</div>
+            <div style="line-height: 20px; flex-grow: 1; flex-shrink: 1; flex-basis: auto;">&nbsp;&nbsp;idleTime: ${
+              item.idleTime! || 0
+            }&nbsp;ms</div>
+        </div>`;
       }
+      item.hoverHtml = hoverHtml;
     });
     return gpuFreqStructMap;
   }
@@ -664,8 +646,6 @@ export class SpXpowerChart {
   }
 
   private getGpuFreqDrawData(resultXpower: Array<XpowerGpuFreqStruct>): XpowerGpuFreqStruct[] {
-    let maxValue = 0;
-    let itemArraySum = 0;
     this.gpuFreqStructMap = new Map();
     this.gpuFreqStructMap = this.setGpuFreqDataMap(resultXpower);
     for (let itemArray of this.gpuFreqStructMap.values()) {
@@ -674,50 +654,13 @@ export class SpXpowerChart {
         return b.runTime - a.runTime;
       });
       this.gpuFreqStructMap.set(itemArray[0].startNS, itemArray);
-      itemArraySum = itemArray.reduce((acc, obj) => acc + obj.runTime, 0);
-      if (itemArraySum > maxValue) {
-        maxValue = itemArraySum;
-      }
-      XpowerGpuFreqStruct.maxValue = Math.max(itemArraySum, maxValue);
-    }
-    let runTimeSum = 0;
-    for (let itemArray of this.gpuFreqStructMap.values()) {
-      runTimeSum = itemArray.reduce((acc, obj) => acc + obj.runTime, 0);
-      let mapValue = Math.ceil(((runTimeSum || 0) * (ROW_HEIGHT - 28)) / XpowerGpuFreqStruct.maxValue);
-      XpowerGpuFreqStruct.histogramHeightMap.set(itemArray[0].startNS, mapValue);
     }
     XpowerGpuFreqStruct.gpuFreqStructMap = this.gpuFreqStructMap;
     let resultXpowerLit = Array.from(this.gpuFreqStructMap.values()).reduce(
       (acc, valueArray) => acc.concat(valueArray),
       []
     );
-    //@ts-ignore
     return resultXpowerLit;
-  }
-
-  private setGpuFreqTips(traceRow: TraceRow<XpowerGpuFreqStruct>): void {
-    let tipsHtml = '';
-    if (XpowerGpuFreqStruct.hoverXpowerStruct) {
-      let hoverData: XpowerGpuFreqStruct[] = [];
-      hoverData = this.gpuFreqStructMap!.get(XpowerGpuFreqStruct.hoverXpowerStruct.startNS) || [];
-      hoverData = [...hoverData].reverse();
-      for (let i = 0; i < hoverData.length; i++) {
-        if (hoverData[i].runTime > 0) {
-          tipsHtml += `<div style=" display: flex; flex-wrap: nowrap; justify-content: space-between;">
-                <div style="line-height: 20px; flex-grow: 1; flex-shrink: 1; flex-basis: auto;">frequency: ${
-                  hoverData[i].frequency! || 0
-                }</div>
-                <div style=" line-height: 20px; flex-grow: 2; flex-shrink: 1; flex-basis: auto;">&nbsp;&nbsp;runTime: ${
-                  hoverData[i].runTime! || 0
-                }&nbsp;ms</div>
-                <div style="line-height: 20px; flex-grow: 1; flex-shrink: 1; flex-basis: auto;">&nbsp;&nbsp;idleTime: ${
-                  hoverData[i].idleTime! || 0
-                }&nbsp;ms</div>
-            </div>`;
-        }
-      }
-    }
-    this.trace?.displayTip(traceRow, XpowerGpuFreqStruct.hoverXpowerStruct, `${tipsHtml}`);
   }
 
   private xpowerStatisticThreadHandler(traceRow: TraceRow<XpowerStatisticStruct>): void {
@@ -902,9 +845,7 @@ export class SpXpowerChart {
       traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
       traceRow.selectChangeHandler = this.trace.selectChangeHandler;
       traceRow.setAttribute('children', '');
-
-      let list = ['tx', 'rx'];
-      traceRow.rowSettingCheckBoxList = list;
+      traceRow.rowSettingCheckBoxList = ['tx', 'rx'];
       traceRow.addRowSettingCheckBox();
       traceRow.rowSetting = 'enable';
       traceRow.rowSettingPopoverDirection = 'bottomLeft';
@@ -956,6 +897,46 @@ export class SpXpowerChart {
       );
       traceRow.canvasRestore(context, this.trace);
     };
+  }
+
+  async initGpuFreqData(folder: TraceRow<BaseStruct>, traceId?: string): Promise<void> {
+    let traceRow = TraceRow.skeleton<XpowerGpuFreqStruct>(traceId);
+    traceRow.rowId = 'gpu-frequency';
+    traceRow.rowType = TraceRow.ROW_TYPE_XPOWER_GPU_FREQUENCY;
+    traceRow.rowParentId = folder.rowId;
+    traceRow.style.height = `${ROW_HEIGHT}px`;
+    traceRow.name = 'GPU Freq';
+    traceRow.rowHidden = !folder.expansion;
+    traceRow.folderTextLeft = 40;
+    traceRow.setAttribute('children', '');
+    traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    traceRow.selectChangeHandler = this.trace.selectChangeHandler;
+    let freqList = await queryFreq();
+    // @ts-ignore
+    const values = freqList.map((item) => item.frequency.toString());
+    let freqSet = new Set(values);
+    traceRow.rowSettingCheckBoxList = [...freqSet];
+    traceRow.addRowSettingCheckBox();
+    traceRow.rowSetting = 'enable';
+    traceRow.rowSettingPopoverDirection = 'bottomLeft';
+    traceRow.onRowSettingCheckBoxChangeHandler = (value: boolean[]): void => {
+      this.trace.refreshCanvas(false);
+    };
+    this.xpowerGpuFreqSupplierFrame(traceRow);
+    traceRow.getCacheData = (args: unknown): Promise<XpowerGpuFreqStruct[]> | undefined => {
+      let result: Promise<XpowerGpuFreqStruct[]> | undefined;
+      result = xpowerGpuFreqDataSender(traceRow, args);
+      return result;
+    };
+    traceRow.focusHandler = (ev): void => {
+      let html =
+        (XpowerGpuFreqStruct.hoverXpowerStruct &&
+          XpowerGpuFreqStruct.hoverMap.get(XpowerGpuFreqStruct.hoverXpowerStruct.startNS)) ||
+        '';
+      this.trace?.displayTip(traceRow, XpowerGpuFreqStruct.hoverXpowerStruct, html);
+    };
+    this.xpowerGpuFreqThreadHandler(traceRow);
+    folder.addChildTraceRow(traceRow);
   }
 }
 

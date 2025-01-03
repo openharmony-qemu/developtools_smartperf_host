@@ -65,6 +65,7 @@ ohos_source_set("trace_data") {
     "${THIRD_PARTY}/sqlite/include",
     "${SRC}",
     "${SRC}/base",
+    "${SRC}/cfg",
     "${SRC}/include",
     "${SRC}/table",
     "${SRC}/table/base/include",
@@ -96,8 +97,5 @@ ohos_source_set("trace_data") {
     "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/smartperf_host:ts_all_sph_cpp",
   ]
   public_deps = [ "${SRC}/base:base" ]
-  public_configs = [
-    "${SRC}/parser/ebpf_parser:ebpf_parser_cfg",
-    "${SRC}/base/sqlite_ext:sqlite_ext_cfg",
-  ]
+  public_configs = [ "${SRC}/base/sqlite_ext:sqlite_ext_cfg" ]
 }

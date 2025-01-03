@@ -22,7 +22,14 @@ import { LitSelectV } from '../../../base-ui/select/LitSelectV';
 import { SpApplication } from '../../SpApplication';
 import { Cmd } from '../../../command/Cmd';
 import { SpRecordTrace } from '../SpRecordTrace';
-import { messageTypeAll, realBattery, thermalReport, appDetail, appStatistic, componentTop, } from './utils/PluginConvertUtils';
+import {
+  messageTypeAll,
+  realBattery,
+  thermalReport,
+  appDetail,
+  appStatistic,
+  componentTop,
+} from './utils/PluginConvertUtils';
 
 @element('sp-xpower')
 export class SpXPowerRecord extends BaseElement {
@@ -51,6 +58,7 @@ export class SpXPowerRecord extends BaseElement {
     this.initRecordXpowerConfig();
     this.sp = document.querySelector('sp-application') as SpApplication;
     this.typeSelect = this.shadowRoot?.querySelector<LitSelectV>("lit-select-v[title='MessageType']");
+    this.typeSelect!.showItems = [realBattery, thermalReport];
     this.inputEvent = this.typeSelect!.shadowRoot?.querySelector('input') as HTMLInputElement;
     this.xpowerSwitch = this.shadowRoot?.querySelector('.xpower-switch') as LitSwitch;
     let xpowerConfigList = this.shadowRoot?.querySelectorAll<HTMLDivElement>('.xpower-config-top');
@@ -114,7 +122,7 @@ export class SpXPowerRecord extends BaseElement {
     let placeholder = config.selectArray[0];
     //@ts-ignore
     if (config.title === 'MessageType') {
-      placeholder = 'NONE';
+      placeholder = [realBattery, thermalReport].join(',');
     }
     html += `<lit-select-v default-value="" rounded="" class="record-type-select config"
     mode="multiple" canInsert="" title="${
@@ -185,6 +193,7 @@ export class SpXPowerRecord extends BaseElement {
       messageType = messageTypeAll;
     }
     this.typeSelect?.dataSource(messageType, '');
+    this.inputEvent!.value = this.typeSelect!.showItems.join(',');
     this.typeSelect?.shadowRoot?.querySelectorAll('lit-select-option').forEach((option) => {
       if (this.inputEvent!.value.includes(option.getAttribute('value') || '')) {
         option.setAttribute('selected', '');
@@ -195,6 +204,11 @@ export class SpXPowerRecord extends BaseElement {
           this.typeSelect!.showItems!.splice(number, 1);
         }
       }
+      option.addEventListener('onSelected', (e: unknown) => {
+        if (this.typeSelect!.showItems.length === 0) {
+          this.inputEvent!.placeholder = 'NONE';
+        }
+      });
     });
   };
 

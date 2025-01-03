@@ -78,50 +78,50 @@ export class XpowerThreadCountStruct extends BaseStruct {
 
   static draw(xpowerContext: CanvasRenderingContext2D, data: XpowerThreadCountStruct, maxValue: number): void {
     if (data.frame) {
-        const width = data.frame.width || 0;
-        const drawHeight = this.calculateDrawHeight(data, maxValue);
-        const cutHeight = 0;
+      const width = data.frame.width || 0;
+      const drawHeight = this.calculateDrawHeight(data, maxValue);
+      const cutHeight = 0;
 
-        if (XpowerThreadCountStruct.isHover(data)) {
-            this.drawHoverState(xpowerContext, data, width, drawHeight, cutHeight);
-        } else {
-            this.drawNormalState(xpowerContext, data, width, drawHeight, cutHeight);
-        }
+      if (XpowerThreadCountStruct.isHover(data)) {
+        this.drawHoverState(xpowerContext, data, width, drawHeight, cutHeight);
+      } else {
+        this.drawNormalState(xpowerContext, data, width, drawHeight, cutHeight);
+      }
     }
     xpowerContext.globalAlpha = 1.0;
     xpowerContext.lineWidth = 1;
-}
+  }
 
-private static calculateDrawHeight(data: XpowerThreadCountStruct, maxValue: number): number {
+  private static calculateDrawHeight(data: XpowerThreadCountStruct, maxValue: number): number {
     let drawHeight = Math.floor(((data.value || 0) * (data.frame!.height || 0) * 1.0) / maxValue);
     return drawHeight === 0 ? 1 : drawHeight;
-}
+  }
 
-private static drawHoverState(
-  xpowerContext: CanvasRenderingContext2D, 
-  data: XpowerThreadCountStruct, 
-  width: number, 
-  drawHeight: number, 
-  cutHeight: number
-): void {
+  private static drawHoverState(
+    xpowerContext: CanvasRenderingContext2D,
+    data: XpowerThreadCountStruct,
+    width: number,
+    drawHeight: number,
+    cutHeight: number
+  ): void {
     xpowerContext.fillStyle = ColorUtils.colorForTid(XpowerThreadCountStruct.index);
     xpowerContext.strokeStyle = ColorUtils.colorForTid(XpowerThreadCountStruct.index);
     xpowerContext.lineWidth = 1;
     xpowerContext.globalAlpha = 0.6;
     xpowerContext.fillRect(
-        data.frame!.x,
-        data.frame!.y + data.frame!.height - drawHeight - cutHeight,
-        width,
-        drawHeight
+      data.frame!.x,
+      data.frame!.y + data.frame!.height - drawHeight - cutHeight,
+      width,
+      drawHeight
     );
     xpowerContext.beginPath();
     xpowerContext.arc(
-        data.frame!.x,
-        data.frame!.y + data.frame!.height - drawHeight - cutHeight,
-        3,
-        0,
-        2 * Math.PI,
-        true
+      data.frame!.x,
+      data.frame!.y + data.frame!.height - drawHeight - cutHeight,
+      3,
+      0,
+      2 * Math.PI,
+      true
     );
     xpowerContext.fill();
     xpowerContext.globalAlpha = 1.0;
@@ -131,33 +131,33 @@ private static drawHoverState(
     xpowerContext.lineWidth = 3;
     xpowerContext.lineTo(data.frame!.x + width, data.frame!.y + data.frame!.height - drawHeight - cutHeight);
     xpowerContext.stroke();
-}
+  }
 
-private static drawNormalState(
-  xpowerContext: CanvasRenderingContext2D, 
-  data: XpowerThreadCountStruct, 
-  width: number, 
-  drawHeight: number, 
-  cutHeight: number
-): void {
+  private static drawNormalState(
+    xpowerContext: CanvasRenderingContext2D,
+    data: XpowerThreadCountStruct,
+    width: number,
+    drawHeight: number,
+    cutHeight: number
+  ): void {
     xpowerContext.fillStyle = ColorUtils.colorForTid(XpowerThreadCountStruct.index);
     xpowerContext.strokeStyle = ColorUtils.colorForTid(XpowerThreadCountStruct.index);
     xpowerContext.lineWidth = 1;
     xpowerContext.globalAlpha = 1.0;
     xpowerContext.strokeRect(
-        data.frame!.x,
-        data.frame!.y + data.frame!.height - drawHeight - cutHeight,
-        width,
-        drawHeight
+      data.frame!.x,
+      data.frame!.y + data.frame!.height - drawHeight - cutHeight,
+      width,
+      drawHeight
     );
     xpowerContext.globalAlpha = 0.6;
     xpowerContext.fillRect(
-        data.frame!.x,
-        data.frame!.y + data.frame!.height - drawHeight - cutHeight,
-        width,
-        drawHeight
+      data.frame!.x,
+      data.frame!.y + data.frame!.height - drawHeight - cutHeight,
+      width,
+      drawHeight
     );
-}
+  }
 
   static isHover(xpower: XpowerThreadCountStruct): boolean {
     return (

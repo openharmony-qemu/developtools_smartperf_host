@@ -69,11 +69,7 @@ export class XpowerRender extends Render {
     xpowerReq.context.fillText(s, 4, 5 + 9);
   }
 }
-export function XpowerStructOnClick(
-  clickRowType: string,
-  sp: SpSystemTrace,
-  entry?: XpowerStruct,
-): Promise<unknown> {
+export function XpowerStructOnClick(clickRowType: string, sp: SpSystemTrace, entry?: XpowerStruct): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (clickRowType === TraceRow.ROW_TYPE_XPOWER_SYSTEM && (XpowerStruct.hoverXpowerStruct || entry)) {
       XpowerStruct.selectXpowerStruct = entry || XpowerStruct.hoverXpowerStruct;
@@ -102,7 +98,8 @@ export class XpowerStruct extends BaseStruct {
       let width = data.frame.width || 0;
       xpowerContext.fillStyle = ColorUtils.colorForTid(XpowerStruct.index);
       xpowerContext.strokeStyle = ColorUtils.colorForTid(XpowerStruct.index);
-      if ((data.value || 0) < 0) { //数据为负数时显示不同颜色
+      if ((data.value || 0) < 0) {
+        //数据为负数时显示不同颜色
         xpowerContext.fillStyle = ColorUtils.colorForTid(XpowerStruct.index + 6);
         xpowerContext.strokeStyle = ColorUtils.colorForTid(XpowerStruct.index + 6);
       }
@@ -114,15 +111,17 @@ export class XpowerStruct extends BaseStruct {
       let maxHeight: number = 0;
       let sumHeight: number = 0;
       let cutHeight: number = 0;
-      if (minValue < 0) { // 数据包含负数时
-        minHeight = (Math.floor(((minValue || 0) * (data.frame.height || 0) * 1.0) / maxValue));
-        maxHeight = (Math.floor(((maxValue || 0) * (data.frame.height || 0) * 1.0) / maxValue));
+      if (minValue < 0) {
+        // 数据包含负数时
+        minHeight = Math.floor(((minValue || 0) * (data.frame.height || 0) * 1.0) / maxValue);
+        maxHeight = Math.floor(((maxValue || 0) * (data.frame.height || 0) * 1.0) / maxValue);
         sumHeight = Math.abs(minHeight) + Math.abs(maxHeight);
         let num = this.cal(Math.abs(minHeight), Math.abs(maxHeight));
-        // 根据比例缩小绘制高度避免超出泳道
-        drawHeight = Math.floor(drawHeight / num);
-        cutHeight = Math.abs((Math.floor(((minValue || 0) * (data.frame.height || 0) * 1.0) / maxValue)) / num) + 1;
-        if (maxValue < 0) { // 全部数据都是负数时
+        drawHeight = Math.floor(drawHeight / num); //根据比例缩小绘制高度避免超出泳道
+
+        cutHeight = Math.abs(Math.floor(((minValue || 0) * (data.frame.height || 0) * 1.0) / maxValue) / num) + 1;
+        if (maxValue < 0) {
+          // 全部数据都是负数时
           drawHeight = -drawHeight;
           cutHeight = 30;
         }
@@ -130,9 +129,21 @@ export class XpowerStruct extends BaseStruct {
       if (XpowerStruct.isHover(data)) {
         xpowerContext.lineWidth = 1;
         xpowerContext.globalAlpha = 0.6;
-        xpowerContext.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight - cutHeight, width, drawHeight);
+        xpowerContext.fillRect(
+          data.frame.x,
+          data.frame.y + data.frame.height - drawHeight - cutHeight,
+          width,
+          drawHeight
+        );
         xpowerContext.beginPath();
-        xpowerContext.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight - cutHeight, 3, 0, 2 * Math.PI, true);
+        xpowerContext.arc(
+          data.frame.x,
+          data.frame.y + data.frame.height - drawHeight - cutHeight,
+          3,
+          0,
+          2 * Math.PI,
+          true
+        );
         xpowerContext.fill();
         xpowerContext.globalAlpha = 1.0;
         xpowerContext.stroke();
@@ -144,9 +155,19 @@ export class XpowerStruct extends BaseStruct {
       } else {
         xpowerContext.lineWidth = 1;
         xpowerContext.globalAlpha = 1.0;
-        xpowerContext.strokeRect(data.frame.x, data.frame.y + data.frame.height - drawHeight - cutHeight, width, drawHeight);
+        xpowerContext.strokeRect(
+          data.frame.x,
+          data.frame.y + data.frame.height - drawHeight - cutHeight,
+          width,
+          drawHeight
+        );
         xpowerContext.globalAlpha = 0.6;
-        xpowerContext.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight - cutHeight, width, drawHeight);
+        xpowerContext.fillRect(
+          data.frame.x,
+          data.frame.y + data.frame.height - drawHeight - cutHeight,
+          width,
+          drawHeight
+        );
       }
     }
     xpowerContext.globalAlpha = 1.0;
@@ -154,23 +175,23 @@ export class XpowerStruct extends BaseStruct {
   }
 
   static cal(minHeight: number, maxHeight: number): number {
-    let multiplier = 1; // 初始倍数为1  
+    let multiplier = 1; // 初始倍数为1
     let newSum: number;
     do {
       newSum = minHeight / multiplier + maxHeight / multiplier;
-      multiplier += 2; // 每次循环，倍数增加2 
-    } while (newSum > 30 && multiplier <= (minHeight + maxHeight) * 2); // 确保不会除以0或过大数导致无限循环  
+      multiplier += 2; // 每次循环，倍数增加2
+    } while (newSum > 30 && multiplier <= (minHeight + maxHeight) * 2); // 确保不会除以0或过大数导致无限循环
 
-    // 检查是否找到了合适的倍数使得newSum <= 30  
+    // 检查是否找到了合适的倍数使得newSum <= 30
     if (newSum <= 30) {
-      // 如果最后一次循环使multiplier超出了实际需要的值，需要调整回正确的倍数  
+      // 如果最后一次循环使multiplier超出了实际需要的值，需要调整回正确的倍数
       multiplier -= 2;
       while (minHeight / (multiplier + 2) + maxHeight / (multiplier + 2) > 30) {
         multiplier += 2;
       }
       return multiplier;
     } else {
-      // 如果没有找到合适的倍数，返回2  
+      // 如果没有找到合适的倍数，返回2
       return 2;
     }
   }

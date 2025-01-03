@@ -67,7 +67,7 @@ import { threadNearData } from '../../../database/data-trafic/SliceSender';
 import { HangStruct } from '../../../database/ui-worker/ProcedureWorkerHang';
 import { XpowerStruct } from '../../../database/ui-worker/ProcedureWorkerXpower';
 import { XpowerAppDetailStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerAppDetail';
-import { convertBytesToReadableSize, XpowerWifiStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerWifi';
+import { XpowerWifiStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerWifi';
 
 const INPUT_WORD =
   'This is the interval from when the task became eligible to run \n(e.g.because of notifying a wait queue it was a suspended on) to\n when it started running.';
@@ -915,7 +915,7 @@ export class TabPaneCurrentSelection extends BaseElement {
         // @ts-ignore
         dur: data['c' + item],
         // @ts-ignore
-        value: Utils.timeFormat(data['c' + item]),
+        value: data['c' + item] + ' ms',
       });
     });
     // @ts-ignore
@@ -942,12 +942,12 @@ export class TabPaneCurrentSelection extends BaseElement {
     data.tx !== 0 && vals.push({
       name: 'send',
       bytes: data.tx,
-      value: convertBytesToReadableSize(data.tx),
+      value: data.tx + ' B',
     });
     data.rx !== 0 && vals.push({
       name: 'receiver',
       bytes: data.rx,
-      value: convertBytesToReadableSize(data.rx),
+      value: data.rx  + ' B',
     });
     // @ts-ignore
     vals.sort(compare('value', 2, 'bytes'));

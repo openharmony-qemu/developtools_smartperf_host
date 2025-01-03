@@ -53,10 +53,6 @@ export class TabPaneXpowerThreadLoad extends BaseElement {
       let sd = this.createSelectThreadLoadData(res || []);
       dataSource = dataSource.concat(sd);
     }
-    let sumData = new SelectionData();
-    sumData.count = this.sumCount.toString();
-    sumData.process = ' ';
-    dataSource.splice(0, 0, sumData);
     this.XpowerThreadLoadTbl!.loading = false;
     this.XpowerThreadLoadSource = dataSource;
     this.XpowerThreadLoadTbl!.recycleDataSource = dataSource;
@@ -108,11 +104,11 @@ export class TabPaneXpowerThreadLoad extends BaseElement {
             </lit-table-column>
             <lit-table-column data-index="count" title="Count" order key="count"  align="flex-start" width="1fr">
             </lit-table-column>
-            <lit-table-column title="Avg Load" data-index="avg" order key="avg"  align="flex-start" width="1fr">
+            <lit-table-column title="Avg Load(%)" data-index="avgNumber" order key="avgNumber"  align="flex-start" width="1fr">
             </lit-table-column>
-            <lit-table-column title="Max Load" align="flex-start" order data-index="max" key="max" width="1fr">
+            <lit-table-column title="Max Load(%)" align="flex-start" order data-index="maxNumber" key="maxNumber" width="1fr">
             </lit-table-column>
-            <lit-table-column title="Min Load" key="min" data-index="min" order align="flex-start" width="1fr">
+            <lit-table-column title="Min Load(%)" key="minNumber" data-index="minNumber" order align="flex-start" width="1fr">
             </lit-table-column>
         </lit-table>
         `;
@@ -146,14 +142,14 @@ export class TabPaneXpowerThreadLoad extends BaseElement {
           max = itemArray.map((item: { value: number }) => item.value).reduce((a: number, b: number) => Math.max(a, b));
           min = itemArray.map((item: { value: number }) => item.value).reduce((a: number, b: number) => Math.min(a, b));
           sum = itemArray.reduce((acc: number, obj: { value: number }) => acc + obj.value, 0);
-          SelectThreadLoadData.avg = (sum / itemArray.length).toFixed(2) + ' %';
-          SelectThreadLoadData.max = max + ' %';
-          SelectThreadLoadData.min = min + ' %';
-        } else if (itemArray.length === 1) {
+          SelectThreadLoadData.avgNumber = parseFloat((sum / itemArray.length).toFixed(2));
+          SelectThreadLoadData.maxNumber = max;
+          SelectThreadLoadData.minNumber = min;
+        } else if (itemArray.length == 1) {
           let value = itemArray[0].value;
-          SelectThreadLoadData.avg = value + ' %';
-          SelectThreadLoadData.max = value + ' %';
-          SelectThreadLoadData.min = value + ' %';
+          SelectThreadLoadData.avgNumber = value;
+          SelectThreadLoadData.maxNumber = value;
+          SelectThreadLoadData.minNumber = value;
         }
         this.sumCount += itemArray.length;
         SelectThreadLoadArray.push(SelectThreadLoadData);

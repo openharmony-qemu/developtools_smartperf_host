@@ -18,8 +18,6 @@ import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
 import '../../../../../base-ui/chart/pie/LitChartPie';
 import { resizeObserver } from '../SheetUtils';
 import { XpowerStatisticStruct } from '../../../../database/ui-worker/ProcedureWorkerXpowerStatistic';
-import { ns2s } from '../../../../database/ui-worker/ProcedureWorkerCommon';
-import { Utils } from '../../base/Utils';
 
 @element('tabpane-xpower-statistic-current-data')
 export class TabPaneXpowerStatisticCurrentData extends BaseElement {
@@ -95,11 +93,11 @@ export class TabPaneXpowerStatisticCurrentData extends BaseElement {
         <lit-table id="tb-counter" style="height: auto">
             <lit-table-column order title="Name" data-index="name" key="name"  align="flex-start" width="25%">
             </lit-table-column>
-            <lit-table-column data-index="timeStamp" order title="TimeStamp"  key="timeStamp"  align="flex-start" width="1fr">
+            <lit-table-column data-index="timeStamp" order title="TimeStamp(ms)"  key="timeStamp"  align="flex-start" width="1fr">
             </lit-table-column>
-            <lit-table-column data-index="duration" title="Duration" order key="duration"  align="flex-start" width="1fr">
+            <lit-table-column data-index="dur" title="Duration(ms)" order key="dur"  align="flex-start" width="1fr">
             </lit-table-column>
-            <lit-table-column title="Energy" order data-index="energy" key="energy"  align="flex-start" width="1fr">
+            <lit-table-column title="Energy(mAh)" order data-index="energy" key="energy"  align="flex-start" width="1fr">
             </lit-table-column>
         </lit-table>
         `;
@@ -108,10 +106,9 @@ export class TabPaneXpowerStatisticCurrentData extends BaseElement {
   createSelectCounterData(data: { dur: number; energy: number; startStamp: number }, key: string): SelectionData {
     let selectCounterData = new SelectionData();
     selectCounterData.name = key;
-    selectCounterData.timeStamp = ns2s(data.startStamp);
-    selectCounterData.energy = data.energy + ' mAh';
+    selectCounterData.timeStamp = (data.startStamp / 1000000).toString();
+    selectCounterData.energy = data.energy.toString();
     selectCounterData.dur = data.dur;
-    selectCounterData.duration = Utils.timeFormat(data.dur);
     return selectCounterData;
   }
 
@@ -124,10 +121,6 @@ export class TabPaneXpowerStatisticCurrentData extends BaseElement {
         return sort === 2 // @ts-ignore
           ? parseFloat(xpowerStatisticRightData[property]) - parseFloat(xpowerStatisticLeftData[property]) // @ts-ignore
           : parseFloat(xpowerStatisticLeftData[property]) - parseFloat(xpowerStatisticRightData[property]);
-      } else if (type === 'duration') {
-        return sort === 2
-          ? xpowerStatisticRightData.dur - xpowerStatisticLeftData.dur
-          : xpowerStatisticLeftData.dur - xpowerStatisticRightData.dur;
       } else {
         // @ts-ignore
         if (xpowerStatisticRightData[property] > xpowerStatisticLeftData[property]) {
@@ -148,8 +141,6 @@ export class TabPaneXpowerStatisticCurrentData extends BaseElement {
     if (detail.key === 'name') {
       // @ts-ignore
       this.xpowerStatisticSource.sort(this.compare(detail.key, detail.sort, 'string'));
-    } else if (detail.key === 'duration') {
-      this.xpowerStatisticSource.sort(this.compare(detail.key, detail.sort, 'duration'));
     } else {
       this.xpowerStatisticSource.sort(this.compare(detail.key, detail.sort, 'number'));
     }

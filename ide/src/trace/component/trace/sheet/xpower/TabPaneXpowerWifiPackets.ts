@@ -68,7 +68,7 @@ export class TabPaneXpowerWifiPackets extends BaseElement {
       });
       let xpowerWifiMap = new Map<string, number[]>();
       this.checkedValue.forEach((key) => {
-          // @ts-ignore
+        // @ts-ignore
         res!.forEach((item) => {
           // @ts-ignore
           let value = item[key];
