@@ -97,7 +97,13 @@ private static calculateDrawHeight(data: XpowerGpuFreqCountStruct, maxValue: num
     return drawHeight === 0 ? 1 : drawHeight;
 }
 
-private static drawHoverState(xpowerContext: CanvasRenderingContext2D, data: XpowerGpuFreqCountStruct, width: number, drawHeight: number, cutHeight: number): void {
+private static drawHoverState(
+  xpowerContext: CanvasRenderingContext2D, 
+  data: XpowerGpuFreqCountStruct, 
+  width: number, 
+  drawHeight: number, 
+  cutHeight: number
+): void {
     xpowerContext.lineWidth = 1;
     xpowerContext.globalAlpha = 0.6;
     xpowerContext.fillStyle = ColorUtils.colorForTid(XpowerGpuFreqCountStruct.index);
@@ -127,7 +133,13 @@ private static drawHoverState(xpowerContext: CanvasRenderingContext2D, data: Xpo
     xpowerContext.stroke();
 }
 
-private static drawNormalState(xpowerContext: CanvasRenderingContext2D, data: XpowerGpuFreqCountStruct, width: number, drawHeight: number, cutHeight: number): void {
+private static drawNormalState(
+  xpowerContext: CanvasRenderingContext2D, 
+  data: XpowerGpuFreqCountStruct, 
+  width: number, 
+  drawHeight: number, 
+  cutHeight: number
+): void {
     xpowerContext.lineWidth = 1;
     xpowerContext.globalAlpha = 1.0;
     xpowerContext.strokeStyle = ColorUtils.colorForTid(XpowerGpuFreqCountStruct.index);

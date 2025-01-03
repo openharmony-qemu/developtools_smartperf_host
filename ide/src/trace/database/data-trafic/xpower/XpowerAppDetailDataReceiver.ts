@@ -96,8 +96,8 @@ const keys = [
 ];
 
 function initializeArrays(res: unknown[], transfer: boolean, data: unknown): { [key: string]: Float64Array } {
-  return keys.reduce((acc, key) => {
-    acc[key] = new Float64Array(transfer ? res.length : (data as any).params.sharedArrayBuffers[key]);
+  return keys.reduce((acc, key) => { // @ts-ignore
+    acc[key] = new Float64Array(transfer ? res.length : (data as unknown).params.sharedArrayBuffers[key]);
     return acc;
   }, {} as { [key: string]: Float64Array });
 }
@@ -105,13 +105,13 @@ function initializeArrays(res: unknown[], transfer: boolean, data: unknown): { [
 function fillArrays(arrays: { [key: string]: Float64Array }, res: unknown[], data: unknown): void {
   let keysCopy = [...keys];
   keysCopy.shift();
-  res.forEach((it, i) => {
-    if ((data as any).params.trafic === TraficEnum.ProtoBuffer) {
-      it = (it as any).xpowerAppDetailData;
-    }
-    arrays['startTime'][i] = (it as any).startTime;
-    keysCopy.forEach((key) => {
-      arrays[key][i] = (it as any)[key];
+  res.forEach((it, i) => { // @ts-ignore
+    if ((data as unknown).params.trafic === TraficEnum.ProtoBuffer) { // @ts-ignore
+      it = (it as unknown).xpowerAppDetailData;
+    } // @ts-ignore
+    arrays['startTime'][i] = (it as unknown).startTime;
+    keysCopy.forEach((key) => { // @ts-ignore
+      arrays[key][i] = (it as unknown)[key];
     });
   });
 }
@@ -120,23 +120,23 @@ function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): v
   const arrays = initializeArrays(res, transfer, data);
   fillArrays(arrays, res, data);
   (self as unknown as Worker).postMessage(
-    {
-      id: (data as any).id,
-      action: (data as any).action,
+    { // @ts-ignore
+      id: (data as unknown).id, // @ts-ignore
+      action: (data as unknown).action,
       results: transfer
         ? {
-            startTime: arrays['startTime'].buffer,
-            c1hz: arrays['c1hz'].buffer,
-            c5hz: arrays['c5hz'].buffer,
-            c10hz: arrays['c10hz'].buffer,
-            c15hz: arrays['c15hz'].buffer,
-            c24hz: arrays['c24hz'].buffer,
-            c30hz: arrays['c30hz'].buffer,
-            c45hz: arrays['c45hz'].buffer,
-            c60hz: arrays['c60hz'].buffer,
-            c90hz: arrays['c90hz'].buffer,
-            c120hz: arrays['c120hz'].buffer,
-            c180hz: arrays['c180hz'].buffer,
+            startTime: arrays.startTime.buffer, 
+            c1hz: arrays.c1hz.buffer,
+            c5hz: arrays.c5hz.buffer,
+            c10hz: arrays.c10hz.buffer,
+            c15hz: arrays.c15hz.buffer,
+            c24hz: arrays.c24hz.buffer,
+            c30hz: arrays.c30hz.buffer,
+            c45hz: arrays.c45hz.buffer,
+            c60hz: arrays.c60hz.buffer,
+            c90hz: arrays.c90hz.buffer,
+            c120hz: arrays.c120hz.buffer,
+            c180hz: arrays.c180hz.buffer,
           }
         : {},
       len: res.length,
@@ -144,18 +144,18 @@ function arrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): v
     },
     transfer
       ? [
-          arrays['startTime'].buffer,
-          arrays['c1hz'].buffer,
-          arrays['c5hz'].buffer,
-          arrays['c10hz'].buffer,
-          arrays['c15hz'].buffer,
-          arrays['c24hz'].buffer,
-          arrays['c30hz'].buffer,
-          arrays['c45hz'].buffer,
-          arrays['c60hz'].buffer,
-          arrays['c90hz'].buffer,
-          arrays['c120hz'].buffer,
-          arrays['c180hz'].buffer,
+          arrays.startTime.buffer,
+          arrays.c1hz.buffer,
+          arrays.c5hz.buffer,
+          arrays.c10hz.buffer,
+          arrays.c15hz.buffer,
+          arrays.c24hz.buffer,
+          arrays.c30hz.buffer,
+          arrays.c45hz.buffer,
+          arrays.c60hz.buffer,
+          arrays.c90hz.buffer,
+          arrays.c120hz.buffer,
+          arrays.c180hz.buffer,
         ]
       : []
   );
