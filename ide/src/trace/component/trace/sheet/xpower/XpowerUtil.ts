@@ -46,6 +46,7 @@ export function sortByColumn(detail: SortDetail, dataSource: Array<unknown>, tab
   if (detail.key === 'appNameStr') {// @ts-ignore
     dataSource.sort(compare(detail.key, detail.sort, 'string'));
   } else {
+    // @ts-ignore
     dataSource.sort(compare(detail.key, detail.sort, 'number'));
   }
   table!.recycleDataSource = dataSource;
