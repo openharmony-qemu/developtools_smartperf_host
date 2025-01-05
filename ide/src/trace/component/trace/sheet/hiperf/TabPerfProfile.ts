@@ -30,7 +30,6 @@ import { showButtonMenu } from '../SheetUtils';
 import '../../../../../base-ui/headline/lit-headline';
 import { LitHeadLine } from '../../../../../base-ui/headline/lit-headline';
 import { TabPerfProfileHtml } from './TabPerfProfile.html';
-import { TabPanePerfAnalysis } from './TabPanePerfAnalysis';
 
 const InvertOptionIndex: number = 0;
 const hideSystemLibraryOptionIndex: number = 1;
@@ -118,19 +117,8 @@ export class TabpanePerfProfile extends BaseElement {
         !['clockMapData', 'xpowerMapData', 'hangMapData'].includes(key)
       )
     ) as Partial<SelectionParam>;
-    TabPanePerfAnalysis.tabLoadingList.push('profile');
-    if (TabPanePerfAnalysis.tabLoadingList[0] === 'profile') {
-      // @ts-ignore
-      this.getDataByWorkAndUpDateCanvas(newPerfProfilerSelection);
-    } else {
-      let timer = setInterval(() => {
-        if (TabPanePerfAnalysis.tabLoadingList[0] === 'profile') {
-          // @ts-ignore
-          this.getDataByWorkAndUpDateCanvas(newPerfProfilerSelection);
-          clearInterval(timer);
-        }
-      }, 1000)
-    }
+    // @ts-ignore
+    this.getDataByWorkAndUpDateCanvas(newPerfProfilerSelection);
   }
 
   getDataByWorkAndUpDateCanvas(perfProfilerSelection: SelectionParam): void {
@@ -160,7 +148,7 @@ export class TabpanePerfProfile extends BaseElement {
         funcArgs: [''],
       },
       {
-        funcName: 'getCurrentDataFromDb',
+        funcName: 'getCurrentDataFromDbProfile',
         funcArgs: [perfProfilerSelection],
       }
     );
@@ -178,7 +166,6 @@ export class TabpanePerfProfile extends BaseElement {
       this.perfProfileFrameChart!.data = this.perfProfilerDataSource;
       this.switchFlameChart();
       this.perfProfilerFilter!.icon = 'block';
-    TabPanePerfAnalysis.tabLoadingList.shift();
     });
   }
 

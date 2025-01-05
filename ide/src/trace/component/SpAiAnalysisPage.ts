@@ -68,6 +68,7 @@ export class SpAiAnalysisPage extends BaseElement {
     private md: unknown;
     private isResultBack: boolean = true;
     private timerId: unknown = undefined;
+    private getSugBtnList: Array<unknown> = [];
     static startTime: number = 0;
     static endTime: number = 0;
     activeTime: Element | undefined | null;
@@ -389,7 +390,6 @@ export class SpAiAnalysisPage extends BaseElement {
             if (this.chatToken !== '') {
                 this.answer();
             }
-            this.isResultBack = true;
         }
     }
 
@@ -422,6 +422,7 @@ export class SpAiAnalysisPage extends BaseElement {
             this.aiAnswerBox?.appendChild(likeDiv);
             // 滚动条滚到底部
             this.q_a_window!.scrollTop = this.q_a_window!.scrollHeight;
+            this.isResultBack = true;
         }
     }
 
@@ -535,35 +536,34 @@ export class SpAiAnalysisPage extends BaseElement {
             suggestonTitle.textContent = '优化建议：';
             suggestonDiv!.appendChild(suggestonTitle);
             itemDiv!.appendChild(suggestonDiv);
-            if (i === 0) {
+            let getButton = document.createElement('span');
+            getButton.className = 'getSgtBtn';
+            getButton.innerHTML = '获取';
+            getButton.addEventListener('click', (ev) => {
+                if (suggestonDiv.getElementsByClassName('msgdiv').length > 0) {
+                    suggestonDiv.removeChild(suggestonDiv.getElementsByClassName('msgdiv')[0]);
+                }
+                if (suggestonDiv.getElementsByClassName('likeDiv').length > 0) {
+                    suggestonDiv.removeChild(suggestonDiv.getElementsByClassName('likeDiv')[0]);
+                }
+                for (let i = 0; i < this.getSugBtnList.length; i++) {
+                    // @ts-ignore
+                    this.getSugBtnList[i].style.display = 'none';
+                }
                 suggestonDiv!.appendChild(this.loading(''));
                 // @ts-ignore
                 this.getSuggestion(dataList, i, suggestonDiv, timeList);
-                // @ts-ignore
-            } else {
-                let getButton = document.createElement('span');
-                getButton.className = 'getSgtBtn';
-                getButton.innerHTML = '获取';
-                getButton.addEventListener('click', (ev) => {
-                    if (suggestonDiv.getElementsByClassName('msgdiv').length > 0) {
-                        suggestonDiv.removeChild(suggestonDiv.getElementsByClassName('msgdiv')[0]);
-                    }
-                    if (suggestonDiv.getElementsByClassName('likeDiv').length > 0) {
-                        suggestonDiv.removeChild(suggestonDiv.getElementsByClassName('likeDiv')[0]);
-                    }
-                    getButton!.style.display = 'none';
-                    suggestonDiv!.appendChild(this.loading(''));
-                    // @ts-ignore
-                    this.getSuggestion(dataList, i, suggestonDiv, timeList);
-                })
-                suggestonTitle.appendChild(getButton);
-            }
+            })
+            suggestonTitle.appendChild(getButton);
             this.draftList!.insertBefore(itemDiv!, this.loadingItem!);
             itemDiv!.style.animation = 'opcityliner 3s';
             itemDiv!.style.paddingBottom = '20px';
         }
+        // @ts-ignore
+        this.getSugBtnList = this.draftList?.getElementsByClassName('getSgtBtn');
+        // @ts-ignore
+        this.getSugBtnList[0].click();
         this.draftList?.removeChild(this.loadingItem!);
-
     }
 
 
@@ -662,12 +662,10 @@ export class SpAiAnalysisPage extends BaseElement {
             // @ts-ignore
             question: dataList[i].description + ',请问该怎么优化？',
             collection: ''
-        },'ask').then((suggestion) => {
+        }, 'ask').then((suggestion) => {
             this.appendMsg(dataList, i, suggestonDiv, timeList, suggestion);
         }).catch((error) => {
             this.appendMsg(dataList, i, suggestonDiv, timeList, error);
-            // @ts-ignore
-            suggestonDiv?.getElementsByClassName('getSgtBtn')[0].style.display = 'inline-block';
         });
     }
 
@@ -696,6 +694,10 @@ export class SpAiAnalysisPage extends BaseElement {
         likeDiv.innerHTML = `<lit-like type = "detect" content = ${dataList[i].type}#${dataList[i].subtype}></lit-like>`;
         suggestonDiv!.appendChild(msgdiv);
         suggestonDiv!.appendChild(likeDiv);
+        for (let i = 0; i < this.getSugBtnList.length; i++) {
+            // @ts-ignore
+            this.getSugBtnList[i].style.display = 'inline-block';
+        }
     }
 
     // 取消或中断请求
