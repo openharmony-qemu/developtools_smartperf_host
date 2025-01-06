@@ -2113,6 +2113,9 @@ export class SpApplication extends BaseElement {
                     // @ts-ignore
                     return v.id === id;
                   });
+                  let input = this.litSearch!.shadowRoot?.querySelector('input') as HTMLInputElement;
+                  // @ts-ignore
+                  input.value = this.litSearch!.list[0]!.funName;
                 }
                 this.litSearch!.index = this.spSystemTrace!.showStruct(false, -1, this.litSearch!.list);
               }

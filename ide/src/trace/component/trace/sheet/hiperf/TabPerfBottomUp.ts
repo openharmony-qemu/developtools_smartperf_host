@@ -25,7 +25,6 @@ import { procedurePool } from '../../../../database/Procedure';
 import { type LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
 import { type PerfBottomUpStruct } from '../../../../bean/PerfBottomUpStruct';
 import { findSearchNode, HiPerfStruct } from '../../../../database/ui-worker/ProcedureWorkerCommon';
-import { TabPanePerfAnalysis } from './TabPanePerfAnalysis';
 
 @element('tabpane-perf-bottom-up')
 export class TabpanePerfBottomUp extends BaseElement {
@@ -39,7 +38,6 @@ export class TabpanePerfBottomUp extends BaseElement {
   private searchValue: string = '';
   private currentSelection: SelectionParam | undefined;
   private static instance: TabpanePerfBottomUp | null;;
-  static isStartGetData: boolean = true;
 
   public initElements(): void {
     this.bottomUpTable = this.shadowRoot?.querySelector('#callTreeTable') as LitTable;
@@ -67,7 +65,6 @@ export class TabpanePerfBottomUp extends BaseElement {
   public getBottomData(data: SelectionParam) {
     this.getDataByWorker(data, (results: Array<PerfBottomUpStruct>) => {
       this.setBottomUpTableData(results);
-      TabPanePerfAnalysis.tabLoadingList.shift();
     });
   }
 
@@ -75,15 +72,11 @@ export class TabpanePerfBottomUp extends BaseElement {
     this.progressEL!.loading = true;
     const args = [
       {
-        funcName: 'setPerfBottomUp',
-        funcArgs: [''],
-      },
-      {
         funcName: 'setSearchValue',
         funcArgs: [''],
       },
       {
-        funcName: 'getCurrentDataFromDb',
+        funcName: 'getCurrentDataFromDbBottomUp',
         funcArgs: [val],
       },
     ];
@@ -101,17 +94,7 @@ export class TabpanePerfBottomUp extends BaseElement {
     this.sortKey = '';
     this.sortType = 0;
     this.bottomUpFilter!.filterValue = '';
-    TabPanePerfAnalysis.tabLoadingList.push('bottomUp');
-    if (TabPanePerfAnalysis.tabLoadingList[0] === 'bottomUp') {
-      this.getBottomData(data);
-    } else {
-      let timer = setInterval(() => {
-        if (TabPanePerfAnalysis.tabLoadingList[0] === 'bottomUp') {
-          this.getBottomData(data);
-          clearInterval(timer);
-        }
-      }, 1000)
-    }
+    this.getBottomData(data);
   }
 
   private setBottomUpTableData(results: Array<PerfBottomUpStruct>): void {

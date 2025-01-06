@@ -25,7 +25,6 @@ import { LitCheckBox } from '../../../../../base-ui/checkbox/LitCheckBox';
 import { initSort } from '../SheetUtils';
 import { TabpanePerfProfile } from './TabPerfProfile';
 import { TabPanePerfAnalysisHtml } from './TabPanePerfAnalysis.html';
-import { TabpanePerfBottomUp } from './TabPerfBottomUp';
 
 @element('tabpane-perf-analysis')
 export class TabPanePerfAnalysis extends BaseElement {
@@ -1117,7 +1116,6 @@ export class TabPanePerfAnalysis extends BaseElement {
       if (TabPanePerfAnalysis.tabLoadingList[0] === 'analysis') {
         TabPanePerfAnalysis.tabLoadingList.shift();
       }
-      TabpanePerfBottomUp.isStartGetData = true;
     });
   }
 
@@ -1125,15 +1123,11 @@ export class TabPanePerfAnalysis extends BaseElement {
     this.progressEL!.loading = true;
     const args = [
       {
-        funcName: 'setCombineCallChain',
-        funcArgs: [''],
-      },
-      {
         funcName: 'setSearchValue',
         funcArgs: [''],
       },
       {
-        funcName: 'getCurrentDataFromDb',
+        funcName: 'getCurrentDataFromDbAnalysis',
         funcArgs: [val],
       },
     ];

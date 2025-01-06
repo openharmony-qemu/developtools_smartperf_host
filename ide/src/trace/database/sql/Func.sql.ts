@@ -599,7 +599,7 @@ export const querySearchFunc = (search: string): Promise<Array<SearchFuncBean>> 
     { traceId: Utils.currentSelectTrace }
   );
 
-export const querySceneSearchFunc = (search: string, processList: Array<string>):
+  export const querySceneSearchFunc = (search: string, processList: Array<string>):
   Promise<Array<SearchFuncBean>> =>
   query(
     'querySceneSearchFunc',
@@ -616,7 +616,7 @@ export const querySceneSearchFunc = (search: string, processList: Array<string>)
           'func' as type 
    from callstack c left join thread t on c.callid = t.id left join process p on t.ipid = p.id
    left join trace_range r
-   where c.name like '%${search}%' ESCAPE '\\' and startTime > 0 and p.pid in (${processList.join(',')}) 
+   where c.name like "%${search}%" ESCAPE '\\' and startTime > 0 and p.pid in (${processList.join(',')}) 
    and cookie IS NULL;
     `,
     { $search: search },
