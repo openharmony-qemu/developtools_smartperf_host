@@ -178,14 +178,21 @@ export class SpAllocations extends BaseElement {
 
   get expandPids(): number[] {
     let allPidList: number[] = [];
-    if (this.processId!.value.length > 0) {
-      let result = this.processId?.value.match(/\((.+?)\)/g);
-      if (result) {
-        for (let index = 0; index < result.length; index++) {
-          let item = result[index];
-          let currentPid = item!.replace('(', '').replace(')', '');
-          allPidList.push(Number(currentPid));
+    const processIdValue = this.processId?.value;
+    if (processIdValue && processIdValue.length > 0) {
+      if (/^(?:\d+(?:,\d+)*)?$/.test(processIdValue)) {
+        allPidList = processIdValue.split(',').map(pid => pid.trim()).map(Number);
+      } else if (/\((\d+)\)(?:,\((\d+)\))*$/.test(processIdValue)) {
+        let result = processIdValue.match(/\((.+?)\)/g);
+        if (result) {
+          for (let index = 0; index < result.length; index++) {
+            let item = result[index];
+            let currentPid = item!.replace('(', '').replace(')', '');
+            allPidList.push(Number(currentPid));
+          }
         }
+      } else {
+        return [];
       }
     }
     return allPidList;
