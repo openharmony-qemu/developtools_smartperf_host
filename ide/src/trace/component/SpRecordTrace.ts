@@ -83,7 +83,7 @@ export class SpRecordTrace extends BaseElement {
   public static selectVersion: string | null;
   public static isVscode = false;
   public static cancelRecord = false;
-  static supportVersions = ['unknown', '3.2', '4.0+', '5.0+'];
+  static supportVersions = ['3.2', '4.0+', '5.0+'];
   public deviceSelect: HTMLSelectElement | undefined;
   public deviceVersion: HTMLSelectElement | undefined;
   private _menuItems: Array<MenuItem> | undefined;
@@ -863,7 +863,7 @@ export class SpRecordTrace extends BaseElement {
   };
 
   disconnectButtonClickEvent = (): void => {
-    this.setDeviceVersionSelect('unknown');
+    this.setDeviceVersionSelect('5.0+');
     let index = this.deviceSelect!.selectedIndex;
     if (index !== -1 && this.deviceSelect!.options.length > 0) {
       for (let i = 0; i < this.deviceSelect!.options.length; i++) {
@@ -949,7 +949,7 @@ export class SpRecordTrace extends BaseElement {
   private nativeMemoryHideBySelectVersion(): void {
     let divConfigs = this.spAllocations?.shadowRoot?.querySelectorAll<HTMLDivElement>('.version-controller');
     if (divConfigs) {
-      if (SpRecordTrace.selectVersion !== '3.2' && SpRecordTrace.selectVersion !== 'unknown') {
+      if (SpRecordTrace.selectVersion !== '3.2') {
         for (let divConfig of divConfigs) {
           divConfig!.style.zIndex = '1';
         }
@@ -970,11 +970,11 @@ export class SpRecordTrace extends BaseElement {
     SpRecordTrace.supportVersions.forEach((supportVersion) => {
       let option = document.createElement('option');
       option.className = 'select';
-      option.selected = supportVersion === 'unknown';
-      option.textContent = supportVersion === 'unknown' ? 'unknown' : `OpenHarmony-${supportVersion}`;
+      option.selected = supportVersion === '5.0+';
+      option.textContent =`OpenHarmony-${supportVersion}`;
       option.setAttribute('device-version', supportVersion);
       this.deviceVersion!.append(option);
-      SpRecordTrace.selectVersion = 'unknown';
+      SpRecordTrace.selectVersion = '5.0+';
       this.nativeMemoryHideBySelectVersion();
     });
   }
