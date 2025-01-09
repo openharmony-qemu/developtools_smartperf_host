@@ -819,10 +819,9 @@ export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEven
   if (!sp.keyboardEnable) {
     return;
   }
-  let flag: boolean = sp.parentElement
-    ?.querySelector('sp-record-trace')!
-    .shadowRoot?.querySelector('lit-main-menu-item[icon="file-config"]')!
-    .hasAttribute('back')!;
+  let recordTraceElement = sp.parentElement?.querySelector('sp-record-trace');
+  let menuItemElement = recordTraceElement?.shadowRoot?.querySelector('lit-main-menu-item[icon="file-config"]');
+  let flag: boolean = menuItemElement ? menuItemElement.hasAttribute('back') : false;
   if (ev.key.toLocaleLowerCase() === String.fromCharCode(47) && !flag && !SpSystemTrace.isAiAsk) {
     if (SpSystemTrace.keyboardFlar) {
       document
