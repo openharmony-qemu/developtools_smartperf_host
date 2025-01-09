@@ -775,9 +775,6 @@ static std::string ConvertWorkerLogToTask(ConStr &mark, int pid, int tid, int gi
         }
     }
     if (mark.find("sched_blocked_reason: ") != std::string::npos) {
-        return ReplaceSchedBlockLog(fakeLog, pid, gid);
-    }
-    if (mark.find("sched_blocked_reason: ") != std::string::npos) {
         if (mark.find("pid=" + std::to_string(tid)) != std::string::npos) {
             return ReplaceSchedBlockLog(fakeLog, pid, gid);
         } else {
