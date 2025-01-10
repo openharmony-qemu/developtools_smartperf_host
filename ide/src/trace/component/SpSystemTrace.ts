@@ -2067,7 +2067,7 @@ export class SpSystemTrace extends BaseElement {
     let id = Utils.getDistributedRowId(rowId);
     let parentId = Utils.getDistributedRowId(rowParentId);
     let traceRow = // @ts-ignore
-      this.rowsEL!.querySelector<TraceRow<unknown>>(`trace-row[row-id='${id}'][row-type='${rowType}']`) ||
+      this.rowsEL!.querySelector<TraceRow<unknown>>(`trace-row[row-id='${id}'][row-parent-id='${parentId}'][row-type='${rowType}']`) ||
       this.favoriteChartListEL!.getCollectRow((row) => row.rowId === id && row.rowType === rowType);
     if (traceRow?.collect) {
       this.favoriteChartListEL!.scroll({
