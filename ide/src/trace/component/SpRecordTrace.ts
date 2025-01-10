@@ -429,6 +429,8 @@ export class SpRecordTrace extends BaseElement {
       // @ts-ignore
       let detail = ev.detail;
       SpRecordTrace.useExtend = detail.checked;
+      this.initMenuItems();
+      this.buildNormalTraceItem();
       this.usbSerialNum = [];
       SpRecordTrace.serialNumber = '';
       this.recordButton!.hidden = true;
@@ -1090,6 +1092,15 @@ export class SpRecordTrace extends BaseElement {
       });
       if (item.title === 'eBPF Config') {
         if (th && item) {//ebpf开关置灰不能点击
+          th.style.color = 'gray';
+          th.disabled = true;
+          if (item.clickHandler) {
+            item.clickHandler = undefined;
+          }
+        }
+      }
+      if (SpRecordTrace.useExtend && item.title === 'Hdc Shell') {
+        if (th && item) {
           th.style.color = 'gray';
           th.disabled = true;
           if (item.clickHandler) {
