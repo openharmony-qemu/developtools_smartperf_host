@@ -30,10 +30,10 @@ export const queryXpowerMeasureData = (traceId?: string): Promise<
     where
         mf.type = 'xpower_filter'
 ;
-`, {}, {traceId: traceId}
+`, {}, { traceId: traceId }
   );
 
-export const queryXpowerData = (traceId?: string): Promise< 
+export const queryXpowerData = (traceId?: string): Promise<
   Array<{
     name: string;
     num: number;
@@ -62,7 +62,7 @@ export const queryXpowerData = (traceId?: string): Promise<
 `, {}, { traceId: traceId }
   );
 
-  export const queryTraceConfig = (traceId?: string): Promise<
+export const queryTraceConfig = (traceId?: string): Promise<
   Array<{
     traceSource: string;
     key: string;
@@ -82,7 +82,7 @@ export const queryXpowerData = (traceId?: string): Promise<
 `, {}, { traceId: traceId }
   );
 
-  export const queryXpowerComponentTop = (leftNS:number, rightNS: number, dur:number, traceId?: string): Promise<
+export const queryXpowerComponentTop = (leftNS: number, rightNS: number, dur: number, traceId?: string): Promise<
   Array<XpowerComponentTopStruct>
 > =>
   query(

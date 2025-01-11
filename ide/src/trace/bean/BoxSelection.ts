@@ -74,29 +74,29 @@ export class SelectionParam {
   >();
   dmaFenceNameData: Array<String> = [];//新增框选dma_fence数据
   xpowerMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map<
-  string,
-  ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined
->();
-xpowerComponentTopMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map<
-string,
-((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined
->();
+    string,
+    ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined
+  >();
+  xpowerComponentTopMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map<
+    string,
+    ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined
+  >();
   xpowerStatisticMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map();
   xpowerDisplayMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map();
   xpowerWifiPacketsMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map();
   xpowerWifiBytesMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map();
-xpowerThreadEnergyMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map<
-string,
-((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined
->();
-xpowerThreadLoadMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map<
-string,
-((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined
->();
-xpowerGpuFreqMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map<
-string,
-((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined
->();
+  xpowerThreadEnergyMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map<
+    string,
+    ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined
+  >();
+  xpowerThreadLoadMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map<
+    string,
+    ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined
+  >();
+  xpowerGpuFreqMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map<
+    string,
+    ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined
+  >();
 
   hangMapData: Map<string, ((arg: unknown) => Promise<Array<unknown>> | undefined) | undefined> = new Map();
   irqCallIds: Array<number> = [];
@@ -396,12 +396,12 @@ string,
         filterFunc.funName!.indexOf('H:Task ') >= 0;
       // @ts-ignore
       let taskData = it.dataListCache.filter((taskData: FuncStruct) => {
-        taskData!.tid = isNaN(Number(it.rowId!)) && typeof it.rowId! === 'string' ?  
-         (function(): number | undefined {  
-           const match = (it.rowId!).match(/-(\d+)/);  
-           return match ? parseInt(match[1]) : undefined; 
-         })() :  
-         parseInt(it.rowId!);
+        taskData!.tid = isNaN(Number(it.rowId!)) && typeof it.rowId! === 'string' ?
+          (function (): number | undefined {
+            const match = (it.rowId!).match(/-(\d+)/);
+            return match ? parseInt(match[1]) : undefined;
+          })() :
+          parseInt(it.rowId!);
         return isIntersect(taskData, TraceRow.rangeSelectObject!);
       });
       if (taskData.length > 0) {
@@ -1197,14 +1197,14 @@ string,
     }
     if (it.rowType === TraceRow.ROW_TYPE_XPOWER_SYSTEM) {
       this.xpowerMapData.set(it.rowId || '', it.getCacheData);
-      if(it.rowId === 'Battery.RealCurrent'){
+      if (it.rowId === 'Battery.RealCurrent') {
         this.xpowerComponentTopMapData.set(it.rowId || '', it.getCacheData);
       }
     }
-    if (it.rowType === TraceRow.ROW_TYPE_XPOWER_STATISTIC){
+    if (it.rowType === TraceRow.ROW_TYPE_XPOWER_STATISTIC) {
       this.xpowerStatisticMapData.set(it.rowId || '', it.getCacheData);
     }
-    if (it.rowType === TraceRow.ROW_TYPE_XPOWER_APP_DETAIL_DISPLAY){
+    if (it.rowType === TraceRow.ROW_TYPE_XPOWER_APP_DETAIL_DISPLAY) {
       this.xpowerDisplayMapData.set(it.rowId || '', it.getCacheData);
     }
     if (it.rowType === TraceRow.ROW_TYPE_XPOWER_WIFI_PACKETS) {
@@ -1214,27 +1214,27 @@ string,
       this.xpowerWifiBytesMapData.set(it.rowId || '', it.getCacheData);
     }
     if (it.rowType === TraceRow.ROW_TYPE_XPOWER_THREAD_COUNT) {
-        this.xpowerMapData.set(it.rowId || '', it.getCacheData);
-      }
-      if (it.rowType === TraceRow.ROW_TYPE_XPOWER_GPU_COUNT) {
-        this.xpowerMapData.set(it.rowId || '', it.getCacheData);
-      }
+      this.xpowerMapData.set(it.rowId || '', it.getCacheData);
+    }
+    if (it.rowType === TraceRow.ROW_TYPE_XPOWER_GPU_COUNT) {
+      this.xpowerMapData.set(it.rowId || '', it.getCacheData);
+    }
   }
 
   // @ts-ignore
   pushXpowerThreadInfo(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_XPOWER_THREAD_INFO) {
-        if(it.rowId == THREAD_ENERGY){
-            this.xpowerThreadEnergyMapData.set(it.rowId || '', it.getCacheData);
-        }else if(it.rowId == THREAD_LOAD){
-            this.xpowerThreadLoadMapData.set(it.rowId || '', it.getCacheData);
-        }
+      if (it.rowId === THREAD_ENERGY) {
+        this.xpowerThreadEnergyMapData.set(it.rowId || '', it.getCacheData);
+      } else if (it.rowId === THREAD_LOAD) {
+        this.xpowerThreadLoadMapData.set(it.rowId || '', it.getCacheData);
+      }
     }
   }
   // @ts-ignore
   pushXpowerGpuFreq(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_XPOWER_GPU_FREQUENCY) {
-        this.xpowerGpuFreqMapData.set(it.rowId || '', it.getCacheData);
+      this.xpowerGpuFreqMapData.set(it.rowId || '', it.getCacheData);
     }
   }
   // @ts-ignore

@@ -615,7 +615,6 @@ void FfrtConverter::FindFfrtProcClassifyLogs(LogInfo logInfo, WakeLogs &traceMap
             traceMap[tid] = {};
         }
         traceMap[tid].emplace_back(logInfo.lineno);
-        return;
     }
     ParseOtherTraceLogs(LogInfo{logInfo.log, logInfo.lineno, static_cast<int>(pid), tid}, traceMap, ffrtWakeLogs);
 }
@@ -776,7 +775,11 @@ static std::string ConvertWorkerLogToTask(ConStr &mark, int pid, int tid, int gi
         }
     }
     if (mark.find("sched_blocked_reason: ") != std::string::npos) {
-        return ReplaceSchedBlockLog(fakeLog, pid, gid);
+        if (mark.find("pid=" + std::to_string(tid)) != std::string::npos) {
+            return ReplaceSchedBlockLog(fakeLog, pid, gid);
+        } else {
+            return ReplaceTracingMarkLog(fakeLog, label, pid, gid);
+        }
     }
     return ReplaceTracingMarkLog(fakeLog, label, pid, gid);
 }

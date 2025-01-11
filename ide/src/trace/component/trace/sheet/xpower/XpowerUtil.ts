@@ -17,7 +17,7 @@ import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SortDetail } from '../SheetUtils';
 import { XpowerComponentTopStruct } from './TabPaneXpowerComponentTop';
 
-export function sortByColumn(detail: SortDetail, dataSource: Array<any>, table: LitTable): void {
+export function sortByColumn(detail: SortDetail, dataSource: Array<unknown>, table: LitTable): void {
   function compare(property: string | number, sort: number, type: string) {
     return function (
       xpowerComponentTopLeftData: XpowerComponentTopStruct,
@@ -43,9 +43,10 @@ export function sortByColumn(detail: SortDetail, dataSource: Array<any>, table: 
     };
   }
 
-  if (detail.key === 'appNameStr') {
+  if (detail.key === 'appNameStr') {// @ts-ignore
     dataSource.sort(compare(detail.key, detail.sort, 'string'));
   } else {
+    // @ts-ignore
     dataSource.sort(compare(detail.key, detail.sort, 'number'));
   }
   table!.recycleDataSource = dataSource;

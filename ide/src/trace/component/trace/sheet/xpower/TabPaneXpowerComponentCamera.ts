@@ -11,7 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+ */ 
 
 import { element, BaseElement } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
@@ -43,7 +43,7 @@ export class TabPaneXpowerComponentCamera extends BaseElement {
     new ResizeObserver((entries) => {
       let clientHeight = this.xpowerComponentCameraTbl!.shadowRoot?.querySelector('.table')!.clientHeight;
       let scrollHeight = this.xpowerComponentCameraTbl!.shadowRoot?.querySelector('.table')!.scrollHeight;
-      if (clientHeight == scrollHeight) {
+      if (clientHeight === scrollHeight) {
         this.style.height = 'calc(100% - 22px)';
       } else {
         this.style.height = 'calc(100% - 42px)';

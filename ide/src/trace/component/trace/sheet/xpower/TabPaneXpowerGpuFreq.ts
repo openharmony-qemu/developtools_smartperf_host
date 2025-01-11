@@ -207,14 +207,14 @@ export class TabPaneXpowerGpuFreq extends BaseElement {
         tabXpowerGpuFreqStruct.count = itemArray.length;
         if (itemArray.length > 1) {
           let maxRunTime = this.getRunTimeMax(itemArray);
-          let minRunTime = this.getRunTimeMin(itemArray);
-          let sumRunTime = itemArray.reduce((acc: any, obj: { runTime: any }) => acc + obj.runTime, 0);
+          let minRunTime = this.getRunTimeMin(itemArray); // @ts-ignore
+          let sumRunTime: unknown = itemArray.reduce((acc: unknown, obj: { runTime: unknown }) => acc + obj.runTime, 0); // @ts-ignore
           tabXpowerGpuFreqStruct.avgRunTime = parseFloat((sumRunTime / itemArray.length).toFixed(2));
           tabXpowerGpuFreqStruct.maxRunTime = maxRunTime;
           tabXpowerGpuFreqStruct.minRunTime = minRunTime;
           let maxIdleTime = this.getIdleTimeMax(itemArray);
-          let minIdleTime = this.getIdleTimeMin(itemArray);
-          let sumIdleTime = itemArray.reduce((acc: any, obj: { idleTime: any }) => acc + obj.idleTime, 0);
+          let minIdleTime = this.getIdleTimeMin(itemArray); // @ts-ignore
+          let sumIdleTime: unknown = itemArray.reduce((acc: unknown, obj: { idleTime: unknown }) => acc + obj.idleTime, 0); // @ts-ignore
           tabXpowerGpuFreqStruct.avgIdleTime = parseFloat((sumIdleTime / itemArray.length).toFixed(2));
           tabXpowerGpuFreqStruct.maxIdleTime = maxIdleTime;
           tabXpowerGpuFreqStruct.minIdleTime = minIdleTime;

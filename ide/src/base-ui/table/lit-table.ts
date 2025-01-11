@@ -90,7 +90,7 @@ export class LitTable extends HTMLElement {
   }
 
   get slotArr(): Array<Element> {
-    return this.st!.assignedElements()
+    return this.st!.assignedElements();
   }
 
   set mode(mode: TableMode) {

@@ -17,7 +17,7 @@ import { BaseElement, element } from '../base-ui/BaseElement';
 import '../base-ui/menu/LitMainMenu';
 import '../base-ui/icon/LitIcon';
 import '../base-ui/loading/LitLoading';
-import '../base-ui/like/LitLike';
+import '../base-ui/like/LitLike'; 
 import { SpMetrics } from './component/SpMetrics';
 import { SpHelp } from './component/SpHelp';
 import './component/SpHelp';
@@ -665,7 +665,7 @@ export class SpApplication extends BaseElement {
     };
   }
 
-  private judgeDBOrWasm(ev: File, typeHeader: Blob, showFileName: string) {
+  private judgeDBOrWasm(ev: File, typeHeader: Blob, showFileName: string): void {
     let fileReader: FileReader | null = new FileReader();
     fileReader.readAsText(typeHeader);
     fileReader.onload = (event): void => {
@@ -680,10 +680,10 @@ export class SpApplication extends BaseElement {
         this.wasm = true;
         this.handleWasmMode(ev, showFileName, ev.size, ev.name);
       }
-    }
+    };
   }
 
-  private judgeZip(typeHeader: Blob) {
+  private judgeZip(typeHeader: Blob): void {
     const fileReader = new FileReader();
     fileReader.readAsArrayBuffer(typeHeader);
     fileReader.onload = (event):void => {
@@ -2113,6 +2113,9 @@ export class SpApplication extends BaseElement {
                     // @ts-ignore
                     return v.id === id;
                   });
+                  let input = this.litSearch!.shadowRoot?.querySelector('input') as HTMLInputElement;
+                  // @ts-ignore
+                  input.value = this.litSearch!.list[0]!.funName;
                 }
                 this.litSearch!.index = this.spSystemTrace!.showStruct(false, -1, this.litSearch!.list);
               }
@@ -2547,7 +2550,7 @@ export class SpApplication extends BaseElement {
         }, 4000);
         // 存入缓存
         const blob = new Blob([reqBufferDB]);
-        const response = new Response(blob)
+        const response = new Response(blob);
         caches.open('DB-file').then(cache => {
           return cache.put(`/${fileName}`, response);
         })

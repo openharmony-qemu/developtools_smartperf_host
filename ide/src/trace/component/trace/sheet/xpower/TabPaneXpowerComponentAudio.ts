@@ -44,7 +44,7 @@ export class TabPaneXpowerComponentAudio extends BaseElement {
     new ResizeObserver((entries) => {
       let clientHeight = this.xpowerComponentAudioTbl!.shadowRoot?.querySelector('.table')!.clientHeight;
       let scrollHeight = this.xpowerComponentAudioTbl!.shadowRoot?.querySelector('.table')!.scrollHeight;
-      if (clientHeight == scrollHeight) {
+      if (clientHeight === scrollHeight) {
         this.style.height = 'calc(100% - 22px)';
       } else {
         this.style.height = 'calc(100% - 42px)';

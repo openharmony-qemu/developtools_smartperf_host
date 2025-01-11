@@ -28,8 +28,8 @@ export class XpowerThreadCountRender extends Render {
     let xpowerThreadCountList = row.dataList;
     let xpowerThreadCountFilter = row.dataListCache;
     let maxValue = 0;
-    if (xpowerThreadCountFilter.length > 0) {
-      maxValue = xpowerThreadCountFilter.map((item) => item.value).reduce((a: any, b: any) => Math.max(a, b));
+    if (xpowerThreadCountFilter.length > 0) {// @ts-ignore
+      maxValue = xpowerThreadCountFilter.map((item) => item.value).reduce((a: unknown, b: unknown) => Math.max(a, b));
     }
     dataFilterHandler(xpowerThreadCountList, xpowerThreadCountFilter, {
       startKey: 'startNS',

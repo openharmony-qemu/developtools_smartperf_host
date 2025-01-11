@@ -133,7 +133,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_XPOWER_THREAD_COUNT = 'xpower-thread-count';
   static ROW_TYPE_XPOWER_THREAD_INFO = 'xpower-thread-info';
   static ROW_TYPE_XPOWER_GPU_COUNT = 'xpower-gpu-count';
-  static ROW_TYPE_XPOWER_GPU_FREQUENCY = 'xpower-gpu-frequency'
+  static ROW_TYPE_XPOWER_GPU_FREQUENCY = 'xpower-gpu-frequency';
   static ROW_TYPE_IRQ_GROUP = 'irq-group';
   static ROW_TYPE_IRQ = 'irq';
   static ROW_TYPE_JANK = 'janks';
@@ -1031,7 +1031,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this._rowSettingCheckBoxList && this._rowSettingCheckBoxList.forEach((item) => {
       checkboxHtml += `<div class="checkboxItem" style="margin-bottom: 2px;">
       <lit-check-box class="lit-checkbox" checked style="margin-left: 20px;" not-close value="${item}"></lit-check-box>
-      </div>`; })
+      </div>`; });
     this._rowSettingCheckedBoxList = new Array(this._rowSettingCheckBoxList?.length).fill(true);
     this.rowSettingCheckBoxPop.innerHTML = `<div slot="content" id="settingList"
       style="display: block;height: auto;max-height:200px;overflow-y:auto">
@@ -1047,13 +1047,13 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         const allChecked = this._rowSettingCheckedBoxList!.every(item => item);
         allCheckBox.checked = allChecked;
         this.onRowSettingCheckBoxChangeHandler?.(this._rowSettingCheckedBoxList!);
-      }
-    })
+      };
+    });
     allCheckBox.onchange = (e: unknown): void => {
       checkBoxItems.forEach(item => {
         // @ts-ignore
         item.checked = allCheckBox.checked;
-      })
+      });
       this._rowSettingCheckedBoxList!.forEach((_, index) => {
         this._rowSettingCheckedBoxList![index] = allCheckBox.checked;
       });

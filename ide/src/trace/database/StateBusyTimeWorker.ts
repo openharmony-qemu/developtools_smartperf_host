@@ -34,8 +34,8 @@ function getBusyTime(
       // @ts-ignore
       result[0].ts = startNS;
     }
-    return result 
-  }
+    return result; 
+  };
 
   // @ts-ignore
   let startNS = Math.max(initFreqResult[0].ts, initStateResult[0].ts, leftStartNs);

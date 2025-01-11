@@ -29,8 +29,8 @@ export class XpowerGpuFreqCountRender extends Render {
     let xpowerGpuFreqCountList = row.dataList;
     let xpowerGpuFreqCountFilter = row.dataListCache;
     let maxValue = 0;
-    if (xpowerGpuFreqCountFilter.length > 0) {
-      maxValue = xpowerGpuFreqCountFilter.map((item) => item.value).reduce((a: any, b: any) => Math.max(a, b));
+    if (xpowerGpuFreqCountFilter.length > 0) { // @ts-ignore
+      maxValue = xpowerGpuFreqCountFilter.map((item) => item.value).reduce((a: unknown, b: unknown) => Math.max(a, b));
     }
     dataFilterHandler(xpowerGpuFreqCountList, xpowerGpuFreqCountFilter, {
       startKey: 'startNS',

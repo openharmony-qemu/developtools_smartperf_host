@@ -82,17 +82,17 @@ export function xpowerDataGpuFreqCountReceiver(data: unknown, proc: Function): v
         'value'
       );
     }
-    GpuFreqCountArrayBufferHandler(data, res, true);
+    gpuFreqCountArrayBufferHandler(data, res, true);
   } else {
     // @ts-ignore
     let sql = chartXpowerGpuFreqCountDataSql(data.params);
     let res = proc(sql);
     // @ts-ignore
-    GpuFreqCountArrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
+    gpuFreqCountArrayBufferHandler(data, res, data.params.trafic !== TraficEnum.SharedArrayBuffer);
   }
 }
 
-function GpuFreqCountArrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): void {
+function gpuFreqCountArrayBufferHandler(data: unknown, res: unknown[], transfer: boolean): void {
   // @ts-ignore
   let startNS = new Float64Array(transfer ? res.length : data.params.sharedArrayBuffers.startNS);
   // @ts-ignore

@@ -16,7 +16,7 @@ patch='patch'
 sed='sed'
 cp='cp'
 rm='rm'
-root_dir=`pwd`
+root_dir=$(pwd)
 echo "build root dir is $root_dir"
 
 git config --global core.longpaths true
@@ -86,9 +86,12 @@ fi
 
 if [ ! -f "libunwind/BUILD.gn" ];then
     rm -rf libunwind
-    git clone --depth=1 git@gitee.com:openharmony/third_party_libunwind.git
+    git clone  git@gitee.com:openharmony/third_party_libunwind.git
     if [ -d "third_party_libunwind" ];then
         mv third_party_libunwind libunwind
+        cd libunwind
+        git reset --hard 2c16627236d5e62c8fe78e088d21eca3c362c71c
+        cd ..
         $cp ../prebuilts/patch_libunwind/libunwindbuild.gn libunwind/BUILD.gn
     fi
 fi

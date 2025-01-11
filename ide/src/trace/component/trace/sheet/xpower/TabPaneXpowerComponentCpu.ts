@@ -44,7 +44,7 @@ export class TabPaneXpowerComponentCpu extends BaseElement {
     new ResizeObserver((entries) => {
       let clientHeight = this.xpowerComponentCpuTbl!.shadowRoot?.querySelector('.table')!.clientHeight;
       let scrollHeight = this.xpowerComponentCpuTbl!.shadowRoot?.querySelector('.table')!.scrollHeight;
-      if (clientHeight == scrollHeight) {
+      if (clientHeight === scrollHeight) {
         this.style.height = 'calc(100% - 22px)';
       } else {
         this.style.height = 'calc(100% - 42px)';

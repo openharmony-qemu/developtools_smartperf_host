@@ -144,7 +144,7 @@ export class SpArkTs extends BaseElement {
               } else {
                 this.processInput!.dataSource([], '');
               }
-            })
+            });
           } else {
             Cmd.getDebugProcess().then((processList) => {
               if (processList.length > 0) {

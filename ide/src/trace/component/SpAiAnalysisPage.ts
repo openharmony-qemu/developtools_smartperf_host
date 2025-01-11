@@ -56,7 +56,8 @@ export class SpAiAnalysisPage extends BaseElement {
     private showPageFlag: string = 'chat';
     private tipContentArr: Array<string> = [];
     private question: string = '';
-    private token: string = '';
+    private chatToken: string = '';
+    private detectToken: string = '';
     // 是否点击了新建聊天
     private isNewChat: boolean = false;
     isCtrlDown: boolean = false;
@@ -67,6 +68,7 @@ export class SpAiAnalysisPage extends BaseElement {
     private md: unknown;
     private isResultBack: boolean = true;
     private timerId: unknown = undefined;
+    private getSugBtnList: Array<unknown> = [];
     static startTime: number = 0;
     static endTime: number = 0;
     activeTime: Element | undefined | null;
@@ -97,6 +99,21 @@ export class SpAiAnalysisPage extends BaseElement {
             html: true,
             typographer: true
         });
+        // 自定义 link_open 规则
+        // @ts-ignore
+        this.md.renderer.rules.link_open = (tokens, idx) => {
+            // @ts-ignore
+            const href = tokens![idx].attrIndex('href');
+            if (href < 0) {
+                return '';
+            }
+            // @ts-ignore
+            tokens[idx].attrPush(['target', '_blank']); // 添加 target="_blank"
+            // @ts-ignore
+            tokens[idx].attrPush(['rel', 'noopener noreferrer']); // 推荐添加 rel="noopener noreferrer" 以提高安全性
+            // @ts-ignore
+            return `<a href="${tokens[idx].attrs[href][1]}" target="_blank" rel="noopener noreferrer">`;
+        };
         let aiAssistant = document.querySelector('body > sp-application')!.shadowRoot!.querySelector('#sp-ai-analysis');
         this.chatBar = this.shadowRoot?.querySelector('.chatBar');
         let closeBtn = document.querySelector('body > sp-application')!.shadowRoot!.querySelector('#sp-ai-analysis')!.shadowRoot!.querySelector('div.rightTabBar > lit-icon')!.shadowRoot!.querySelector('#icon');
@@ -127,7 +144,7 @@ export class SpAiAnalysisPage extends BaseElement {
         this.endTimeEl = this.shadowRoot?.querySelector('.endTime');
         this.endTimeEl!.innerHTML = getTimeString(TraceRow.range?.endNS!);
 
-        let rightBarGroup: any = [
+        let rightBarGroup: unknown = [
             {
                 barName: '聊天',
                 barEl: this.chatBar,
@@ -148,11 +165,12 @@ export class SpAiAnalysisPage extends BaseElement {
                 showPage: this.reportDetails,
                 isMustLoadedTrace: true
             }
-        ]
+        ];
 
         // 给右边栏添加点击事件
-        rightBarGroup.forEach((barItem: any, index: number) => {
-            barItem.barEl.addEventListener('click', (ev: Event) => {
+        // @ts-ignore
+        rightBarGroup.forEach((barItem: unknown, index: number) => {    // @ts-ignore
+            barItem.barEl.addEventListener('click', (ev: Event) => {    // @ts-ignore
                 if (barItem.isMustLoadedTrace && !SpApplication.isTraceLoaded) {
                     let importTraceTips = '请先导入trace，再使用诊断功能';
                     this.tipContentArr = ['chat'];
@@ -160,18 +178,18 @@ export class SpAiAnalysisPage extends BaseElement {
                     return;
                 }
                 // this.tipsContent!.style.display = this.isNodata && barItem.barFlag === 'detect' ? 'flex' : 'none';
-                this.tipsContainer!.style.display = 'none';
-                this.showPageFlag = barItem.barFlag;
-                barItem.imgEl.src = barItem.activeImg;
-                barItem.barEl.classList.add('active');
-                barItem.showPage.style.display = 'block';
+                this.tipsContainer!.style.display = 'none';    // @ts-ignore
+                this.showPageFlag = barItem.barFlag;    // @ts-ignore
+                barItem.imgEl.src = barItem.activeImg;    // @ts-ignore
+                barItem.barEl.classList.add('active');    // @ts-ignore
+                barItem.showPage.style.display = 'block';    // @ts-ignore
                 if (this.tipContentArr.indexOf(barItem.barFlag) > -1) {
                     this.tipsContainer!.style.display = 'flex';
-                }
+                }    // @ts-ignore
                 for (let i = 0; i < rightBarGroup.length; i++) {
-                    if (i !== index) {
-                        rightBarGroup[i].barEl.classList.remove('active');
-                        rightBarGroup[i].imgEl.src = rightBarGroup[i].img;
+                    if (i !== index) {    // @ts-ignore
+                        rightBarGroup[i].barEl.classList.remove('active');    // @ts-ignore
+                        rightBarGroup[i].imgEl.src = rightBarGroup[i].img;    // @ts-ignore
                         rightBarGroup[i].showPage.style.display = 'none';
                     }
                 }
@@ -187,7 +205,7 @@ export class SpAiAnalysisPage extends BaseElement {
         this.newChatEl?.addEventListener('click', () => {
             this.isNewChat = true;
             this.isResultBack = true;
-            this.token = '';
+            this.chatToken = '';
             this.q_a_window!.innerHTML = '';
             this.createAiChatBox('有什么可以帮助您的吗？');
         });
@@ -273,7 +291,7 @@ export class SpAiAnalysisPage extends BaseElement {
                         response.blob().then(blob => {
                             const reader = new FileReader();
                             reader.readAsArrayBuffer(blob);
-                            reader.onloadend = () => {
+                            reader.onloadend = (): void => {
                                 const dbBuffer = reader.result;
                                 // @ts-ignore
                                 const reqBufferDB = new Uint8Array(dbBuffer);
@@ -325,6 +343,7 @@ export class SpAiAnalysisPage extends BaseElement {
 
     // 重新导trace、db时，初始化诊断功能
     clear(): void {
+        this.tipContentArr = [];
         // 判断是否有上一次未完成的优化建议请求，如果有则断掉
         if (SpStatisticsHttpUtil.controllersMap.size > 0) {
             SpStatisticsHttpUtil.isInterrupt = true;
@@ -365,26 +384,25 @@ export class SpAiAnalysisPage extends BaseElement {
             this.createAiChatBox('AI智能分析中...');
             this.q_a_window!.scrollTop = this.q_a_window!.scrollHeight;
             // 没有token
-            if (this.token === '') {
-                await this.getToken90Min(true);
+            if (this.chatToken === '') {
+                await this.getToken90Min('aiTakeToken', true);
             }
-            if (this.token !== '') {
+            if (this.chatToken !== '') {
                 this.answer();
             }
-            this.isResultBack = true;
         }
     }
 
     // ai对话
     async answer(): Promise<void> {
         let requestBody = {
-            token: this.token,
+            token: this.chatToken,
             question: this.question,
             collection: 'smart_perf_test',
             scope: 'smartperf'
         };
 
-        await SpStatisticsHttpUtil.askAi(requestBody).then(res => {
+        await SpStatisticsHttpUtil.askAi(requestBody, 'aiAsk').then(res => {
             if (res.status === 200) {
                 SpStatisticsHttpUtil.generalRecord('AI_statistic', 'large_model_q&a', []);
             }
@@ -394,7 +412,7 @@ export class SpAiAnalysisPage extends BaseElement {
         });
     }
 
-    appendChatContent(response: AiResponse) {
+    appendChatContent(response: AiResponse): void {
         if (!this.isNewChat) {
             // @ts-ignore
             this.aiAnswerBox!.firstElementChild!.innerHTML = this.md!.render(response.data);
@@ -404,6 +422,7 @@ export class SpAiAnalysisPage extends BaseElement {
             this.aiAnswerBox?.appendChild(likeDiv);
             // 滚动条滚到底部
             this.q_a_window!.scrollTop = this.q_a_window!.scrollHeight;
+            this.isResultBack = true;
         }
     }
 
@@ -456,8 +475,9 @@ export class SpAiAnalysisPage extends BaseElement {
         //生成表格导航
         //@ts-ignore
         this.renderTblNav(dataList);
-        if (this.token === '') {
-            await this.getToken90Min(false);
+        this.renderTblNav(dataList);
+        if (this.detectToken === '') {
+            await this.getToken90Min('takeToken', false);
         }
         // @ts-ignore
         for (let i = 0; i < dataList.length; i++) {
@@ -516,35 +536,34 @@ export class SpAiAnalysisPage extends BaseElement {
             suggestonTitle.textContent = '优化建议：';
             suggestonDiv!.appendChild(suggestonTitle);
             itemDiv!.appendChild(suggestonDiv);
-            if (i === 0) {
+            let getButton = document.createElement('span');
+            getButton.className = 'getSgtBtn';
+            getButton.innerHTML = '获取';
+            getButton.addEventListener('click', (ev) => {
+                if (suggestonDiv.getElementsByClassName('msgdiv').length > 0) {
+                    suggestonDiv.removeChild(suggestonDiv.getElementsByClassName('msgdiv')[0]);
+                }
+                if (suggestonDiv.getElementsByClassName('likeDiv').length > 0) {
+                    suggestonDiv.removeChild(suggestonDiv.getElementsByClassName('likeDiv')[0]);
+                }
+                for (let i = 0; i < this.getSugBtnList.length; i++) {
+                    // @ts-ignore
+                    this.getSugBtnList[i].style.display = 'none';
+                }
                 suggestonDiv!.appendChild(this.loading(''));
                 // @ts-ignore
                 this.getSuggestion(dataList, i, suggestonDiv, timeList);
-                // @ts-ignore
-            } else {
-                let getButton = document.createElement('span');
-                getButton.className = 'getSgtBtn';
-                getButton.innerHTML = '获取';
-                getButton.addEventListener('click', (ev) => {
-                    if (suggestonDiv.getElementsByClassName('msgdiv').length > 0) {
-                        suggestonDiv.removeChild(suggestonDiv.getElementsByClassName('msgdiv')[0]);
-                    }
-                    if (suggestonDiv.getElementsByClassName('likeDiv').length > 0) {
-                        suggestonDiv.removeChild(suggestonDiv.getElementsByClassName('likeDiv')[0]);
-                    }
-                    getButton!.style.display = 'none';
-                    suggestonDiv!.appendChild(this.loading(''));
-                    // @ts-ignore
-                    this.getSuggestion(dataList, i, suggestonDiv, timeList);
-                })
-                suggestonTitle.appendChild(getButton);
-            }
+            })
+            suggestonTitle.appendChild(getButton);
             this.draftList!.insertBefore(itemDiv!, this.loadingItem!);
             itemDiv!.style.animation = 'opcityliner 3s';
             itemDiv!.style.paddingBottom = '20px';
         }
+        // @ts-ignore
+        this.getSugBtnList = this.draftList?.getElementsByClassName('getSgtBtn');
+        // @ts-ignore
+        this.getSugBtnList[0].click();
         this.draftList?.removeChild(this.loadingItem!);
-
     }
 
 
@@ -570,15 +589,19 @@ export class SpAiAnalysisPage extends BaseElement {
         super.connectedCallback();
     }
 
-    async getToken(isChat?: boolean): Promise<void> {
-        let data = await SpStatisticsHttpUtil.getAItoken();
+    async getToken(params: string, isChat?: boolean): Promise<void> {
+        let data = await SpStatisticsHttpUtil.getAItoken(params);
         if (data.status !== 200) {
             if (isChat) {
                 this.aiAnswerBox!.firstElementChild!.innerHTML = '获取token失败';
             }
             return;
         } else {
-            this.token = data.data;
+            if (isChat) {
+                this.chatToken = data.data;
+            } else {
+                this.detectToken = data.data;
+            }
         }
     }
 
@@ -620,10 +643,10 @@ export class SpAiAnalysisPage extends BaseElement {
     }
 
     // 每90min重新获取token
-    async getToken90Min(isChat: boolean): Promise<void> {
-        await this.getToken(isChat);
+    async getToken90Min(params: string, isChat: boolean): Promise<void> {
+        await this.getToken(params, isChat);
         setInterval(async () => {
-            await this.getToken(isChat);
+            await this.getToken(params, isChat);
         }, 5400000);
     }
 
@@ -635,16 +658,14 @@ export class SpAiAnalysisPage extends BaseElement {
         timeList: Array<string>
     ): void {
         SpStatisticsHttpUtil.askAi({
-            token: this.token,
+            token: this.detectToken,
             // @ts-ignore
             question: dataList[i].description + ',请问该怎么优化？',
             collection: ''
-        }).then((suggestion) => {
+        }, 'ask').then((suggestion) => {
             this.appendMsg(dataList, i, suggestonDiv, timeList, suggestion);
         }).catch((error) => {
             this.appendMsg(dataList, i, suggestonDiv, timeList, error);
-            // @ts-ignore
-            suggestonDiv?.getElementsByClassName('getSgtBtn')[0].style.display = 'inline-block';
         });
     }
 
@@ -673,6 +694,10 @@ export class SpAiAnalysisPage extends BaseElement {
         likeDiv.innerHTML = `<lit-like type = "detect" content = ${dataList[i].type}#${dataList[i].subtype}></lit-like>`;
         suggestonDiv!.appendChild(msgdiv);
         suggestonDiv!.appendChild(likeDiv);
+        for (let i = 0; i < this.getSugBtnList.length; i++) {
+            // @ts-ignore
+            this.getSugBtnList[i].style.display = 'inline-block';
+        }
     }
 
     // 取消或中断请求
@@ -691,10 +716,10 @@ export class SpAiAnalysisPage extends BaseElement {
                 WebSocketManager.getInstance()!.sendMessage(TypeConstants.DIAGNOSIS_TYPE, TypeConstants.SENDDB_CMD, reqBufferDB);
                 // 存入缓存
                 const blob = new Blob([reqBufferDB]);
-                const response = new Response(blob)
+                const response = new Response(blob);
                 caches.open('DB-file').then(cache => {
                     return cache.put(`/${fileName}.db`, response);
-                })
+                });
             },
             'download-db'
         );
@@ -754,7 +779,7 @@ export class SpAiAnalysisPage extends BaseElement {
     };
 
     // eventCallBack
-    eventCallBack = async (result: string) => {
+    eventCallBack = async (result: string): Promise<void> => {
         this.draftList!.innerHTML = '';
         this.tipsContent!.style.display = 'flex';
         this.tipContentArr = ['detect'];
@@ -810,7 +835,7 @@ export class SpAiAnalysisPage extends BaseElement {
         return {
             unconnected: {
                 prompt: `未连接，请启动本地扩展程序再试！[</span><a href=${guideSrc} style="color: blue;" target="_blank">指导</a><span>]`
-            },// 重连
+            }, // 重连
             connected: {
                 prompt: '扩展程序连接中，请稍后再试！'
             }, // 中间
@@ -828,8 +853,8 @@ export class SpAiAnalysisPage extends BaseElement {
             }, // 重连
             upgradeFailed: {
                 prompt: '刷新页面触发升级，或卸载扩展程序重装！'
-            },// 重连
-        }
+            }, // 重连
+        };
     }
 
     initHtml(): string {

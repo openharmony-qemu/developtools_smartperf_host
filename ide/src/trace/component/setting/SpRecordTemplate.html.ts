@@ -52,6 +52,11 @@ export const SpRecordTemplateHtml = `
      height: 38px;
      margin-top: 10px;
 }
+.napi-option, .napi_packageSelect {
+     border-radius: 15px;
+     width: 50%;
+     height: 27px;
+}
 </style>
 <div class="root">
     <div class="template-config-div">
@@ -84,5 +89,15 @@ export const SpRecordTemplateHtml = `
          <lit-switch class="config_switch" id="dynamic_effect" name="AnimationAnalysis"></lit-switch>
        </div>
     </div> 
+    <div class="template-config-div">
+         <div>
+           <span class="template-title">Napi</span>
+           <lit-switch class="config_switch" id="Napi" name="Napi"></lit-switch>
+         </div>
+         <div class="napi-option">
+            <lit-select-v default-value="" class="napi_packageSelect" id="napi_packageName" title="package" rounded placement = "bottom" placeholder="please select package">
+            </lit-select-v>
+         </div>
+    </div>
 </div>
 `;

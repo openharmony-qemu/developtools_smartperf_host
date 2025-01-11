@@ -162,9 +162,9 @@ export class SpXpowerChart {
       }
       folder.canvasRestore(this.trace.canvasPanelCtx!, this.trace);
     };
-    if (rowType == TraceRow.ROW_TYPE_XPOWER_SYSTEM_GROUP) {
+    if (rowType === TraceRow.ROW_TYPE_XPOWER_SYSTEM_GROUP) {
       this.systemFolder = folder;
-    } else if (rowType == TraceRow.ROW_TYPE_XPOWER_BUNDLE_NAME_GROUP) {
+    } else if (rowType === TraceRow.ROW_TYPE_XPOWER_BUNDLE_NAME_GROUP) {
       this.bundleNameFolder = folder;
     }
     this.rowFolder?.addChildTraceRow(folder);
@@ -410,11 +410,11 @@ export class SpXpowerChart {
     let value = '';
     let rowId = '';
     let rowName = '';
-    if (valueType == THREAD_ENERGY) {
+    if (valueType === THREAD_ENERGY) {
       value = 'Energy';
       rowId = 'thread_energy';
       rowName = 'Thread Energy';
-    } else if (valueType == THREAD_LOAD) {
+    } else if (valueType === THREAD_LOAD) {
       value = 'Load';
       rowId = 'thread_loads';
       rowName = 'Thread Load';
@@ -517,11 +517,11 @@ export class SpXpowerChart {
       }
       this.threadInfoStructMap.set(itemArray[0].startNS, newArr);
     }
-    if (valueType == THREAD_ENERGY) {
+    if (valueType === THREAD_ENERGY) {
       XpowerThreadInfoStruct.energyMaxValue = maxValue;
       this.threadEnergyStructMap = this.threadInfoStructMap;
       XpowerThreadInfoStruct.threadEnergyStructMap = this.setDataMap(resultXpower);
-    } else if (valueType == THREAD_LOAD) {
+    } else if (valueType === THREAD_LOAD) {
       XpowerThreadInfoStruct.loadMaxValue = maxValue;
       this.threadLoadStructMap = this.threadInfoStructMap;
       XpowerThreadInfoStruct.threadLoadStructMap = this.setDataMap(resultXpower);
@@ -539,10 +539,10 @@ export class SpXpowerChart {
     if (XpowerThreadInfoStruct.hoverXpowerStruct) {
       let hoverData: XpowerThreadInfoStruct[] = [];
       let unit = '';
-      if (XpowerThreadInfoStruct.hoverXpowerStruct.valueType == THREAD_ENERGY) {
+      if (XpowerThreadInfoStruct.hoverXpowerStruct.valueType === THREAD_ENERGY) {
         hoverData = this.threadEnergyStructMap!.get(XpowerThreadInfoStruct.hoverXpowerStruct.startNS) || [];
         unit = 'mAh';
-      } else if (XpowerThreadInfoStruct.hoverXpowerStruct.valueType == THREAD_LOAD) {
+      } else if (XpowerThreadInfoStruct.hoverXpowerStruct.valueType === THREAD_LOAD) {
         hoverData = this.threadLoadStructMap!.get(XpowerThreadInfoStruct.hoverXpowerStruct.startNS) || [];
         unit = '%';
       }

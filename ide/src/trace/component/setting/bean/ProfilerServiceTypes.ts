@@ -499,6 +499,26 @@ export interface HiperfPluginConfig {
   splitOutfileName?: string;
 }
 
+export interface NativePluginConfig {
+  save_file: boolean;
+  smb_pages: number;
+  max_stack_depth: number;
+  process_name?: string;
+  string_compressed: boolean;
+  fp_unwind: boolean;
+  blocked: boolean;
+  callframe_compress: boolean;
+  record_accurately: boolean;
+  offline_symbolization: boolean;
+  startup_mode: boolean;
+  js_stack_report: number;
+  max_js_stack_depth: number;
+  filter_napi_name: string;
+  memtrace_enable: boolean;
+  malloc_disable: boolean;
+  pid?:number;
+}
+
 export interface HiSystemEventConfig {
   msg: string;
   subscribe_domain: string;

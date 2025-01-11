@@ -130,7 +130,7 @@ export class SpChartManager {
     this.spUserFileChart = new SpUserFileChart(trace);
     this.spImportUserPluginsChart = new SpImportUserPluginsChart(trace);
     this.xpowerChart = new SpXpowerChart(trace);
-    this.spSnapShotChart = new SpSnapShotChart(trace)
+    this.spSnapShotChart = new SpSnapShotChart(trace);
   }
   async initPreprocessData(progress: Function): Promise<void> {
     progress('load data dict', 50);
