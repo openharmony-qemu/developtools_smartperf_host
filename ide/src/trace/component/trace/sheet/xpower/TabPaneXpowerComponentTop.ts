@@ -17,7 +17,6 @@ import { LitSelect } from '../../../../../base-ui/select/LitSelect';
 import { SelectionParam } from '../../../../bean/BoxSelection';
 import { queryXpowerComponentTop } from '../../../../database/sql/Xpower.sql';
 import { SpSystemTrace } from '../../../SpSystemTrace';
-import { Utils } from '../../base/Utils';
 import { LitTabs } from '../../../../../base-ui/tabs/lit-tabs';
 import { LitTabpane } from '../../../../../base-ui/tabs/lit-tabpane';
 import { TabPaneXpowerComponentAudio } from './TabPaneXpowerComponentAudio';
@@ -38,7 +37,6 @@ export class TabPaneXpowerComponentTop extends BaseElement {
   private currentTabKey: string | undefined;
   private currentTabPane?: BaseElement;
   private tabMap: Map<string, BaseElement> = new Map<string, BaseElement>();
-  private theadEl: HTMLDivElement | undefined | null;
 
   set data(xpowerComponentTopValue: SelectionParam) {
     //@ts-ignore
@@ -48,7 +46,7 @@ export class TabPaneXpowerComponentTop extends BaseElement {
     this.xpowerComponentTopRange!.textContent = `Selected range: ${parseFloat(
       ((xpowerComponentTopValue.rightNs - xpowerComponentTopValue.leftNs) / 1000000.0).toFixed(5)
     )} ms`;
-    if (xpowerComponentTopValue == this.currentXpowerComponentTopValue) {
+    if (xpowerComponentTopValue === this.currentXpowerComponentTopValue) {
       return;
     }
     this.componentTypeList = [
@@ -84,30 +82,25 @@ export class TabPaneXpowerComponentTop extends BaseElement {
     if (list.length > 0) {
       for (let i = 0; i < list.length; i++) {
         const selectComponentTopData = {
-          startTime: list[i].startTime,
-          startTimeStr: Utils.getTimeString(list[i].startTime),
+          startNS: list[i].startNS,
+          startMS: list[i].startNS / 1_000_000,
           componentTypeId: list[i].componentTypeId,
           appName: list[i].appName,
           componentTypeName: SpSystemTrace.DATA_DICT.get(list[i].componentTypeId) || '',
           appNameStr: SpSystemTrace.DATA_DICT.get(list[i].appName) || '',
           backgroundDuration: list[i].backgroundDuration,
-          backgroundDurationStr: Utils.timeFormat(list[i].backgroundDuration),
-          backgroundEnergy: list[i].backgroundEnergy + ' mAh',
+          backgroundEnergy: list[i].backgroundEnergy,
           foregroundDuration: list[i].foregroundDuration,
-          foregroundDurationStr: Utils.timeFormat(list[i].foregroundDuration),
-          foregroundEnergy: list[i].foregroundEnergy + ' mAh',
+          foregroundEnergy: list[i].foregroundEnergy,
           screenOffDuration: list[i].screenOffDuration,
-          screenOffDurationStr: Utils.timeFormat(list[i].screenOffDuration),
-          screenOffEnergy: list[i].screenOffEnergy + ' mAh',
+          screenOffEnergy: list[i].screenOffEnergy,
           screenOnDuration: list[i].screenOnDuration,
-          screenOnDurationStr: Utils.timeFormat(list[i].screenOnDuration),
-          screenOnEnergy: list[i].screenOnEnergy + ' mAh',
+          screenOnEnergy: list[i].screenOnEnergy,
           cameraId: list[i].cameraId,
           uId: list[i].uId,
-          load: list[i].load + ' %',
+          load: list[i].load,
           appUsageDuration: list[i].appUsageDuration,
-          appUsageDurationStr: Utils.timeFormat(list[i].appUsageDuration),
-          appUsageEnergy: list[i].appUsageEnergy + ' mAh',
+          appUsageEnergy: list[i].appUsageEnergy,
         };
         this.options.add(selectComponentTopData.componentTypeName);
         componentTopStructList.push(selectComponentTopData);
@@ -155,7 +148,7 @@ export class TabPaneXpowerComponentTop extends BaseElement {
     if (
       this.currentTabPane &&
       this.xpowerComponentTopTbl!.children.length > 0 &&
-      this.xpowerComponentTopTbl?.children[0] == this.currentTabPane
+      this.xpowerComponentTopTbl?.children[0] === this.currentTabPane
     ) {
       this.xpowerComponentTopTbl?.removeChild(this.currentTabPane);
     }
@@ -194,7 +187,7 @@ export class TabPaneXpowerComponentTop extends BaseElement {
     }
   }
 
-  private initOptions() {
+  private initOptions(): void {
     let optionsArr = Array.from(this.options);
     this.xpowerComponentTopSelect!.dataSource = optionsArr;
     // 默认选中第一个
@@ -286,28 +279,23 @@ export class TabPaneXpowerComponentTop extends BaseElement {
 }
 
 export class XpowerComponentTopStruct {
-  startTime: number = 0;
-  startTimeStr: string = '';
+  startNS: number = 0;
+  startMS: number = 0;
   componentTypeId: number = 0;
   componentTypeName: string = '';
   appNameStr: string = '';
   appName: number = 0;
   backgroundDuration: number = 0;
-  backgroundEnergy: string = '';
+  backgroundEnergy: number = 0;
   foregroundDuration: number = 0;
-  foregroundEnergy: string = '';
+  foregroundEnergy: number = 0;
   screenOffDuration: number = 0;
-  screenOffEnergy: string = '';
+  screenOffEnergy: number = 0;
   screenOnDuration: number = 0;
-  screenOnEnergy: string = '';
-  backgroundDurationStr: string = '';
-  foregroundDurationStr: string = '';
-  screenOffDurationStr: string = '';
-  screenOnDurationStr: string = '';
+  screenOnEnergy: number = 0;
   cameraId: number = 0;
   uId: number = 0;
-  load: string = '';
+  load: number = 0;
   appUsageDuration: number = 0;
-  appUsageDurationStr: string = '';
-  appUsageEnergy: string = '';
+  appUsageEnergy: number = 0;
 }

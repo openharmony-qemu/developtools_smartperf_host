@@ -349,8 +349,8 @@ function cpuClickHandlerFunc(sp: SpSystemTrace) {
     }
     sp.observerScrollHeightEnable = true;
     let threadRow = sp.queryAllTraceRow<TraceRow<ThreadStruct>>(
-      `trace-row[row-id='${Utils.getDistributedRowId(d.tid)}'][row-type='thread']`,
-      (row) => row.rowId === `${d.tid}` && row.rowType === 'thread'
+      `trace-row[row-id='${Utils.getDistributedRowId(d.tid)}'][row-type='thread'][row-parent-id='${traceRow?.rowId}']`,
+      (row) => row.rowId === `${d.tid}` && row.rowType === 'thread' && row.rowParentId === traceRow?.rowId
     )[0];
     sp.currentRow = threadRow;
     if (threadRow) {
@@ -819,10 +819,9 @@ export function spSystemTraceDocumentOnKeyUp(sp: SpSystemTrace, ev: KeyboardEven
   if (!sp.keyboardEnable) {
     return;
   }
-  let flag: boolean = sp.parentElement
-    ?.querySelector('sp-record-trace')!
-    .shadowRoot?.querySelector('lit-main-menu-item[icon="file-config"]')!
-    .hasAttribute('back')!;
+  let recordTraceElement = sp.parentElement?.querySelector('sp-record-trace');
+  let menuItemElement = recordTraceElement?.shadowRoot?.querySelector('lit-main-menu-item[icon="file-config"]');
+  let flag: boolean = menuItemElement ? menuItemElement.hasAttribute('back') : false;
   if (ev.key.toLocaleLowerCase() === String.fromCharCode(47) && !flag && !SpSystemTrace.isAiAsk) {
     if (SpSystemTrace.keyboardFlar) {
       document

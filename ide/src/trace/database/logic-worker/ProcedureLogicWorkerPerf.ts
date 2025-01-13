@@ -99,8 +99,14 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         case 'perf-queryPerfCallchains':
           this.perfQueryPerfCallchains(data);
           break;
-        case 'perf-queryCallchainsGroupSample':
-          this.perfQueryCallchainsGroupSample(data);
+        case 'perf-analysis':
+          this.getAnalysisData(data);
+          break;
+        case 'perf-bottomUp':
+          this.getBottomUpData(data);
+          break;
+        case 'perf-profile':
+          this.getProfileData(data);
           break;
         case 'perf-action':
           this.perfAction(data);
@@ -114,6 +120,79 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       }
     }
   }
+
+  private getAnalysisData(data: unknown) {
+    //@ts-ignore
+    this.samplesData = convertJSON(data.params.list) || [];
+    let result;
+    result = this.resolvingAction([
+      {
+        funcName: 'combineAnalysisCallChain',
+        funcArgs: [true],
+      },
+    ]),
+      self.postMessage({
+        //@ts-ignore
+        id: data.id,
+        //@ts-ignore
+        action: data.action,
+        // @ts-ignore
+        results: result,
+      });
+  }
+
+  private getBottomUpData(data: unknown) {
+    //@ts-ignore
+    this.samplesData = convertJSON(data.params.list) || [];
+    let result;
+    result = this.resolvingAction([
+      {
+        funcName: 'getBottomUp',
+        funcArgs: [true],
+      },
+    ])
+    self.postMessage({
+      //@ts-ignore
+      id: data.id,
+      //@ts-ignore
+      action: data.action,
+      // @ts-ignore
+      results: result,
+    });
+  }
+
+  private getProfileData(data: unknown) {
+    //@ts-ignore
+    this.samplesData = convertJSON(data.params.list) || [];
+    let result;
+    if (this.lib) {
+      let libData = this.combineCallChainForAnalysis(this.lib);
+      this.freshPerfCallchains(libData, this.isTopDown);
+      result = this.allProcess;
+      this.lib = undefined;
+    } else if (this.symbol) {
+      let funData = this.combineCallChainForAnalysis(this.symbol);
+      this.freshPerfCallchains(funData, this.isTopDown);
+      result = this.allProcess;
+      this.symbol = undefined;
+    } else {
+      result = this.resolvingAction([
+        {
+          funcName: 'getCallChainsBySampleIds',
+          funcArgs: [this.isTopDown],
+        },
+      ])
+    }
+    self.postMessage({
+      //@ts-ignore
+      id: data.id,
+      //@ts-ignore
+      action: data.action,
+      // @ts-ignore
+      results: result,
+    });
+  }
+
   private perfQueryPerfFiles(list: Array<PerfFile>): void {
     let files = convertJSON(list) || [];
     //@ts-ignore
@@ -208,7 +287,8 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     //@ts-ignore
     const params = data.params;
     if (params) {
-      let filter = params.filter((item: { funcName: string }): boolean => item.funcName === 'getCurrentDataFromDb');
+      let filter = params.filter((item: { funcName: string }): boolean => item.funcName === 'getCurrentDataFromDbBottomUp' ||
+        item.funcName === 'getCurrentDataFromDbProfile' || item.funcName === 'getCurrentDataFromDbAnalysis');
       let libFilter = params.filter((item: { funcName: string }): boolean => item.funcName === 'showLibLevelData');
       let funFilter = params.filter((item: { funcName: string }): boolean => item.funcName === 'showFunLevelData');
       if (libFilter.length !== 0) {
@@ -231,6 +311,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       }
     }
   }
+
   private perfReset(): void {
     this.isHideThread = false;
     this.isHideThreadState = false;
@@ -442,11 +523,11 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
    * @param selectionParam
    * @param sql 从饼图进程或者线程层点击进入Perf Profile时传入
    */
-  private getCurrentDataFromDb(selectionParam: SelectionParam, sql?: string): void {
+  private getCurrentDataFromDb(selectionParam: SelectionParam, flag: string, sql?: string): void {
     let filterSql = this.setFilterSql(selectionParam, sql);
     this.queryData(
       this.currentEventId,
-      'perf-queryCallchainsGroupSample',
+      `${flag}`,
       `select p.callchain_id as sampleId,
           p.thread_state as threadState,
           p.thread_id    as tid,
@@ -472,6 +553,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       }
     );
   }
+
   private setFilterSql(selectionParam: SelectionParam, sql?: string): string {
     let filterSql = '';
     if (sql) {
@@ -602,7 +684,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
             symbolName = perfCallChains[topIndex].name;
           }
           // 只展示内核栈合并进程栈
-          const usePidAsKey = this.isOnlyKernel ? '': perfSample.pid;
+          const usePidAsKey = this.isOnlyKernel ? '' : perfSample.pid;
           let perfRootNode = this.currentTreeMapData[symbolName + usePidAsKey];
           if (perfRootNode === undefined) {
             perfRootNode = new PerfCallChainMerageData();
@@ -808,7 +890,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     this.allProcess.forEach((item: PerfCallChainMerageData): void => {
       item.children = [];
       // only kernel模式下第0层结构为调用栈，也需要变化
-      if (this.isOnlyKernel && (item.dur < startNum || item.dur > max)){
+      if (this.isOnlyKernel && (item.dur < startNum || item.dur > max)) {
         (this.splitMapData[numRuleName] = this.splitMapData[numRuleName] || []).push(item);
         item.isStore++;
       }
@@ -880,10 +962,10 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       return item;
     });
     // 记录待删除的节点索引
-    const removeList : number[] = [];
+    const removeList: number[] = [];
     // 用于记录所有有效的子节点
-    const effectChildList : PerfCallChainMerageData[] = [];
-    for(const sample of values) {
+    const effectChildList: PerfCallChainMerageData[] = [];
+    for (const sample of values) {
       if (sample.parentNode !== undefined && sample.isStore === 0 && sample.searchShow) {
         let parentNode = sample.parentNode;
         while (parentNode !== undefined && !(parentNode.isStore === 0 && parentNode.searchShow)) {
@@ -923,9 +1005,9 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
    * @param children 调用链的子节点数组，这些子节点是待筛选的数据
    * @returns 返回一个新数组，包含所有非存储且标记为显示的子节点
    */
-  private findEffectChildren(children: PerfCallChainMerageData[]): PerfCallChainMerageData[]{
+  private findEffectChildren(children: PerfCallChainMerageData[]): PerfCallChainMerageData[] {
     let result: PerfCallChainMerageData[] = [];
-    for(let child of children){
+    for (let child of children) {
       // 如果搜索框有值，检查当前子树是否有任何一个节点的 isSearch 为 true
       if (this.searchValue === '' || this.hasSearchNode(child)) {
         // 如果当前节点非存储且需要显示，则直接添加到结果数组中
@@ -991,13 +1073,13 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
   }
 
   markSearchNode(sampleArray: PerfCallChainMerageData[], search: string, parentSearch: boolean): void {
-    for(const sample of sampleArray) {
+    for (const sample of sampleArray) {
       if (search === '') {
         sample.searchShow = true;
         sample.isSearch = false;
       } else {
         let isInclude = sample.symbol.toLocaleLowerCase().includes(search);
-        if ((sample.symbol &&  isInclude) || parentSearch) {
+        if ((sample.symbol && isInclude) || parentSearch) {
           sample.searchShow = true;
           sample.isSearch = sample.symbol !== undefined && isInclude;
           let parentNode = sample.parent;
@@ -1044,7 +1126,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
           }
         }
       }
-      if (this.isOnlyKernel){
+      if (this.isOnlyKernel) {
         this.dataSource = this.allProcess;
       } else {
         this.dataSource = this.allProcess.filter((process: PerfCallChainMerageData): boolean => {
@@ -1054,7 +1136,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     }
     return this.dataSource;
   }
-  private queryDataFromDb(funcArgs: unknown[]): void {
+  private queryDataFromDb(funcArgs: unknown[], flag: string): void {
     if (funcArgs[1]) {
       let sql = '';
       //@ts-ignore
@@ -1068,20 +1150,27 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         sql += ` and s.thread_id = ${funcArgs[1].threadId}`;
       }
       //@ts-ignore
-      this.getCurrentDataFromDb(funcArgs[0], sql);
+      this.getCurrentDataFromDb(funcArgs[0], flag, sql);
     } else {
       //@ts-ignore
-      this.getCurrentDataFromDb(funcArgs[0]);
+      this.getCurrentDataFromDb(funcArgs[0], flag, funcArgs[1]);
     }
   }
+
   private handleDataByFuncName(funcName: string, funcArgs: unknown[]): unknown {
     let result;
     switch (funcName) {
       case 'getCallChainsBySampleIds':
         this.freshPerfCallchains(this.samplesData, funcArgs[0] as boolean);
         break;
-      case 'getCurrentDataFromDb':
-        this.queryDataFromDb(funcArgs);
+      case 'getCurrentDataFromDbProfile':
+        this.queryDataFromDb(funcArgs, 'perf-profile');
+        break;
+      case 'getCurrentDataFromDbAnalysis':
+        this.queryDataFromDb(funcArgs, 'perf-analysis');
+        break;
+      case 'getCurrentDataFromDbBottomUp':
+        this.queryDataFromDb(funcArgs, 'perf-bottomUp');
         break;
       case 'hideSystemLibrary':
         this.hideSystemLibrary();
@@ -1115,14 +1204,9 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         this.splitPerfTree(this.allProcess, funcArgs[0] as string, funcArgs[1] as boolean, funcArgs[2] as boolean);
         break;
       case 'setSearchValue':
-        this.searchValue = (funcArgs[0] as string).toLocaleLowerCase();
+        this.searchValue = funcArgs[0] as string;
         break;
-      case 'setCombineCallChain':
-        this.isAnalysis = true;
-        break;
-      case 'setPerfBottomUp':
-        this.isPerfBottomUp = true;
-        break;
+      
       case 'combineAnalysisCallChain':
         result = this.combineCallChainForAnalysis();
         break;
@@ -1473,7 +1557,7 @@ export class PerfCallChainMerageData extends ChartStruct {
       if (callChain.path) {
         currentNode.path = callChain.path;
       }
-      if (callChain.sourceFileId){
+      if (callChain.sourceFileId) {
         currentNode.sourceFile = DataCache.getInstance().dataDict.get(callChain.sourceFileId) || '';
         const lines = lineMap.get(`${currentNode.sourceFile}_${currentNode.symbolName}`);
         if (lines) {

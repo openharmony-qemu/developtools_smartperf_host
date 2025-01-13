@@ -64,6 +64,7 @@ export class TabPanePerfAnalysis extends BaseElement {
   private tableArray: NodeListOf<LitTable> | undefined | null;
   private isComplete: boolean = true;
   private currentSelectionParam: SelectionParam | undefined | null;
+  static tabLoadingList: Array<string> = [];
 
   set data(val: SelectionParam) {
     if (val === this.currentSelection) {
@@ -78,6 +79,7 @@ export class TabPanePerfAnalysis extends BaseElement {
         initSort(table!, this.sortColumn, this.sortType);
       }
     }
+    TabPanePerfAnalysis.tabLoadingList = [];
     this.currentSelection = val;
     this.tabName!.textContent = '';
     this.hideProcessCheckBox!.checked = false;
@@ -90,6 +92,7 @@ export class TabPanePerfAnalysis extends BaseElement {
     this.currentSelectionParam = val;
     if (!this.callChainMap && this.isComplete) {
       this.isComplete = false;
+      TabPanePerfAnalysis.tabLoadingList.push('analysis');
       this.getCallChainDataFromWorker(val);
     }
   }
@@ -119,7 +122,7 @@ export class TabPanePerfAnalysis extends BaseElement {
         let perfProfileTab = this.parentElement?.parentElement?.querySelector<TabpanePerfProfile>(
           '#box-perf-profile > tabpane-perf-profile'
         );
-        if (detail.button === 2) {
+        if (detail.button === 2 && detail.tableName && detail.tableName !== '') {
           perfProfileTab!.cWidth = this.clientWidth;
           perfProfileTab!.currentLevel = this.currentLevel;
           if (this.hideProcessCheckBox?.checked && this.hideThreadCheckBox?.checked) {
@@ -336,25 +339,25 @@ export class TabPanePerfAnalysis extends BaseElement {
       tip: (perfObj): string => {
         return `<div>
                                 <div>Process:${
-                                  // @ts-ignore
-                                  perfObj.obj.tableName
-                                }</div>
+          // @ts-ignore
+          perfObj.obj.tableName
+          }</div>
                                 <div>Sample Count:${
-                                  // @ts-ignore
-                                  perfObj.obj.count
-                                }</div>
+          // @ts-ignore
+          perfObj.obj.count
+          }</div>
                                 <div>Percent:${
-                                  // @ts-ignore
-                                  perfObj.obj.percent
-                                }%</div> 
+          // @ts-ignore
+          perfObj.obj.percent
+          }%</div> 
                                 <div>Event Count:${
-                                  // @ts-ignore
-                                  perfObj.obj.eventCount
-                                }</div>
+          // @ts-ignore
+          perfObj.obj.eventCount
+          }</div>
                                 <div>Percent:${
-                                  // @ts-ignore
-                                  perfObj.obj.eventPercent
-                                }%</div> 
+          // @ts-ignore
+          perfObj.obj.eventPercent
+          }%</div> 
                             </div>
                                `;
       },
@@ -1080,7 +1083,7 @@ export class TabPanePerfAnalysis extends BaseElement {
           // @ts-ignore
           other.percent = ((other.count / this.sumCount!) * 100).toFixed(2);
           // @ts-ignore
-          other.eventCount += res[i].eventCount; 
+          other.eventCount += res[i].eventCount;
           // @ts-ignore
           other.eventPercent = ((other.eventCount / this.sumEventCount!) * 100).toFixed(2);
         }
@@ -1110,6 +1113,9 @@ export class TabPanePerfAnalysis extends BaseElement {
       }
       this.progressEL!.loading = false;
       this.getHiperfProcess(val);
+      if (TabPanePerfAnalysis.tabLoadingList[0] === 'analysis') {
+        TabPanePerfAnalysis.tabLoadingList.shift();
+      }
     });
   }
 
@@ -1117,15 +1123,11 @@ export class TabPanePerfAnalysis extends BaseElement {
     this.progressEL!.loading = true;
     const args = [
       {
-        funcName: 'setCombineCallChain',
-        funcArgs: [''],
-      },
-      {
         funcName: 'setSearchValue',
         funcArgs: [''],
       },
       {
-        funcName: 'getCurrentDataFromDb',
+        funcName: 'getCurrentDataFromDbAnalysis',
         funcArgs: [val],
       },
     ];

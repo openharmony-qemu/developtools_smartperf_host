@@ -214,6 +214,15 @@ enum DataSourceType {
     DATA_SOURCE_TYPE_STREAM
 };
 enum HookMemoryType { MALLOC = 0, MMAP = 1, FILE_PAGE_MSG = 2, MEMORY_USING_MSG = 3 };
+enum EBPF_DATA_TYPE {
+    ITEM_EVENT_MAPS = 0,
+    ITEM_SYMBOL_INFO,
+    ITEM_EVENT_FS,
+    ITEM_EVENT_VM,
+    ITEM_EVENT_BIO,
+    ITEM_EVENT_STR,
+    ITEM_EVENT_KENEL_SYMBOL_INFO = 0x10001,
+};
 using DataIndex = uint64_t;
 using TableRowId = int32_t;
 using InternalPid = uint32_t;

@@ -65,11 +65,11 @@ import { TabPaneCpuFreqLimits } from '../sheet/freq/TabPaneCpuFreqLimits';
 import { TabpaneNMCalltree } from '../sheet/native-memory/TabPaneNMCallTree';
 import { TabPaneClockCounter } from '../sheet/clock/TabPaneClockCounter';
 import { TabPaneXpowerCounter } from '../sheet/xpower/TabPaneXpowerCounter';
-import { TabPaneXpowerComponentTop } from '../sheet/xpower/TabPaneXpowerComponentTop'
-import { TabPaneXpowerComponentAudio } from '../sheet/xpower/TabPaneXpowerComponentAudio'
-import { TabPaneXpowerComponentDisplay } from '../sheet/xpower/TabPaneXpowerComponentDisplay'
-import { TabPaneXpowerComponentCamera } from '../sheet/xpower/TabPaneXpowerComponentCamera'
-import { TabPaneXpowerComponentCpu } from '../sheet/xpower/TabPaneXpowerComponentCpu'
+import { TabPaneXpowerComponentTop } from '../sheet/xpower/TabPaneXpowerComponentTop';
+import { TabPaneXpowerComponentAudio } from '../sheet/xpower/TabPaneXpowerComponentAudio';
+import { TabPaneXpowerComponentDisplay } from '../sheet/xpower/TabPaneXpowerComponentDisplay';
+import { TabPaneXpowerComponentCamera } from '../sheet/xpower/TabPaneXpowerComponentCamera';
+import { TabPaneXpowerComponentCpu } from '../sheet/xpower/TabPaneXpowerComponentCpu';
 import { TabPaneXpowerStatistic } from '../sheet/xpower/TabPaneXpowerStatistic';
 import { TabPaneXpowerWifiBytes } from '../sheet/xpower/TabPaneXpowerWifiBytes';
 import { TabPaneXpowerWifiPackets } from '../sheet/xpower/TabPaneXpowerWifiPackets';

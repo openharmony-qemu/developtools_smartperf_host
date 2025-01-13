@@ -658,7 +658,7 @@
       html body[for='html-export']:not([dpm]) {
         position: relative;
         width: 99%;
-        height: 99%;;
+        height: 99%;
         overflow: auto;
       }
 
@@ -781,8 +781,8 @@
       }
     </style>
   </head>
-  <body for="html-export" id="body" style="margin:0">
-    <div class="smartperf smartperf-preview" style="min-height: 99vh;">
+  <body for="html-export" id="body" style="margin: 0">
+    <div class="smartperf smartperf-preview" style="min-height: 99vh">
       <h1 class="mume-header fontColor">Frame timeline抓取和展示说明</h1>
 
       <p class="fontColor">抓取和展示卡顿丢帧检测的数据。</p>
@@ -976,13 +976,138 @@ Following flows：展示真实帧包含的关联的帧，图中斜向上箭头�
       </ul>
       <p>render_server真实帧的范围展示子线程数据：</p>
       <p><img src="../figures/Frame/frameRS.jpg" alt="GitHub Logo" /></p>
+      <p>颜色说明：</p>
+      <table class="ne-table" style="width: 413px">
+        <colgroup>
+          <col width="100" />
+          <col width="350" />
+        </colgroup>
+        <tbody class="ne-table-inner">
+          <tr class="ne-tr">
+            <td class="ne-td" data-col="0">
+              <div class="ne-td-content">
+                <ne-p id="ufc14ee15" data-lake-id="ufc14ee15">
+                  <ne-text id="u979bc9a6" ne-fontsize="16">颜色</ne-text>
+                  <span class="ne-viewer-b-filler" ne-filler="block"><br /></span>
+                </ne-p>
+              </div>
+              <div class="ne-td-break" contenteditable="false"></div>
+            </td>
+            <td class="ne-td" data-col="1">
+              <div class="ne-td-content">
+                <ne-p id="u677fdc05" data-lake-id="u677fdc05">
+                  <ne-text id="u0c952fbe" ne-fontsize="16">条件</ne-text>
+                  <span class="ne-viewer-b-filler" ne-filler="block"><br /></span>
+                </ne-p>
+              </div>
+              <div class="ne-td-break" contenteditable="false"></div>
+            </td>
+          </tr>
+          <tr class="ne-tr">
+            <td class="ne-td" data-col="0" style="background-color: rgb(232, 190, 68)">
+              <div class="ne-td-content">
+                <ne-p id="u6fb97eaf" data-lake-id="u6fb97eaf" ne-alignment="left">
+                  <ne-text id="u67a45b99" ne-fontsize="16">主线程</ne-text>
+                  <span class="ne-viewer-b-filler" ne-filler="block"><br /></span>
+                </ne-p>
+              </div>
+              <div class="ne-td-break" contenteditable="false"></div>
+            </td>
+            <td class="ne-td" rowspan="2" data-col="1">
+              <div class="ne-td-content">
+                <ne-p id="u2600fe51" data-lake-id="u2600fe51" ne-alignment="left">
+                  <ne-text id="ue0735b93" ne-fontsize="16">
+                    当RS线程期望帧的起始时间-应用线程期望帧的结束时间&gt;=1000000ns时
+                  </ne-text>
+                  <span class="ne-viewer-b-filler" ne-filler="block"><br /></span>
+                </ne-p>
+                <ne-p id="u714ee6c0" data-lake-id="u714ee6c0" ne-alignment="left">
+                  <ne-text id="ub0d6373a" ne-fontsize="16"></ne-text>
+                  <span class="ne-viewer-b-filler" ne-filler="block"><br /></span>
+                </ne-p>
+              </div>
+              <div class="ne-td-break" contenteditable="false"></div>
+            </td>
+          </tr>
+          <tr class="ne-tr">
+            <td class="ne-td" data-col="0" style="background-color: rgb(204, 232, 5)">
+              <div class="ne-td-content">
+                <ne-p id="ud62b1972" data-lake-id="ud62b1972" ne-alignment="left">
+                  <ne-text id="ufd444fda" ne-fontsize="16">子线程</ne-text>
+                  <span class="ne-viewer-b-filler" ne-filler="block"><br /></span>
+                </ne-p>
+              </div>
+              <div class="ne-td-break" contenteditable="false"></div>
+            </td>
+          </tr>
+          <tr class="ne-tr">
+            <td class="ne-td" data-col="0" style="background-color: rgb(255, 101, 29)">
+              <div class="ne-td-content">
+                <ne-p id="u85be70ea" data-lake-id="u85be70ea" ne-alignment="left">
+                  <ne-text id="uec7b18c2" ne-fontsize="16">主线程</ne-text>
+                  <span class="ne-viewer-b-filler" ne-filler="block"><br /></span>
+                </ne-p>
+              </div>
+              <div class="ne-td-break" contenteditable="false"></div>
+            </td>
+            <td class="ne-td" rowspan="2" data-col="1">
+              <div class="ne-td-content">
+                <ne-p id="ua6a50269" data-lake-id="ua6a50269" ne-alignment="left">
+                  <ne-text id="u4406e057" ne-fontsize="16">期望帧的结束时间&lt;实际帧的结束时间时</ne-text>
+                  <span class="ne-viewer-b-filler" ne-filler="block"><br /></span>
+                </ne-p>
+                <ne-p id="ue5affe62" data-lake-id="ue5affe62" ne-alignment="left">
+                  <ne-text id="u4dd35cca" ne-fontsize="16"></ne-text>
+                  <span class="ne-viewer-b-filler" ne-filler="block"><br /></span>
+                </ne-p>
+              </div>
+              <div class="ne-td-break" contenteditable="false"></div>
+            </td>
+          </tr>
+          <tr class="ne-tr">
+            <td class="ne-td" data-col="0" style="background-color: rgb(233, 121, 120)">
+              <div class="ne-td-content">
+                <ne-p id="ufa83efb1" data-lake-id="ufa83efb1" ne-alignment="left">
+                  <ne-text id="u8b01285b" ne-fontsize="16">子线程</ne-text>
+                  <span class="ne-viewer-b-filler" ne-filler="block"><br /></span>
+                </ne-p>
+              </div>
+              <div class="ne-td-break" contenteditable="false"></div>
+            </td>
+          </tr>
+          <tr class="ne-tr">
+            <td class="ne-td" data-col="0" style="background-color: rgb(66, 161, 77)">
+              <div class="ne-td-content">
+                <ne-p id="u67b72426" data-lake-id="u67b72426" ne-alignment="left">
+                  <ne-text id="u760d9449" ne-fontsize="16">主线程</ne-text>
+                  <ne-text id="ufbd786ba" ne-fontsize="16">&amp;</ne-text>
+                  <ne-text id="u453b7473" ne-fontsize="16">子线程</ne-text>
+                  <span class="ne-viewer-b-filler" ne-filler="block"><br /></span>
+                </ne-p>
+              </div>
+              <div class="ne-td-break" contenteditable="false"></div>
+            </td>
+            <td class="ne-td" data-col="1">
+              <div class="ne-td-content">
+                <ne-p id="u1b00961a" data-lake-id="u1b00961a" ne-alignment="left">
+                  <ne-text id="u6155ed1b" ne-fontsize="16">期望帧的结束时间</ne-text>
+                  <ne-text id="ue3327326" ne-fontsize="16">&gt;=</ne-text>
+                  <ne-text id="u4e505f6a" ne-fontsize="16">实际帧的结束时间时</ne-text>
+                  <span class="ne-viewer-b-filler" ne-filler="block"><br /></span>
+                </ne-p>
+              </div>
+              <div class="ne-td-break" contenteditable="false"></div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <script>
       window.onload = () => {
-        let isDark = getURLParameter('dark'); 
-        let targetId = getURLParameter('targetId'); 
-        let isBack = getURLParameter('isBack'); 
+        let isDark = getURLParameter('dark');
+        let targetId = getURLParameter('targetId');
+        let isBack = getURLParameter('isBack');
         if (isDark === 'true') {
           document.getElementById('body').setAttribute('style', 'background-color:#272C34;');
           let header = document.getElementsByClassName('fontColor');
@@ -994,11 +1119,11 @@ Following flows：展示真实帧包含的关联的帧，图中斜向上箭头�
             lightBackGround[i].style.backgroundColor = '#32373F';
           }
         }
-        function getURLParameter(name) {  
-          return (new URL(document.location)).searchParams.get(name);  
-        }  
-  
-        if ( targetId !== null ) {
+        function getURLParameter(name) {
+          return new URL(document.location).searchParams.get(name);
+        }
+
+        if (targetId !== null) {
           let targetElement = document.getElementById(targetId);
           targetElement.scrollIntoView({ behavior: 'smooth' });
         }

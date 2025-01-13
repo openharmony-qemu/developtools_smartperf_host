@@ -599,7 +599,7 @@ export const querySearchFunc = (search: string): Promise<Array<SearchFuncBean>> 
     { traceId: Utils.currentSelectTrace }
   );
 
-export const querySceneSearchFunc = (search: string, processList: Array<string>):
+  export const querySceneSearchFunc = (search: string, processList: Array<string>):
   Promise<Array<SearchFuncBean>> =>
   query(
     'querySceneSearchFunc',
@@ -616,7 +616,7 @@ export const querySceneSearchFunc = (search: string, processList: Array<string>)
           'func' as type 
    from callstack c left join thread t on c.callid = t.id left join process p on t.ipid = p.id
    left join trace_range r
-   where c.name like '%${search}%' ESCAPE '\\' and startTime > 0 and p.pid in (${processList.join(',')}) 
+   where c.name like "%${search}%" ESCAPE '\\' and startTime > 0 and p.pid in (${processList.join(',')}) 
    and cookie IS NULL;
     `,
     { $search: search },
@@ -733,8 +733,12 @@ export const queryStatesCut = (tIds: Array<number>, leftNS: number, rightNS: num
   where
     B.tid in (${tIds.join(',')})
   and
-    not ((B.ts + + ifnull(B.dur,0) < ($leftStartNs + C.start_ts)) 
-    or (B.ts + B.dur > ($rightEndNs + C.start_ts)))
+    ((B.ts + ifnull(B.dur,0) > ($leftStartNs + C.start_ts)) 
+    and (B.ts + B.dur < ($rightEndNs + C.start_ts))
+  or
+    (
+      B.ts > ($leftStartNs + C.start_ts) and B.ts < ($rightEndNs + C.start_ts)
+  ))
   order by
     B.pid;
         `,

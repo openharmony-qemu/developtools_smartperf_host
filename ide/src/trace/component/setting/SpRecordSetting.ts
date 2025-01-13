@@ -343,7 +343,7 @@ export class SpRecordSetting extends BaseElement {
     });
   }
 
-  private isUseLocalhdc(val: string) {
+  private isUseLocalhdc(val: string): void {
     this.dispatchEvent(new CustomEvent('showTip', {
       detail: {
         value: 'snapshot',
@@ -481,7 +481,7 @@ export class SpRecordSetting extends BaseElement {
       parentElement.setAttribute('percent', '0');
       this.snapShotSlider!.percent = '0';
       let htmlInputElement = this.snapShotSlider!.shadowRoot?.querySelector('#slider') as HTMLInputElement;
-      htmlInputElement.value = '0'
+      htmlInputElement.value = '0';
     } else {
       this.snapShotSlider!.percent = snapShotInput.value;
       let htmlInputElement = this.snapShotSlider!.shadowRoot?.querySelector('#slider') as HTMLInputElement;

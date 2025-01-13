@@ -17,7 +17,9 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
 import { XpowerGpuFreqStruct } from '../../../../database/ui-worker/ProcedureWorkerXpowerGpuFreq';
-import { Utils } from '../../base/Utils';
+import { SpSystemTrace } from '../../../SpSystemTrace';
+import { SpChartList } from '../../SpChartList';
+import { TraceRow } from '../../base/TraceRow';
 import { SortDetail, resizeObserver } from '../SheetUtils';
 
 @element('tabpane-xpower-gpu-freq')
@@ -27,6 +29,11 @@ export class TabPaneXpowerGpuFreq extends BaseElement {
   private XpowerGpuFreqSource: Array<TabXpowerGpuFreqStruct> = [];
   private sumCount: number = 0;
   private tabTitle: HTMLDivElement | undefined | null;
+  private traceRow: TraceRow<XpowerGpuFreqStruct> | undefined | null;
+  private checked: boolean[] = [];
+  private checkedValue: string[] = [];
+  private systemTrace: SpSystemTrace | undefined | null;
+  private spChartList: SpChartList | undefined | null;
 
   set data(XpowerGpuFreqValue: SelectionParam) {
     this.init();
@@ -36,6 +43,15 @@ export class TabPaneXpowerGpuFreq extends BaseElement {
     this.XpowerGpuFreqRange!.textContent = `Selected range: ${parseFloat(
       ((XpowerGpuFreqValue.rightNs - XpowerGpuFreqValue.leftNs) / 1000000.0).toFixed(5)
     )} ms`;
+    this.traceRow = this.systemTrace!.shadowRoot?.querySelector<TraceRow<XpowerGpuFreqStruct>>(
+      "trace-row[row-id='gpu-frequency']"
+    );
+    if (!this.traceRow) {
+      this.spChartList = this.systemTrace!.shadowRoot?.querySelector('div > sp-chart-list');
+      this.traceRow = this.spChartList?.shadowRoot!.querySelector(".root > div > trace-row[row-id='gpu-frequency']");
+    }
+    this.checked = this.traceRow!.rowSettingCheckedBoxList!;
+    this.checkedValue = this.traceRow!.rowSettingCheckBoxList!;
     this.getGpuFreqData(XpowerGpuFreqValue).then();
   }
 
@@ -51,13 +67,10 @@ export class TabPaneXpowerGpuFreq extends BaseElement {
         endNS: XpowerGpuFreqValue.rightNs,
         queryAll: true,
       })) as XpowerGpuFreqStruct[];
+      res = res.filter((item) => this.checked[this.checkedValue?.indexOf(item.frequency.toString())]);
       let sd = this.createTabXpowerGpuFreqStruct(res || []);
       dataSource = dataSource.concat(sd);
     }
-    let sumData = { count: 0 };
-    sumData.count = this.sumCount;
-    //@ts-ignore
-    dataSource.splice(0, 0, sumData);
     this.XpowerGpuFreqTbl!.loading = false;
     this.XpowerGpuFreqSource = dataSource;
     this.XpowerGpuFreqTbl!.recycleDataSource = dataSource;
@@ -77,6 +90,9 @@ export class TabPaneXpowerGpuFreq extends BaseElement {
   }
 
   initElements(): void {
+    this.systemTrace = document
+      .querySelector('body > sp-application')
+      ?.shadowRoot!.querySelector<SpSystemTrace>('#sp-system-trace');
     this.XpowerGpuFreqTbl = this.shadowRoot?.querySelector<LitTable>('#tb-gpu-freq');
     this.tabTitle = this.XpowerGpuFreqTbl!.shadowRoot?.querySelector('.thead') as HTMLDivElement;
     this.XpowerGpuFreqRange = this.shadowRoot?.querySelector('#time-range');
@@ -109,17 +125,17 @@ export class TabPaneXpowerGpuFreq extends BaseElement {
             </lit-table-column>
             <lit-table-column  title="Count" data-index="count" key="count" align="flex-start" width="1fr" order>
             </lit-table-column>
-            <lit-table-column title="Avg RunTime" data-index="avgRunTimeStr" key="avgRunTimeStr" align="flex-start" width="1fr" order>
+            <lit-table-column title="Avg RunTime(ms)" data-index="avgRunTime" key="avgRunTime" align="flex-start" width="1fr" order>
             </lit-table-column>
-            <lit-table-column title="Max RunTime"  data-index="maxRunTimeStr" key="maxRunTimeStr" align="flex-start" width="1fr" order>
+            <lit-table-column title="Max RunTime(ms)"  data-index="maxRunTime" key="maxRunTime" align="flex-start" width="1fr" order>
             </lit-table-column>
-            <lit-table-column title="Min RunTime" data-index="minRunTimeStr" key="minRunTimeStr" align="flex-start" width="1fr" order>
+            <lit-table-column title="Min RunTime(ms)" data-index="minRunTime" key="minRunTime" align="flex-start" width="1fr" order>
             </lit-table-column>
-            <lit-table-column title="Avg IdleTime" data-index="avgIdleTimeStr" key="avgIdleTimeStr" align="flex-start" width="1fr" order>
+            <lit-table-column title="Avg IdleTime(ms)" data-index="avgIdleTime" key="avgIdleTime" align="flex-start" width="1fr" order>
             </lit-table-column>
-            <lit-table-column title="Max IdleTime"  data-index="maxIdleTimeStr" key="maxIdleTimeStr" align="flex-start" width="1fr" order>
+            <lit-table-column title="Max IdleTime(ms)"  data-index="maxIdleTime" key="maxIdleTime" align="flex-start" width="1fr" order>
             </lit-table-column>
-            <lit-table-column title="Min IdleTime" data-index="minIdleTimeStr" key="minIdleTimeStr" align="flex-start" width="1fr" order>
+            <lit-table-column title="Min IdleTime(ms)" data-index="minIdleTime" key="minIdleTime" align="flex-start" width="1fr" order>
             </lit-table-column>
         </lit-table>
         `;
@@ -148,15 +164,9 @@ export class TabPaneXpowerGpuFreq extends BaseElement {
     tabXpowerGpuFreqStruct.avgRunTime = parseFloat(runTimeValue.toFixed(2));
     tabXpowerGpuFreqStruct.maxRunTime = runTimeValue;
     tabXpowerGpuFreqStruct.minRunTime = runTimeValue;
-    tabXpowerGpuFreqStruct.avgRunTimeStr = Utils.timeFormat(parseFloat(runTimeValue.toFixed(2)));
-    tabXpowerGpuFreqStruct.maxRunTimeStr = Utils.timeFormat(runTimeValue);
-    tabXpowerGpuFreqStruct.minRunTimeStr = Utils.timeFormat(runTimeValue);
     tabXpowerGpuFreqStruct.avgIdleTime = parseFloat(idleTimeValue.toFixed(2));
     tabXpowerGpuFreqStruct.maxIdleTime = idleTimeValue;
     tabXpowerGpuFreqStruct.minIdleTime = idleTimeValue;
-    tabXpowerGpuFreqStruct.avgIdleTimeStr = Utils.timeFormat(parseFloat(idleTimeValue.toFixed(2)));
-    tabXpowerGpuFreqStruct.maxIdleTimeStr = Utils.timeFormat(idleTimeValue);
-    tabXpowerGpuFreqStruct.minIdleTimeStr = Utils.timeFormat(idleTimeValue);
     return tabXpowerGpuFreqStruct;
   }
   private getRunTimeMax(itemArray: XpowerGpuFreqStruct[]): number {
@@ -197,27 +207,17 @@ export class TabPaneXpowerGpuFreq extends BaseElement {
         tabXpowerGpuFreqStruct.count = itemArray.length;
         if (itemArray.length > 1) {
           let maxRunTime = this.getRunTimeMax(itemArray);
-          let minRunTime = this.getRunTimeMin(itemArray);
-          let sumRunTime = itemArray.reduce((acc: any, obj: { runTime: any }) => acc + obj.runTime, 0);
+          let minRunTime = this.getRunTimeMin(itemArray); // @ts-ignore
+          let sumRunTime: unknown = itemArray.reduce((acc: unknown, obj: { runTime: unknown }) => acc + obj.runTime, 0); // @ts-ignore
           tabXpowerGpuFreqStruct.avgRunTime = parseFloat((sumRunTime / itemArray.length).toFixed(2));
           tabXpowerGpuFreqStruct.maxRunTime = maxRunTime;
           tabXpowerGpuFreqStruct.minRunTime = minRunTime;
-          tabXpowerGpuFreqStruct.avgRunTimeStr = Utils.timeFormat(
-            parseFloat((sumRunTime / itemArray.length).toFixed(2))
-          );
-          tabXpowerGpuFreqStruct.maxRunTimeStr = Utils.timeFormat(maxRunTime);
-          tabXpowerGpuFreqStruct.minRunTimeStr = Utils.timeFormat(minRunTime);
           let maxIdleTime = this.getIdleTimeMax(itemArray);
-          let minIdleTime = this.getIdleTimeMin(itemArray);
-          let sumIdleTime = itemArray.reduce((acc: any, obj: { idleTime: any }) => acc + obj.idleTime, 0);
+          let minIdleTime = this.getIdleTimeMin(itemArray); // @ts-ignore
+          let sumIdleTime: unknown = itemArray.reduce((acc: unknown, obj: { idleTime: unknown }) => acc + obj.idleTime, 0); // @ts-ignore
           tabXpowerGpuFreqStruct.avgIdleTime = parseFloat((sumIdleTime / itemArray.length).toFixed(2));
           tabXpowerGpuFreqStruct.maxIdleTime = maxIdleTime;
           tabXpowerGpuFreqStruct.minIdleTime = minIdleTime;
-          tabXpowerGpuFreqStruct.avgIdleTimeStr = Utils.timeFormat(
-            parseFloat((sumIdleTime / itemArray.length).toFixed(2))
-          );
-          tabXpowerGpuFreqStruct.maxIdleTimeStr = Utils.timeFormat(maxIdleTime);
-          tabXpowerGpuFreqStruct.minIdleTimeStr = Utils.timeFormat(minIdleTime);
         } else if (itemArray.length == 1) {
           tabXpowerGpuFreqStruct = this.setTabXpowerGpuFreqStruct(
             itemArray[0].runTime,
@@ -260,40 +260,8 @@ export class TabPaneXpowerGpuFreq extends BaseElement {
         }
       };
     }
-    let key = this.setSortKey(detail.key);
-    this.XpowerGpuFreqSource.sort(compare(key, detail.sort, 'number'));
+    this.XpowerGpuFreqSource.sort(compare(detail.key, detail.sort, 'number'));
     this.XpowerGpuFreqTbl!.recycleDataSource = this.XpowerGpuFreqSource;
-  }
-
-  private setSortKey(detailKey: string) {
-    let key = '';
-    switch (detailKey) {
-      case 'avgRunTimeStr':
-        key = 'avgRunTime';
-        break;
-      case 'maxRunTimeStr':
-        key = 'maxRunTime';
-        break;
-      case 'minRunTimeStr':
-        key = 'minRunTime';
-        break;
-      case 'avgIdleTimeStr':
-        key = 'avgIdleTime';
-        break;
-      case 'maxIdleTimeStr':
-        key = 'maxIdleTime';
-        break;
-      case 'minIdleTimeStr':
-        key = 'minIdleTime';
-        break;
-      case 'startTimeStr':
-        key = 'startNS';
-        break;
-      default:
-        key = detailKey;
-        break;
-    }
-    return key;
   }
 }
 
@@ -306,11 +274,4 @@ export class TabXpowerGpuFreqStruct {
   avgIdleTime: number = 0;
   maxIdleTime: number = 0;
   minIdleTime: number = 0;
-  avgRunTimeStr: string = '';
-  maxRunTimeStr: string = '';
-  minRunTimeStr: string = '';
-  avgIdleTimeStr: string = '';
-  maxIdleTimeStr: string = '';
-  minIdleTimeStr: string = '';
-  runTime: any;
 }

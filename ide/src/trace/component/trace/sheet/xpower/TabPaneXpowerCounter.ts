@@ -51,10 +51,6 @@ export class TabPaneXpowerCounter extends BaseElement {
       sumCount += Number.parseInt(sd.count || '0');
       dataSource.push(sd);
     }
-    let sumData = new SelectionData();
-    sumData.count = sumCount.toString();
-    sumData.process = ' ';
-    dataSource.splice(0, 0, sumData);
     this.xpowerCounterTbl!.loading = false;
     this.xpowerCounterSource = dataSource;
     this.xpowerCounterTbl!.recycleDataSource = dataSource;
@@ -123,7 +119,7 @@ export class TabPaneXpowerCounter extends BaseElement {
       selectCounterData.count = `${list.length}`;
       // @ts-ignore
       selectCounterData.last = `${list[list.length - 1].value}`;
-      selectCounterData.delta = `${(Number(selectCounterData.last) - Number(selectCounterData.first)).toFixed(4)}`; 
+      selectCounterData.delta = `${(Number(selectCounterData.last) - Number(selectCounterData.first)).toFixed(4)}`;
       selectCounterData.rate = (Number(selectCounterData.delta) / ((range * 1.0) / 1000000000)).toFixed(4);
       // @ts-ignore
       selectCounterData.min = `${first.value}`;

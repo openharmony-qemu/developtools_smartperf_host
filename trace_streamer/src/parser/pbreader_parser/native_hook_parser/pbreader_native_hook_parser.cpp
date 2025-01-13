@@ -175,8 +175,8 @@ void PbreaderNativeHookParser::Parse(PbreaderDataSegment &dataSeg, bool &haveSpl
         if (!isCommData_ && (nativeHookMetaData->reader_->has_tv_sec() || nativeHookMetaData->reader_->has_tv_nsec())) {
             auto timeStamp = nativeHookMetaData->reader_->tv_nsec() + nativeHookMetaData->reader_->tv_sec() * SEC_TO_NS;
             hookBootTime_ = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, timeStamp);
-            UpdatePluginTimeRange(TS_CLOCK_REALTIME, timeStamp - statisticsInterval_,
-                                  hookBootTime_ - statisticsInterval_);
+            auto timeRange = hookBootTime_ > statisticsInterval_ ? hookBootTime_ - statisticsInterval_ : 0;
+            UpdatePluginTimeRange(TS_CLOCK_REALTIME, timeStamp - statisticsInterval_, timeRange);
             UpdatePluginTimeRange(TS_CLOCK_REALTIME, timeStamp, hookBootTime_);
         }
         if (haveSplitSeg) {

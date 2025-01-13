@@ -10,13 +10,12 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License.
+ * limitations under the License. 
  */
 
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { XpowerGpuFreqStruct } from '../../../../database/ui-worker/ProcedureWorkerXpowerGpuFreq';
-import { Utils } from '../../base/Utils';
 import { SortDetail, resizeObserver } from '../SheetUtils';
 
 @element('tabpane-xpower-gpu-freq-selection')
@@ -29,9 +28,7 @@ export class TabPaneXpowerGpuFreqSelection extends BaseElement {
     this.TableEl!.recycleDataSource = [];
     this.init();
     dataList.forEach((data) => {
-      data.startTimeStr = Utils.getTimeString(data.startNS);
-      data.runTimeStr = Utils.timeFormat(data.runTime);
-      data.idleTimeStr = Utils.timeFormat(data.idleTime);
+      data.startMS = data.startNS / 1_000_000;
     });
     this.gpuFreqData = dataList;
     this.TableEl!.recycleDataSource = this.gpuFreqData;
@@ -89,28 +86,8 @@ export class TabPaneXpowerGpuFreqSelection extends BaseElement {
         }
       };
     }
-    let key = this.setSortKey(detail.key);
-    this.gpuFreqData.sort(compare(key, detail.sort, 'number'));
+    this.gpuFreqData.sort(compare(detail.key, detail.sort, 'number'));
     this.TableEl!.recycleDataSource = this.gpuFreqData;
-  }
-
-  private setSortKey(detailKey: string) {
-    let key = '';
-    switch (detailKey) {
-      case 'runTimeStr':
-        key = 'runTime';
-        break;
-      case 'idleTimeStr':
-        key = 'idleTime';
-        break;
-      case 'startTimeStr':
-        key = 'startNS';
-        break;
-      default:
-        key = detailKey;
-        break;
-    }
-    return key;
   }
 
   initHtml(): string {
@@ -124,11 +101,11 @@ export class TabPaneXpowerGpuFreqSelection extends BaseElement {
     <lit-table class="tb-gpu-freq-selection" style="height: auto">
         <lit-table-column width="1fr" title="Frequency" data-index="frequency" key="frequency" align="flex-start" order>
         </lit-table-column>
-        <lit-table-column width="1fr" title="TimeStamp" data-index="startTimeStr" key="startTimeStr"  align="flex-start" order>
+        <lit-table-column width="1fr" title="TimeStamp(ms)" data-index="startMS" key="startMS"  align="flex-start" order>
         </lit-table-column>
-        <lit-table-column width="1fr" title="RunTime" data-index="runTimeStr" key="runTimeStr" align="flex-start" order>
+        <lit-table-column width="1fr" title="RunTime(ms)" data-index="runTime" key="runTime" align="flex-start" order>
         </lit-table-column>
-        <lit-table-column width="1fr" title="IdleTime" data-index="idleTimeStr" key="idleTimeStr" align="flex-start" order>
+        <lit-table-column width="1fr" title="IdleTime(ms)" data-index="idleTime" key="idleTime" align="flex-start" order>
         </lit-table-column>
     </lit-table>
     `;

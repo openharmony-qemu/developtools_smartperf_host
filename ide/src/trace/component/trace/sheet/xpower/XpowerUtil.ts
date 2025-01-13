@@ -17,7 +17,7 @@ import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SortDetail } from '../SheetUtils';
 import { XpowerComponentTopStruct } from './TabPaneXpowerComponentTop';
 
-export function sortByColumn(detail: SortDetail, dataSource: Array<any>, table: LitTable): void {
+export function sortByColumn(detail: SortDetail, dataSource: Array<unknown>, table: LitTable): void {
   function compare(property: string | number, sort: number, type: string) {
     return function (
       xpowerComponentTopLeftData: XpowerComponentTopStruct,
@@ -43,39 +43,11 @@ export function sortByColumn(detail: SortDetail, dataSource: Array<any>, table: 
     };
   }
 
-  if (detail.key === 'appNameStr') {
+  if (detail.key === 'appNameStr') {// @ts-ignore
     dataSource.sort(compare(detail.key, detail.sort, 'string'));
   } else {
-    let key = setSortKey(detail.key);
-    dataSource.sort(compare(key, detail.sort, 'number'));
+    // @ts-ignore
+    dataSource.sort(compare(detail.key, detail.sort, 'number'));
   }
   table!.recycleDataSource = dataSource;
-}
-
-export function setSortKey(detailKey: string) {
-  let key = '';
-  switch (detailKey) {
-    case 'backgroundDurationStr':
-      key = 'backgroundDuration';
-      break;
-    case 'foregroundDurationStr':
-      key = 'foregroundDuration';
-      break;
-    case 'screenOffDurationStr':
-      key = 'screenOffDuration';
-      break;
-    case 'screenOnDurationStr':
-      key = 'screenOnDuration';
-      break;
-    case 'startTimeStr':
-      key = 'startTime';
-      break;
-    case 'appUsageDurationStr':
-      key = 'appUsageDuration';
-      break;
-    default:
-      key = detailKey;
-      break;
-  }
-  return key;
 }

@@ -5,7 +5,7 @@
  * You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -44,10 +44,10 @@ export class XpowerThreadInfoRender extends Render {
     let find = false;
     let maxValue = 0;
     let maxValueStr = '';
-    if (xpowerReq.type == THREAD_ENERGY) {
+    if (xpowerReq.type === THREAD_ENERGY) {
       maxValue = XpowerThreadInfoStruct.energyMaxValue;
       maxValueStr = String(maxValue) + ' mAh';
-    } else if (xpowerReq.type == THREAD_LOAD) {
+    } else if (xpowerReq.type === THREAD_LOAD) {
       maxValue = XpowerThreadInfoStruct.loadMaxValue;
       maxValueStr = String(maxValue) + ' %';
     }
@@ -95,7 +95,7 @@ export function drawMaxValue(
     type: string;
   },
   maxValueStr: string
-) {
+): void {
   xpowerReq.context.closePath();
   let textMetrics = xpowerReq.context.measureText(maxValueStr);
   xpowerReq.context.globalAlpha = 0.8;
@@ -117,9 +117,9 @@ export function XpowerThreadInfoStructOnClick(
       XpowerThreadInfoStruct.selectXpowerStruct = entry || XpowerThreadInfoStruct.hoverXpowerStruct;
       let startNs = XpowerThreadInfoStruct.selectXpowerStruct!.startNS;
       let map = new Map();
-      if (XpowerThreadInfoStruct.selectXpowerStruct?.valueType == THREAD_ENERGY) {
+      if (XpowerThreadInfoStruct.selectXpowerStruct?.valueType === THREAD_ENERGY) {
         map = XpowerThreadInfoStruct.threadEnergyStructMap;
-      } else if (XpowerThreadInfoStruct.selectXpowerStruct?.valueType == THREAD_LOAD) {
+      } else if (XpowerThreadInfoStruct.selectXpowerStruct?.valueType === THREAD_LOAD) {
         map = XpowerThreadInfoStruct.threadLoadStructMap;
       }
       sp.traceSheetEL?.displayXpowerThreadInfoData(map.get(startNs) || []);
@@ -145,12 +145,10 @@ export class XpowerThreadInfoStruct extends BaseStruct {
   static height: number = -1;
   static drawY: number = 0;
   value: number = 0;
-  valueStr: string = '';
   startNS: number = 0;
-  startTimeStr: string = '';
+  startMS: number = 0;
   dur: number = 0;
   threadTime: number = 0;
-  threadTimeStr: string = '';
   threadName: string = '';
   threadNameId: number = -1;
   valueType: string = '';
@@ -222,7 +220,7 @@ export class XpowerThreadInfoStruct extends BaseStruct {
     req: { useCache: boolean; context: CanvasRenderingContext2D },
     data: XpowerThreadInfoStruct,
     row: TraceRow<XpowerThreadInfoStruct>
-  ) {
+  ): void {
     let startNS = TraceRow.range!.startNS;
     let endNS = TraceRow.range!.endNS;
     let totalNS = TraceRow.range!.totalNS;

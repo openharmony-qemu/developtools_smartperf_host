@@ -106,17 +106,18 @@ export class TabpanePerfProfile extends BaseElement {
     } else {
       this.perfProfilerFilter!.style.display = 'none';
     }
-    procedurePool.submitWithName('logic0', 'perf-reset', [], undefined, () => {});
+    procedurePool.submitWithName('logic0', 'perf-reset', [], undefined, () => { });
     this.perfProfilerFilter!.disabledTransfer(true);
     this.perfProfilerFilter!.initializeFilterTree(true, true, true);
     this.perfProfilerFilter!.filterValue = '';
     this.perfProfileProgressEL!.loading = true; // @ts-ignore
-    this.perfProfileLoadingPage.style.visibility = 'visible'; 
+    this.perfProfileLoadingPage.style.visibility = 'visible';
     const newPerfProfilerSelection = Object.fromEntries(// @ts-ignore
       Object.entries(perfProfilerSelection).filter(([key, value]) =>
         !['clockMapData', 'xpowerMapData', 'hangMapData'].includes(key)
       )
-    ) as Partial<SelectionParam>;// @ts-ignore
+    ) as Partial<SelectionParam>;
+    // @ts-ignore
     this.getDataByWorkAndUpDateCanvas(newPerfProfilerSelection);
   }
 
@@ -147,7 +148,7 @@ export class TabpanePerfProfile extends BaseElement {
         funcArgs: [''],
       },
       {
-        funcName: 'getCurrentDataFromDb',
+        funcName: 'getCurrentDataFromDbProfile',
         funcArgs: [perfProfilerSelection],
       }
     );

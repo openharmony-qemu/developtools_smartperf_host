@@ -994,13 +994,16 @@ void NativeHookFilter::GetNativeHookFrameVaddrs()
     for (size_t i = 0; i < size; i++) {
         auto symbolOffset = traceDataCache_->GetNativeHookFrameData()->SymbolOffsets()[i];
         auto fileOffset = traceDataCache_->GetNativeHookFrameData()->Offsets()[i];
-        // When the symbol offset not is INVALID_UINT64, vaddr=offset+symbol offset
-        if (symbolOffset != INVALID_UINT64 && fileOffset != INVALID_UINT64) {
+        auto ip = traceDataCache_->GetNativeHookFrameData()->Ips()[i];
+        // When the offset and symbolOffset is valid, vaddr = offset + symbolOffset
+        // Generally, when symbolOffset is a valid value, Fileoffset is also a valid value
+        if (symbolOffset != INVALID_UINT64 && symbolOffset != 0 && fileOffset != INVALID_UINT64 && fileOffset != ip &&
+            fileOffset != 0) {
             auto vaddr = base::Uint64ToHexText(fileOffset + symbolOffset);
             vaddrs_.emplace_back(vaddr);
             continue;
         }
-        // When the symbol offset is 0, vaddr takes the string after the plus sign in the function name
+        // When the offset and symbolOffset is invalid, vaddr takes the string after the plus sign in the function name
         auto functionNameIndex = traceDataCache_->GetNativeHookFrameData()->SymbolNames()[i];
         std::string vaddr = "";
         auto itor = functionNameIndexToVaddr_.find(functionNameIndex);

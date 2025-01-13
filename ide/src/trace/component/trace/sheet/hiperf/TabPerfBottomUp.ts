@@ -37,6 +37,7 @@ export class TabpanePerfBottomUp extends BaseElement {
   private progressEL: LitProgressBar | null | undefined;
   private searchValue: string = '';
   private currentSelection: SelectionParam | undefined;
+  private static instance: TabpanePerfBottomUp | null;;
 
   public initElements(): void {
     this.bottomUpTable = this.shadowRoot?.querySelector('#callTreeTable') as LitTable;
@@ -61,19 +62,21 @@ export class TabpanePerfBottomUp extends BaseElement {
     });
   }
 
+  public getBottomData(data: SelectionParam) {
+    this.getDataByWorker(data, (results: Array<PerfBottomUpStruct>) => {
+      this.setBottomUpTableData(results);
+    });
+  }
+
   private getDataByWorker(val: SelectionParam, handler: (results: Array<PerfBottomUpStruct>) => void): void {
     this.progressEL!.loading = true;
     const args = [
-      {
-        funcName: 'setPerfBottomUp',
-        funcArgs: [''],
-      },
       {
         funcName: 'setSearchValue',
         funcArgs: [''],
       },
       {
-        funcName: 'getCurrentDataFromDb',
+        funcName: 'getCurrentDataFromDbBottomUp',
         funcArgs: [val],
       },
     ];
@@ -91,9 +94,7 @@ export class TabpanePerfBottomUp extends BaseElement {
     this.sortKey = '';
     this.sortType = 0;
     this.bottomUpFilter!.filterValue = '';
-    this.getDataByWorker(data, (results: Array<PerfBottomUpStruct>) => {
-      this.setBottomUpTableData(results);
-    });
+    this.getBottomData(data);
   }
 
   private setBottomUpTableData(results: Array<PerfBottomUpStruct>): void {

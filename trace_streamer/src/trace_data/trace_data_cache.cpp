@@ -77,7 +77,6 @@
 #include "native_hook_table.h"
 #include "network_table.h"
 #include "paged_memory_sample_table.h"
-#include "ebpf_data_structure.h"
 #include "perf_call_chain_table.h"
 #include "perf_files_table.h"
 #include "perf_report_table.h"
@@ -535,14 +534,13 @@ int32_t TraceDataCache::ExportEbpfReadableText(const std::string &outputName,
     TS_CHECK_TRUE(ftruncate(ebpfFd, 0) != -1, 1, "Failed to ftruncate file: %s, err:%s", outputName.c_str(),
                   strerror(errno));
     TS_LOGI("ExportEbpfReadableText begin...");
-    EbpfEventTypeMap ebpfEventTypeMap = {
-        {EbpfStdtype::EBPF_DATA_TYPE::ITEM_EVENT_MAPS, "MapsEvent"},
-        {EbpfStdtype::EBPF_DATA_TYPE::ITEM_SYMBOL_INFO, "SymbolEvent"},
-        {EbpfStdtype::EBPF_DATA_TYPE::ITEM_EVENT_FS, "FsEvent"},
-        {EbpfStdtype::EBPF_DATA_TYPE::ITEM_EVENT_VM, "VmEvent"},
-        {EbpfStdtype::EBPF_DATA_TYPE::ITEM_EVENT_BIO, "BioEvent"},
-        {EbpfStdtype::EBPF_DATA_TYPE::ITEM_EVENT_STR, "StrEvent"},
-        {EbpfStdtype::EBPF_DATA_TYPE::ITEM_EVENT_KENEL_SYMBOL_INFO, "KernelSymbolEvent"}};
+    EbpfEventTypeMap ebpfEventTypeMap = {{EBPF_DATA_TYPE::ITEM_EVENT_MAPS, "MapsEvent"},
+                                         {EBPF_DATA_TYPE::ITEM_SYMBOL_INFO, "SymbolEvent"},
+                                         {EBPF_DATA_TYPE::ITEM_EVENT_FS, "FsEvent"},
+                                         {EBPF_DATA_TYPE::ITEM_EVENT_VM, "VmEvent"},
+                                         {EBPF_DATA_TYPE::ITEM_EVENT_BIO, "BioEvent"},
+                                         {EBPF_DATA_TYPE::ITEM_EVENT_STR, "StrEvent"},
+                                         {EBPF_DATA_TYPE::ITEM_EVENT_KENEL_SYMBOL_INFO, "KernelSymbolEvent"}};
     std::string ebpfBufferLine;
     ebpfBufferLine.reserve(G_CHUNK_SIZE);
     ExportEbpfFileSystemReadableText(ebpfFd, ebpfBufferLine, ebpfEventTypeMap);

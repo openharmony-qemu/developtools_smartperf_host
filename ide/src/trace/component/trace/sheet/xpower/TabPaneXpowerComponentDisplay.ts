@@ -44,7 +44,7 @@ export class TabPaneXpowerComponentDisplay extends BaseElement {
     new ResizeObserver((entries) => {
       let clientHeight = this.xpowerComponentDisplayTbl!.shadowRoot?.querySelector('.table')!.clientHeight;
       let scrollHeight = this.xpowerComponentDisplayTbl!.shadowRoot?.querySelector('.table')!.scrollHeight;
-      if (clientHeight == scrollHeight) {
+      if (clientHeight === scrollHeight) {
         this.style.height = 'calc(100% - 22px)';
       } else {
         this.style.height = 'calc(100% - 42px)';
@@ -65,13 +65,13 @@ export class TabPaneXpowerComponentDisplay extends BaseElement {
           }
           </style>
           <lit-table id="lit-table" style="height: 100%">
-            <lit-table-column order title="TimeStamp" data-index="startTimeStr" key="startTimeStr"  align="flex-start" width="1fr">
+            <lit-table-column order title="TimeStamp(ms)" data-index="startMS" key="startMS"  align="flex-start" width="1fr">
             </lit-table-column>
             <lit-table-column title="AppName" data-index="appNameStr" order key="appNameStr"  align="flex-start" width="1fr">
             </lit-table-column>
-            <lit-table-column title="Usage Duration" key="appUsageDurationStr" order data-index="appUsageDurationStr" align="flex-start" width="1fr">
+            <lit-table-column title="Usage Duration(ms)" key="appUsageDuration" order data-index="appUsageDuration" align="flex-start" width="1fr">
             </lit-table-column>
-            <lit-table-column title="Usage Energy" order data-index="appUsageEnergy" key="appUsageEnergy"  align="flex-start" width="1fr">
+            <lit-table-column title="Usage Energy(mAh)" order data-index="appUsageEnergy" key="appUsageEnergy"  align="flex-start" width="1fr">
           </lit-table>
           `;
   }

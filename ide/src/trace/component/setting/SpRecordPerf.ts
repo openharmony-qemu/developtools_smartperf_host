@@ -324,7 +324,10 @@ export class SpRecordPerf extends BaseElement {
           this.cpuSelect?.dataSource(this.cpuData, 'ALL-CPU');
         });
       } else if (SpRecordTrace.useExtend) {
-        WebSocketManager.getInstance()!.sendMessage(TypeConstants.USB_TYPE, TypeConstants.USB_GET_CPU_COUNT, new TextEncoder().encode(SpRecordTrace.serialNumber));
+        WebSocketManager.getInstance()!.sendMessage(
+          TypeConstants.USB_TYPE, 
+          TypeConstants.USB_GET_CPU_COUNT, 
+          new TextEncoder().encode(SpRecordTrace.serialNumber));
         setTimeout(() => {
           if (SpRecordTrace.usbGetCpuCount) {
             let cpuCount = SpRecordTrace.usbGetCpuCount!.trim();
