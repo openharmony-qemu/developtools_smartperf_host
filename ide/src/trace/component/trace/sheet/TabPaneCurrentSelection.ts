@@ -2411,6 +2411,7 @@ export class TabPaneCurrentSelection extends BaseElement {
         }
       });
       this.updateTableSettings(maxPriority, maxPriorityDuration, maxDuration);
+      this.wakeupListTbl!.style.display = 'flex';
       this.wakeupListTbl!.recycleDataSource = resource;
     });
   }
