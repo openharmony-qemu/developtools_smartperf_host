@@ -142,6 +142,7 @@ import { XpowerStatisticStruct } from '../database/ui-worker/ProcedureWorkerXpow
 import { XpowerWifiStruct } from '../database/ui-worker/ProcedureWorkerXpowerWifi';
 import { XpowerThreadInfoStruct } from '../database/ui-worker/ProcedureWorkerXpowerThreadInfo';
 import { XpowerGpuFreqStruct } from '../database/ui-worker/ProcedureWorkerXpowerGpuFreq';
+import { LitProgressBar } from '../../base-ui/progress-bar/LitProgressBar';
 
 function dpr(): number {
   return window.devicePixelRatio || 1;
@@ -1810,8 +1811,13 @@ export class SpSystemTrace extends BaseElement {
       a.href = URL.createObjectURL(new Blob([`${markBuf.byteLength}`, mark, buffer])); // @ts-ignore
       a.download = (window as unknown).traceFileName || `${new Date().getTime()}`;
       a.click();
+      window.publish(window.SmartEvent.UI.Loading, { loading: false, text: 'Downloading trace file with mark' });
+    } else {
+      let search = document.querySelector('body > sp-application')!.shadowRoot!.querySelector<LitSearch>('#lit-search');
+      let progressEL = document.querySelector("body > sp-application")!.shadowRoot!.querySelector<LitProgressBar>("div > div.search-vessel > lit-progress-bar");
+      progressEL!.loading = false;
+      search!.setPercent('import the trace file again...', -3);
     }
-    window.publish(window.SmartEvent.UI.Loading, { loading: false, text: 'Downloading trace file with mark' });
   }
 
   private subRecordImportListener(): void {

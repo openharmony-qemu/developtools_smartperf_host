@@ -178,6 +178,7 @@ export class SpApplication extends BaseElement {
   private currentDataTime: string[] = [];
   static traceType: String = '';
   private isZipFile: boolean = false;
+  isClear: boolean = false;
 
   static get observedAttributes(): Array<string> {
     return ['server', 'sqlite', 'wasm', 'dark', 'vs', 'query-sql', 'subsection'];
@@ -1997,7 +1998,15 @@ export class SpApplication extends BaseElement {
       this.filterRowConfigClickHandle();
     });
     this.cutTraceFile!.addEventListener('click', (ev) => {
-      this.croppingFile(this.progressEL!, this.litSearch!);
+      this.validateFileCacheLost();
+      if (this.isClear) {
+        let search = document.querySelector('body > sp-application')!.shadowRoot!.querySelector<LitSearch>('#lit-search');
+        let progressEL = document.querySelector("body > sp-application")!.shadowRoot!.querySelector<LitProgressBar>("div > div.search-vessel > lit-progress-bar");
+        progressEL!.loading = false;
+        search!.setPercent('import the trace file again...', -3);
+      } else {
+        this.croppingFile(this.progressEL!, this.litSearch!);
+      }
     });
 
     let aiAnalysis = this.shadowRoot
@@ -2254,8 +2263,10 @@ export class SpApplication extends BaseElement {
             }
           });
         });
-        this.cutTraceFile!.style.display = 'none';
+        this.isClear = true;
         this.mainMenu!.menus = this.mainMenu!.menus;
+      } else {
+        this.isClear = false;
       }
     });
   }
