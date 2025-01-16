@@ -629,7 +629,9 @@ function selectHandler(sp: SpSystemTrace): void {
       ];
     }
     checkRows = checkRows.filter((item, index, self) => {
-      return self.findIndex(obj => obj.rowId === item.rowId && obj.rowType === item.rowType && obj.name === item.name) === index;
+      return self.findIndex(
+        obj => obj.rowId === item.rowId && obj.rowType === item.rowType && obj.name === item.name && obj.rowParentId === item.rowParentId
+      ) === index;
     });
     selectHandlerRefreshCheckBox(sp, checkRows, refreshCheckBox);
     if (!sp.isSelectClick) {
