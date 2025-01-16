@@ -127,6 +127,8 @@ export class TraceSheet extends BaseElement {
   private optionsDiv: LitPopover | undefined | null;
   private optionsSettingTree: LitTree | undefined | null;
   private tabPaneHeight: string = '';
+  private spsystemTrace: SpSystemTrace | undefined;
+  private isDragging = true;
 
   static get observedAttributes(): string[] {
     return ['mode'];
@@ -177,6 +179,7 @@ export class TraceSheet extends BaseElement {
   }
 
   initElements(): void {
+    this.spsystemTrace = document.querySelector("body > sp-application")?.shadowRoot?.querySelector("#sp-system-trace") as SpSystemTrace;
     this.litTabs = this.shadowRoot?.querySelector('#tabs');
     this.litTabs!.addEventListener('contextmenu', (e): void => {
       e.preventDefault();
@@ -440,6 +443,7 @@ export class TraceSheet extends BaseElement {
     let that = this;
     // 节点挂载时给Tab面板绑定鼠标按下事件
     this.nav!.onmousedown = (event): void => {
+      this.isDragging = true;
       // @ts-ignore
       (window as unknown).isSheetMove = true;
       // 获取所有标签页的节点数组
@@ -452,6 +456,7 @@ export class TraceSheet extends BaseElement {
       // 原函数 绑定鼠标移动事件，动态获取鼠标位置信息
       this.navMouseMove(event, currentPane!, that, tabsPackUp, borderTop);
       document.onmouseup = function (): void {
+        that.isDragging = true;
         setTimeout(() => {
           // @ts-ignore
           (window as unknown).isSheetMove = false;
@@ -469,6 +474,24 @@ export class TraceSheet extends BaseElement {
         this.onmouseup = null;
       };
     };
+    this.spsystemTrace?.addEventListener('abnormal-mouseup', () => {
+      this.isDragging = false;
+      let litTabpane: NodeListOf<HTMLDivElement> | undefined | null =
+        this.shadowRoot?.querySelectorAll('#tabs > lit-tabpane');
+      setTimeout(() => {
+        // @ts-ignore
+        (window as unknown).isSheetMove = false;
+      }, 100);
+      litTabpane!.forEach((node: HTMLDivElement): void => {
+        node!.style.height = that.tabPaneHeight;
+      });
+      if (that.tabPaneHeight !== '0px' && that.tabs!.style.height !== '') {
+        initialHeight.node = that.tabPaneHeight;
+        initialHeight.tabs = that.tabs!.style.height;
+      }
+      this.onmousemove = null;
+      this.onmouseup = null;
+    })
   }
 
   private navMouseMove(
@@ -490,6 +513,9 @@ export class TraceSheet extends BaseElement {
     let ch = that.clientHeight;
     // 鼠标移动事件
     document.onmousemove = function (event): void {
+      if (!that.isDragging) {
+        return;
+      }
       // 移动前的面板高度 - 移动前后鼠标的坐标差值 = 新的面板高度
       let newHeight: number = preHeight - (event.pageY - preY);
       // that指向的是tracesheet节点 spacer为垫片  rowsPaneEl为泳道   tabs为tab页组件
