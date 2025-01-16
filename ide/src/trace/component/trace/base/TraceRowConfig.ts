@@ -330,6 +330,9 @@ export class TraceRowConfig extends BaseElement {
         } else {
           favoriteRow.removeAttribute('scene');
           favoriteRow.rowHidden = true;
+          if (this.spSystemTrace?.favoriteChartListEL?.scrollTop && this.spSystemTrace?.favoriteChartListEL?.scrollTop > 0) {
+            this.spSystemTrace.favoriteChartListEL.scrollTop = 0;
+          }
         }
       }
     });
