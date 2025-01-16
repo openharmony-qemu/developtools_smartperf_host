@@ -458,7 +458,7 @@ export class SpRecordTrace extends BaseElement {
 
   isShowTipFunc(text: string, isShow: boolean): void {
     if (isShow) {
-      let guideSrc = `https://${window.location.host.split(':')[0]}:${window.location.port}/application/?action=help_27`;
+      let guideSrc = `https://${window.location.host.split(':')[0]}:${window.location.port}${window.location.pathname}?action=help_27`;
       this.useExtentTip!.style.display = 'block';
       // @ts-ignore
       this.useExtentTip!.innerHTML = `若要抓取${text}，请勾选 Use local hdc 开关，启动后台扩展服务进行抓取，相关指导: [</span style="cursor: pointer;"><a href=${guideSrc} style="color: blue;" target="_blank">指导</a><span>]`;
@@ -683,7 +683,7 @@ export class SpRecordTrace extends BaseElement {
 
   getStatusesPrompt(): unknown {
     let guideSrc = `https://${window.location.host.split(':')[0]}:${window.location.port
-      }/application/?action=help_27`;
+      }${window.location.pathname}?action=help_27`;
     return {
       unconnected: {
         prompt: `未连接，请启动本地扩展程序再试！[</span style="cursor: pointer;"><a href=${guideSrc} style="color: blue;" target="_blank">指导</a><span>]`
