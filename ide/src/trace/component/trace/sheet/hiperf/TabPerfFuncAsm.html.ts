@@ -36,6 +36,11 @@ export const TabPerfFuncAsmHtml = `
 .title-label {
     font-weight: bold;
 }
+.title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 .loading {
   position: absolute;
   top: 50%;
@@ -51,8 +56,10 @@ export const TabPerfFuncAsmHtml = `
 <div style="display: flex; flex-direction: row;" class="d-box">
     <div class="perf-table-box" style="height:auto;overflow: auto;position: relative">
         <div class="title-box">
-            <div class="title-item" id="function-name"><span class="title-label">Function Name:</span> </div>
-            <div class="title-item" id="total-count"><span class="title-label">Total Count:</span> </div>
+            <div class="title-row">
+                <div class="title-item" id="text-file-off"><span class="title-label">.text section:</span> </div>
+                <div class="title-item" id="total-count"><span class="title-label">Total Count:</span> </div>
+            </div>
             <div class="title-item" id="text-file-off" ><span class="title-label">.text Section File Off:</span> </div>
             <div class="title-item error-message" id="error-message"></div>
         </div>
