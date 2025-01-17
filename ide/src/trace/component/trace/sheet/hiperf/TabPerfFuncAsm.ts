@@ -29,7 +29,6 @@ export class TabPerfFuncAsm extends BaseElement {
   private loadingElement: HTMLElement | null | undefined;
   private functionName: string = "";
   private totalCount: number = 0;
-  private functionNameElement: HTMLDivElement | null | undefined;
   private totalCountElement: HTMLDivElement | null | undefined;
   private textFileOffElement: HTMLDivElement | null | undefined;
   private errorMessageElement: HTMLDivElement | null | undefined;
@@ -51,13 +50,10 @@ export class TabPerfFuncAsm extends BaseElement {
     );
     this.loadingElement =
         this.shadowRoot!.querySelector<HTMLElement>("#loading");
-    this.functionNameElement =
-        this.shadowRoot!.querySelector<HTMLDivElement>("#function-name");
     this.totalCountElement =
         this.shadowRoot!.querySelector<HTMLDivElement>("#total-count");
     this.textFileOffElement =
         this.shadowRoot!.querySelector<HTMLDivElement>("#text-file-off");
-    this.textFileOffElement!.style.display = 'none';
     this.errorMessageElement = this.shadowRoot!.querySelector<HTMLDivElement>("#error-message");
 
     this.assmblerTable!.style.display = "grid";
@@ -112,9 +108,8 @@ export class TabPerfFuncAsm extends BaseElement {
     }) as EventListener);
   }
 
-  private updateTitle(): void {
+  private updateTotalCount(): void {
     if (this.functionName) {
-      this.functionNameElement!.innerHTML = `<span class="title-label">Function Name:</span> ${this.functionName}`;
       this.totalCountElement!.innerHTML = `<span class="title-label">Total Count:</span> ${this.totalCount}`;
     }
   }
@@ -154,7 +149,7 @@ export class TabPerfFuncAsm extends BaseElement {
         this.clearData();
         this.functionName = data.functionName;
         this.totalCount = data.totalCount;
-        this.updateTitle();
+        this.updateTotalCount();
         this.showLoading();
         // @ts-ignore
         const vaddrInFile = data.vaddrList[0].vaddrInFile;
@@ -176,7 +171,7 @@ export class TabPerfFuncAsm extends BaseElement {
                   const result = JSON.parse(new TextDecoder().decode(e));
                   if (result.resultCode === 0) {
                     if (result.anFileOff) {
-                      this.textFileOffElement!.innerHTML = `<span class="title-label">.text Section File Off</span> ${result.anFileOff}`;
+                      this.textFileOffElement!.innerHTML = `<span class="title-label">.text section:</span> ${result.anFileOff}`;
                       this.textFileOffElement!.style.display = 'block';
                     } else {
                       this.textFileOffElement!.style.display = 'none';
