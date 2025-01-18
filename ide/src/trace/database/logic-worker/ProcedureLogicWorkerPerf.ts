@@ -939,10 +939,17 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         process.isSearch = false;
       });
       this.resetNewAllNode(sample);
-      if (this.searchValue !== '') {
+      if (this.searchValue[0] === '!') {
+        this.reMarkSearchNode(sample, this.searchValue.substring(1, this.searchValue.length), true);
+      } else if (this.searchValue[0] === '*') {
+        let reSearValue = this.searchValue.substring(1, this.searchValue.length);
+        this.markRegexSearchNode(this.allProcess, reSearValue, false)
+      } else if (this.searchValue[0] === '^') {
+        this.markUnRegexSearchNode(this.allProcess, this.searchValue, true)
+      } else {
         this.markSearchNode(sample, this.searchValue, false);
-        this.resetNewAllNode(sample);
       }
+      this.resetNewAllNode(sample);
     }
   }
 
@@ -1077,6 +1084,8 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       if (search === '') {
         sample.searchShow = true;
         sample.isSearch = false;
+        sample.hiddenArray = [];
+        sample.isRemark = false;
       } else {
         let isInclude = sample.symbol.toLocaleLowerCase().includes(search);
         if ((sample.symbol && isInclude) || parentSearch) {
@@ -1099,6 +1108,100 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       }
     }
   }
+
+  reMarkSearchNode(sampleArray: PerfCallChainMerageData[], search: string, parentSearch: boolean): void {
+    for (const sample of sampleArray) {
+      if (search === '') {
+        sample.searchShow = true;
+        sample.isRemark = false;
+      } else {
+        // 反选符合要求的
+        let isInclude = !sample.symbol.toLocaleLowerCase().includes(search);
+        if (!parentSearch) {
+          sample.searchShow = false
+        } else {
+          if (sample.symbol && isInclude) {
+            sample.isRemark = true;
+            sample.searchShow = true;
+          } else {
+            sample.isSearch = false;
+            sample.searchShow = false;
+            let parentNode = sample.parent
+            parentNode?.hiddenArray.push(sample.symbolName);
+            while (parentNode && parentNode.children.length === parentNode.hiddenArray.length) {
+              parentNode.searchShow = false;
+              if (parentNode.parent?.hiddenArray.indexOf(parentNode.symbolName) === -1) {
+                parentNode.parent?.hiddenArray.push(parentNode.symbolName)
+              }
+              parentNode = parentNode.parent;
+            }
+          }
+        }
+      }
+      const children = this.isOnlyKernel ? sample.initChildren : sample.children;
+      if (children.length > 0) {
+        this.reMarkSearchNode(children, search, sample.searchShow);
+      }
+    }
+  }
+
+  markUnRegexSearchNode(sampleArray: PerfCallChainMerageData[], reg: string, parentSearch: boolean): void {
+    let regex = RegExp(reg);
+    for (const sample of sampleArray) {
+      // 反选符合要求的
+      let isInclude = regex.test(sample.symbol.toLocaleLowerCase());
+      if (!parentSearch) {
+        sample.searchShow = false
+      } else {
+        if (sample.symbol && isInclude) {
+          sample.isRemark = true;
+          sample.searchShow = true;
+        } else {
+          sample.isSearch = false;
+          sample.searchShow = false;
+          let parentNode = sample.parent
+          parentNode?.hiddenArray.push(sample.symbolName);
+          while (parentNode && parentNode.children.length === parentNode.hiddenArray.length) {
+            parentNode.searchShow = false;
+            if (parentNode.parent?.hiddenArray.indexOf(parentNode.symbolName) === -1) {
+              parentNode.parent?.hiddenArray.push(parentNode.symbolName)
+            }
+            parentNode = parentNode.parent;
+          }
+        }
+      }
+      const children = this.isOnlyKernel ? sample.initChildren : sample.children;
+      if (children.length > 0) {
+        this.markUnRegexSearchNode(children, reg, sample.searchShow);
+      }
+    }
+  }
+
+  markRegexSearchNode(sampleArray: PerfCallChainMerageData[], reg: string, parentSearch: boolean): void {
+    let regex = RegExp(reg);
+    for (const sample of sampleArray) {
+      let isInclude = regex.test(sample.symbol.toLocaleLowerCase());
+      if ((sample.symbol && isInclude) || parentSearch) {
+        sample.searchShow = true;
+        sample.isSearch = sample.symbol !== undefined && isInclude;
+        let parentNode = sample.parent;
+        // 如果匹配，所有parent都显示
+        while (parentNode !== undefined && !parentNode.searchShow) {
+          parentNode.searchShow = true;
+          parentNode = parentNode.parent;
+        }
+      } else {
+        sample.searchShow = false;
+        sample.isSearch = false;
+      }
+
+      const children = this.isOnlyKernel ? sample.initChildren : sample.children;
+      if (children.length > 0) {
+        this.markRegexSearchNode(children, reg, sample.searchShow);
+      }
+    }
+  }
+
   splitAllProcess(processArray: { select: string; name: string; type: string; checked: boolean }[]): void {
     processArray.forEach((item: { select: string; name: string; type: string; checked: boolean }): void => {
       this.allProcess.forEach((process): void => {
@@ -1503,6 +1606,8 @@ export class PerfCallChainMerageData extends ChartStruct {
   searchShow: boolean = true;
   isSearch: boolean = false;
   isState: boolean = false;
+  isRemark: boolean = false;
+  hiddenArray: Array<string> = [];
   set parentNode(data: PerfCallChainMerageData | undefined) {
     this.parent = data;
     this.#parentNode = data;

@@ -330,6 +330,15 @@ export class FrameChart extends BaseElement {
       this.setParentDisplayInfo(node, module, false);
       calDisplay = false;
     }
+    if (node.children && calDisplay && node.children.length === 0 && node.isRemark) {
+      const module = new NodeValue();
+      module.size = node.drawSize = node.searchSize = node.size;
+      module.count = node.drawCount = node.searchCount = node.count;
+      module.dur = node.drawDur = node.searchDur = node.dur;
+      module.eventCount = node.drawEventCount = node.searchEventCount = node.eventCount;
+      this.setParentDisplayInfo(node, module, false);
+      calDisplay = false
+    }
 
     // 设置parent以及计算最大的深度
     if (node.children && node.children.length > 0) {
