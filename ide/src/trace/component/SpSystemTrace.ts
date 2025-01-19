@@ -973,6 +973,18 @@ export class SpSystemTrace extends BaseElement {
 
   documentOnMouseOut = (ev: MouseEvent): void => spSystemTraceDocumentOnMouseOut(this, ev);
 
+  documentOnPointercancel = (ev: any): void => {//@ts-ignore
+    if (ev.pointerType == 'mouse' && (window as unknown).isSheetMove) {
+      this.dispatchEvent(
+        new CustomEvent('abnormal-mouseup', {
+          detail: {
+            value: true,
+          },
+        })
+      );
+    }
+  };
+
   keyPressMap: Map<string, boolean> = new Map([
     ['w', false],
     ['s', false],
@@ -1761,6 +1773,7 @@ export class SpSystemTrace extends BaseElement {
     this.addEventListener('mousedown', this.documentOnMouseDown);
     this.addEventListener('mouseup', this.documentOnMouseUp);
     this.addEventListener('mouseout', this.documentOnMouseOut);
+    this.addEventListener('pointercancel', this.documentOnPointercancel);
     document.addEventListener('keydown', this.documentOnKeyDown);
     document.addEventListener('keypress', this.documentOnKeyPress);
     document.addEventListener('keyup', this.documentOnKeyUp);
@@ -2182,6 +2195,7 @@ export class SpSystemTrace extends BaseElement {
     this.removeEventListener('mousedown', this.documentOnMouseDown);
     this.removeEventListener('mouseup', this.documentOnMouseUp);
     this.removeEventListener('mouseout', this.documentOnMouseOut);
+    this.removeEventListener('pointercancel', this.documentOnPointercancel);
     document.removeEventListener('keypress', this.documentOnKeyPress);
     document.removeEventListener('keydown', this.documentOnKeyDown);
     document.removeEventListener('keyup', this.documentOnKeyUp);
