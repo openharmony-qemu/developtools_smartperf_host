@@ -458,7 +458,7 @@ export class SpRecordTrace extends BaseElement {
 
   isShowTipFunc(text: string, isShow: boolean): void {
     if (isShow) {
-      let guideSrc = `https://${window.location.host.split(':')[0]}:${window.location.port}/application/?action=help_27`;
+      let guideSrc = `https://${window.location.host.split(':')[0]}:${window.location.port}${window.location.pathname}?action=help_27`;
       this.useExtentTip!.style.display = 'block';
       // @ts-ignore
       this.useExtentTip!.innerHTML = `若要抓取${text}，请勾选 Use local hdc 开关，启动后台扩展服务进行抓取，相关指导: [</span style="cursor: pointer;"><a href=${guideSrc} style="color: blue;" target="_blank">指导</a><span>]`;
@@ -583,7 +583,9 @@ export class SpRecordTrace extends BaseElement {
         this.progressEL!.loading = false;// @ts-ignore
         let errorMsg = new TextDecoder().decode(result);
         this.useExtentTip!.style.display = 'block';
-        this.useExtentTip!.innerHTML = errorMsg;
+        let urlAsciiArr = [104,116,116,112,115,58,47,47,119,105,107,105,46,104,117,97,119,101,105,46,99,111,109,47,100,111,109,97,105,110,115,47,55,54,57,49,49,47,119,105,107,105,47,49,50,53,52,56,48,47,87,73,75,73,50,48,50,53,48,49,49,54,53,55,53,48,52,53,52];
+        let exceptGuid = String.fromCodePoint(...urlAsciiArr);//'https://wiki.huawei.com/domains/76911/wiki/125480/WIKI202501165750454'
+        this.useExtentTip!.innerHTML = `抓取trace异常：${errorMsg} 可根据[<span style='cursor:pointer;'><a href=${exceptGuid} syule = 'color:blue;' target='_blank'>常见异常处理</a></span>]解决异常`;
         this.refreshDisableStyle(false, false);
         this.recordButton!.hidden = false;
         this.sp!.search = false;
@@ -681,7 +683,7 @@ export class SpRecordTrace extends BaseElement {
 
   getStatusesPrompt(): unknown {
     let guideSrc = `https://${window.location.host.split(':')[0]}:${window.location.port
-      }/application/?action=help_27`;
+      }${window.location.pathname}?action=help_27`;
     return {
       unconnected: {
         prompt: `未连接，请启动本地扩展程序再试！[</span style="cursor: pointer;"><a href=${guideSrc} style="color: blue;" target="_blank">指导</a><span>]`
@@ -973,7 +975,7 @@ export class SpRecordTrace extends BaseElement {
       let option = document.createElement('option');
       option.className = 'select';
       option.selected = supportVersion === '5.0+';
-      option.textContent =`OpenHarmony-${supportVersion}`;
+      option.textContent = `OpenHarmony-${supportVersion}`;
       option.setAttribute('device-version', supportVersion);
       this.deviceVersion!.append(option);
       SpRecordTrace.selectVersion = '5.0+';

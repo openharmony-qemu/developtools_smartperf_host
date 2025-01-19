@@ -964,16 +964,17 @@ function handleClickActions(sp: SpSystemTrace, x: number, y: number, ev: MouseEv
     }
     let skip = false;
     if (
-      rows[0].rowType === TraceRow.ROW_TYPE_XPOWER_WIFI_BYTES ||
-      rows[0].rowType === TraceRow.ROW_TYPE_XPOWER_WIFI_PACKETS ||
-      rows[0].rowType === TraceRow.ROW_TYPE_XPOWER_APP_DETAIL_DISPLAY ||
-      rows[0].rowType === TraceRow.ROW_TYPE_XPOWER_STATISTIC
+      rows[0] &&
+      (rows[0].rowType === TraceRow.ROW_TYPE_XPOWER_WIFI_BYTES ||
+        rows[0].rowType === TraceRow.ROW_TYPE_XPOWER_WIFI_PACKETS ||
+        rows[0].rowType === TraceRow.ROW_TYPE_XPOWER_APP_DETAIL_DISPLAY ||
+        rows[0].rowType === TraceRow.ROW_TYPE_XPOWER_STATISTIC)
     ) {
       skip = true;
     }
     if (rows && rows[0] && (rows[0].getHoverStruct(strict, offset) ||
       (rows[0].rowType === TraceRow.ROW_TYPE_GPU_COUNTER && rows[0].getHoverStruct(false) || skip))
-      ) {
+    ) {
       sp.onClickHandler(rows[0]!.rowType!, rows[0], rows[0].getHoverStruct(strict, offset));
       sp.documentOnMouseMove(ev);
     } else {
