@@ -40,6 +40,14 @@ export const TabPerfFuncAsmHtml = `
     display: flex;
     justify-content: space-between;
     align-items: center;
+    width: 100%;
+}
+#text-file-off {
+    flex-grow: 0;
+}
+#total-count {
+    flex-grow: 1;
+    text-align: right;
 }
 .loading {
   position: absolute;
@@ -60,7 +68,6 @@ export const TabPerfFuncAsmHtml = `
                 <div class="title-item" id="text-file-off"><span class="title-label">.text section:</span> </div>
                 <div class="title-item" id="total-count"><span class="title-label">Total Count:</span> </div>
             </div>
-            <div class="title-item" id="text-file-off" ><span class="title-label">.text Section File Off:</span> </div>
             <div class="title-item error-message" id="error-message"></div>
         </div>
         <lit-loading id="loading" class="loading" hidden></lit-loading>
