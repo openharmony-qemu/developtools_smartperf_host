@@ -15,12 +15,20 @@
 
 importScripts('sql-wasm.js');
 // @ts-ignore
+import {WebSocketManager} from "../../webSocket/WebSocketManager";
+
+importScripts('sql-wasm.js');
+// @ts-ignore
 import { temp_init_sql_list } from './TempSql';
 import { execProtoForWorker } from './data-trafic/utils/ExecProtoForWorker';
 import { TraficEnum } from './data-trafic/utils/QueryEnum';
 
 let conn: unknown = null;
-
+let enc = new TextEncoder();
+let dec = new TextDecoder();
+const REQ_BUF_SIZE = 4 * 1024 * 1024;
+let uploadSoActionId: string = '';
+const failedArray: Array<string> = [];
 self.onerror = function (error): void { };
 
 self.onmessage = async (e: unknown): Promise<void> => {
@@ -97,5 +105,19 @@ self.onmessage = async (e: unknown): Promise<void> => {
         return [];
       }
     });
+  } else if (action === 'upload-so') {
+    onmessageByUploadSoAction(e);
   }
 };
+
+function onmessageByUploadSoAction(e: unknown): void {
+  // @ts-ignore
+  uploadSoActionId = e.data.id;
+  // @ts-ignore
+  const result = 'ok';
+  self.postMessage({
+    id: uploadSoActionId,
+    action: 'upload-so',
+    results: { result: result, failedArray: failedArray },
+  });
+}

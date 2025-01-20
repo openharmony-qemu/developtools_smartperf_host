@@ -25,6 +25,8 @@ import { LitCheckBox } from '../../../../../base-ui/checkbox/LitCheckBox';
 import { initSort } from '../SheetUtils';
 import { TabpanePerfProfile } from './TabPerfProfile';
 import { TabPanePerfAnalysisHtml } from './TabPanePerfAnalysis.html';
+import { WebSocketManager } from '../../../../../webSocket/WebSocketManager';
+import { Constants, TypeConstants } from '../../../../../webSocket/Constants';
 
 @element('tabpane-perf-analysis')
 export class TabPanePerfAnalysis extends BaseElement {
@@ -65,6 +67,11 @@ export class TabPanePerfAnalysis extends BaseElement {
   private isComplete: boolean = true;
   private currentSelectionParam: SelectionParam | undefined | null;
   static tabLoadingList: Array<string> = [];
+  private vaddrList: Array<unknown> = [];
+  private selectedTabfileName: string = '';
+  private clickFuncVaddrList: Array<unknown> = [];
+  private functionListener!: Function | undefined | null;
+  private currentSoName: string = '';
 
   set data(val: SelectionParam) {
     if (val === this.currentSelection) {
@@ -204,6 +211,7 @@ export class TabPanePerfAnalysis extends BaseElement {
     this.addRowClickEventListener(this.perfTableProcess!, this.perfProcessLevelClickEvent.bind(this));
     this.addRowClickEventListener(this.perfTableThread!, this.perfThreadLevelClickEvent.bind(this));
     this.addRowClickEventListener(this.perfTableSo!, this.perfSoLevelClickEvent.bind(this));
+    this.addRowClickEventListener(this.tableFunction!, this.functionClickEvent.bind(this));
   }
 
   private addRowClickEventListener(table: LitTable, clickEvent: Function): void {
@@ -544,6 +552,8 @@ export class TabPanePerfAnalysis extends BaseElement {
   private perfSoLevelClickEvent(it: unknown): void {
     this.reset(this.tableFunction!, true);
     this.showAssignLevel(this.tableFunction!, this.perfTableSo!, 3, this.functionData);
+    // @ts-ignore
+    this.currentSoName = it.tableName;
     this.getHiperfFunction(it);
     let title = '';
     if (this.processName.length > 0) {
@@ -559,6 +569,33 @@ export class TabPanePerfAnalysis extends BaseElement {
     }
     this.titleEl!.textContent = title;
     this.perfAnalysisPie?.hideTip();
+    // @ts-ignore
+    this.selectedTabfileName = it.tableName;
+  }
+
+  private functionClickEvent(it: unknown) {
+    this.clickFuncVaddrList = this.vaddrList.filter((item: unknown) => {
+      // @ts-ignore
+      return item.process_id === it.pid &&
+        // @ts-ignore
+        item.thread_id === it.tid &&
+        // @ts-ignore
+        item.libName === this.selectedTabfileName &&
+        // @ts-ignore
+        item.symbolName === it.tableName
+    })
+    if (this.clickFuncVaddrList.length > 0) {
+      const textEncoder = new TextEncoder();
+      const queryData = {
+        elf_name: this.currentSoName,  //@ts-ignore
+        vaddr: this.clickFuncVaddrList[0].vaddrInFile,  //@ts-ignore
+        func: it.tableName
+      };
+      const dataString = JSON.stringify(queryData);
+      const encodedData = textEncoder.encode(dataString);
+      WebSocketManager.getInstance()?.sendMessage(TypeConstants.DISASSEMBLY_TYPE, Constants.DISASSEMBLY_QUERY_CMD, encodedData);
+    }
+    this.functionListener!(it, this.clickFuncVaddrList);
   }
 
   private sortByColumn(): void {
@@ -1117,6 +1154,15 @@ export class TabPanePerfAnalysis extends BaseElement {
         TabPanePerfAnalysis.tabLoadingList.shift();
       }
     });
+    const args = [
+      {
+        funcName: 'getVaddrToFile',
+        funcArgs: [val],
+      },
+    ];
+    procedurePool.submitWithName('logic0', 'perf-vaddr', args, undefined, (results: Array<unknown>) => {
+      this.vaddrList = results;
+    })
   }
 
   private getDataByWorker(val: SelectionParam, handler: Function): void {
@@ -1152,6 +1198,10 @@ export class TabPanePerfAnalysis extends BaseElement {
         this.filterEl!.style.display = 'flex';
       }
     }).observe(this.parentElement!);
+  }
+
+  public addFunctionRowClickEventListener(clickEvent: Function): void {
+    this.functionListener = clickEvent;
   }
 
   initHtml(): string {
