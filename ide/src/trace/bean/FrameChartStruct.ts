@@ -68,6 +68,7 @@ export class ChartStruct extends BaseStruct {
   children: Array<ChartStruct> = [];
   percent: number = 0; // 0 - 1 该node所占整体的百分比
   addr: string = '';
+  isRemark:boolean = false;
   isSearch: boolean = false;
   isChartSelect: boolean = false; // 是否为点选的调用链
   isChartSelectParent: boolean = false; // 用来显示灰色

@@ -1810,13 +1810,22 @@ export class TabPaneCurrentSelection extends BaseElement {
       value: ((data.startTs || 0) + Utils.getInstance().getRecordStartNS()) / 1000000000 + 's',
     });
     if (data.dur && data.dur > 0) {
-      list.push({
-        name: 'EndTime(Relative)',
-        value: `<div style="white-space: nowrap;display: flex;align-items: center">
-<div style="white-space:pre-wrap">${getTimeString((data.startTs || 0) + (data.dur || 0))}</div>
-<lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="end-jump" name="select" color="#7fa1e7" size="20"></lit-icon>
-</div>`,
-      });
+      if (data.startName > 6) {
+        list.push({
+          name: 'EndTime(Relative)',
+          value: `<div style="white-space: nowrap;display: flex;align-items: center">
+  <div style="white-space:pre-wrap">${getTimeString((data.startTs || 0) + (data.dur || 0))}</div>
+  </div>`,
+        });
+      } else {
+        list.push({
+          name: 'EndTime(Relative)',
+          value: `<div style="white-space: nowrap;display: flex;align-items: center">
+  <div style="white-space:pre-wrap">${getTimeString((data.startTs || 0) + (data.dur || 0))}</div>
+  <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="end-jump" name="select" color="#7fa1e7" size="20"></lit-icon>
+  </div>`,
+        });
+      }
       list.push({
         name: 'EndTime(Absolute)',
         value: ((data.startTs || 0) + (data.dur || 0) + Utils.getInstance().getRecordStartNS()) / 1000000000 + 's',
@@ -1857,6 +1866,12 @@ export class TabPaneCurrentSelection extends BaseElement {
                 sortedArray[index + 1].startTs
               )}`,
         });
+        if (data.startName === 6) {
+          data.endstartTs = sortedArray[index + 1].startTs;
+          data.endItid = sortedArray[index + 1].itid;
+        } else {
+          data.endstartTs = data.startTs! + data.dur!;
+        }
       }
     });
     this.currentSelectionTbl!.dataSource = list;
@@ -1883,10 +1898,9 @@ export class TabPaneCurrentSelection extends BaseElement {
     let endIcon = this.currentSelectionTbl?.shadowRoot?.querySelector('#end-jump');
     let scrollClick = (type: number): void => {
       let recordNs: number = Utils.getInstance().getRecordStartNS();
-      let useEnd = type === 1 && data.startName! < 6;
       queryThreadByItid(
-        useEnd ? data.endItid! : data.itid!,
-        useEnd ? recordNs + data.startTs! + data.dur! : recordNs + data.startTs!
+        type === 0 ? data.itid! : data.endItid!,
+        type === 0 ? recordNs + data.startTs! : recordNs + data.endstartTs!
       ).then((result) => {
         if (result.length > 0) {
           //@ts-ignore
@@ -1904,7 +1918,7 @@ export class TabPaneCurrentSelection extends BaseElement {
             dur: pt.dur,
             depth: pt.depth,
             funName: pt.name,
-            startTs: useEnd ? (data.startTs || 0) + (data.dur || 0) : data.startTs,
+            startTs: type === 0 ? data.startTs! : data.endstartTs!,
             keepOpen: true,
           });
         }
@@ -2411,6 +2425,7 @@ export class TabPaneCurrentSelection extends BaseElement {
         }
       });
       this.updateTableSettings(maxPriority, maxPriorityDuration, maxDuration);
+      this.wakeupListTbl!.style.display = 'flex';
       this.wakeupListTbl!.recycleDataSource = resource;
     });
   }

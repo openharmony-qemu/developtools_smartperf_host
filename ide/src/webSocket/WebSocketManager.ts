@@ -34,7 +34,7 @@ export class WebSocketManager {
     static instance: WebSocketManager | null | undefined = null;
     url: string = `ws://localhost:${Constants.NODE_PORT}`;
     private websocket: WebSocket | null | undefined = null;
-    private distributeMap: Map<number, { 'messageCallback': Function, 'eventCallBack': Function }> = new Map<number, { 'messageCallback': Function, 'eventCallBack': Function }>();
+    private distributeMap: Map<number, { 'messageCallbacks': Function[], 'eventCallBack': Function }> = new Map<number, { 'messageCallbacks': Function[], 'eventCallBack': Function }>();
     private sessionId: number | null | undefined;
     private session: bigint | null | undefined;
     private heartbeatInterval: number | null | undefined;
@@ -56,7 +56,7 @@ export class WebSocketManager {
         this.websocket.binaryType = 'arraybuffer';
         this.websocket.onopen = (): void => {
             this.status = GetStatuses.CONNECTED;
-            // 设置心跳定时器  
+            // 设置心跳定时器
             this.sendHeartbeat();
             // 连接后登录
             this.login();
@@ -99,7 +99,7 @@ export class WebSocketManager {
             this.businessMessage(decode);
         }
     }
-    
+
     // 登录
     loginMessage(decode: MessageParam): void {
         if (decode.cmd === Constants.LOGIN_CMD) {
@@ -133,13 +133,19 @@ export class WebSocketManager {
             this.finalStatus();
         } else if (decode.cmd === Constants.UPDATE_FAIL_CMD) { // 升级失败
             this.status = GetStatuses.UPGRADEFAILED;
-            this.finalStatus();            
+            this.finalStatus();
         }
     }
 
     // 业务
     businessMessage(decode: MessageParam): void {
-        this.distributeMap.get(decode.type!)?.messageCallback(decode.cmd, decode.data);
+        if (this.distributeMap.has(decode.type!)){
+            const callbackObj = this.distributeMap.get(decode.type!)!;
+            // 遍历调用所有 eventCallBacks
+            callbackObj.messageCallbacks.forEach(callback => {
+                callback(decode.cmd, decode.data);
+            });
+        }
     }
 
     // get版本
@@ -207,8 +213,45 @@ export class WebSocketManager {
      * 模块调用
     */
     registerMessageListener(type: number, callback: Function, eventCallBack: Function): void {
+        this.register(type, callback, eventCallBack);
+    }
+
+    /**
+     * 消息监听器
+     * listener是不同模块传来接收数据的函数
+     * 模块调用
+     */
+    registerCallback(type: number, callback: Function): void {
+        this.register(type, callback);
+    }
+
+    private register(type: number, callback: Function, eventCallBack: Function = () => {}): void {
+        let callbackObj = this.distributeMap.get(type);
+        if (!callbackObj) {
+            callbackObj = {
+                messageCallbacks: [callback],
+                eventCallBack: eventCallBack
+            };
+            this.distributeMap.set(type, callbackObj);
+        } else {
+            if (!callbackObj.messageCallbacks.includes(callback)) {
+                callbackObj.messageCallbacks.push(callback);
+            }
+            callbackObj.eventCallBack = eventCallBack;
+        }
+    }
+
+    // 删除回调函数
+    unregisterCallback(type: number, callback: Function): void {
         if (!this.distributeMap.has(type)) {
-            this.distributeMap.set(type, { 'messageCallback': callback, 'eventCallBack': eventCallBack });
+            return;
+        }
+        const callbackObj = this.distributeMap.get(type)!;
+        callbackObj.messageCallbacks = callbackObj.messageCallbacks.filter((cb) => cb !== callback);
+
+        // 如果回调数组为空，同时 eventCallBack 也为空，则可以删除整个类型
+        if (callbackObj.messageCallbacks.length === 0 && !callbackObj.eventCallBack) {
+            this.distributeMap.delete(type);
         }
     }
 
@@ -242,7 +285,7 @@ export class WebSocketManager {
         this.websocket!.send(encode!);
     }
 
-    // 定时检查心跳  
+    // 定时检查心跳
     sendHeartbeat(): void {
         this.heartbeatInterval = window.setInterval(() => {
             if (this.status === GetStatuses.READY) {
@@ -280,16 +323,20 @@ export class WebSocketManager {
             obj.data = data;
         }
     }
-    
+
     // 检查状态 中间状态，最终失败状态，最终成功状态
-    checkStatus(reconnect: number): void {
+    checkStatus(type: number): void {
         // @ts-ignore
         let statuses = this.getStatusesPrompt()[this.status];
-        if (statuses.type === INTERMEDIATE_STATE) {
-            this.distributeMap.get(reconnect)!.eventCallBack(this.status);
-        } else if (statuses.type === FAILED_STATE) {
-            this.reconnect = reconnect;
-            this.connectWebSocket();
+        const distributeEntry = this.distributeMap.get(type);
+
+        if (distributeEntry && typeof distributeEntry.eventCallBack === 'function') {
+            if (statuses.type === INTERMEDIATE_STATE) {
+                distributeEntry.eventCallBack(this.status);
+            } else if (statuses.type === FAILED_STATE) {
+                this.reconnect = type;
+                this.connectWebSocket();
+            }
         }
     }
 

@@ -915,6 +915,9 @@ export function createXPowerConfig(
   let type = spXPower.getXpowerConfig();
   let typeList: Array<string> = [];
   typeList = type!.split(',');
+  if (type?.length === 0) { //没有默认值时
+    typeList = ['REAL_BATTERY', 'THERMAL_REPORT'];
+  }
   let bundleName = spXPower.process || '';
   let xPowerConfig = {
     bundle_name: bundleName,

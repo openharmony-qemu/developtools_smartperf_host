@@ -831,7 +831,7 @@ export class SpAiAnalysisPage extends BaseElement {
     // 获取提示语
     getStatusesPrompt(): unknown {
         let guideSrc = `https://${window.location.host.split(':')[0]}:${window.location.port
-            }/application/?action=help_27`;
+            }${window.location.pathname}?action=help_27`;
         return {
             unconnected: {
                 prompt: `未连接，请启动本地扩展程序再试！[</span><a href=${guideSrc} style="color: blue;" target="_blank">指导</a><span>]`
