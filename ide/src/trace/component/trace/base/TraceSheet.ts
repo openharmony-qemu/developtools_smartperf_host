@@ -95,6 +95,7 @@ import { PerfToolStruct } from '../../../database/ui-worker/ProcedureWorkerPerfT
 import { GpuCounterStruct } from '../../../database/ui-worker/ProcedureWorkerGpuCounter';
 import { TabPaneGpuCounter } from '../sheet/gpu-counter/TabPaneGpuCounter';
 import { TabPaneSliceChild } from '../sheet/process/TabPaneSliceChild';
+import { TabPerfFuncAsm } from '../sheet/hiperf/TabPerfFuncAsm';
 import { XpowerStatisticStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerStatistic';
 import { XpowerAppDetailStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerAppDetail';
 import { XpowerWifiStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerWifi';
@@ -103,6 +104,11 @@ import { XpowerThreadInfoStruct } from '../../../database/ui-worker/ProcedureWor
 import { TabPaneXpowerThreadInfoSelection } from '../sheet/xpower/TabPaneXpowerThreadInfoSelection';
 import { TabPaneXpowerGpuFreqSelection } from '../sheet/xpower/TabPaneXpowerGpuFreqSelection';
 import { XpowerGpuFreqStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerGpuFreq';
+import { WebSocketManager} from "../../../../webSocket/WebSocketManager";
+import { Constants, TypeConstants} from "../../../../webSocket/Constants";
+import { PerfFunctionAsmParam } from '../../../bean/PerfAnalysis';
+import { info,error } from '../../../../log/Log';
+
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -129,6 +135,7 @@ export class TraceSheet extends BaseElement {
   private tabPaneHeight: string = '';
   private spsystemTrace: SpSystemTrace | undefined;
   private isDragging = true;
+  private REQ_BUF_SIZE = 1024 * 1024;
 
   static get observedAttributes(): string[] {
     return ['mode'];
@@ -218,6 +225,8 @@ export class TraceSheet extends BaseElement {
       this.perfAnalysisListener(evt);
     });
     // @ts-ignore
+    this.getComponentByID<unknown>('box-perf-analysis')?.addFunctionRowClickEventListener(this.functionAnalysisListener.bind(this));
+    // @ts-ignore
     this.getComponentByID<unknown>('box-native-statistic-analysis')?.addEventListener('row-click', (e: MouseEvent) => {
       this.nativeAnalysisListener(e);
     });
@@ -297,6 +306,29 @@ export class TraceSheet extends BaseElement {
       let pane = this.getPaneByID('box-perf-profile');
       this.litTabs!.activeByKey(pane.key);
     }
+  }
+
+  private functionAnalysisListener(evt: unknown, vaddrList: Array<unknown>): void {
+    // @ts-ignore
+    this.currentPaneID = "box-perf-analysis";
+    //隐藏除了当前Tab页的其他Tab页
+    this.shadowRoot!.querySelectorAll<LitTabpane>("lit-tabpane").forEach(
+      (it): boolean =>
+        it.id !== this.currentPaneID ? (it.hidden = true) : (it.hidden = false)
+    );
+    let asmPane = this.getPaneByID("tab-perf-func-asm"); //通过Id找到需要展示的Tab页
+    asmPane.closeable = true;
+    asmPane.hidden = false;
+    // @ts-ignore
+    asmPane.tab = evt.tableName; //设置Tab页标题
+    let param = new PerfFunctionAsmParam();
+    param.vaddrList = vaddrList;
+    // @ts-ignore
+    param.functionName = evt.tableName;
+    // @ts-ignore
+    param.totalCount = evt.count;
+    (asmPane.children.item(0) as TabPerfFuncAsm)!.data = param;
+    this.litTabs!.activeByKey(asmPane.key); //显示key值（sheetconfig里面对应的index是一个数字）对应的Tab页
   }
 
   private nativeAnalysisListener(e: MouseEvent): void {
@@ -573,7 +605,7 @@ export class TraceSheet extends BaseElement {
 
   private importClickEvent(): void {
     let importFileBt: HTMLInputElement | undefined | null =
-      this.shadowRoot?.querySelector<HTMLInputElement>('#import-file');
+        this.shadowRoot?.querySelector<HTMLInputElement>('#import-file');
     importFileBt!.addEventListener('change', (event): void => {
       let files = importFileBt?.files;
       if (files) {
@@ -584,29 +616,128 @@ export class TraceSheet extends BaseElement {
         if (fileList.length > 0) {
           importFileBt!.disabled = true;
           window.publish(window.SmartEvent.UI.Loading, { loading: true, text: 'Import So File' });
-          threadPool.submit(
-            'upload-so',
-            '',
-            fileList,
-            (res: unknown) => {
-              importFileBt!.disabled = false; // @ts-ignore
-              if (res.result === 'ok') {
-                window.publish(window.SmartEvent.UI.UploadSOFile, {});
-              } else {
-                // @ts-ignore
-                const failedList = res.failedArray.join(',');
-                window.publish(window.SmartEvent.UI.Error, `parse so file ${failedList} failed!`);
-              }
-            },
-            'upload-so'
-          );
+          this.uploadSoOrAN(fileList).then(r =>
+              threadPool.submit(
+                  'upload-so',
+                  '',
+                  fileList,
+                  (res: unknown) => {
+                    importFileBt!.disabled = false; // @ts-ignore
+                    if (res.result === 'ok') {
+                      window.publish(window.SmartEvent.UI.UploadSOFile, {});
+                    } else {
+                      // @ts-ignore
+                      const failedList = res.failedArray.join(',');
+                      window.publish(window.SmartEvent.UI.Error, `parse so file ${failedList} failed!`);
+                    }
+                  },
+                  'upload-so'
+              )).finally(() => {
+                fileList.length = 0;
+              })
         }
-        fileList.length = 0;
       }
       importFileBt!.files = null;
       importFileBt!.value = '';
     });
   }
+
+  private async uploadSoOrAN(fileList: Array<File>): Promise<void> {
+    if (fileList) {
+      fileList.sort((a, b) => {
+        return b.size - a.size;
+      });
+      await this.uploadAllFiles(fileList);
+    }
+  }
+
+
+  // 上传文件
+  private async uploadAllFiles(fileList: Array<File>): Promise<void> {
+    // 创建一个副本，避免修改原始的 fileList
+    const filesToUpload = [...fileList];
+
+    for (let i = 0; i < filesToUpload.length; i++) {
+      const file = filesToUpload[i];
+      try {
+        await this.uploadSingleFile(file);
+        info(`File ${file.name} uploaded successfully.`);
+      } catch (err) {
+        error(`Failed to upload file: ${file.name}, error: `, err);
+      }
+    }
+    info(`All files have been uploaded.`);
+  }
+
+
+  private uploadSingleFile = async (file: File | null): Promise<void> => {
+    if (file) {
+      let writeSize = 0;
+      let wsInstance = WebSocketManager.getInstance();
+      const fileName = file.name;
+      let bufferIndex = 0;
+
+      // 定义一个 ACK 回调函数的等待机制
+      const waitForAck = (): Promise<void> => {
+        return new Promise<void>((resolve, reject) => {
+          wsInstance!.registerCallback(TypeConstants.DISASSEMBLY_TYPE, onAckReceived);
+          // 定义超时定时器
+          const timeout = setTimeout(() => {
+            // 超时后注销回调并拒绝 Promise
+            wsInstance!.unregisterCallback(TypeConstants.DISASSEMBLY_TYPE, onAckReceived);
+            reject(new Error('等待 ACK 超时：文件 ${fileName}，索引 ${bufferIndex})'));
+          }, 10000);
+          function onAckReceived(cmd: number, result: Uint8Array) {
+            const decoder = new TextDecoder();
+            const jsonString = decoder.decode(result);
+            let jsonRes = JSON.parse(jsonString);
+            if (cmd === Constants.DISASSEMBLY_SAVE_BACK_CMD) {
+              if (jsonRes.fileName === fileName && jsonRes.bufferIndex === bufferIndex) {
+                wsInstance!.unregisterCallback(TypeConstants.DISASSEMBLY_TYPE, onAckReceived);
+                clearTimeout(timeout);
+                if (jsonRes.resultCode === 0) {
+                  bufferIndex++;
+                  // 当收到对应分片的 ACK 时，resolve Promise，继续上传下一个分片
+                  resolve();
+                }else{
+                  // 上传失败，拒绝 Promise 并返回
+                  reject(new Error(`Upload failed for file: ${fileName}, index: ${jsonRes.bufferIndex})`));
+                }
+              }
+            }
+          }
+        });
+      };
+
+      while (writeSize < file.size) {
+        let sliceLen = Math.min(file.size - writeSize, this.REQ_BUF_SIZE);
+        let blob: Blob | null = file.slice(writeSize, writeSize + sliceLen);
+        let buffer: ArrayBuffer | null = await blob.arrayBuffer();
+        let data: Uint8Array | null = new Uint8Array(buffer);
+
+        const dataObject = {
+          file_name: fileName,
+          buffer_index: bufferIndex,
+          buffer_size: sliceLen,
+          total_size: file.size,
+          is_last: writeSize + sliceLen >= file.size,
+          buffer: Array.from(data),
+        };
+
+
+        const dataString = JSON.stringify(dataObject);
+        const textEncoder = new TextEncoder();
+        const encodedData = textEncoder.encode(dataString);
+        wsInstance!.sendMessage(TypeConstants.DISASSEMBLY_TYPE, Constants.DISASSEMBLY_SAVE_CMD, encodedData);
+        writeSize += sliceLen;
+        // 等待服务器端确认当前分片的 ACK
+        await waitForAck();
+        data = null;
+        buffer = null;
+        blob = null;
+      }
+    }
+  };
 
   private exportClickEvent(): void {
     this.exportBt!.onclick = (): void => {
