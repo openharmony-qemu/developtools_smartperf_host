@@ -994,15 +994,28 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         process.isSearch = false;
       });
       this.resetNewAllNode(sample);
+      this.searchValue = this.searchValue.toLocaleLowerCase();
+      let researchValue = this.searchValue.substring(1, this.searchValue.length);
+      /*
+        *开头，正则表达式
+        非*开头，普通筛选
+        '!'开头，普通反选
+      */
       if (this.searchValue[0] === '!') {
-        this.reMarkSearchNode(sample, this.searchValue.substring(1, this.searchValue.length), true);
-      } else if (this.searchValue[0] === '*') {
-        let reSearValue = this.searchValue.substring(1, this.searchValue.length);
-        this.markRegexSearchNode(this.allProcess, reSearValue, false)
-      } else if (this.searchValue[0] === '^') {
-        this.markUnRegexSearchNode(this.allProcess, this.searchValue, true)
+        this.reMarkSearchNode(sample, researchValue, true);
       } else {
-        this.markSearchNode(sample, this.searchValue, false);
+        if (this.searchValue[0] === '*') {
+          // 正则反选
+          if (this.searchValue[1] === '^') {
+            this.markUnRegexSearchNode(this.allProcess, researchValue, true);
+          } else {
+            // 正则正选
+            this.markRegexSearchNode(this.allProcess, researchValue, false);
+          }
+        } else {
+          // 普通正选
+          this.markSearchNode(sample, this.searchValue, false);
+        }
       }
       this.resetNewAllNode(sample);
     }
@@ -1134,13 +1147,15 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     });
   }
 
+  // 普通正向筛选
   markSearchNode(sampleArray: PerfCallChainMerageData[], search: string, parentSearch: boolean): void {
     for (const sample of sampleArray) {
       if (search === '') {
         sample.searchShow = true;
         sample.isSearch = false;
+        // 将反选标记全部清除
         sample.hiddenArray = [];
-        sample.isRemark = false;
+        sample.isReverseFilter = false;
       } else {
         let isInclude = sample.symbol.toLocaleLowerCase().includes(search);
         if ((sample.symbol && isInclude) || parentSearch) {
@@ -1168,21 +1183,25 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     for (const sample of sampleArray) {
       if (search === '') {
         sample.searchShow = true;
-        sample.isRemark = false;
+        sample.isReverseFilter = false;
       } else {
         // 反选符合要求的
         let isInclude = !sample.symbol.toLocaleLowerCase().includes(search);
+        // 从上往下遍历，父节点不展示的直接不展示，并且标记为置为false
         if (!parentSearch) {
           sample.searchShow = false
         } else {
+          // 父节点展示并符合要求的直接展示
           if (sample.symbol && isInclude) {
-            sample.isRemark = true;
+            sample.isReverseFilter = true;
             sample.searchShow = true;
           } else {
+            // 父节点展示子节点不展示的，反向向上遍历置false
             sample.isSearch = false;
             sample.searchShow = false;
             let parentNode = sample.parent
             parentNode?.hiddenArray.push(sample.symbolName);
+            // 多个子节点，只有所有子节点都不展示的才可以不展示并且继续向上遍历
             while (parentNode && parentNode.children.length === parentNode.hiddenArray.length) {
               parentNode.searchShow = false;
               if (parentNode.parent?.hiddenArray.indexOf(parentNode.symbolName) === -1) {
@@ -1209,7 +1228,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         sample.searchShow = false
       } else {
         if (sample.symbol && isInclude) {
-          sample.isRemark = true;
+          sample.isReverseFilter = true;
           sample.searchShow = true;
         } else {
           sample.isSearch = false;
@@ -1712,7 +1731,7 @@ export class PerfCallChainMerageData extends ChartStruct {
   searchShow: boolean = true;
   isSearch: boolean = false;
   isState: boolean = false;
-  isRemark: boolean = false;
+  isReverseFilter: boolean = false;
   hiddenArray: Array<string> = [];
   set parentNode(data: PerfCallChainMerageData | undefined) {
     this.parent = data;
