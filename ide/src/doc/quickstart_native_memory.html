@@ -1088,9 +1088,9 @@
       <p class="fontColor">调用栈默认会显示火焰图，新增搜索框表达式输入。表达式作用范围为 nativehook
         的统计与非统计模式。其中处理的为 Responsible Library 与 Responsible Caller，其中 Responsible
         Library 和Responsible Caller 表示从下往上非 libc++ musl 的第一条调用栈的 lib 跟
-        symbol，如下图所示，由于最后一条 [ operator new(unsigned long) ] <a href="http://libc++.so/">libc++.so</a>
-        为 <a href="http://libc++.so/">libc++.so</a> 的函数，故跳过，所以该条调用栈的 Responsible Library
-        为 <a href="http://libhilog.so/">libhilog.so</a>，Responsible Caller 为
+        symbol，如下图所示，由于最后一条 [ operator new(unsigned long) ] libc++.so
+        为 libc++.so 的函数，故跳过，所以该条调用栈的 Responsible Library
+        为 libhilog.so，Responsible Caller 为
         OHOS::HiviewDFX::GetDomainLevel(unsigned int) 。<br>
         <img
           src="../figures/NativeMemory/framecaller.jpg"
@@ -1131,8 +1131,8 @@
           <td>只显示 Responsible Library 路径/data/user 且 symbol 为任意值的数据</td>
         </tr>
         <tr>
-          <td>@(<a href="http://mali.so/">mali.so</a> *,libGLES_mali.so *)</td>
-          <td>只显示 Responsible Library 包含 <a href="http://mali.so/">mali.so</a> 或者 libGLES_mali.so
+          <td>@(mali.so *,libGLES_mali.so *)</td>
+          <td>只显示 Responsible Library 包含 mali.so 或者 libGLES_mali.so
             的数据
           </td>
         </tr>
