@@ -466,7 +466,7 @@ function collectHandlerNo(sp: SpSystemTrace, currentRow: unknown, event: unknown
   // @ts-ignore
   currentRow.name = currentRow.tampName;
   //@ts-ignore  xpower转换名称
-  if (currentRow.rowType === 'xpower-system') {
+  if (currentRow.rowType === 'xpower-system' || currentRow!.parentRowEl.rowType === 'xpower-bundle-name-group') {
     //@ts-ignore
     let titleEl = currentRow.shadowRoot?.querySelector('.name') as HTMLLabelElement;
     //@ts-ignore
@@ -533,7 +533,7 @@ function collectHandlerYes(sp: SpSystemTrace, currentRow: unknown, event: unknow
     sp.rowsEL!.replaceChild(replaceRow, currentRow);
   }
   //@ts-ignore  xpower转换名称
-  if (currentRow.rowType === 'xpower-system') {
+  if (currentRow.rowType === 'xpower-system' || currentRow!.parentRowEl.rowType === 'xpower-bundle-name-group') {
     //@ts-ignore
     let titleEl = currentRow.shadowRoot?.querySelector('.name') as HTMLLabelElement;
     //@ts-ignore
