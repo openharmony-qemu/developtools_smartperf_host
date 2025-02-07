@@ -1707,9 +1707,14 @@ export class HiPerfStruct extends BaseStruct {
     specPath: Path2D,
     data: HiPerfStruct,
     groupBy10MS: boolean,
-    textMetrics?: TextMetrics
+    textMetrics?: TextMetrics,
+    row?: unknown
   ): void {
     if (data.frame) {
+      //@ts-ignore
+      if (row && row.rowType === 'hiperf-process' && row.expansion) {
+        return;
+      } 
       if (groupBy10MS) {
         let width = data.frame.width;
         normalPath.rect(data.frame.x, 40 - (data.height || 0), width, data.height || 0);
