@@ -60,6 +60,8 @@ import { XpowerAppDetailStruct, XpowerAppDetailStructOnClick } from '../database
 import { XpowerWifiBytesStructOnClick, XpowerWifiPacketsStructOnClick, XpowerWifiStruct } from '../database/ui-worker/ProcedureWorkerXpowerWifi';
 import { XpowerThreadInfoStruct, XpowerThreadInfoStructOnClick } from '../database/ui-worker/ProcedureWorkerXpowerThreadInfo';
 import { XpowerGpuFreqStruct, XpowerGpuFreqStructOnClick } from '../database/ui-worker/ProcedureWorkerXpowerGpuFreq';
+import { XpowerThreadCountStruct, XpowerThreadCountStructOnClick } from '../database/ui-worker/ProcedureWorkerXpowerThreadCount';
+import { XpowerGpuFreqCountStruct, XpowerGpuFreqCountStructOnClick } from '../database/ui-worker/ProcedureWorkerXpowerGpuFreqCount';
 
 function timeoutJudge(sp: SpSystemTrace): number {
   let timeoutJudge = window.setTimeout((): void => {
@@ -395,6 +397,8 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
     .then(() => XpowerWifiPacketsStructOnClick(clickRowType, sp, entry as XpowerWifiStruct))
     .then(() => XpowerThreadInfoStructOnClick(clickRowType, sp, entry as XpowerThreadInfoStruct))
     .then(() => XpowerGpuFreqStructOnClick(clickRowType, sp, entry as XpowerGpuFreqStruct))
+    .then(() => XpowerThreadCountStructOnClick(clickRowType, sp, entry as XpowerThreadCountStruct))
+    .then(() => XpowerGpuFreqCountStructOnClick(clickRowType, sp, entry as XpowerGpuFreqCountStruct))
     .then(() => HangStructOnClick(clickRowType, sp, scrollToFunc(sp)))
     .then(() => DmaFenceStructOnClick(clickRowType, sp, entry as DmaFenceStruct))
     .then(() => SnapshotStructOnClick(clickRowType, sp, row as TraceRow<SnapshotStruct>, entry as SnapshotStruct))

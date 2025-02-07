@@ -108,7 +108,8 @@ import { WebSocketManager} from "../../../../webSocket/WebSocketManager";
 import { Constants, TypeConstants} from "../../../../webSocket/Constants";
 import { PerfFunctionAsmParam } from '../../../bean/PerfAnalysis';
 import { info,error } from '../../../../log/Log';
-
+import { XpowerThreadCountStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerThreadCount';
+import { XpowerGpuFreqCountStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerGpuFreqCount';
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -886,6 +887,10 @@ export class TraceSheet extends BaseElement {
   displayXpowerGpuFreqData = (dataList: Array<XpowerGpuFreqStruct>): void => {
     this.displayTab<TabPaneXpowerGpuFreqSelection>('box-xpower-gpu-freq-selection').setGpuFreqData(dataList);
   };
+  displayXpowerTreadCountData = (data: XpowerThreadCountStruct): Promise<void> =>
+    this.displayTab<TabPaneCurrentSelection>('current-selection').setXpowerTreadCountData(data);
+  displayXpowerGpuFreqCountData = (data: XpowerGpuFreqCountStruct): Promise<void> =>
+    this.displayTab<TabPaneCurrentSelection>('current-selection').setXpowerGpuFreqCountData(data);
   displayPerfToolsData = (data: PerfToolStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setPerfToolsData(data);
   displayIrqData = (data: IrqStruct): void =>

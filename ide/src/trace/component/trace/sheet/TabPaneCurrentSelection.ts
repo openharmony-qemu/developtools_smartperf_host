@@ -68,6 +68,8 @@ import { HangStruct } from '../../../database/ui-worker/ProcedureWorkerHang';
 import { XpowerStruct } from '../../../database/ui-worker/ProcedureWorkerXpower';
 import { XpowerAppDetailStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerAppDetail';
 import { XpowerWifiStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerWifi';
+import { XpowerThreadCountStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerThreadCount';
+import { XpowerGpuFreqCountStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerGpuFreqCount';
 
 const INPUT_WORD =
   'This is the interval from when the task became eligible to run \n(e.g.because of notifying a wait queue it was a suspended on) to\n when it started running.';
@@ -873,6 +875,51 @@ export class TabPaneCurrentSelection extends BaseElement {
   }
 
   async setXpowerData(data: XpowerStruct): Promise<void> {  
+    if (SpApplication.traceType.indexOf('SQLite') === -1) {
+      await this.setRealTime();
+    }
+    this.setTableHeight('auto');
+    this.tabCurrentSelectionInit('Counter Details');
+    let list: unknown[] = [];
+    list.push({
+      name: 'StartTime(Relative)',
+      value: getTimeString(data.startNS || 0),
+    });
+    this.createStartTimeNode(list, data.startNS || 0, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
+    list.push({
+      name: 'Value',
+      value: String(data.value).indexOf('.') > -1 ? data.value || 0 : ColorUtils.formatNumberComma(data.value || 0),
+    });
+    list.push({ name: 'Duration', value: getTimeString(data.dur || 0) });
+    this.currentSelectionTbl!.dataSource = list;
+    let startTimeAbsolute = (data.startNS || 0) + Utils.getInstance().getRecordStartNS();
+    this.addClickToTransfBtn(startTimeAbsolute, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
+  }
+
+  
+  async setXpowerTreadCountData(data: XpowerThreadCountStruct): Promise<void> {  
+    if (SpApplication.traceType.indexOf('SQLite') === -1) {
+      await this.setRealTime();
+    }
+    this.setTableHeight('auto');
+    this.tabCurrentSelectionInit('Counter Details');
+    let list: unknown[] = [];
+    list.push({
+      name: 'StartTime(Relative)',
+      value: getTimeString(data.startNS || 0),
+    });
+    this.createStartTimeNode(list, data.startNS || 0, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
+    list.push({
+      name: 'Value',
+      value: String(data.value).indexOf('.') > -1 ? data.value || 0 : ColorUtils.formatNumberComma(data.value || 0),
+    });
+    list.push({ name: 'Duration', value: getTimeString(data.dur || 0) });
+    this.currentSelectionTbl!.dataSource = list;
+    let startTimeAbsolute = (data.startNS || 0) + Utils.getInstance().getRecordStartNS();
+    this.addClickToTransfBtn(startTimeAbsolute, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
+  }
+
+  async setXpowerGpuFreqCountData(data: XpowerGpuFreqCountStruct): Promise<void> {  
     if (SpApplication.traceType.indexOf('SQLite') === -1) {
       await this.setRealTime();
     }
