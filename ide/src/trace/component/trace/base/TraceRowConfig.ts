@@ -840,6 +840,11 @@ export class TraceRowConfig extends BaseElement {
           }
         }
       });
+      this.spSystemTrace!.favoriteChartListEL!.scroll({
+        top: 0,
+        left: 0,
+        behavior: 'smooth',
+      });
       this.refreshSystemPanel();
     });
   }
