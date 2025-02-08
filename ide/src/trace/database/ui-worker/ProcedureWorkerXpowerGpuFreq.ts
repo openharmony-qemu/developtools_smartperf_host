@@ -287,7 +287,7 @@ export class XpowerGpuFreqStruct extends BaseStruct {
     let histogramColor = this.colorMap.get(data.frequency)!;
     req!.context.fillStyle = histogramColor;
     let drawStartY = 0;
-    let dataHeight: number = ((data.runTime || 0) * (this.rowHeight - 28)) / XpowerGpuFreqStruct.max;
+    let dataHeight: number = ((data.runTime || 0) * (this.rowHeight - 40)) / XpowerGpuFreqStruct.max;
 
     if (data.runTime !== 0 && dataHeight < 1) {
       dataHeight = 1;
