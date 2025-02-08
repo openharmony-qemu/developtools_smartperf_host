@@ -208,6 +208,7 @@ export class SpHelp extends BaseElement {
       this.createSubMenuItem('Xpower抓取和展示说明', 'xpower', 'quickstart_xpower', that, '26'),
       this.createSubMenuItem('扩展程序安装指导', 'extensions', 'quickstart_extensions', that, '27'),
       this.createSubMenuItem('FFRT抓取和展示说明', 'ffrt', 'quickstart_ffrt', that, '28'),
+      this.createSubMenuItem('约束与限制', 'limit', 'quickstart_limit', that, '29'),
     ];
   }
 
@@ -447,7 +448,7 @@ export class SpHelp extends BaseElement {
       title: 'TraceStreamer数据库说明',
       icon: '',
       clickHandler: function (item: MenuItem): void {
-        that.handleMemoryMenuItemClick(that, 'trace_streamer_explain', 'des_tables', '29');
+        that.handleMemoryMenuItemClick(that, 'trace_streamer_explain', 'des_tables', '30');
       },
     };
   }
