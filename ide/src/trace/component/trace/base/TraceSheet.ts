@@ -681,7 +681,7 @@ export class TraceSheet extends BaseElement {
       // 定义一个 ACK 回调函数的等待机制
       const waitForAck = (): Promise<void> => {
         return new Promise<void>((resolve, reject) => {
-          wsInstance!.registerCallback(TypeConstants.DISASSEMBLY_TYPE, onAckReceived);
+          wsInstance!.registerMessageListener(TypeConstants.DISASSEMBLY_TYPE, onAckReceived, () => {}, true);
           // 定义超时定时器
           const timeout = setTimeout(() => {
             // 超时后注销回调并拒绝 Promise
