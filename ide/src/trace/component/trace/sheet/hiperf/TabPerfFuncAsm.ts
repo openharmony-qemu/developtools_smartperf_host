@@ -191,7 +191,7 @@ export class TabPerfFuncAsm extends BaseElement {
               }
             };
 
-            WebSocketManager.getInstance()?.registerCallback(TypeConstants.DISASSEMBLY_TYPE, callback);
+            WebSocketManager.getInstance()?.registerMessageListener(TypeConstants.DISASSEMBLY_TYPE, callback, () => {}, true );
           }),
           new Promise((_, reject) => setTimeout(() => {
             WebSocketManager.getInstance()?.unregisterCallback(TypeConstants.DISASSEMBLY_TYPE, callback);
