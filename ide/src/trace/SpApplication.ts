@@ -17,7 +17,7 @@ import { BaseElement, element } from '../base-ui/BaseElement';
 import '../base-ui/menu/LitMainMenu';
 import '../base-ui/icon/LitIcon';
 import '../base-ui/loading/LitLoading';
-import '../base-ui/like/LitLike'; 
+import '../base-ui/like/LitLike';
 import { SpMetrics } from './component/SpMetrics';
 import { SpHelp } from './component/SpHelp';
 import './component/SpHelp';
@@ -687,7 +687,7 @@ export class SpApplication extends BaseElement {
   private judgeZip(typeHeader: Blob): void {
     const fileReader = new FileReader();
     fileReader.readAsArrayBuffer(typeHeader);
-    fileReader.onload = (event):void => {
+    fileReader.onload = (event): void => {
       const uint8Array = new Uint8Array(event.target!.result as ArrayBuffer);
       this.isZipFile = isZipFile(uint8Array) || isZlibFile(uint8Array);
       if (this.isZipFile) {
@@ -2033,7 +2033,6 @@ export class SpApplication extends BaseElement {
   private aiPageResize(): void {
     const resizableDiv = this.spAiAnalysisPage!;
     let isResizing = false;
-
     resizableDiv.addEventListener('mousemove', (e) => {
       if (Math.abs(e.clientX - resizableDiv.getBoundingClientRect().left) < 5) {
         resizableDiv.style.cursor = 'e-resize';
@@ -2044,12 +2043,25 @@ export class SpApplication extends BaseElement {
 
     resizableDiv.addEventListener('mousedown', function (e) {
       isResizing = true;
+      let iframe = document.querySelector('body > sp-application')?.shadowRoot!.querySelector<SpHelp>('#sp-help')?.shadowRoot?.querySelector('#myIframe');
+      // @ts-ignore
+      let iframeWindow = iframe?.contentWindow;
       if (e.clientX - resizableDiv.getBoundingClientRect().left < 5) {
         document.addEventListener('mousemove', changeAiWidth);
+        iframeWindow?.addEventListener('mousemove', iframeChangeAiWidth);
       }
       document.addEventListener('mouseup', mouseUp);
+      iframeWindow?.addEventListener('mouseup', mouseUp);
     });
 
+    function iframeChangeAiWidth(e: unknown): void {
+      let iframe = document.querySelector('body > sp-application')?.shadowRoot!.querySelector<SpHelp>('#sp-help')?.shadowRoot?.querySelector('#myIframe');
+      // @ts-ignore
+      let iframeWindow = iframe?.contentWindow;
+      resizableDiv.style.cursor = 'e-resize';
+      // @ts-ignore
+      resizableDiv.style.width = iframeWindow.innerWidth - e.clientX + 'px';
+    }
 
     function changeAiWidth(e: unknown): void {
       resizableDiv.style.cursor = 'e-resize';
@@ -2061,6 +2073,12 @@ export class SpApplication extends BaseElement {
       isResizing = false;
       document.removeEventListener('mousemove', changeAiWidth);
       document.removeEventListener('mouseup', mouseUp);
+
+      let iframe = document.querySelector('body > sp-application')?.shadowRoot!.querySelector<SpHelp>('#sp-help')?.shadowRoot?.querySelector('#myIframe');
+      // @ts-ignore
+      let iframeWindow = iframe?.contentWindow;
+      iframeWindow?.removeEventListener('mousemove', iframeChangeAiWidth);
+      iframeWindow?.removeEventListener('mouseup', mouseUp);
     }
   }
 
