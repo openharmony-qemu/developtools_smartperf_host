@@ -62,6 +62,7 @@ import { XpowerThreadInfoStruct, XpowerThreadInfoStructOnClick } from '../databa
 import { XpowerGpuFreqStruct, XpowerGpuFreqStructOnClick } from '../database/ui-worker/ProcedureWorkerXpowerGpuFreq';
 import { XpowerThreadCountStruct, XpowerThreadCountStructOnClick } from '../database/ui-worker/ProcedureWorkerXpowerThreadCount';
 import { XpowerGpuFreqCountStruct, XpowerGpuFreqCountStructOnClick } from '../database/ui-worker/ProcedureWorkerXpowerGpuFreqCount';
+import { SnapShotOnClick, SnapShotStruct } from '../database/ui-worker/ProcedureWorkerSnaps';
 
 function timeoutJudge(sp: SpSystemTrace): number {
   let timeoutJudge = window.setTimeout((): void => {
@@ -420,6 +421,7 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
     .then(() => sampleStructOnClick(clickRowType, sp, row as TraceRow<SampleStruct>, entry as SampleStruct))
     .then(() => gpuCounterStructOnClick(clickRowType, sp, entry as GpuCounterStruct))
     .then(() => PerfToolsStructOnClick(clickRowType, sp, entry as PerfToolStruct))
+    .then(() => SnapShotOnClick(clickRowType, sp, entry as SnapShotStruct))
     .then(() => {
       if (!JankStruct.hoverJankStruct && JankStruct.delJankLineFlag) {
         sp.removeLinkLinesByBusinessType('janks');

@@ -342,6 +342,18 @@ export const applicationHtml: string = `
             box-sizing:border-box;
             visibility:hidden;
         }
+        #sp-snapshot-view {
+            top:75px;
+            right:0px;
+            position:absolute;
+            z-index:2000;
+            width:25%;
+            height:90%;
+            box-shadow:3px 0px 14px #000;
+            background-color:#fff;
+            box-sizing:border-box;
+            visibility:hidden;
+        }
         </style>
         <div class="root" style="position: relative;">
             <sp-bubble-ai style="visibility: visible; top:50%;right:2px;position: absolute;z-index: 10000" id="sp-bubbles" draggable ="true"></sp-bubble-ai>
@@ -418,7 +430,8 @@ export const applicationHtml: string = `
                 <trace-row-config class="chart-filter" style="height:100%;top:0px;right:0;bottom:0px;position:absolute;z-index: 1001"></trace-row-config>
                 <custom-theme-color class="custom-color" style="height:100%;top:0px;right:0;bottom:0px;position:absolute;z-index: 1001"></custom-theme-color>
             </div>
-                <sp-ai-analysis id="sp-ai-analysis" style="visibility:hidden;">
+                <sp-ai-analysis id="sp-ai-analysis" style="visibility:hidden;"></sp-ai-analysis>
+                <sp-snapshot-view id="sp-snapshot-view" style="visibility:hidden;"></sp-snapshot-view>
         </div>
         `;
 
