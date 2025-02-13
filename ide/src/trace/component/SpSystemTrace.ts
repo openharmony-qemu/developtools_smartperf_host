@@ -143,6 +143,7 @@ import { XpowerWifiStruct } from '../database/ui-worker/ProcedureWorkerXpowerWif
 import { XpowerThreadInfoStruct } from '../database/ui-worker/ProcedureWorkerXpowerThreadInfo';
 import { XpowerGpuFreqStruct } from '../database/ui-worker/ProcedureWorkerXpowerGpuFreq';
 import { LitProgressBar } from '../../base-ui/progress-bar/LitProgressBar';
+import { SnapShotStruct } from '../database/ui-worker/ProcedureWorkerSnaps';
 
 function dpr(): number {
   return window.devicePixelRatio || 1;
@@ -1384,7 +1385,8 @@ export class SpSystemTrace extends BaseElement {
     SampleStruct.hoverSampleStruct = undefined;
     PerfToolStruct.hoverPerfToolStruct = undefined;
     GpuCounterStruct.hoverGpuCounterStruct = undefined;
-    DmaFenceStruct.hoverDmaFenceStruct = undefined;//清空hover slice
+    DmaFenceStruct.hoverDmaFenceStruct = undefined;
+    SnapShotStruct.hoverSnapShotStruct = undefined;
     this.tipEL!.style.display = 'none';
     return this;
   }
@@ -1419,13 +1421,14 @@ export class SpSystemTrace extends BaseElement {
     SampleStruct.selectSampleStruct = undefined;
     PerfToolStruct.selectPerfToolStruct = undefined;
     GpuCounterStruct.selectGpuCounterStruct = undefined;
-    DmaFenceStruct.selectDmaFenceStruct = undefined;//清空选中slice
+    DmaFenceStruct.selectDmaFenceStruct = undefined;
     XpowerAppDetailStruct.selectXpowerStruct = undefined;
     XpowerStatisticStruct.selectXpowerStruct = undefined;
     XpowerWifiStruct.selectBytesXpowerStruct = undefined;
     XpowerWifiStruct.selectPacketsXpowerStruct = undefined;
     XpowerThreadInfoStruct.selectXpowerStruct = undefined;
     XpowerGpuFreqStruct.selectXpowerStruct = undefined;
+    SnapShotStruct.hoverSnapShotStruct = undefined;
     return this;
   }
 
