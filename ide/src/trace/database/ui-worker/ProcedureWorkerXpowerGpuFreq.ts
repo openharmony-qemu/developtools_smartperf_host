@@ -39,10 +39,31 @@ export class XpowerGpuFreqRender extends Render {
       // @ts-ignore
       (item) => checkedType[checkedValue?.indexOf(item.frequency.toString())]
     );
+    // 根据startNS分组
+    const groupedData = new Map();
+    xpowerGpuFreqList.forEach((item) => {
+      if(!groupedData.has(item.startNS)){
+        groupedData.set(item.startNS,[]);
+      }
+      groupedData.get(item.startNS).push(item);
+    });
+    // 对直方图每个组内数据进行排序
+    const sortedData: any = [];
+    groupedData.forEach(group => {
+      group.sort((a:any,b:any) => a.frequency - b.frequency);
+      sortedData.push(...group);
+    });
+    // 对鼠标悬浮框每个组内数据排序
+    const tooltipData: any = [];
+    groupedData.forEach(group => {
+      group.sort((a:any,b:any) => b.frequency - a.frequency);
+      tooltipData.push(...group);
+    });
+    xpowerGpuFreqList = sortedData;
     let xpowerMap = new Map<number, XpowerGpuFreqStruct[]>();
     setGroupByTime(xpowerMap, xpowerGpuFreqList);
     XpowerGpuFreqStruct.xpowerMap = xpowerMap;
-    setDataFrameAndHoverHtml(xpowerGpuFreqList, row);
+    setDataFrameAndHoverHtml(tooltipData, row);
     drawLoadingFrame(xpowerStasticReq.context, xpowerGpuFreqList, row);
     setMaxEnergyInfo(xpowerStasticReq.context, xpowerMap);
 
