@@ -194,6 +194,7 @@ export class SpRecordTrace extends BaseElement {
         if (devs.length === 0) {
           this.recordButton!.hidden = true;
           this.disconnectButton!.hidden = true;
+          this.cancelButton!.hidden = true;
           this.devicePrompt!.innerText = 'Device not connected';
           this.hintEl!.innerHTML = DEVICE_NOT_CONNECT;
           if (!this.showHint) {
@@ -215,6 +216,7 @@ export class SpRecordTrace extends BaseElement {
               option.selected = true;
               this.recordButton!.hidden = false;
               this.disconnectButton!.hidden = false;
+              this.cancelButton!.hidden = true;
               this.showHint = false;
               this.devicePrompt!.innerText = '';
               this.hintEl!.textContent = '';
@@ -230,6 +232,7 @@ export class SpRecordTrace extends BaseElement {
           }, 3000);
           this.recordButton!.hidden = true;
           this.disconnectButton!.hidden = true;
+          this.cancelButton!.hidden = true;
           this.devicePrompt!.innerText = 'Device not connected';
           this.hintEl!.innerHTML = DEVICE_NOT_CONNECT;
           if (!this.showHint) {
@@ -417,10 +420,12 @@ export class SpRecordTrace extends BaseElement {
     if (this.deviceSelect.options && this.deviceSelect.options.length > 0) {
       this.disconnectButton!.hidden = false;
       this.recordButton.hidden = false;
+      this.cancelButton!.hidden = false;
       this.devicePrompt.innerText = '';
     } else {
       this.disconnectButton!.hidden = true;
       this.recordButton.hidden = true;
+      this.cancelButton!.hidden = true;
       this.devicePrompt.innerText = 'Device not connected';
     }
     this.useExtendCheck = this.shadowRoot?.querySelector('#use-extend-check') as LitCheckBox;
@@ -435,6 +440,7 @@ export class SpRecordTrace extends BaseElement {
       SpRecordTrace.serialNumber = '';
       this.recordButton!.hidden = true;
       this.disconnectButton!.hidden = true;
+      this.cancelButton!.hidden = true;
       // @ts-ignore
       while (this.deviceSelect!.firstChild) {
         this.deviceSelect!.removeChild(this.deviceSelect!.firstChild); // 删除子节点
@@ -661,6 +667,7 @@ export class SpRecordTrace extends BaseElement {
           } else {
             this.recordButton!.hidden = true;
             this.disconnectButton!.hidden = true;
+            this.cancelButton!.hidden = true;
             this.devicePrompt!.innerText = 'Device not connected';
             this.hintEl!.innerHTML = DEVICE_NOT_CONNECT;
             if (!this.showHint) {
@@ -675,6 +682,7 @@ export class SpRecordTrace extends BaseElement {
   eventCallBack = (result: string): void => {
     this.recordButton!.hidden = true;
     this.disconnectButton!.hidden = true;
+    this.cancelButton!.hidden = true;
     this.disconnectButtonClickEvent();
     this.useExtentTip!.style.display = 'block';
     // @ts-ignore
@@ -723,6 +731,7 @@ export class SpRecordTrace extends BaseElement {
           this.usbSerialNum.shift();
           this.recordButton!.hidden = true;
           this.disconnectButton!.hidden = true;
+          this.cancelButton!.hidden = true;
           this.devicePrompt!.innerText = 'Device not connected';
           this.deviceSelect!.style!.border = '2px solid red';
           setTimeout(() => {
@@ -750,6 +759,7 @@ export class SpRecordTrace extends BaseElement {
             option.selected = true;
             this.recordButton!.hidden = false;
             this.disconnectButton!.hidden = false;
+            this.cancelButton!.hidden = false;
             this.devicePrompt!.innerText = '';
             this.hintEl!.textContent = '';
             // @ts-ignore
@@ -770,6 +780,7 @@ export class SpRecordTrace extends BaseElement {
           }, 3000);
           this.recordButton!.hidden = true;
           this.disconnectButton!.hidden = true;
+          this.cancelButton!.hidden = true;
           this.devicePrompt!.innerText = 'Device not connected';
           this.useExtentTip!.style.display = 'block';
           this.useExtentTip!.innerHTML = '手机连接有问题，请重新插拔一下手机，或者请使用系统管理员权限打开cmd窗口，并执行hdc shell';
@@ -799,10 +810,12 @@ export class SpRecordTrace extends BaseElement {
     if (this.deviceSelect!.options.length > 0) {
       this.recordButton!.hidden = false;
       this.disconnectButton!.hidden = false;
+      this.cancelButton!.hidden = false;
       this.devicePrompt!.innerText = '';
     } else {
       this.recordButton!.hidden = true;
       this.disconnectButton!.hidden = true;
+      this.cancelButton!.hidden = true;
       this.devicePrompt!.innerText = 'Device not connected';
     }
 
@@ -882,6 +895,7 @@ export class SpRecordTrace extends BaseElement {
           if (options.length <= 0) {
             this.recordButton!.hidden = true;
             this.disconnectButton!.hidden = true;
+            this.cancelButton!.hidden = true;
             this.devicePrompt!.innerText = 'Device not connected';
             this.sp!.search = false;
             SpRecordTrace.serialNumber = '';
@@ -1240,6 +1254,7 @@ export class SpRecordTrace extends BaseElement {
           } else {
             this.recordButton!.hidden = true;
             this.disconnectButton!.hidden = true;
+            this.cancelButton!.hidden = true;
             this.devicePrompt!.innerText = 'Device not connected';
             SpRecordTrace.serialNumber = '';
           }
@@ -1322,6 +1337,7 @@ export class SpRecordTrace extends BaseElement {
               this.litSearch!.clear();
               this.litSearch!.setPercent(`tracing  ${this.recordSetting!.maxDur * 1000}ms`, -1);
               this.buttonDisable(true);
+              this.cancelButton!.hidden = false;
               this.freshMenuDisable(true);
               this.freshConfigMenuDisable(true);
               if (SpApplication.isLongTrace) {
@@ -1813,6 +1829,7 @@ export class SpRecordTrace extends BaseElement {
         this.deviceSelect!.appendChild(option);
         this.recordButton!.hidden = false;
         this.disconnectButton!.hidden = false;
+        this.cancelButton!.hidden = false;
         this.devicePrompt!.innerText = '';
       }
       if (SpRecordTrace.selectVersion && SpRecordTrace.selectVersion !== '') {
