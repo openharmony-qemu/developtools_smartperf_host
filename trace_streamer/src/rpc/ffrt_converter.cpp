@@ -122,7 +122,7 @@ static uint32_t ExtractProcessId(ConStr& log)
 
 static int ExtractThreadId(ConStr& log)
 {
-    static const std::regex pattern(R"( \(.+\)\s+\[\d)");
+    static const std::regex pattern(R"( \(\s*\d+\)\s+\[\d)");
     std::smatch match;
     if (std::regex_search(log, match, pattern)) {
         std::string prefix = log.substr(0, match.position());
@@ -693,7 +693,7 @@ static std::string MakeWakeupFakeLog(ConStr &log, const FakeLogArgs &fakeLogArgs
     std::stringstream fakeLogStrm;
     fakeLogStrm << log.substr(0, log.find(tracingMarkerKey)) << "sched_wakeup: comm=" <<
                 fakeLogArgs.taskLabel << " pid=" << mockTid << " prio=" <<
-                fakeLogArgs.prio << " target_cpu=" << fakeLogArgs.cpuId << "\n";
+                fakeLogArgs.prio << " target_cpu=" << fakeLogArgs.cpuId;
     return fakeLogStrm.str();
 }
 
@@ -998,45 +998,6 @@ void HandleSchedSwitch(ConStr &mark, int tid, int &prio)
     }
 }
 
-bool FfrtConverter::HandleFfrtTaskCo(ConStr &log, int lineno, bool &switchInFakeLog, bool &switchOutFakeLog)
-{
-    static const std::string fPattern = " F|";
-    static const std::string hCo = "|H:Co";
-
-    size_t fPos = log.find(fPattern);
-    if (fPos == std::string::npos) {
-        return false;
-    }
-    size_t hCoPos = log.find(hCo, fPos + fPattern.size());
-    if (hCoPos != std::string::npos && hCoPos > fPos + fPattern.size()) {
-        bool valid = true;
-        std::string numStr = log.substr(fPos + fPattern.size(), hCoPos - fPos - fPattern.size());
-        int num = 0;
-        auto [ptr, ec] = std::from_chars(numStr.data(), numStr.data() + numStr.size(), num);
-        if (ec != std::errc{}) {
-            valid = false;
-        }
-
-        if (!valid) {
-            return false;
-        }
-        size_t afterCo = hCoPos + hCo.size();
-        while (afterCo < log.length() && isspace(log[afterCo])) {
-            ++afterCo;
-        }
-        if (afterCo < log.length() && isdigit(log[afterCo])) {
-            context_[lineno] = "\n";
-            if (switchInFakeLog) {
-                switchInFakeLog = false;
-            } else {
-                switchOutFakeLog = true;
-            }
-            return true;
-        }
-    }
-    return false;
-}
-
 static bool IsFfrtTaskBlockOrFinish(ConStr &log)
 {
     static const std::string fStr = " F|";
@@ -1100,8 +1061,6 @@ bool FfrtConverter::HandleFfrtTaskExecute(FakeLogArgs &fakLogArg, WakeLogs &wake
         if (!missLog.empty()) {
             context_[fakLogArg.lineno] = missLog + context_[fakLogArg.lineno];
         }
-        fakLogArg.switchInFakeLog = true;
-        fakLogArg.switchOutFakeLog = false;
         if (wakeLogs.find(fakLogArg.taskRunning) != wakeLogs.end()) {
             int prevIndex = FindGreaterThan(wakeLogs[fakLogArg.taskRunning], fakLogArg.lineno);
             if (prevIndex > 0) {
@@ -1115,30 +1074,16 @@ bool FfrtConverter::HandleFfrtTaskExecute(FakeLogArgs &fakLogArg, WakeLogs &wake
 }
 
 bool FfrtConverter::HandlePreLineno(FakeLogArgs &fakArg, WakeLogs &wakeLogs,
-                                    TaskLabels &taskLabels, ConStr traceBeginMark, ConStr traceEndMark)
+                                    TaskLabels &taskLabels)
 {
     std::string label = ExtractTaskLable(fakArg.log);
     if (HandleFfrtTaskExecute(fakArg, wakeLogs, taskLabels, label)) {
         return true;
     }
     if (fakArg.taskRunning != -1) {
-        if (HandleFfrtTaskCo(fakArg.log, fakArg.lineno, fakArg.switchInFakeLog, fakArg.switchOutFakeLog)) {
-            return true;
-        }
-        if (fakArg.switchInFakeLog && (fakArg.log.find(traceBeginMark) != std::string::npos)) {
-            context_[fakArg.lineno] = "\n";
-            return true;
-        }
-        if (fakArg.switchOutFakeLog && (fakArg.log.find(traceEndMark) != std::string::npos)) {
-            context_[fakArg.lineno] = "\n";
-            return true;
-        }
         if (IsFfrtTaskBlockOrFinish(fakArg.log)) {
             std::string fakeLog = MakeCoyieldFakeLog(fakArg);
             context_[fakArg.lineno] = fakeLog;
-            if (fakArg.switchOutFakeLog) {
-                fakArg.switchOutFakeLog = false;
-            }
             fakArg.taskRunning = -1;
             return true;
         }
@@ -1151,8 +1096,7 @@ bool FfrtConverter::HandlePreLineno(FakeLogArgs &fakArg, WakeLogs &wakeLogs,
 }
 
 void FfrtConverter::ExceTaskLabelOhos(TaskLabels &taskLabels, FfrtWakeLogs &ffrtWakeLogs,
-                                      std::pair<int, FfrtTidMap> pidItem, std::string traceBeginMark,
-                                      std::string traceEndMark)
+                                      std::pair<int, FfrtTidMap> pidItem)
 {
     taskLabels[pidItem.first] = {};
     WakeLogs tmp = {};
@@ -1164,8 +1108,6 @@ void FfrtConverter::ExceTaskLabelOhos(TaskLabels &taskLabels, FfrtWakeLogs &ffrt
         std::vector<int> linenos = tidItem.second.second;
         int prio = 120;
 
-        bool switchInFakeLog = false;
-        bool switchOutFakeLog = false;
         int taskRunning = -1;
 
         for (auto lineno : linenos) {
@@ -1176,19 +1118,17 @@ void FfrtConverter::ExceTaskLabelOhos(TaskLabels &taskLabels, FfrtWakeLogs &ffrt
             std::string cpuId = ExtractCpuId(log);
             std::string timestamp = ExtractTimeStr(log);
             FakeLogArgs fakArg{pidItem.first, tidItem.first, taskRunning, prio, lineno,
-                               switchInFakeLog, switchOutFakeLog, log, tname,
-                               taskLabels[pidItem.first][taskRunning], cpuId, timestamp};
-            HandlePreLineno(fakArg, wakeLogs, taskLabels, traceBeginMark, traceEndMark);
+                               log, tname, taskLabels[pidItem.first][taskRunning],
+                               cpuId, timestamp};
+            HandlePreLineno(fakArg, wakeLogs, taskLabels);
         }
     }
 }
 
 void FfrtConverter::GenTaskLabelsOhos(FfrtPids &ffrtPids, FfrtWakeLogs& ffrtWakeLogs, TaskLabels &taskLabels)
 {
-    static std::string traceBeginMark = tracingMarkerKey_ + "B";
-    static std::string traceEndMark = tracingMarkerKey_ + "E";
     for (auto &pidItem : ffrtPids) {
-        ExceTaskLabelOhos(taskLabels, ffrtWakeLogs, pidItem, traceBeginMark, traceEndMark);
+        ExceTaskLabelOhos(taskLabels, ffrtWakeLogs, pidItem);
     }
 }
 
@@ -1237,16 +1177,16 @@ bool FfrtConverter::HandleHFfrtTaskExecute(FakeLogArgs &fakeArgs, WakeLogs &wake
     }
     fakeArgs.taskRunning = gid;
     FakeLogArgs fakArg2{fakeArgs.pid, fakeArgs.tid, fakeArgs.taskRunning, fakeArgs.prio, fakeArgs.lineno,
-                        fakeArgs.switchInFakeLog, fakeArgs.switchOutFakeLog, fakeArgs.log, fakeArgs.tname,
-                        taskLabels[fakeArgs.pid][fakeArgs.taskRunning], fakeArgs.cpuId, fakeArgs.timestamp};
+                        fakeArgs.log, fakeArgs.tname, taskLabels[fakeArgs.pid][fakeArgs.taskRunning],
+                        fakeArgs.cpuId, fakeArgs.timestamp};
     std::string fakeLog = MakeCostartFakeLog(fakArg2);
     context_[fakeArgs.lineno] = fakeLog;
     if (!missLog.empty()) {
         context_[fakeArgs.lineno] = missLog + context_[fakeArgs.lineno];
     }
     FakeLogArgs fakArg3{fakeArgs.pid, fakeArgs.tid, fakeArgs.taskRunning, fakeArgs.prio, fakeArgs.lineno,
-                        fakeArgs.switchInFakeLog, fakeArgs.switchOutFakeLog, fakeArgs.log, fakeArgs.tname,
-                        taskLabels[fakeArgs.pid][fakeArgs.taskRunning], fakeArgs.cpuId, fakeArgs.timestamp};
+                        fakeArgs.log, fakeArgs.tname, taskLabels[fakeArgs.pid][fakeArgs.taskRunning],
+                        fakeArgs.cpuId, fakeArgs.timestamp};
     if (wakeLogs.find(fakeArgs.taskRunning) != wakeLogs.end()) {
         int prevIndex = FindGreaterThan(wakeLogs[fakeArgs.taskRunning], fakeArgs.lineno);
         if (prevIndex > 0) {
@@ -1313,8 +1253,6 @@ bool FfrtConverter::HandlePreLinenoNohos(FakeLogArgs &fakArg, WakeLogs &wakeLogs
 void FfrtConverter::ExceTaskLabelNohos(TaskLabels &taskLabels, FfrtWakeLogs &ffrtWakeLogs,
                                        std::pair<int, FfrtTidMap> pidItem, std::unordered_map<int, int> &schedWakeFlag)
 {
-    bool oneF = false;
-    bool twoF = false;
     taskLabels[pidItem.first] = {};
     WakeLogs tmp = {};
     WakeLogs &wakeLogs = (ffrtWakeLogs.find(pidItem.first) != ffrtWakeLogs.end())
@@ -1337,8 +1275,8 @@ void FfrtConverter::ExceTaskLabelNohos(TaskLabels &taskLabels, FfrtWakeLogs &ffr
             std::string label = ExtractTaskLable(log);
 
             FakeLogArgs fakArg{pidItem.first, tidItem.first, taskRunning, prio, lineno,
-                               oneF, twoF, log, tname,
-                               taskLabels[pidItem.first][taskRunning], cpuId, timestamp};
+                               log, tname, taskLabels[pidItem.first][taskRunning],
+                               cpuId, timestamp};
             HandlePreLinenoNohos(fakArg, wakeLogs, taskLabels, schedWakeFlag);
         }
     }
