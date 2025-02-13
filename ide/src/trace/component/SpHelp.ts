@@ -38,8 +38,8 @@ export class SpHelp extends BaseElement {
       this.removeAttribute('dark');
     }
     this.helpFile!.innerHTML =
-      '<object type="text/html" data=' +
-      `/application/doc/quickstart_device_record.html?${dark} width="100%" height="100%"></object>`;
+      '<iframe id="myIframe" type="text/html" src=' +
+      `/application/doc/quickstart_device_record.html?${dark} width="100%" height="100%"></iframe>`;
     this.navbarInit('quickstart_device_record');
   }
 
@@ -90,8 +90,8 @@ export class SpHelp extends BaseElement {
     if (urlParams.get('action')!.length > 4) {
       let helpDocIndex = urlParams.get('action')!.substring(5);
       let helpDocDetail = this.getEventDefinitionByIndex(Number(helpDocIndex));
-      that.helpFile!.innerHTML = `<object type="text/html" data='/application/doc/${helpDocDetail!.name}.html?${that.dark
-        }' width="100%" height="100%"></object>`;
+      that.helpFile!.innerHTML = `<iframe id="myIframe" type="text/html" src='/application/doc/${helpDocDetail!.name}.html?${that.dark
+        }' width="100%" height="100%"></iframe>`;
 
       this.navbarInit(helpDocDetail!.name);
     }
@@ -267,7 +267,7 @@ export class SpHelp extends BaseElement {
       event: event,
       action: 'help_doc',
     });
-    that.helpFile!.innerHTML = `<object type="text/html" data='/application/doc/${docName}.html?${that.dark}' width="100%" height="100%"></object>`;
+    that.helpFile!.innerHTML = `<iframe id="myIframe" type="text/html" src='/application/doc/${docName}.html?${that.dark}' width="100%" height="100%"></iframe>`;
     this.navbarInit(docName);
     this.changeItemURL(index!);
   }
@@ -301,7 +301,7 @@ export class SpHelp extends BaseElement {
             navLink.closest('li')!.classList.add('active');
             let targetId = navLink.id;
             e.preventDefault();
-            this.helpFile!.innerHTML = `<object type="text/html" data='/application/doc/${docName}.html?dark=${this.dark}&targetId=${targetId}' width="100%" height="100%"></object>`;
+            this.helpFile!.innerHTML = `<iframe id="myIframe" type="text/html" src='/application/doc/${docName}.html?dark=${this.dark}&targetId=${targetId}' width="100%" height="100%"></iframe>`;
           });
         });
 
@@ -310,7 +310,7 @@ export class SpHelp extends BaseElement {
           navLinks.forEach((navLink) => {
             navLink.closest('li')?.classList.remove('active');
           });
-          this.helpFile!.innerHTML = `<object type="text/html" data='/application/doc/${docName}.html?dark=${this.dark}' width="100%" height="100%"></object>`;
+          this.helpFile!.innerHTML = `<iframe id="myIframe" type="text/html" src='/application/doc/${docName}.html?dark=${this.dark}' width="100%" height="100%"></iframe>`;
         });
 
       })
@@ -640,7 +640,9 @@ export class SpHelp extends BaseElement {
          #navbar-container ul li.active, #navbar-container ul li.active a {  
           color: #ecb829;  
          }
-
+        iframe {
+          border-width: 0px;
+        }
         </style>
         <div class="sp-help-vessel">
          <div class="body">
