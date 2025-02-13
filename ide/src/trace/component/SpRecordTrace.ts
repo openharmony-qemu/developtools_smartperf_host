@@ -74,7 +74,7 @@ import { LitCheckBox } from '../../base-ui/checkbox/LitCheckBox';
 const DEVICE_NOT_CONNECT =
   '<div>1.请确认抓取设备上是否已勾选并确认总是允许smartPerf-Host调试的弹窗</div>' +
   '<div>2.请关闭DevEco Studio,DevEco Testing等会占用hdc端口的应用</div>' +
-  '<div>3.请使用系统管理员权限打开cmd窗口，并执行hdc kill，确保PC端任务管理器中没有hdc进程</div>' +
+  '<div>3.确保PC端任务管理器中没有hdc进程。方法1、请使用系统管理员权限打开cmd窗口，并执行hdc kill；<br/>方法2、打开任务管理器，进入详情信息页面，找到 hdc.exe 然后结束此进程；</div>' +
   '<div>4.若没有效果，请重新插拔一下手机。紧急情况可拷贝trace命令，在cmd窗口离线抓取</div>';
 
 @element('sp-record-trace')
