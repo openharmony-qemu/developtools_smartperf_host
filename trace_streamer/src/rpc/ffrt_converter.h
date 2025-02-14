@@ -56,8 +56,6 @@ struct FakeLogArgs {
     int &taskRunning;
     int prio;
     int lineno;
-    bool &switchInFakeLog;
-    bool &switchOutFakeLog;
     std::string &log;
     std::string &tname;
     std::string &taskLabel;
@@ -98,15 +96,13 @@ private:
 
     void HandleMarks(ConStr &log, int lineno, int pid);
 
-    bool HandleFfrtTaskCo(ConStr &log, int lineno, bool &switchInFakeLog, bool &switchOutFakeLog);
-
     bool HandleFfrtTaskExecute(FakeLogArgs &fakLogArg, WakeLogs &wakeLogs,
                                TaskLabels &taskLabels, std::string &label);
 
     void GenTaskLabelsOhos(FfrtPids &ffrtPids, FfrtWakeLogs& ffrtWakeLogs, TaskLabels &taskLabels);
 
     bool HandlePreLineno(FakeLogArgs &fakArg, WakeLogs &wakeLogs,
-                         TaskLabels &taskLabels, ConStr traceBeginMark, ConStr traceEndMark);
+                         TaskLabels &taskLabels);
 
     void SetTracingMarkerKey(LogInfo logInfo);
 
@@ -116,8 +112,7 @@ private:
 
     void HandleTaskGroups(std::vector<std::vector<tidInfo>> &taskGroups, WakeLogs &wakeLogs);
 
-    void ExceTaskLabelOhos(TaskLabels &taskLabels, FfrtWakeLogs &ffrtWakeLogs, std::pair<int, FfrtTidMap> pidItem,
-                           std::string traceBeginMark, std::string traceEndMark);
+    void ExceTaskLabelOhos(TaskLabels &taskLabels, FfrtWakeLogs &ffrtWakeLogs, std::pair<int, FfrtTidMap> pidItem);
 
     bool HandleHFfrtTaskExecute(FakeLogArgs &fakeArgs, WakeLogs &wakeLogs, TaskLabels &taskLabels,
                                 std::string label, std::unordered_map<int, int> &schedWakeFlag);
