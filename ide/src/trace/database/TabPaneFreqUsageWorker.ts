@@ -335,8 +335,10 @@ function returnObj(
           frequency: computorPower ? cpuFreqData.value / FREQ_MUTIPLE + ': ' + computorPower * comPower!.get(item.cpu).smtRate + '*' : cpuFreqData.value / FREQ_MUTIPLE,
           dur: parallelDur,
           percent: (parallelDur / sum) * PERCENT,
-          consumpower: computorPower * parallelDur,
-          cpuload: (computorPower * parallelDur) / (timeZones * maxCommpuPower) * PERCENT,
+          // @ts-ignore
+          consumpower: computorPower * parallelDur * comPower!.get(item.cpu).smtRate,
+          // @ts-ignore
+          cpuload: (computorPower * parallelDur * comPower!.get(item.cpu).smtRate) / (timeZones * maxCommpuPower) * PERCENT,
           // @ts-ignore
           ts: item.ts - recordStartNS
         }
