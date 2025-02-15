@@ -132,7 +132,7 @@ export const SpRecordTraceHtml = `
     :host([show_hint]) #hint {
       color: #DB5860;
       font-weight: 600;
-      font-size: 14px;
+      font-size: 12px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
