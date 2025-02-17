@@ -580,6 +580,7 @@ export class SpRecordTrace extends BaseElement {
         if (fileHandler) {
           this.refreshDisableStyle(false, false);
           this.recordButton!.hidden = false;
+          this.cancelButton!.hidden = true;
           fileHandler({
             detail: file,
           });
@@ -594,6 +595,7 @@ export class SpRecordTrace extends BaseElement {
         this.useExtentTip!.innerHTML = `抓取trace异常：${errorMsg} 可根据[<span style='cursor:pointer;'><a href=${exceptGuid} syule = 'color:blue;' target='_blank'>常见异常处理</a></span>]解决异常`;
         this.refreshDisableStyle(false, false);
         this.recordButton!.hidden = false;
+        this.cancelButton!.hidden = true;
         this.sp!.search = false;
         this.progressEL!.loading = false;
       } else if (cmd === 4) {
@@ -759,7 +761,7 @@ export class SpRecordTrace extends BaseElement {
             option.selected = true;
             this.recordButton!.hidden = false;
             this.disconnectButton!.hidden = false;
-            this.cancelButton!.hidden = false;
+            this.cancelButton!.hidden = true;
             this.devicePrompt!.innerText = '';
             this.hintEl!.textContent = '';
             // @ts-ignore
