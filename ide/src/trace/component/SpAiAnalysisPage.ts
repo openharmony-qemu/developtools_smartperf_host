@@ -258,6 +258,8 @@ export class SpAiAnalysisPage extends BaseElement {
             if (e.key.toLocaleLowerCase() === 'control' || e.keyCode === 17) {
                 this.isCtrlDown = false;
             };
+            e.preventDefault();
+            e.stopPropagation();
         });
 
         // 下载诊断报告按钮监听

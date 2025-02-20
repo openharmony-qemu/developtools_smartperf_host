@@ -201,7 +201,7 @@ export class TabPaneFrequencySample extends BaseElement {
       let tmpPosition = tmpCpuArr.findIndex(item => item[1].filterId === weightMapArr[j][1].filterId);
       if (singleCpuArr[0] && singleCpuArr[0].length >= 2) {
         // @ts-ignore
-        tmpCpuArr.splice(tmpPosition, 0, [`${weightMapArr[j][1].filterId}-0`, { counter: `${singleCpuArr[0][1].counter}:( WA )`, time: tmpTotalTime, valueStr: ColorUtils.formatNumberComma(Math.round(tmpTotalCount / (tmpTotalTime / 1000000))) }]);
+        tmpCpuArr.splice(tmpPosition, 0, [`${weightMapArr[j][1].filterId}-0`, {cpu:singleCpuArr[0][1].cpu, counter: `${singleCpuArr[0][1].counter}:( WA )`, time: tmpTotalTime, valueStr: ColorUtils.formatNumberComma(Math.round(tmpTotalCount / (tmpTotalTime / 1000000))) }]);
       }
     };
     sampleMap = new Map(tmpCpuArr);

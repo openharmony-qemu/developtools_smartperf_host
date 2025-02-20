@@ -312,6 +312,8 @@ function returnObj(
       result.consumpower = result.consumpower * comPower!.get(item.cpu).smtRate;
       // @ts-ignore
       result.frequency = cpuFreqData.value / FREQ_MUTIPLE + ': ' + computorPower * comPower!.get(item.cpu).smtRate + '*';
+      // @ts-ignore
+      result.cpuload = result.consumpower / (timeZones * maxCommpuPower) * PERCENT;
       return result;
     } else {
       let resultArr = [
