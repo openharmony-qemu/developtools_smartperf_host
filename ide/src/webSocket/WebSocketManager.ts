@@ -118,7 +118,7 @@ export class WebSocketManager {
     updateMessage(decode: MessageParam): void {
         if (decode.cmd === Constants.GET_VERSION_CMD) {
             // 小于则升级
-            let targetVersion = '1.0.9';
+            let targetVersion = '1.1.0';
             let currentVersion = new TextDecoder().decode(decode.data);
             let result = this.compareVersion(currentVersion, targetVersion);
             if (result === -1) {
