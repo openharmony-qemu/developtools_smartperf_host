@@ -612,7 +612,9 @@ export class TraceSheet extends BaseElement {
       if (files) {
         let fileList: Array<File> = [];
         for (let file of files) {
-          fileList.push(file);
+          if(!file.name.includes('.an')){
+            fileList.push(file);
+          }
         }
         if (fileList.length > 0) {
           importFileBt!.disabled = true;
