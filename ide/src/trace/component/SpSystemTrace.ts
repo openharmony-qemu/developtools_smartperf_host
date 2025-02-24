@@ -974,8 +974,8 @@ export class SpSystemTrace extends BaseElement {
 
   documentOnMouseOut = (ev: MouseEvent): void => spSystemTraceDocumentOnMouseOut(this, ev);
 
-  documentOnPointercancel = (ev: any): void => {//@ts-ignore
-    if (ev.pointerType == 'mouse' && (window as unknown).isSheetMove) {
+  documentOnPointercancel = (ev: any): void => {
+    if (ev.pointerType == 'mouse') {
       this.dispatchEvent(
         new CustomEvent('abnormal-mouseup', {
           detail: {
