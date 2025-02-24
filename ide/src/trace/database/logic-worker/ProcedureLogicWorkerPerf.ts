@@ -312,6 +312,8 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       // @ts-ignore
       funcVaddrLastItem.thread_id = vaddrCallchainList[i].thread_id;
       // @ts-ignore
+      funcVaddrLastItem.count = vaddrCallchainList[i].count;
+      // @ts-ignore
       funcVaddrLastItem.libName = lastCallChain.fileName;
       // @ts-ignore
       sampleCallChainList.push(funcVaddrLastItem);
@@ -1362,14 +1364,15 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       'perf-vaddr-back',
       `select s.callchain_id,
             s.thread_id,
-            thread.process_id
+            thread.process_id,
+            count(callchain_id) as count
             from perf_sample s, trace_range t
             left join perf_thread thread on s.thread_id = thread.thread_id
             where timestamp_trace between ${selectionParam.leftNs} + t.start_ts
             and ${selectionParam.rightNs} + t.start_ts
             and s.callchain_id != -1
             and s.thread_id != 0  ${filterSql}
-        group by s.callchain_id`,
+        group by s.callchain_id,s.thread_id`,
       {
         $startTime: selectionParam.leftNs,
         $endTime: selectionParam.rightNs,
