@@ -46,14 +46,14 @@ export class TabPerfFuncAsm extends BaseElement {
 
   initElements(): void {
     this.assmblerTable = this.shadowRoot!.querySelector<LitTable>(
-        "#perf-function-asm-table"
+      "#perf-function-asm-table"
     );
     this.loadingElement =
-        this.shadowRoot!.querySelector<HTMLElement>("#loading");
+      this.shadowRoot!.querySelector<HTMLElement>("#loading");
     this.totalCountElement =
-        this.shadowRoot!.querySelector<HTMLDivElement>("#total-count");
+      this.shadowRoot!.querySelector<HTMLDivElement>("#total-count");
     this.textFileOffElement =
-        this.shadowRoot!.querySelector<HTMLDivElement>("#text-file-off");
+      this.shadowRoot!.querySelector<HTMLDivElement>("#text-file-off");
     this.errorMessageElement = this.shadowRoot!.querySelector<HTMLDivElement>("#error-message");
 
     this.assmblerTable!.style.display = "grid";
@@ -79,7 +79,7 @@ export class TabPerfFuncAsm extends BaseElement {
     });
 
     this.assmblerTable!.addEventListener("column-click", ((evt: Event) => {
-      const {key, sort} = (evt as CustomEvent).detail;
+      const { key, sort } = (evt as CustomEvent).detail;
       if (key === "selfcount") {
         if (sort === 0) {
           this.assmblerTable!.recycleDataSource = this.originalShowUpData;
@@ -87,8 +87,8 @@ export class TabPerfFuncAsm extends BaseElement {
         } else {
           this.showUpData.sort((a, b) => {
             return sort === 1
-                ? a.selfcount - b.selfcount
-                : b.selfcount - a.selfcount;
+              ? a.selfcount - b.selfcount
+              : b.selfcount - a.selfcount;
           });
           this.assmblerTable!.recycleDataSource = this.showUpData;
           this.assmblerTable!.reMeauseHeight();
@@ -191,7 +191,7 @@ export class TabPerfFuncAsm extends BaseElement {
               }
             };
 
-            WebSocketManager.getInstance()?.registerMessageListener(TypeConstants.DISASSEMBLY_TYPE, callback, () => {}, true );
+            WebSocketManager.getInstance()?.registerMessageListener(TypeConstants.DISASSEMBLY_TYPE, callback, () => { }, true);
           }),
           new Promise((_, reject) => setTimeout(() => {
             WebSocketManager.getInstance()?.unregisterCallback(TypeConstants.DISASSEMBLY_TYPE, callback);
@@ -229,7 +229,7 @@ export class TabPerfFuncAsm extends BaseElement {
       // @ts-ignore
       const count = this.funcSampleMap.get(item.offsetToVaddr) || 0;
       // @ts-ignore
-      this.funcSampleMap.set(item.offsetToVaddr, count + 1);
+      this.funcSampleMap.set(item.offsetToVaddr, count + item.count);
     });
   }
 
