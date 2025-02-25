@@ -104,10 +104,10 @@ import { XpowerThreadInfoStruct } from '../../../database/ui-worker/ProcedureWor
 import { TabPaneXpowerThreadInfoSelection } from '../sheet/xpower/TabPaneXpowerThreadInfoSelection';
 import { TabPaneXpowerGpuFreqSelection } from '../sheet/xpower/TabPaneXpowerGpuFreqSelection';
 import { XpowerGpuFreqStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerGpuFreq';
-import { WebSocketManager} from "../../../../webSocket/WebSocketManager";
-import { Constants, TypeConstants} from "../../../../webSocket/Constants";
+import { WebSocketManager } from "../../../../webSocket/WebSocketManager";
+import { Constants, TypeConstants } from "../../../../webSocket/Constants";
 import { PerfFunctionAsmParam } from '../../../bean/PerfAnalysis';
-import { info,error } from '../../../../log/Log';
+import { info, error } from '../../../../log/Log';
 import { XpowerThreadCountStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerThreadCount';
 import { XpowerGpuFreqCountStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerGpuFreqCount';
 
@@ -432,19 +432,17 @@ export class TraceSheet extends BaseElement {
     this.initNavElements(tabsPackUp!, borderTop, initialHeight);
     this.exportBt = this.shadowRoot?.querySelector<LitIcon>('#export-btn');
     tabsOpenUp!.onclick = (): void => {
-      this.tabs!.style.height = `${
-        window.innerHeight - this.search!.offsetHeight - this.timerShaft!.offsetHeight - borderTop
-      }px`;
+      this.tabs!.style.height = `${window.innerHeight - this.search!.offsetHeight - this.timerShaft!.offsetHeight - borderTop
+        }px`;
       let litTabpane: NodeListOf<HTMLDivElement> | undefined | null =
         this.shadowRoot?.querySelectorAll('#tabs > lit-tabpane');
       litTabpane!.forEach((node: HTMLDivElement): void => {
-        node!.style.height = `${
-          window.innerHeight -
+        node!.style.height = `${window.innerHeight -
           this.search!.offsetHeight -
           this.timerShaft!.offsetHeight -
           this.navRoot!.offsetHeight -
           borderTop
-        }px`;
+          }px`;
         initialHeight.node = node!.style.height;
       });
       initialHeight.tabs = this.tabs!.style.height;
@@ -563,7 +561,7 @@ export class TraceSheet extends BaseElement {
         // 只要没有移动到边界区域都会进入该条件
         that.navRoot!.offsetHeight <= newHeight &&
         that.search!.offsetHeight + that.timerShaft!.offsetHeight + borderTop + that.spacer!.offsetHeight <=
-          window.innerHeight - newHeight
+        window.innerHeight - newHeight
       ) {
         that.tabs!.style.height = `${newHeight}px`;
         litTabpane!.style.height = `${newHeight - that.navRoot!.offsetHeight}px`;
@@ -578,21 +576,19 @@ export class TraceSheet extends BaseElement {
         window.innerHeight - newHeight
       ) {
         // 该条件在面板高度置顶时触发
-        that.tabs!.style.height = `${
-          window.innerHeight -
+        that.tabs!.style.height = `${window.innerHeight -
           that.search!.offsetHeight -
           that.timerShaft!.offsetHeight -
           borderTop -
           that.spacer!.offsetHeight
-        }px`;
-        litTabpane!.style.height = `${
-          window.innerHeight -
+          }px`;
+        litTabpane!.style.height = `${window.innerHeight -
           that.search!.offsetHeight -
           that.timerShaft!.offsetHeight -
           that.navRoot!.offsetHeight -
           borderTop -
           that.spacer!.offsetHeight
-        }px`;
+          }px`;
         tabsPackUp!.name = 'down';
       }
       that.tabPaneHeight = litTabpane!.style.height;
@@ -606,38 +602,39 @@ export class TraceSheet extends BaseElement {
 
   private importClickEvent(): void {
     let importFileBt: HTMLInputElement | undefined | null =
-        this.shadowRoot?.querySelector<HTMLInputElement>('#import-file');
+      this.shadowRoot?.querySelector<HTMLInputElement>('#import-file');
     importFileBt!.addEventListener('change', (event): void => {
       let files = importFileBt?.files;
       if (files) {
         let fileList: Array<File> = [];
         for (let file of files) {
-          if(!file.name.includes('.an')){
-            fileList.push(file);
-          }
+          fileList.push(file);
         }
         if (fileList.length > 0) {
           importFileBt!.disabled = true;
           window.publish(window.SmartEvent.UI.Loading, { loading: true, text: 'Import So File' });
-          this.uploadSoOrAN(fileList).then(r =>
-              threadPool.submit(
-                  'upload-so',
-                  '',
-                  fileList,
-                  (res: unknown) => {
-                    importFileBt!.disabled = false; // @ts-ignore
-                    if (res.result === 'ok') {
-                      window.publish(window.SmartEvent.UI.UploadSOFile, {});
-                    } else {
-                      // @ts-ignore
-                      const failedList = res.failedArray.join(',');
-                      window.publish(window.SmartEvent.UI.Error, `parse so file ${failedList} failed!`);
-                    }
-                  },
-                  'upload-so'
-              )).finally(() => {
-                fileList.length = 0;
-              })
+          this.uploadSoOrAN(fileList).then(r => {
+            fileList = fileList.filter(item => !item.name.includes('.an'));
+            threadPool.submit(
+              'upload-so',
+              '',
+              fileList,
+              (res: unknown) => {
+                importFileBt!.disabled = false; // @ts-ignore
+                if (res.result === 'ok') {
+                  window.publish(window.SmartEvent.UI.UploadSOFile, {});
+                } else {
+                  // @ts-ignore
+                  const failedList = res.failedArray.join(',');
+                  window.publish(window.SmartEvent.UI.Error, `parse so file ${failedList} failed!`);
+                }
+              },
+              'upload-so'
+            )
+          }
+          ).finally(() => {
+            fileList.length = 0;
+          })
         }
       }
       importFileBt!.files = null;
@@ -683,7 +680,7 @@ export class TraceSheet extends BaseElement {
       // 定义一个 ACK 回调函数的等待机制
       const waitForAck = (): Promise<void> => {
         return new Promise<void>((resolve, reject) => {
-          wsInstance!.registerMessageListener(TypeConstants.DISASSEMBLY_TYPE, onAckReceived, () => {}, true);
+          wsInstance!.registerMessageListener(TypeConstants.DISASSEMBLY_TYPE, onAckReceived, () => { }, true);
           // 定义超时定时器
           const timeout = setTimeout(() => {
             // 超时后注销回调并拒绝 Promise
@@ -702,7 +699,7 @@ export class TraceSheet extends BaseElement {
                   bufferIndex++;
                   // 当收到对应分片的 ACK 时，resolve Promise，继续上传下一个分片
                   resolve();
-                }else{
+                } else {
                   // 上传失败，拒绝 Promise 并返回
                   reject(new Error(`Upload failed for file: ${fileName}, index: ${jsonRes.bufferIndex})`));
                 }
