@@ -614,11 +614,15 @@ export class TraceSheet extends BaseElement {
           importFileBt!.disabled = true;
           window.publish(window.SmartEvent.UI.Loading, { loading: true, text: 'Import So File' });
           this.uploadSoOrAN(fileList).then(r => {
-            fileList = fileList.filter(item => !item.name.includes('.an'));
+            let  soFileList = fileList.filter(item => !item.name.includes('.an'));
+            if(soFileList.length === 0) {
+              window.publish(window.SmartEvent.UI.UploadSOFile, {});
+              return;
+            }
             threadPool.submit(
               'upload-so',
               '',
-              fileList,
+              soFileList,
               (res: unknown) => {
                 importFileBt!.disabled = false; // @ts-ignore
                 if (res.result === 'ok') {

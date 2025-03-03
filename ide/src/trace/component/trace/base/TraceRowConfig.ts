@@ -434,12 +434,17 @@ export class TraceRowConfig extends BaseElement {
       this.loadTempConfig(this.defaultConfigList);
       this.resetChartTable();
     });
+    this.inputElement?.addEventListener('keypress',(e) => {
+      e.stopPropagation();
+    })
   }
 
   private initSwitchClickListener(): void {
     let jsonUrl = `https://${window.location.host.split(':')[0]}:${window.location.port
       }/application/trace/config/custom_temp_config.json`;
     this.switchButton!.addEventListener('click', () => {
+      // @ts-ignore
+      this.inputElement?.value = '';
       if (this.switchButton!.title === 'Show charts template') {
         this.switchButton!.title = 'Show subSystem template';
         this.refreshAllConfig(true, true);
@@ -491,7 +496,8 @@ export class TraceRowConfig extends BaseElement {
   }
 
   connectedCallback(): void {
-    this.inputElement?.addEventListener('keyup', () => {
+    this.inputElement?.addEventListener('keyup', (e) => {
+      e.stopPropagation();
       this.shadowRoot!.querySelectorAll<HTMLElement>('.chart-item').forEach((elementOption: HTMLElement) => {
         let searchText = elementOption.getAttribute('search_text') || '';
         if (searchText!.toLowerCase().indexOf(this.inputElement!.value.toLowerCase()) < 0) {
