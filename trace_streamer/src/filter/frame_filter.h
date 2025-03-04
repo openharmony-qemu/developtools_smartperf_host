@@ -19,6 +19,7 @@
 #include "common_types.h"
 #include "double_map.h"
 #include "filter_base.h"
+#include "clock_filter_ex.h"
 #include "trace_data_cache.h"
 #include "trace_streamer_filters.h"
 namespace SysTuning {
@@ -33,7 +34,10 @@ public:
                          uint32_t vsyncId,
                          uint32_t callStackSliceId);
     bool MarkRSOnDoCompositionEvent(uint32_t itid);
-    bool BeginRSTransactionData(uint32_t currentThreadId, uint32_t frameNum, uint32_t mainThreadId);
+    bool BeginRSTransactionData(uint32_t currentThreadId,
+                                uint32_t frameNum,
+                                uint32_t mainThreadId,
+                                uint64_t timeId = INVALID_UINT64);
     typedef struct {
         uint32_t sourceItid;
         uint32_t frameNum;
@@ -42,9 +46,10 @@ public:
     bool EndVsyncEvent(uint64_t ts, uint32_t itid);
     bool StartFrameQueue(uint64_t ts, uint32_t itid);
     bool EndFrameQueue(uint64_t ts, uint32_t itid);
-    bool UpdateVsyncId(const BytraceLine &line, uint32_t vsyncId);
+    bool UpdateVsyncId(const BytraceLine &line, uint32_t vsyncId, uint64_t timeId);
     void BeginUVTraceEvent(const BytraceLine &line, uint32_t callStackSliceId);
     void Clear();
+    void SetTraceType(TraceFileType traceType);
     void UpdateReadySize()
     {
         UpdateFrameSliceReadySize();
@@ -82,10 +87,13 @@ private:
         uint64_t dstFrameSliceId_ = INVALID_UINT64;
         uint64_t dstExpectedFrameSliceId_ = INVALID_UINT64;
         bool isUVTrace_ = false;
+        bool isEnd_ = false;
+        uint64_t nowId_ = INVALID_UINT64;
     };
     std::unordered_map<uint32_t /* tid */, std::vector<std::shared_ptr<FrameSlice>>> vsyncRenderSlice_ = {};
     std::unordered_map<uint32_t /* tid */, std::unordered_map<uint32_t /* frameNum */, std::shared_ptr<FrameSlice>>>
         dstRenderSlice_ = {};
+    TraceFileType traceType_ = TRACE_FILETYPE_H_TRACE;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning
