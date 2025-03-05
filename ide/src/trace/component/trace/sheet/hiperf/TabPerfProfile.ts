@@ -190,7 +190,7 @@ export class TabpanePerfProfile extends BaseElement {
     };
     let args = [];
     args.push({
-      funcName: 'getCurrentDataFromDb',
+      funcName: 'getCurrentDataFromDbProfile',
       funcArgs: [this.currentSelection, this.perfLevel],
     });
     // @ts-ignore

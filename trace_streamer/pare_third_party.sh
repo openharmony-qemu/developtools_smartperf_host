@@ -38,9 +38,12 @@ if [ ! -f "sqlite/BUILD.gn" ];then
 fi
 if [ ! -f "protobuf/BUILD.gn" ];then
     rm -rf protobuf
-    git clone --depth=1 git@gitee.com:openharmony/third_party_protobuf.git
+    git clone  git@gitee.com:openharmony/third_party_protobuf.git
     if [ -d "third_party_protobuf" ];then
         mv third_party_protobuf protobuf
+        cd protobuf
+        git reset --hard aceafed4cf26d7a6be8169ae887cc13b749d5515
+        cd ..
         $cp ../prebuilts/patch_protobuf/protobufbuild.gn ../third_party/protobuf/BUILD.gn
     fi
 fi

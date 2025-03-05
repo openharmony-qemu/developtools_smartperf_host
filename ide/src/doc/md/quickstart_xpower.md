@@ -65,7 +65,7 @@ Xpower用于查看系统整机和应用功耗数据，当前支持：电源信�
 - Value：值
 - Duration：持续时间
 
-框选system下的任意时间泳道图可以弹出Xpower Counters和Xpowe Component Top两个tab页
+框选system下的任意时间泳道图可以弹出Xpower Counters和Xpower Component Top两个tab页
 
 Xpower Counters的tab页
 
@@ -84,7 +84,7 @@ Xpower Counters的tab页
 - Min value：最小值
 - Max value：最大值
 
-Xpowe Component Top的tab页（此tab页为框选Battery.RealCurrent泳道图出现）
+Xpower Component Top的tab页（此tab页为框选Battery.RealCurrent泳道图出现）
 
 ![GitHub Logo](../../figures/Xpower/xpower_kx_top.jpg)
 
@@ -213,7 +213,7 @@ WIFIPacket、WIFIPacket和DisPlay泳道图的点选功能：点击WIFIPacket、W
 
 - StartTime(Relative) ：相对开始时间
 - StartTime(Absolute) ：绝对开始时间
-- receiver：接收数据大小
+- receive：接收数据大小
 - send：发送数据大小
 
 特别地：点击display的泳道图会出现屏幕刷新率的持续时间
@@ -261,7 +261,7 @@ Thread Count和Gpu Freq Count框选功能：框选Gpu Freq Count、Thread Count�
 - Min value：最小值
 - Max value：最大值
 
-Statistics泳道图的框选功能：框选Statistics泳道图任意处会弹出Xpowe Statistics的tab页
+Statistics泳道图的框选功能：框选Statistics泳道图任意处会弹出Xpower Statistics的tab页
 
 ![GitHub Logo](../../figures/Xpower/xpower_kx_Statistics.jpg)
 
@@ -279,7 +279,7 @@ WIFIPackets、WIFIBytes和Display泳道图的框选功能：框选WIFIPackets、
 - Min：最小值（display为刷新率的最小持续时间，WIFIBytes为收发的数据包个数活数据最小值）
 - Avg：平均值（display为刷新率的平均持续时间，WIFIBytes为收发的数据包个数活数据平均数）
 
-Thread energy泳道图的框选功能：框选Thread energy泳道图会弹出Xpowe Thread energy的tab页
+Thread energy泳道图的框选功能：框选Thread energy泳道图会弹出Xpower Thread energy的tab页
 
 ![GitHub Logo](../../figures/Xpower/xpower_kx_energy.jpg)
 
@@ -289,7 +289,7 @@ Thread energy泳道图的框选功能：框选Thread energy泳道图会弹出Xpo
 - Max Energy：最大能耗
 - Min Energy：最小能耗
 
-Thread Load泳道图的框选功能：框选Thread Load泳道图会弹出Xpowe Thread Load的tab页
+Thread Load泳道图的框选功能：框选Thread Load泳道图会弹出Xpower Thread Load的tab页
 
 ![GitHub Logo](../../figures/Xpower/xpower_kx_load.jpg)
 
@@ -299,7 +299,7 @@ Thread Load泳道图的框选功能：框选Thread Load泳道图会弹出Xpowe T
 - Max Load：最大占比
 - Min Load：最小占比
 
-Gpu Freq Count泳道图的框选功能：框选Thread energy泳道图会弹出Xpowe Gpu Frequency 的tab页
+Gpu Freq Count泳道图的框选功能：框选Thread energy泳道图会弹出Xpower Gpu Frequency 的tab页
 
 ![GitHub Logo](../../figures/Xpower/xpower_kx_freq.jpg)
 

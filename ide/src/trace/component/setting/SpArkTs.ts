@@ -36,6 +36,10 @@ export class SpArkTs extends BaseElement {
   private memorySwitch: LitSwitch | undefined | null;
   private cpuSwitch: LitSwitch | undefined | null;
   public litSwitch: LitSwitch | undefined | null;
+  private snapshotRadioBox: LitRadioBox | undefined | null;
+  private timelineRadioBox: LitRadioBox | undefined | null;
+  private snapshotCheckBox: SpCheckDesBox | undefined | null;
+  private timelineCheckBox: SpCheckDesBox | undefined | null;
 
   set startSamp(jsHeapStart: boolean) {
     if (jsHeapStart) {
@@ -164,6 +168,10 @@ export class SpArkTs extends BaseElement {
     this.litSwitch = this.shadowRoot?.querySelector('lit-switch') as LitSwitch;
     this.memorySwitch = this.shadowRoot?.querySelector('#memory-switch') as LitSwitch;
     this.cpuSwitch = this.shadowRoot?.querySelector('#cpu-switch') as LitSwitch;
+    this.snapshotRadioBox = this.shadowRoot?.querySelector('#heapsnapshot') as LitRadioBox;
+    this.timelineRadioBox = this.shadowRoot?.querySelector('#allcotimeline') as LitRadioBox;
+    this.snapshotCheckBox = this.shadowRoot?.querySelector('#snapshot') as SpCheckDesBox;
+    this.timelineCheckBox = this.shadowRoot?.querySelector('#timeline') as SpCheckDesBox;
     this.disable();
     this.memoryDisable();
   }
@@ -233,6 +241,22 @@ export class SpArkTs extends BaseElement {
     }
   };
 
+  snapshotRadioBoxChangeHandler = (event: Event): void => {
+    if (event) {
+      this.snapshotCheckBox!.disabled = false;
+      this.timelineCheckBox!.checked = false;
+      this.timelineCheckBox!.disabled = true;
+    }
+  };
+
+  timelineRadioBoxChangeHandler = (event: Event): void => {
+    if (event) {
+      this.snapshotCheckBox!.checked = false;
+      this.snapshotCheckBox!.disabled = true;
+      this.timelineCheckBox!.disabled = false;
+    }
+  };
+
   public memoryDisable(): void {
     let interval = this.shadowRoot?.querySelectorAll<HTMLInputElement>('#interval');
     interval!.forEach((item) => {
@@ -243,10 +267,12 @@ export class SpArkTs extends BaseElement {
     let radioBoxes = this.shadowRoot?.querySelectorAll<LitRadioBox>('lit-radio');
     radioBoxes!.forEach((item) => {
       item.disabled = true;
+      item.checked = false;
     });
     let checkBoxes = this.shadowRoot?.querySelectorAll<SpCheckDesBox>('check-des-box');
     checkBoxes!.forEach((item) => {
       item.disabled = true;
+      item.checked = false;
     });
   }
 
@@ -260,10 +286,13 @@ export class SpArkTs extends BaseElement {
     radioBoxes!.forEach((item) => {
       item.disabled = false;
     });
+    radioBoxes![0].checked = true;
     let checkBoxes = this.shadowRoot?.querySelectorAll<SpCheckDesBox>('check-des-box');
     checkBoxes!.forEach((item) => {
       item.disabled = false;
     });
+    checkBoxes![0].checked = true;
+    checkBoxes![1].disabled = true;
   }
 
   public disable(): void {
@@ -317,6 +346,8 @@ export class SpArkTs extends BaseElement {
     this.litSwitch!.addEventListener('change', this.litSwitchChangeHandler);
     this.memorySwitch!.addEventListener('change', this.memorySwitchChangeHandler);
     this.cpuSwitch!.addEventListener('change', this.cpuSwitchChangeHandler);
+    this.snapshotRadioBox!.addEventListener('click', this.snapshotRadioBoxChangeHandler);
+    this.timelineRadioBox!.addEventListener('click', this.timelineRadioBoxChangeHandler);
   }
 
   disconnectedCallback(): void {
@@ -325,6 +356,8 @@ export class SpArkTs extends BaseElement {
     this.litSwitch!.removeEventListener('change', this.litSwitchChangeHandler);
     this.memorySwitch!.removeEventListener('change', this.memorySwitchChangeHandler);
     this.cpuSwitch!.removeEventListener('change', this.cpuSwitchChangeHandler);
+    this.snapshotRadioBox!.removeEventListener('click', this.snapshotRadioBoxChangeHandler);
+    this.timelineRadioBox!.removeEventListener('click', this.timelineRadioBoxChangeHandler);
   }
 
   initHtml(): string {

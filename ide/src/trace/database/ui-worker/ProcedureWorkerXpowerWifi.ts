@@ -247,7 +247,7 @@ export class XpowerWifiStruct extends BaseStruct {
     let frameWidth = endPointX - startPointX <= 1 ? 1 : endPointX - startPointX;
     let histogramColor = type === 'tx' ? ColorUtils.colorForTid(0) : ColorUtils.colorForTid(10);
     req!.context.fillStyle = histogramColor;
-    let dataHeight: number = Math.floor(((itemValue || 0) * (this.rowHeight - 40)) / XpowerWifiStruct.max);
+    let dataHeight: number = Math.floor(((itemValue || 0) * (this.rowHeight - 52)) / XpowerWifiStruct.max);
     if (itemValue !== 0 && dataHeight < 10) {
       dataHeight = 10;
     }

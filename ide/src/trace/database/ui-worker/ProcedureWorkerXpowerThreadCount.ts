@@ -16,6 +16,7 @@
 import { BaseStruct, dataFilterHandler, drawLoadingFrame, isFrameContainPoint, Render } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { ColorUtils } from '../../component/trace/base/ColorUtils';
+import { SpSystemTrace } from '../../component/SpSystemTrace';
 
 export class XpowerThreadCountRender extends Render {
   renderMainThread(
@@ -65,6 +66,19 @@ export class XpowerThreadCountRender extends Render {
     xpowerReq.context.textBaseline = 'middle';
     xpowerReq.context.fillText(maxValueStr, 4, 5 + 9);
   }
+}
+
+export function XpowerThreadCountStructOnClick(clickRowType: string, sp: SpSystemTrace, entry?: XpowerThreadCountStruct): Promise<unknown> { 
+  return new Promise((resolve, reject) => {
+    if (clickRowType === TraceRow.ROW_TYPE_XPOWER_THREAD_COUNT && (XpowerThreadCountStruct.hoverXpowerStruct || entry)) {
+      XpowerThreadCountStruct.selectXpowerStruct = entry || XpowerThreadCountStruct.hoverXpowerStruct;
+      sp.traceSheetEL?.displayXpowerTreadCountData(XpowerThreadCountStruct.selectXpowerStruct!);
+      sp.timerShaftEL?.modifyFlagList(undefined);
+      reject(new Error());
+    } else {
+      resolve(null);
+    }
+  });
 }
 
 export class XpowerThreadCountStruct extends BaseStruct {

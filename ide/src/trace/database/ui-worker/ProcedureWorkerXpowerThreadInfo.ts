@@ -264,7 +264,7 @@ export class XpowerThreadInfoStruct extends BaseStruct {
     let histogramColor = ColorUtils.colorForTid(data.threadNameId);
     req!.context.fillStyle = histogramColor;
     let drawStartY = 0;
-    let dataHeight: number = ((data.value || 0) * (this.rowHeight - 28)) / maxValue;
+    let dataHeight: number = ((data.value || 0) * (this.rowHeight - 40)) / maxValue;
     if (data.value !== 0 && dataHeight < 1) {
       dataHeight = 1;
     }

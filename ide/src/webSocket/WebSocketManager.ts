@@ -118,7 +118,7 @@ export class WebSocketManager {
     updateMessage(decode: MessageParam): void {
         if (decode.cmd === Constants.GET_VERSION_CMD) {
             // 小于则升级
-            let targetVersion = '1.0.8';
+            let targetVersion = '1.1.0';
             let currentVersion = new TextDecoder().decode(decode.data);
             let result = this.compareVersion(currentVersion, targetVersion);
             if (result === -1) {
@@ -212,20 +212,7 @@ export class WebSocketManager {
      * listener是不同模块传来接收数据的函数
      * 模块调用
     */
-    registerMessageListener(type: number, callback: Function, eventCallBack: Function): void {
-        this.register(type, callback, eventCallBack);
-    }
-
-    /**
-     * 消息监听器
-     * listener是不同模块传来接收数据的函数
-     * 模块调用
-     */
-    registerCallback(type: number, callback: Function): void {
-        this.register(type, callback);
-    }
-
-    private register(type: number, callback: Function, eventCallBack: Function = () => {}): void {
+    registerMessageListener(type: number, callback: Function, eventCallBack: Function, allowMultipleCallback: boolean = false): void {
         let callbackObj = this.distributeMap.get(type);
         if (!callbackObj) {
             callbackObj = {
@@ -234,7 +221,7 @@ export class WebSocketManager {
             };
             this.distributeMap.set(type, callbackObj);
         } else {
-            if (!callbackObj.messageCallbacks.includes(callback)) {
+            if (allowMultipleCallback) {
                 callbackObj.messageCallbacks.push(callback);
             }
             callbackObj.eventCallBack = eventCallBack;

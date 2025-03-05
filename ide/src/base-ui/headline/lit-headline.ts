@@ -41,6 +41,7 @@ export class LitHeadLine extends BaseElement {
   set titleTxt(value: string) {
     this.titleContent = value;
     this._titleContext!.innerHTML = value;
+    this._titleContext?.setAttribute('title', value || '');
   }
   get titleTxt(): string {
     return this.titleContent || '';

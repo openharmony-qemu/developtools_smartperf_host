@@ -68,6 +68,19 @@ export class XpowerGpuFreqCountRender extends Render {
   }
 }
 
+export function XpowerGpuFreqCountStructOnClick(clickRowType: string, sp: SpSystemTrace, entry?: XpowerGpuFreqCountStruct): Promise<unknown> { 
+  return new Promise((resolve, reject) => {
+    if (clickRowType === TraceRow.ROW_TYPE_XPOWER_GPU_COUNT && (XpowerGpuFreqCountStruct.hoverXpowerStruct || entry)) {
+      XpowerGpuFreqCountStruct.selectXpowerStruct = entry || XpowerGpuFreqCountStruct.hoverXpowerStruct;
+      sp.traceSheetEL?.displayXpowerGpuFreqCountData(XpowerGpuFreqCountStruct.selectXpowerStruct!);
+      sp.timerShaftEL?.modifyFlagList(undefined);
+      reject(new Error());
+    } else {
+      resolve(null);
+    }
+  });
+}
+
 export class XpowerGpuFreqCountStruct extends BaseStruct {
   static maxValue: number = 0;
   static hoverXpowerStruct: XpowerGpuFreqCountStruct | undefined;

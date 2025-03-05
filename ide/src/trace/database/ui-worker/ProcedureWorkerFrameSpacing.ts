@@ -464,13 +464,7 @@ export class FrameSpacingStruct extends BaseStruct {
     ctx.stroke();
     ctx.strokeStyle = ColorUtils.ANIMATION_COLOR[3];
     ctx.fillStyle = ColorUtils.ANIMATION_COLOR[3];
-    if (index === 0) {
-      ctx.fillText(dashedLines[index].toString(), 0, pointY + multiple * textPadding);
-    } else if (index === unitIndex) {
-      ctx.fillText(dashedLines[index].toString(), 0, pointY + textPadding);
-    } else {
-      ctx.fillText(dashedLines[index].toString(), 0, pointY - textPadding);
-    }
+    ctx.fillText(dashedLines[index].toString(), 0, pointY + multiple * textPadding);
     ctx.closePath();
   }
 

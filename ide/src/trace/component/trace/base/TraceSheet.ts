@@ -104,11 +104,12 @@ import { XpowerThreadInfoStruct } from '../../../database/ui-worker/ProcedureWor
 import { TabPaneXpowerThreadInfoSelection } from '../sheet/xpower/TabPaneXpowerThreadInfoSelection';
 import { TabPaneXpowerGpuFreqSelection } from '../sheet/xpower/TabPaneXpowerGpuFreqSelection';
 import { XpowerGpuFreqStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerGpuFreq';
-import { WebSocketManager} from "../../../../webSocket/WebSocketManager";
-import { Constants, TypeConstants} from "../../../../webSocket/Constants";
+import { WebSocketManager } from "../../../../webSocket/WebSocketManager";
+import { Constants, TypeConstants } from "../../../../webSocket/Constants";
 import { PerfFunctionAsmParam } from '../../../bean/PerfAnalysis';
-import { info,error } from '../../../../log/Log';
-
+import { info, error } from '../../../../log/Log';
+import { XpowerThreadCountStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerThreadCount';
+import { XpowerGpuFreqCountStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerGpuFreqCount';
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -284,15 +285,15 @@ export class TraceSheet extends BaseElement {
   private tdClickEvent(): void {
     // @ts-ignore
     this.getComponentByID<unknown>('box-spt')?.addEventListener('td-click', (evt: unknown) => {
-      this.tdClickHandler(evt);
+      this.tdClickHandler(evt, true);
     });
     // @ts-ignore
     this.getComponentByID<unknown>('box-pts')?.addEventListener('td-click', (evt: unknown) => {
-      this.tdClickHandler(evt);
+      this.tdClickHandler(evt, true);
     });
     // @ts-ignore
     this.getComponentByID<unknown>('box-thread-states')?.addEventListener('td-click', (evt: unknown) => {
-      this.tdClickHandler(evt, false);
+      this.tdClickHandler(evt);
     });
     // @ts-ignore
     this.getComponentByID<unknown>('box-slices')?.addEventListener('td-click', (evt: unknown) => {
@@ -431,19 +432,17 @@ export class TraceSheet extends BaseElement {
     this.initNavElements(tabsPackUp!, borderTop, initialHeight);
     this.exportBt = this.shadowRoot?.querySelector<LitIcon>('#export-btn');
     tabsOpenUp!.onclick = (): void => {
-      this.tabs!.style.height = `${
-        window.innerHeight - this.search!.offsetHeight - this.timerShaft!.offsetHeight - borderTop
-      }px`;
+      this.tabs!.style.height = `${window.innerHeight - this.search!.offsetHeight - this.timerShaft!.offsetHeight - borderTop
+        }px`;
       let litTabpane: NodeListOf<HTMLDivElement> | undefined | null =
         this.shadowRoot?.querySelectorAll('#tabs > lit-tabpane');
       litTabpane!.forEach((node: HTMLDivElement): void => {
-        node!.style.height = `${
-          window.innerHeight -
+        node!.style.height = `${window.innerHeight -
           this.search!.offsetHeight -
           this.timerShaft!.offsetHeight -
           this.navRoot!.offsetHeight -
           borderTop
-        }px`;
+          }px`;
         initialHeight.node = node!.style.height;
       });
       initialHeight.tabs = this.tabs!.style.height;
@@ -562,7 +561,7 @@ export class TraceSheet extends BaseElement {
         // 只要没有移动到边界区域都会进入该条件
         that.navRoot!.offsetHeight <= newHeight &&
         that.search!.offsetHeight + that.timerShaft!.offsetHeight + borderTop + that.spacer!.offsetHeight <=
-          window.innerHeight - newHeight
+        window.innerHeight - newHeight
       ) {
         that.tabs!.style.height = `${newHeight}px`;
         litTabpane!.style.height = `${newHeight - that.navRoot!.offsetHeight}px`;
@@ -577,21 +576,19 @@ export class TraceSheet extends BaseElement {
         window.innerHeight - newHeight
       ) {
         // 该条件在面板高度置顶时触发
-        that.tabs!.style.height = `${
-          window.innerHeight -
+        that.tabs!.style.height = `${window.innerHeight -
           that.search!.offsetHeight -
           that.timerShaft!.offsetHeight -
           borderTop -
           that.spacer!.offsetHeight
-        }px`;
-        litTabpane!.style.height = `${
-          window.innerHeight -
+          }px`;
+        litTabpane!.style.height = `${window.innerHeight -
           that.search!.offsetHeight -
           that.timerShaft!.offsetHeight -
           that.navRoot!.offsetHeight -
           borderTop -
           that.spacer!.offsetHeight
-        }px`;
+          }px`;
         tabsPackUp!.name = 'down';
       }
       that.tabPaneHeight = litTabpane!.style.height;
@@ -605,7 +602,7 @@ export class TraceSheet extends BaseElement {
 
   private importClickEvent(): void {
     let importFileBt: HTMLInputElement | undefined | null =
-        this.shadowRoot?.querySelector<HTMLInputElement>('#import-file');
+      this.shadowRoot?.querySelector<HTMLInputElement>('#import-file');
     importFileBt!.addEventListener('change', (event): void => {
       let files = importFileBt?.files;
       if (files) {
@@ -616,25 +613,32 @@ export class TraceSheet extends BaseElement {
         if (fileList.length > 0) {
           importFileBt!.disabled = true;
           window.publish(window.SmartEvent.UI.Loading, { loading: true, text: 'Import So File' });
-          this.uploadSoOrAN(fileList).then(r =>
-              threadPool.submit(
-                  'upload-so',
-                  '',
-                  fileList,
-                  (res: unknown) => {
-                    importFileBt!.disabled = false; // @ts-ignore
-                    if (res.result === 'ok') {
-                      window.publish(window.SmartEvent.UI.UploadSOFile, {});
-                    } else {
-                      // @ts-ignore
-                      const failedList = res.failedArray.join(',');
-                      window.publish(window.SmartEvent.UI.Error, `parse so file ${failedList} failed!`);
-                    }
-                  },
-                  'upload-so'
-              )).finally(() => {
-                fileList.length = 0;
-              })
+          this.uploadSoOrAN(fileList).then(r => {
+            let  soFileList = fileList.filter(item => !item.name.includes('.an'));
+            if(soFileList.length === 0) {
+              window.publish(window.SmartEvent.UI.UploadSOFile, {});
+              return;
+            }
+            threadPool.submit(
+              'upload-so',
+              '',
+              soFileList,
+              (res: unknown) => {
+                importFileBt!.disabled = false; // @ts-ignore
+                if (res.result === 'ok') {
+                  window.publish(window.SmartEvent.UI.UploadSOFile, {});
+                } else {
+                  // @ts-ignore
+                  const failedList = res.failedArray.join(',');
+                  window.publish(window.SmartEvent.UI.Error, `parse so file ${failedList} failed!`);
+                }
+              },
+              'upload-so'
+            )
+          }
+          ).finally(() => {
+            fileList.length = 0;
+          })
         }
       }
       importFileBt!.files = null;
@@ -680,7 +684,7 @@ export class TraceSheet extends BaseElement {
       // 定义一个 ACK 回调函数的等待机制
       const waitForAck = (): Promise<void> => {
         return new Promise<void>((resolve, reject) => {
-          wsInstance!.registerCallback(TypeConstants.DISASSEMBLY_TYPE, onAckReceived);
+          wsInstance!.registerMessageListener(TypeConstants.DISASSEMBLY_TYPE, onAckReceived, () => { }, true);
           // 定义超时定时器
           const timeout = setTimeout(() => {
             // 超时后注销回调并拒绝 Promise
@@ -699,7 +703,7 @@ export class TraceSheet extends BaseElement {
                   bufferIndex++;
                   // 当收到对应分片的 ACK 时，resolve Promise，继续上传下一个分片
                   resolve();
-                }else{
+                } else {
                   // 上传失败，拒绝 Promise 并返回
                   reject(new Error(`Upload failed for file: ${fileName}, index: ${jsonRes.bufferIndex})`));
                 }
@@ -886,6 +890,10 @@ export class TraceSheet extends BaseElement {
   displayXpowerGpuFreqData = (dataList: Array<XpowerGpuFreqStruct>): void => {
     this.displayTab<TabPaneXpowerGpuFreqSelection>('box-xpower-gpu-freq-selection').setGpuFreqData(dataList);
   };
+  displayXpowerTreadCountData = (data: XpowerThreadCountStruct): Promise<void> =>
+    this.displayTab<TabPaneCurrentSelection>('current-selection').setXpowerTreadCountData(data);
+  displayXpowerGpuFreqCountData = (data: XpowerGpuFreqCountStruct): Promise<void> =>
+    this.displayTab<TabPaneCurrentSelection>('current-selection').setXpowerGpuFreqCountData(data);
   displayPerfToolsData = (data: PerfToolStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setPerfToolsData(data);
   displayIrqData = (data: IrqStruct): void =>

@@ -34,10 +34,6 @@ export class SpAdvertisement extends BaseElement {
         // 公告内容
         this.noticeEl = document.querySelector('body > sp-application')?.shadowRoot?.
             querySelector('#sp-advertisement')?.shadowRoot?.querySelector('.text');
-        this.getMessage();
-        setInterval(() => {
-            this.getMessage();
-        }, 300000);
         this.closeEL?.addEventListener('click', () => {
             this.advertisementEL!.style!.display = 'none';
             localStorage.setItem('isdisplay', 'false');
