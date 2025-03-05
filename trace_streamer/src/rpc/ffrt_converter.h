@@ -91,6 +91,7 @@ private:
     std::vector<std::string> context_ = {};
     std::string tracingMarkerKey_;
     std::string osPlatformKet_ = "ohos";
+    bool isOldVersionTrace_ = false;
 
     void FindQueueTaskInfo(FfrtPids &ffrtPids, QueueTaskInfo &queueTaskInfo);
 
