@@ -30,9 +30,12 @@ cd third_party
 
 if [ ! -f "sqlite/BUILD.gn" ];then
     rm -rf sqlite
-    git clone --depth=1 git@gitee.com:openharmony/third_party_sqlite.git
+    git clone  git@gitee.com:openharmony/third_party_sqlite.git
     if [ -d "third_party_sqlite" ];then
         mv third_party_sqlite sqlite
+        cd sqlite
+        git reset --hard d21e412dbc6f2cdde2e4c9828e2450fcfca4fbe9
+        cd ..
         $cp ../prebuilts/patch_sqlite/sqlite3build.gn ../third_party/sqlite/BUILD.gn
     fi
 fi
