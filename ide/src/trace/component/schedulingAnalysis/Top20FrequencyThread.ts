@@ -28,13 +28,14 @@ import { TableNoData } from './TableNoData';
 import { getProbablyTime } from '../../database/logic-worker/ProcedureLogicWorkerCommon';
 import { queryThreads } from '../../database/sql/ProcessThread.sql';
 import { Top20FrequencyThreadHtml } from './Top20FrequencyThread.html';
+import { LitSelectV } from '../../../base-ui/select/LitSelectV';
 
 @element('top20-frequency-thread')
 export class Top20FrequencyThread extends BaseElement {
   static threads: { id: number; tid: number; name: string }[] | undefined;
   traceChange: boolean = false;
   private frequencyThreadTbl: LitTable | null | undefined;
-  private threadSelect: LitSelect | null | undefined;
+  private threadSelect: LitSelectV | null | undefined;
   private frequencyThreadPie: LitChartPie | null | undefined;
   private currentThread: HTMLDivElement | null | undefined;
   private frequencyThreadProgress: LitProgressBar | null | undefined;
@@ -49,17 +50,37 @@ export class Top20FrequencyThread extends BaseElement {
     this.frequencyThreadProgress = this.shadowRoot!.querySelector<LitProgressBar>('#loading');
     this.frequencyThreadTbl = this.shadowRoot!.querySelector<LitTable>('#tb-process-thread-count');
     this.currentThread = this.shadowRoot!.querySelector<HTMLDivElement>('#current_thread');
-    this.threadSelect = this.shadowRoot!.querySelector<LitSelect>('#thread_select');
+    this.threadSelect = this.shadowRoot!.querySelector<LitSelectV>('#thread_select');
     this.frequencyThreadPie = this.shadowRoot!.querySelector<LitChartPie>('#pie');
-
-    this.threadSelect!.onchange = (e): void => {
+    this.threadSelect!.addEventListener('mousedown', (): void => {
+      if (Top20FrequencyThread.threads === undefined) {
+        queryThreads().then((res) => {
+          Top20FrequencyThread.threads = res || [];
+          if (Top20FrequencyThread.threads && Top20FrequencyThread.threads!.length && Top20FrequencyThread.threads!.length > 0) {
+            const nameArray = Top20FrequencyThread.threads!.map(item => item.name);
+            this.threadSelect!.dataSource(nameArray!, '', true);
+          } else {
+            this.threadSelect!.dataSource([], '');
+          }
+        });
+      }
+    })
+    this.threadSelect!.addEventListener('valueChange', (event) => {
       //@ts-ignore
-      this.currentThread!.textContent = (e as unknown).detail.text;
-      //@ts-ignore
-      this.currentTid = parseInt(e.detail.selectValue);
-      this.frequencyThreadProgress!.loading = true;
-      this.queryData();
-    };
+      const newValue = event.detail.value;
+      const regex = /\(([\d]+)\)/;
+      const match = newValue.match(regex);
+      if (match) {
+        const numberInsideBrackets = match[1];
+        this.currentThread!.textContent = newValue;
+        this.currentTid = parseInt(numberInsideBrackets);
+        this.frequencyThreadProgress!.loading = true;
+        this.queryData();
+      } else {
+        this.frequencyThreadProgress!.loading = false;
+        console.log('No match found');
+      }
+    });
 
     this.frequencyThreadTbl!.addEventListener('row-click', (evt: unknown): void => {
       //@ts-ignore
@@ -140,29 +161,14 @@ export class Top20FrequencyThread extends BaseElement {
       return;
     }
     this.traceChange = false;
-    this.frequencyThreadProgress!.loading = true;
-    if (Top20FrequencyThread.threads === undefined) {
-      //@ts-ignore
-      Top20FrequencyThread.threads = (await queryThreads()) || [];
-      this.nodata!.noData = Top20FrequencyThread.threads === undefined || Top20FrequencyThread.threads.length === 0;
-      this.threadSelect!.innerHTML = ''; //@ts-ignore
-      let threads = Top20FrequencyThread.threads.map((it) => {
-        let option = new LitSelectOption();
-        option.setAttribute('value', `${it.tid}`);
-        option.textContent = it.name;
-        return option;
-      });
-      this.threadSelect!.append(...threads);
-      this.threadSelect?.initOptions(); //@ts-ignore
-      this.threadSelect!.value = `${Top20FrequencyThread.threads[0].tid}`; //@ts-ignore
-      this.currentThread!.textContent = Top20FrequencyThread.threads[0].name; //@ts-ignore
-      this.currentTid = Top20FrequencyThread.threads[0].tid;
-      this.queryData();
-    }
+    this.frequencyThreadProgress!.loading = false;
+    this.threadSelect!.clearVal();
+    this.nodata!.style.opacity = '0';
   }
 
   queryData(): void {
     this.queryLogicWorker('scheduling-Thread Freq', 'query Thread Top 20 Frequency Time:', (res): void => {
+      this.nodata!.style.opacity = '1';
       this.nodata!.noData =
         Top20FrequencyThread.threads === undefined ||
         Top20FrequencyThread.threads.length === 0 ||

@@ -303,6 +303,11 @@ export class LitSelectV extends BaseElement {
           o.removeAttribute('selected');
         });
         option.setAttribute('selected', '');
+        this.dispatchEvent(new CustomEvent('valueChange', {
+          detail: { value: option.textContent! },
+          bubbles: true,
+          composed: true
+        }));
         //@ts-ignore
         this.selectVInputEl!.value = option.textContent!;
         this.currentvalueStr = option.textContent!;
@@ -368,6 +373,16 @@ export class LitSelectV extends BaseElement {
         this.selectVInputEl.value = '';
       }
     });
+  }
+
+  clearVal(): void {// @ts-ignore
+    this.selectVInputEl!.value = '';
+    this.shadowRoot?.querySelectorAll('lit-select-option').forEach((a) => {
+        if (a.hasAttribute('selected')) {
+          a.removeAttribute('selected');
+        }
+    });
+    this.dataSource([], '');
   }
 
   attributeChangedCallback(name: unknown, oldValue: unknown, newValue: unknown): void { }
