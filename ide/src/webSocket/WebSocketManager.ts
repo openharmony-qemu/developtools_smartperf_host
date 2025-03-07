@@ -41,6 +41,7 @@ export class WebSocketManager {
     private status: string = GetStatuses.UNCONNECTED;
     private cacheInfo: Map<number, unknown> = new Map<number, unknown>();
     private reconnect: number = -1;
+    private connectStatus: HTMLElement | null | undefined;
 
     constructor() {
         if (WebSocketManager.instance) {
@@ -52,8 +53,12 @@ export class WebSocketManager {
     }
     //连接WebSocket
     connectWebSocket(): void {
+        // @ts-ignore
+        this.connectStatus = document.querySelector("body > sp-application").shadowRoot.querySelector("#main-menu").shadowRoot.querySelector("div.bottom > div.extend_connect");
         this.websocket = new WebSocket(this.url);
         this.websocket.binaryType = 'arraybuffer';
+        // @ts-ignore
+        setInterval(this.checkConnectionStatus(this.websocke), 5000);
         this.websocket.onopen = (): void => {
             this.status = GetStatuses.CONNECTED;
             // 设置心跳定时器
@@ -77,12 +82,27 @@ export class WebSocketManager {
         };
 
         this.websocket.onclose = (event): void => {
+            this.checkConnectionStatus(this.websocket);
             this.status = GetStatuses.UNCONNECTED;
             this.finalStatus();
             //初始化标志位
             this.initLoginInfo();
             this.clearHeartbeat();
         };
+    }
+
+    /**
+     * 实时监听websockets连接状态
+     */
+    checkConnectionStatus(websocket: WebSocket | null | undefined) {
+        // @ts-ignore
+        if (websocket?.readyState === websocket?.OPEN) {
+            // @ts-ignore
+            this.connectStatus?.style.backgroundColor = 'green';
+        } else {
+            // @ts-ignore
+            this.connectStatus?.style.backgroundColor = 'red';
+        }
     }
 
     /**
@@ -96,6 +116,8 @@ export class WebSocketManager {
         } else if (decode.type === TypeConstants.UPDATE_TYPE) {// 升级
             this.updateMessage(decode);
         } else {// type其他
+            // @ts-ignore
+            this.connectStatus?.style.backgroundColor = 'green';
             this.businessMessage(decode);
         }
     }
@@ -106,6 +128,8 @@ export class WebSocketManager {
             this.status = GetStatuses.LOGINED;
             this.sessionId = decode.session_id;
             this.session = decode.session;
+            // @ts-ignore
+            this.connectStatus?.style.backgroundColor = 'green';
             //检查版本
             this.getVersion();
         } else if (decode.cmd === Constants.SESSION_EXCEED) { // session满了
@@ -139,7 +163,7 @@ export class WebSocketManager {
 
     // 业务
     businessMessage(decode: MessageParam): void {
-        if (this.distributeMap.has(decode.type!)){
+        if (this.distributeMap.has(decode.type!)) {
             const callbackObj = this.distributeMap.get(decode.type!)!;
             // 遍历调用所有 eventCallBacks
             callbackObj.messageCallbacks.forEach(callback => {
@@ -332,9 +356,13 @@ export class WebSocketManager {
         if (this.reconnect !== -1) {
             if (this.status === GetStatuses.READY) {
                 // @ts-ignore
+                this.connectStatus?.style.backgroundColor = 'green';
+                // @ts-ignore
                 this.sendMessage(this.reconnect, this.cacheInfo.get(this.reconnect)!.cmd, this.cacheInfo.get(this.reconnect)!.data);
                 return;
             }
+            // @ts-ignore
+            this.connectStatus?.style.backgroundColor = 'red';
             this.distributeMap.get(this.reconnect)!.eventCallBack(this.status);
         }
         this.reconnect = -1;
