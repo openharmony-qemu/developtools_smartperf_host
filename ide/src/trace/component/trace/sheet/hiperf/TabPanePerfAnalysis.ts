@@ -44,6 +44,7 @@ export class TabPanePerfAnalysis extends BaseElement {
   private sumCount: number | undefined | null;
   private sumEventCount: number | undefined | null;
   private perfAnalysisRange: HTMLLabelElement | null | undefined;
+  private perfAnalysisHeadTips: HTMLLabelElement | null | undefined;
   private back: HTMLDivElement | null | undefined;
   private tabName: HTMLDivElement | null | undefined;
   private progressEL: LitProgressBar | null | undefined;
@@ -170,6 +171,7 @@ export class TabPanePerfAnalysis extends BaseElement {
   initElements(): void {
     this.perfAnalysisPie = this.shadowRoot!.querySelector<LitChartPie>('#perf-chart-pie');
     this.perfAnalysisRange = this.shadowRoot?.querySelector('#time-range');
+    this.perfAnalysisHeadTips = this.shadowRoot?.querySelector('#SO-err-tips');
     this.perfTableProcess = this.shadowRoot!.querySelector<LitTable>('#tb-process-usage');
     this.perfTableSo = this.shadowRoot!.querySelector<LitTable>('#tb-so-usage');
     this.tableFunction = this.shadowRoot!.querySelector<LitTable>('#tb-function-usage');
@@ -272,6 +274,8 @@ export class TabPanePerfAnalysis extends BaseElement {
 
   private getBack(): void {
     this.back!.addEventListener('click', () => {
+      // @ts-ignore
+      this.perfAnalysisHeadTips?.innerHTML = '';
       if (this.tabName!.textContent === 'Statistic By Thread Count') {
         this.showAssignLevel(this.perfTableProcess!, this.perfTableThread!, 0, this.pidData);
         this.back!.style.visibility = 'hidden';
@@ -572,8 +576,23 @@ export class TabPanePerfAnalysis extends BaseElement {
     // @ts-ignore
     this.selectedTabfileName = it.tableName;
   }
+  // @ts-ignore
+  callback = (cmd: number, e: Uint8Array): unknown => {
+    if (cmd === Constants.DISASSEMBLY_QUERY_ELF_CMD) {
+      const result = JSON.parse(new TextDecoder().decode(e));
+      if(result.resultCode !== 0){
+        // @ts-ignore
+        this.perfAnalysisHeadTips?.innerHTML = result.resultMessage;
+      }
+      WebSocketManager.getInstance()?.unregisterCallback(TypeConstants.DISASSEMBLY_TYPE,this.callback);
+    }
+  }
 
   private functionClickEvent(it: unknown) {
+    // @ts-ignore
+    this.perfAnalysisHeadTips?.innerHTML = '';
+    // @ts-ignore
+    let encodedData = null;
     this.clickFuncVaddrList = this.vaddrList.filter((item: unknown) => {
       // @ts-ignore
       return item.process_id === it.pid &&
@@ -592,10 +611,17 @@ export class TabPanePerfAnalysis extends BaseElement {
         func: it.tableName
       };
       const dataString = JSON.stringify(queryData);
-      const encodedData = textEncoder.encode(dataString);
-      WebSocketManager.getInstance()?.sendMessage(TypeConstants.DISASSEMBLY_TYPE, Constants.DISASSEMBLY_QUERY_CMD, encodedData);
+      encodedData = textEncoder.encode(dataString);
+      WebSocketManager.getInstance()?.sendMessage(TypeConstants.DISASSEMBLY_TYPE, Constants.DISASSEMBLY_QUERY_ELF_CMD, encodedData);
     }
-    this.functionListener!(it, this.clickFuncVaddrList);
+    WebSocketManager.getInstance()?.registerMessageListener(TypeConstants.DISASSEMBLY_TYPE,this.callback,() => {},true);
+    setTimeout(() => {
+      if(this.perfAnalysisHeadTips?.innerHTML === ''){
+        // @ts-ignore
+        WebSocketManager.getInstance()?.sendMessage(TypeConstants.DISASSEMBLY_TYPE, Constants.DISASSEMBLY_QUERY_CMD, encodedData);
+        this.functionListener!(it, this.clickFuncVaddrList);
+      }
+    }, 100);
   }
 
   private sortByColumn(): void {
