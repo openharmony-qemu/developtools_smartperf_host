@@ -159,6 +159,15 @@ export class LitPageTable extends BaseElement {
     this.targetPageInput = this.shadowRoot?.querySelector<HTMLInputElement>('#targetPage');
     this.jumpDiv = this.shadowRoot?.querySelector<HTMLDivElement>('#jumpPage');
     this.initPageEventListener();
+    this.targetPageInput!.addEventListener('input', ()=>{
+      let maxPage = this.ds.length!;
+      this.targetPageInput!.max = String(maxPage);
+      let currentValue = parseInt(this.targetPageInput!.value, 10);
+      let max = parseInt(this.targetPageInput!.max, 10);
+      if (currentValue > max) {
+        this.targetPageInput!.value = String(max);
+    }
+    });
   }
 
   initPageEventListener(): void {
