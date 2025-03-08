@@ -71,7 +71,7 @@ export const TabPerfFuncAsmHtml = `
             <div class="title-item error-message" id="error-message"></div>
         </div>
         <lit-loading id="loading" class="loading" hidden></lit-loading>
-        <lit-table id="perf-function-asm-table" style="display: grid;min-height: 380px" hideDownload>
+        <lit-table id="perf-function-asm-table" style="display: grid;min-height: 380px">
             <lit-table-column width="0.2fr" title="Self Count" data-index="selfcount" key="selfcount" align="flex-start" order></lit-table-column>
             <lit-table-column width="0.2fr" title="%" data-index="percent" key="percent" align="flex-start" order></lit-table-column>
             <lit-table-column width="0.4fr" title="Virtual Address" data-index="addr" key="addr" align="flex-start" order></lit-table-column>
