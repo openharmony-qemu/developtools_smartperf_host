@@ -621,6 +621,7 @@ export class TraceSheet extends BaseElement {
             let  soFileList = fileList.filter(item => !item.name.includes('.an'));
             if(soFileList.length === 0) {
               window.publish(window.SmartEvent.UI.UploadSOFile, {});
+              importFileBt!.disabled = false;
               return;
             }
             threadPool.submit(
