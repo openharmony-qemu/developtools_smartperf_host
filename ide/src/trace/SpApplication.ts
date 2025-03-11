@@ -352,7 +352,7 @@ export class SpApplication extends BaseElement {
 
   }
 
-  private clearSnapShot():void {
+  private clearSnapShot(): void {
     SnapShotStruct.hoverSnapShotStruct = undefined;
     SnapShotStruct.isClear = true;
     this.spSystemTrace?.refreshCanvas(true);
@@ -740,8 +740,19 @@ export class SpApplication extends BaseElement {
     this.openMenu(false);
     let downloadLineFile = urlParams.get('local') ? false : true;
     this.setProgress(downloadLineFile ? 'download trace file' : 'open trace file');
+    let traceUrl = urlParams.get('trace') as string;
+    let keyId = urlParams.get('AWSAccessKeyId') as string;
+    let signature = urlParams.get('Signature') as string;
+    let fullUrl = '';
+    if (keyId && keyId.length && signature && signature.length) {
+      const extractedString = this.extractTraceParams(window.location.href!);
+      fullUrl = extractedString!
+    } else {
+      fullUrl = traceUrl;
+    }
+
     this.downloadOnLineFile(
-      urlParams.get('trace') as string,
+      fullUrl,
       downloadLineFile,
       (arrayBuf, fileName, showFileName, fileSize) => {
         if (fileName.split('.').reverse()[0] === 'db') {
@@ -752,7 +763,7 @@ export class SpApplication extends BaseElement {
         }
       },
       (localPath) => {
-        let path = urlParams.get('trace') as string;
+        let path = fullUrl;
         let fileName: string = '';
         let showFileName: string = '';
         if (urlParams.get('local')) {
@@ -764,14 +775,19 @@ export class SpApplication extends BaseElement {
         this.traceFileName = fileName;
         showFileName = fileName.lastIndexOf('.') === -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'));
         TraceRow.rangeSelectObject = undefined;
-        let localUrl = downloadLineFile ? `${window.location.origin}${localPath}` : urlParams.get('trace')!;
+        let localUrl = downloadLineFile ? `${window.location.origin}${localPath}` : fullUrl!;
         fetch(localUrl)
           .then((res) => {
             res.arrayBuffer().then((arrayBuf) => {
               if (urlParams.get('local')) {
                 URL.revokeObjectURL(localUrl);
               }
-              this.handleWasmMode(new File([arrayBuf], fileName), showFileName, arrayBuf.byteLength, fileName, jsonStr);
+              if (fileName.split('.').reverse()[0] === 'db') {
+                this.wasm = false;
+                this.handleSqliteMode(new File([arrayBuf], fileName), showFileName, arrayBuf.byteLength, fileName, jsonStr);
+              } else {
+                this.handleWasmMode(new File([arrayBuf], fileName), showFileName, arrayBuf.byteLength, fileName, jsonStr);
+              }
             });
           })
           .catch((e) => {
@@ -782,6 +798,15 @@ export class SpApplication extends BaseElement {
           });
       }
     );
+  }
+
+  private extractTraceParams(url: string) {
+    const traceIndex = url.indexOf('trace=');
+    if (traceIndex !== -1) {
+      return url.substring(traceIndex + 6);
+    } else {
+      return '';
+    }
   }
 
   private openMenu(open: boolean): void {
@@ -2498,14 +2523,37 @@ export class SpApplication extends BaseElement {
     if (download) {
       fetch(url)
         .then((res) => {
-          res.arrayBuffer().then((arrayBuf) => {
-            let urlParams = new URL(url).searchParams;
-            let fileName = urlParams.get('name') ? decodeURIComponent(urlParams.get('name')!) : url.split('/').reverse()[0];
-            this.traceFileName = fileName;
-            let showFileName =
-              fileName.lastIndexOf('.') === -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'));
-            openUrl(arrayBuf, fileName, showFileName, arrayBuf.byteLength);
-          });
+          //@ts-ignore
+          if (res.ok || res.success) {
+            res.arrayBuffer().then((arrayBuf) => {
+              let urlParams = new URL(url).searchParams;
+              let fileName = urlParams.get('name') ? decodeURIComponent(urlParams.get('name')!) : url.split('/').reverse()[0];
+              this.traceFileName = fileName;
+              let showFileName =
+                fileName.lastIndexOf('.') === -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'));
+              openUrl(arrayBuf, fileName, showFileName, arrayBuf.byteLength);
+            });
+          } else {
+            let api = `${window.location.origin}/application/download-file`;
+            fetch(api, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: new URLSearchParams({
+                url: url,
+              }),
+            })
+              .then((response) => response.json())
+              .then((res) => {
+                if (res.code === 0 && res.success) {
+                  let resultUrl = res.data.url;
+                  if (resultUrl) {
+                    openFileHandler(resultUrl.toString().replace(/\\/g, '/'));
+                  }
+                }
+              });
+          }
         })
         .catch((e) => {
           let api = `${window.location.origin}/application/download-file`;
