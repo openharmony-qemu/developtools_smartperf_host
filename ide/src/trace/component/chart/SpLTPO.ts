@@ -176,8 +176,8 @@ export class SpLtpoChart {
   //从render_service中获取nowTime
   initRsNowTime(): void {
     SpLtpoChart.rsNowTimeList.map((item) => {
-      let cutRsNameArr = item.name!.split(' ')[2].split(':');
-      item.nowTime = Number(cutRsNameArr[cutRsNameArr.length - 1]);
+      let cutRsNameArr = item.name!.split('now')[1].split(' ')[1];
+      item.nowTime = Number(cutRsNameArr);
     });
   }
   //处理fps
