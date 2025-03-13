@@ -749,29 +749,29 @@ export class SpProcessChart {
     //@ts-ignore
     linkItem[1].backrowEL = linkItem[1].sourcebackrowEL!.parentRowEl?.expansion ?
       linkItem[1].sourcebackrowEL! : linkItem[1].sourcebackrowEL!.parentRowEl;
-    if (linkItem[0].rowEL.expansion && linkItem[0].backrowEL) {
-      this.updatePairPointTranslateY(linkItem[0]);
+    this.trace.handleCollectFunc([linkItem]);
+    //@ts-ignore
+    linkItem[0].offsetY = linkItem[0].sourcebackrowEL!.parentRowEl?.expansion ?
+      linkItem[0].sourceOffsetY! / 2 : linkItem[0].offsetY;
+    //@ts-ignore
+    linkItem[1].offsetY = linkItem[1].sourcebackrowEL!.parentRowEl?.expansion ?
+      linkItem[1].sourceOffsetY! / 2 : linkItem[1].offsetY;
+    if (linkItem[0].sourcebackrowEL!.parentRowEl?.expansion && linkItem[0].backrowEL) {
       linkItem[0].x = ns2xByTimeShaft(linkItem[0].ns, this.trace.timerShaftEL!);
       linkItem[0].y = linkItem[0].rowEL.translateY + linkItem[0].offsetY;
       linkItem[0].offsetY = linkItem[0].offsetY * 2;
       linkItem[0].rowEL = linkItem[0].backrowEL;
     }
-    if (linkItem[1].rowEL.expansion && linkItem[1].backrowEL) {
-      this.updatePairPointTranslateY(linkItem[1]);
+    if (linkItem[1].sourcebackrowEL!.parentRowEl?.expansion && linkItem[1].backrowEL) {
       linkItem[1].x = ns2xByTimeShaft(linkItem[1].ns, this.trace.timerShaftEL!);
       linkItem[1].y = linkItem[1].rowEL!.translateY! + linkItem[1].offsetY;
       linkItem[1].offsetY = linkItem[1].offsetY * 2;
       linkItem[1].rowEL = linkItem[1].backrowEL;
     }
-    this.updatePairPointTranslateY(linkItem[0]);
-    this.updatePairPointTranslateY(linkItem[1]);
   }
 
   handler4(e: unknown, linkItem: PairPoint[], processRow: TraceRow<ProcessStruct>): void {
-    this.updatePairPointTranslateY(linkItem[0]);
-    linkItem[0].y = processRow!.translateY + linkItem[0].offsetY;
-    this.updatePairPointTranslateY(linkItem[1]);
-    linkItem[1].y = linkItem[1].rowEL!.translateY + linkItem[1].offsetY; //@ts-ignore
+    //@ts-ignore
     if (e.detail.rowId === 'sameThreadProcess') {//@ts-ignore
       if (linkItem[0].rowEL.parentRowEl?.rowId === e.detail.rowId) {
         //@ts-ignore
@@ -790,6 +790,7 @@ export class SpProcessChart {
         this.updatePairPoint(linkItem[1], processRow);
       }
     }
+    this.trace.handleCollectFunc([linkItem]);
   }
 
   updatePairPointTranslateY(pair: PairPoint): void {
@@ -829,8 +830,9 @@ export class SpProcessChart {
     if (!pair.rowEL.collect) {
       pair.x = ns2xByTimeShaft(pair.ns, this.trace.timerShaftEL!);
       pair.y = processRow!.translateY! + pair.offsetY / 2;
-      pair.offsetY = pair.offsetY / 2;
       pair.rowEL = processRow!;
+      pair.offsetY = pair.rowEL._frame!.height / 2;
+      pair.backrowEL = processRow!;
     }
   }
 
