@@ -618,6 +618,8 @@ export class TraceSheet extends BaseElement {
           importFileBt!.disabled = true;
           window.publish(window.SmartEvent.UI.Loading, { loading: true, text: 'Import So File' });
           this.uploadSoOrAN(fileList).then(r => {
+            // @ts-ignore
+            document.querySelector("body > sp-application").shadowRoot.querySelector("#sp-system-trace").shadowRoot.querySelector("div > trace-sheet").shadowRoot.querySelector("#box-perf-analysis > tabpane-perf-analysis").shadowRoot.querySelector("#SO-err-tips")?.innerHTML = '';
             let  soFileList = fileList.filter(item => !item.name.includes('.an'));
             if(soFileList.length === 0) {
               window.publish(window.SmartEvent.UI.UploadSOFile, {});
