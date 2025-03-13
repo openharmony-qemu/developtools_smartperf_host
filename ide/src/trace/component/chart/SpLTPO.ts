@@ -147,7 +147,7 @@ export class SpLtpoChart {
         item.signaled = 1;
         SpLtpoChart.signaledFence.push(item);
       } else {
-        item.fanceId = Number(cutFanceNameArr[cutFanceNameArr.length - 1]);
+        item.fanceId = Number(cutFanceNameArr[cutFanceNameArr.length - 1].split('|')[0]);
       }
     });
   }
