@@ -42,6 +42,11 @@ export class TabPaneFreqUsage extends BaseElement {
   private currentSelectionParam: SelectionParam | undefined;
   private worker: Worker | undefined;
   static element: TabPaneFreqUsage;
+  private sortConsumpowerFlags: number = 0;
+  private sortConsumptionFlags: number = 0;
+  private sortCpuloadFlags: number = 0;
+  private sortDurFlags: number = 0;
+  private sortPercentFlags: number = 0;
 
   set data(threadStatesParam: SelectionParam) {
     if (this.currentSelectionParam === threadStatesParam) {
@@ -124,6 +129,8 @@ export class TabPaneFreqUsage extends BaseElement {
     let labels = this.threadStatesTbl?.shadowRoot
       ?.querySelector('.th > .td')!
       .querySelectorAll('label');
+    let tabHeads = this.threadStatesTbl?.shadowRoot
+      ?.querySelector('.th')!.querySelectorAll('.td');
     if (labels) {
       for (let i = 0; i < labels.length; i++) {
         let label = labels[i].innerHTML;
@@ -159,6 +166,184 @@ export class TabPaneFreqUsage extends BaseElement {
         });
       }
     }
+    if (tabHeads && tabHeads.length) {
+      this.restoreFlags();
+      tabHeads.forEach((item) => {
+        // @ts-ignore
+        switch (item.innerText) {
+          case 'Consume(cap*ms)':
+            item.addEventListener('click', () => { this.sortDataTree(data, 'Consume(cap*ms)') });
+            break;
+          case 'Consume(MHz*ms)':
+            item.addEventListener('click', () => { this.sortDataTree(data, 'Consume(MHz*ms)') });
+            break;
+          case 'TaskUtil(%)':
+            item.addEventListener('click', () => { this.sortDataTree(data, 'TaskUtil') });
+            break;
+          case 'Dur(ms)':
+            item.addEventListener('click', () => { this.sortDataTree(data, 'Dur') });
+            break;
+          case 'Dur\n/All_Dur(%)':
+            item.addEventListener('click', () => { this.sortDataTree(data, 'All_Dur') });
+            break;
+        }
+      })
+    }
+  }
+
+  sortDataTree(data: Array<RunningFreqData>, type: string) {
+    this.threadStatesTbl!.recycleDs = this.sortTree(data, type);
+    this.threadStatesTbl!.recycleDs =
+      this.threadStatesTbl!.meauseTreeRowElement(
+        data,
+        RedrawTreeForm.Expand
+      );
+    switch (type) {
+      case 'Consume(cap*ms)':
+        this.sortConsumptionFlags = 0;
+        this.sortCpuloadFlags = 0;
+        this.sortDurFlags = 0;
+        this.sortPercentFlags = 0;
+        if (this.sortConsumpowerFlags === 2) {
+          this.sortConsumpowerFlags = 0;
+        } else {
+          this.sortConsumpowerFlags++;
+        }
+        break;
+      case 'Consume(MHz*ms)':
+        this.sortConsumpowerFlags = 0;
+        this.sortCpuloadFlags = 0;
+        this.sortDurFlags = 0;
+        this.sortPercentFlags = 0;
+        if (this.sortConsumptionFlags === 2) {
+          this.sortConsumptionFlags = 0;
+        } else {
+          this.sortConsumptionFlags++;
+        }
+        break;
+      case 'TaskUtil':
+        this.sortConsumpowerFlags = 0;
+        this.sortConsumptionFlags = 0;
+        this.sortDurFlags = 0;
+        this.sortPercentFlags = 0;
+        if (this.sortCpuloadFlags === 2) {
+          this.sortCpuloadFlags = 0;
+        } else {
+          this.sortCpuloadFlags++;
+        }
+        break;
+      case 'Dur':
+        this.sortConsumpowerFlags = 0;
+        this.sortConsumptionFlags = 0;
+        this.sortCpuloadFlags = 0;
+        this.sortPercentFlags = 0;
+        if (this.sortDurFlags === 2) {
+          this.sortDurFlags = 0;
+        } else {
+          this.sortDurFlags++;
+        }
+        break;
+      case 'All_Dur':
+        this.sortConsumpowerFlags = 0;
+        this.sortConsumptionFlags = 0;
+        this.sortCpuloadFlags = 0;
+        this.sortDurFlags = 0;
+        if (this.sortPercentFlags === 2) {
+          this.sortPercentFlags = 0;
+        } else {
+          this.sortPercentFlags++;
+        }
+        break;
+    }
+  }
+
+  sortTree(arr: Array<unknown>, type: string): Array<unknown> {
+    if (arr.length > 1) {
+      // @ts-ignore
+      arr = arr.sort((sortArrA, sortArrB): number => {
+        // @ts-ignore
+        if (sortArrA.depth === sortArrB.depth) {
+          switch (type) {
+            case 'Consume(cap*ms)':
+              if (this.sortConsumpowerFlags === 0) {
+                //@ts-ignore
+                return Number(sortArrA.consumpower) - Number(sortArrB.consumpower);
+              } else if (this.sortConsumpowerFlags === 1) {
+                //@ts-ignore
+                return Number(sortArrB.consumpower) - Number(sortArrA.consumpower);
+              } else {
+                //@ts-ignore
+                return Number(sortArrA.cpu) - Number(sortArrB.cpu);
+              }
+              break;
+            case 'Consume(MHz*ms)':
+              if (this.sortConsumptionFlags === 0) {
+                //@ts-ignore
+                return Number(sortArrA.consumption) - Number(sortArrB.consumption);
+              } else if (this.sortConsumptionFlags === 1) {
+                //@ts-ignore
+                return Number(sortArrB.consumption) - Number(sortArrA.consumption);
+              } else {
+                //@ts-ignore
+                return Number(sortArrA.cpu) - Number(sortArrB.cpu);
+              }
+              break;
+            case 'TaskUtil':
+              if (this.sortCpuloadFlags === 0) {
+                //@ts-ignore
+                return Number(sortArrA.cpuload) - Number(sortArrB.cpuload);
+              } else if (this.sortCpuloadFlags === 1) {
+                //@ts-ignore
+                return Number(sortArrB.cpuload) - Number(sortArrA.cpuload);
+              } else {
+                //@ts-ignore
+                return Number(sortArrA.cpu) - Number(sortArrB.cpu);
+              }
+              break;
+            case 'Dur':
+              if (this.sortDurFlags === 0) {
+                //@ts-ignore
+                return Number(sortArrA.dur) - Number(sortArrB.dur);
+              } else if (this.sortDurFlags === 1) {
+                //@ts-ignore
+                return Number(sortArrB.dur) - Number(sortArrA.dur);
+              } else {
+                //@ts-ignore
+                return Number(sortArrA.cpu) - Number(sortArrB.cpu);
+              }
+              break;
+            case 'All_Dur':
+              if (this.sortPercentFlags === 0) {
+                //@ts-ignore
+                return Number(sortArrA.percent) - Number(sortArrB.percent);
+              } else if (this.sortPercentFlags === 1) {
+                //@ts-ignore
+                return Number(sortArrB.percent) - Number(sortArrA.percent);
+              } else {
+                //@ts-ignore
+                return Number(sortArrA.cpu) - Number(sortArrB.cpu);
+              }
+              break;
+          }
+        }
+      })
+    }
+    arr.map((call: unknown): void => {
+      // @ts-ignore
+      if (call.children && call.children.length > 1 && call.status) {
+        // @ts-ignore
+        call.children = this.sortTree(call.children, type);
+      }
+    })
+    return arr;
+  }
+
+  restoreFlags() {
+    this.sortConsumpowerFlags = 0;
+    this.sortConsumptionFlags = 0;
+    this.sortCpuloadFlags = 0;
+    this.sortDurFlags = 0;
+    this.sortPercentFlags = 0;
   }
 
 
