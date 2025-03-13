@@ -142,7 +142,7 @@ export class SpLtpoChart {
   initFenceName(): void {
     SpLtpoChart.fanceNameList.map((item) => {
       let cutFanceNameArr = item.name!.split(' ');
-      if (cutFanceNameArr[cutFanceNameArr.length - 1] === 'signaled') {
+      if (cutFanceNameArr[cutFanceNameArr.length - 1].includes('signaled')) {
         item.fanceId = Number(cutFanceNameArr[2]);
         item.signaled = 1;
         SpLtpoChart.signaledFence.push(item);
@@ -229,6 +229,8 @@ export class SpLtpoChart {
             SpLtpoChart.fpsnameList[fpsIndex].ts! + SpLtpoChart.fpsnameList[fpsIndex].dur!
           ) {
             fpsIndex++;
+          } else {
+            return;
           }
         } else {
           return;
@@ -294,6 +296,8 @@ export class SpLtpoChart {
             cutTimeSum += tempFps ? 1000 / tempFps : 1000 / SpLtpoChart.tempRsNowTimeList[nowTimeIndex - 1].fps!;
           }
           skipIndex++;
+        } else {
+          return;
         }
       } else {
         return;
@@ -352,6 +356,8 @@ export class SpLtpoChart {
           presentArr.splice(presentIndex, 1);
         } else if (presentArr[presentIndex].presentId! > ltpoDataArr[ltpoIndex].fanceId!) {
           ltpoDataArr.splice(ltpoIndex, 1);
+        } else {
+          break;
         }
       } else {
         break;
