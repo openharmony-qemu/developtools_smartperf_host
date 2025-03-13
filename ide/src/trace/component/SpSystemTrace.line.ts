@@ -814,6 +814,25 @@ export function spSystemTraceDrawFuncLine(
         break;
       }
     }
+    let startParentRow = sp.shadowRoot?.querySelector<TraceRow<BaseStruct>>( // @ts-ignore
+      `trace-row[row-type='process'][row-id='${selectFuncStruct.pid}'][folder]`
+    );
+    startParentRow!.childrenList.forEach((item) => {
+      if (item.rowId === 'sameThreadProcess') {// @ts-ignore
+        startRow = startParentRow.childrenList.concat(item.childrenList).find((item: TraceRow<FuncStruct>) => {
+          // @ts-ignore
+          return item.rowId === `${selectFuncStruct.tid}` && item.rowType === 'func';
+        });
+        startRow!.parentRowEl!.expansion = true;
+      } else {
+        // @ts-ignore
+        startRow = startParentRow.childrenList.find((item: TraceRow<FuncStruct>) => {
+          // @ts-ignore
+          return item.rowId === `${selectFuncStruct.tid}` && item.rowType === 'func';
+        });
+        startRow!.parentRowEl!.expansion = true;
+      }
+    });
   }
   if (endParentRow) {
     // @ts-ignore
