@@ -685,6 +685,17 @@ export class SpApplication extends BaseElement {
       this.judgeDBOrWasm(ev, typeHeader, showFileName);
       this.judgeZip(typeHeader);
     };
+    if (!SpRecordTrace.isSnapShotCapture) {
+      SpApplication.spSnapShotView!.style.visibility = 'hidden';
+      SpApplication.spSnapShotView!.style.display = 'none';
+      SnapShotStruct.hoverSnapShotStruct = undefined;
+      SnapShotStruct.selectSnapShotStruct = undefined;
+      SnapShotStruct.isClear = true;
+      setTimeout(() => {
+        SnapShotStruct.isClear = false;
+      }, 0);
+      this.spSystemTrace!.refreshCanvas(true);
+    }
   }
 
   private judgeDBOrWasm(ev: File, typeHeader: Blob, showFileName: string): void {
