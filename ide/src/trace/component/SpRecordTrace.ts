@@ -136,6 +136,7 @@ export class SpRecordTrace extends BaseElement {
   private static usbGetVersion: string;
   static snapShotList: Array<unknown> = [];
   static snapShotDuration: number = 0;
+  static isSnapShotCapture: boolean = false;
 
   set record_template(re: string) {
     if (re === 'true') {
@@ -605,6 +606,7 @@ export class SpRecordTrace extends BaseElement {
         aElement.click();
       } else if (cmd === 5) {// @ts-ignore
         SpRecordTrace.snapShotList = JSON.parse(new TextDecoder('utf-8').decode(result)) as string[];
+        SpRecordTrace.isSnapShotCapture = true;
       } else if (cmd === 6) {
         this.litSearch!.setPercent('Start to record...', -1);
       } else if (cmd === 7) {

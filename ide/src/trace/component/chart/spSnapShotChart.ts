@@ -27,6 +27,7 @@ export class SpSnapShotChart {
     }
 
     async init(parentRow?: TraceRow<BaseStruct>, traceId?: string): Promise<void> {
+        SpRecordTrace.isSnapShotCapture = false;
         let traceRow = await this.initData(traceId);
         if (parentRow) {
             parentRow.addChildTraceRow(traceRow);
