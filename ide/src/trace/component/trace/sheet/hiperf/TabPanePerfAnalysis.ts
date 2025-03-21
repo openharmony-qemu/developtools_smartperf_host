@@ -591,6 +591,11 @@ export class TabPanePerfAnalysis extends BaseElement {
   private functionClickEvent(it: unknown) {
     // @ts-ignore
     this.perfAnalysisHeadTips?.innerHTML = '';
+    if(this.selectedTabfileName.indexOf('.an') === -1 && this.selectedTabfileName.indexOf('.so') === -1) {
+      // @ts-ignore
+      this.perfAnalysisHeadTips?.innerHTML = 'Call stack assembly-level parsing of non-.an and .so files is not supported.';
+      return;
+    }
     // @ts-ignore
     let encodedData = null;
     this.clickFuncVaddrList = this.vaddrList.filter((item: unknown) => {
