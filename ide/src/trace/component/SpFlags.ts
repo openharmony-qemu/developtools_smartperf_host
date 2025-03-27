@@ -313,7 +313,7 @@ export class FlagsConfig {
     },
     {
       title: 'HMKernel',
-      switchOptions: [{ option: 'Enabled', selected: true  }, { option: 'Disabled'}],
+      switchOptions: [{ option: 'Enabled', selected: true }, { option: 'Disabled' }],
       describeContent: '',
     },
     {

@@ -15,7 +15,7 @@
 
 importScripts('sql-wasm.js');
 // @ts-ignore
-import {WebSocketManager} from "../../webSocket/WebSocketManager";
+import {WebSocketManager} from '../../webSocket/WebSocketManager';
 
 importScripts('sql-wasm.js');
 // @ts-ignore

@@ -1879,7 +1879,7 @@ export class SpSystemTrace extends BaseElement {
       }
     }
     // @ts-ignore
-    if(record.leftNS && record.rightNS){
+    if (record.leftNS && record.rightNS) {
       // @ts-ignore
     this.timerShaftEL?.setRangeNS(record.leftNS, record.rightNS);
     }

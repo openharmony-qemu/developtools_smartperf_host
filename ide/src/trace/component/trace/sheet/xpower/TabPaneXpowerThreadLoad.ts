@@ -145,7 +145,7 @@ export class TabPaneXpowerThreadLoad extends BaseElement {
           SelectThreadLoadData.avgNumber = parseFloat((sum / itemArray.length).toFixed(2));
           SelectThreadLoadData.maxNumber = max;
           SelectThreadLoadData.minNumber = min;
-        } else if (itemArray.length == 1) {
+        } else if (itemArray.length === 1) {
           let value = itemArray[0].value;
           SelectThreadLoadData.avgNumber = value;
           SelectThreadLoadData.maxNumber = value;

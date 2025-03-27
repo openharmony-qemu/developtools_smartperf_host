@@ -139,7 +139,7 @@ export class WebSocketManager {
 
     // 业务
     businessMessage(decode: MessageParam): void {
-        if (this.distributeMap.has(decode.type!)){
+        if (this.distributeMap.has(decode.type!)) {
             const callbackObj = this.distributeMap.get(decode.type!)!;
             // 遍历调用所有 eventCallBacks
             callbackObj.messageCallbacks.forEach(callback => {
@@ -225,7 +225,7 @@ export class WebSocketManager {
         this.register(type, callback);
     }
 
-    private register(type: number, callback: Function, eventCallBack: Function = () => {}): void {
+    private register(type: number, callback: Function, eventCallBack: Function = (): void => { }): void {
         let callbackObj = this.distributeMap.get(type);
         if (!callbackObj) {
             callbackObj = {

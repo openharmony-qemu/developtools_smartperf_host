@@ -137,13 +137,13 @@ export class TabPaneNMemory extends BaseElement {
       if (results.length > 0) {
         let isTwoArray: boolean = results.some(item => {
           return Array.isArray(item);
-        })
+        });
         let dataList: unknown = [];
         if (isTwoArray) {
           results.forEach(v => {
             // @ts-ignore
             dataList = dataList.concat(v);
-          })
+          });
         } else {
           dataList = results;
         }
