@@ -323,17 +323,19 @@ export class TabPaneHiLogs extends BaseElement {
   }
 
   // 模糊过滤tag
-  private filterTag(tagAllName: unknown): boolean | undefined { 
+  private filterTag(tagAllName: unknown): boolean | undefined {
+    let flag = false;
     if (this.allowTag.size === 0) {
       return;
     }
     for (const value of this.allowTag) {
       // @ts-ignore
       if (tagAllName.indexOf(value) >= 0) {
-        return true;
+        flag = true;
+        return flag;
       }
     }
-    return false;
+    return flag;
   }
 
   private refreshTable(): void {

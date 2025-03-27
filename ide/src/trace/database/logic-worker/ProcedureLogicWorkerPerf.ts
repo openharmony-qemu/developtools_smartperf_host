@@ -127,7 +127,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     }
   }
 
-  private getAnalysisData(data: unknown) {
+  private getAnalysisData(data: unknown): void {
     //@ts-ignore
     this.samplesData = convertJSON(data.params.list) || [];
     let result;
@@ -147,7 +147,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       });
   }
 
-  private getBottomUpData(data: unknown) {
+  private getBottomUpData(data: unknown): void {
     //@ts-ignore
     this.samplesData = convertJSON(data.params.list) || [];
     let result;
@@ -156,7 +156,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         funcName: 'getBottomUp',
         funcArgs: [true],
       },
-    ])
+    ]);
     self.postMessage({
       //@ts-ignore
       id: data.id,
@@ -167,7 +167,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     });
   }
 
-  private getProfileData(data: unknown) {
+  private getProfileData(data: unknown): void {
     //@ts-ignore
     this.samplesData = convertJSON(data.params.list) || [];
     let result;
@@ -187,7 +187,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
           funcName: 'getCallChainsBySampleIds',
           funcArgs: [this.isTopDown],
         },
-      ])
+      ]);
     }
     self.postMessage({
       //@ts-ignore
@@ -290,7 +290,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     }
   }
 
-  rebackVaddrList(data: unknown) {
+  rebackVaddrList(data: unknown): void {
     // @ts-ignore
     let vaddrCallchainList = convertJSON(data.params.list);
     let sampleCallChainList: unknown = [];
@@ -355,13 +355,13 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     }
   }
 
-  private perfGetVaddr(data: unknown) {
+  private perfGetVaddr(data: unknown): void {
     // @ts-ignore
     const params = data.params;
     this.backVaddrData(data);
   }
 
-  backVaddrData(data: unknown) {
+  backVaddrData(data: unknown): void {
     // @ts-ignore
     this.handleDataByFuncName(data.params[0].funcName, data.params[0].funcArgs);
   }
