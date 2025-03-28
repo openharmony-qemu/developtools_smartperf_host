@@ -560,13 +560,14 @@ export class SpHelp extends BaseElement {
           box-sizing: border-box;
         }
         #navbar-container { 
-          border-left: 5px solid #ecb829;
+          padding: 85px 10px 10px 10px;
         }
         #navbar-container ul {  
           list-style-type: none; 
           width:100%;
           margin: 0;  
           padding: 0;
+          border-left: 5px solid #ecb829;
         } 
         #navbar-container ul li { 
           position: relative;
@@ -650,9 +651,9 @@ export class SpHelp extends BaseElement {
          <div class="body">
             <lit-main-menu id="main-menu" class="menugroup" data=''></lit-main-menu>
             <div id="app-content" class="content">
-               <div id="help-file" style="width:100%;overflow-y: hidden;"></div>
-                      <nav id="navbar-container" style="position:fixed;top:80px;left:79%;width:18%;"></nav>
-                      <div class="back" style="position:fixed;top:80px;left:98%;width:2%;">
+               <div id="help-file" style="width:80%;overflow-y: hidden;"></div>
+                      <nav id="navbar-container" style="width:19%;"></nav>
+                      <div class="back" style="flex:1;padding:70px 10px;">
                           <lit-icon id="back-to-top" name="vertical-align-top" style="font-weight: bold;cursor: pointer;" size="20">
                           </lit-icon>
                       </div>
