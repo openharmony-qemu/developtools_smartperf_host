@@ -245,6 +245,7 @@ export class SpSystemTrace extends BaseElement {
   collectEl2: HTMLDivElement | undefined | null;
   groupTitle1: HTMLDivElement | undefined | null;
   groupTitle2: HTMLDivElement | undefined | null;
+  isInSheet: boolean = false;
 
   set snapshotFile(data: FileInfo) {
     this.snapshotFiles = data;
