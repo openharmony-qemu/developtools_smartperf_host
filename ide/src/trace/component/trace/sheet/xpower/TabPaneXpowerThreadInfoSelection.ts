@@ -30,7 +30,7 @@ export class TabPaneXpowerThreadInfoSelection extends BaseElement {
     this.tableEl!.recycleDataSource = [];
     this.init();
     if (dataList.length >= 1) {
-      dataList[0].valueType == THREAD_ENERGY ? (this.valueType = 'Energy(mAh)') : (this.valueType = 'Load(%)');
+      dataList[0].valueType === THREAD_ENERGY ? (this.valueType = 'Energy(mAh)') : (this.valueType = 'Load(%)');
     }
     dataList.forEach((data) => {
       data.startMS = data.startNS / 1_000_000;

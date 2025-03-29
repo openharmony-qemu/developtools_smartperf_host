@@ -15,7 +15,7 @@
 
 export class PerfFunctionAsmParam {
   totalCount: number = 0;
-  functionName: string = "";
+  functionName: string = '';
   vaddrList: Array<unknown> = [];
 }
 

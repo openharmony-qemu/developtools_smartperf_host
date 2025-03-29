@@ -247,7 +247,7 @@ export class SpStatisticsHttpUtil {
 
   // ai对话接口--问答
   // @ts-ignore
-  static askAi(requestBody,params:string): Promise<AiResponse> {
+  static askAi(requestBody, params: string): Promise<AiResponse> {
     return new Promise((resolve, reject) => {
       let controller = new AbortController();
       let date = Date.now();
