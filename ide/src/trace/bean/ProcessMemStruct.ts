@@ -28,6 +28,7 @@ export class ProcessMemStruct extends BaseStruct {
   startTime: number | undefined;
   duration: number | undefined;
   maxValue: number | undefined;
+  minValue: number | undefined;
   delta: number | undefined;
 
   static draw(pMemCtx: CanvasRenderingContext2D, pMemData: ProcessMemStruct): void {
