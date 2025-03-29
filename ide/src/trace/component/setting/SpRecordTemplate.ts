@@ -82,8 +82,8 @@ export class SpRecordTemplate extends BaseElement {
     '-f 1000 -a  --cpu-limit 100 -e hw-cpu-cycles,sched:sched_waking' +
     ' --call-stack dwarf --clockid monotonic --offcpu -m 256';
   static HIPERF_NAPI_RECORD_ARGS_BEFORE = '';  
-  static HIPERF_NAPI_RECORD_ARGS_APP = '-f 1000 --app'  
-  static HIPERF_NAPI_RECORD_ARGS_PID = '-f 1000 -p'  
+  static HIPERF_NAPI_RECORD_ARGS_APP = '-f 1000 --app';  
+  static HIPERF_NAPI_RECORD_ARGS_PID = '-f 1000 -p';
   static HIPERF_NAPI_RECORD_ARGS_AFTER = '--cpu-limit 100 -e hw-cpu-cycles --call-stack dwarf --clockid monotonic -m 256';
   private frameTimeline: LitSwitch | undefined | null;
   private schedulingAnalysis: LitSwitch | undefined | null;
@@ -217,7 +217,7 @@ export class SpRecordTemplate extends BaseElement {
     };
   }
 
-  private getDesiredString(str: string) {
+  private getDesiredString(str: string): string {
     if (/^\d+$/.test(str)) {
         this.isNum = true;
         return str;
@@ -256,7 +256,7 @@ private packageMouseDownHandler(): void {
   Cmd.getPackage().then((packageList: string[]): void => {
     let finalDataList = packageList.map(str => str.replace(/\t/g, ''));
     if (finalDataList.length > 0) {
-      this.packageName!.dataSource(finalDataList, '',true);
+      this.packageName!.dataSource(finalDataList, '', true);
     } else {
       this.packageName!.dataSource([], '');
     }
@@ -283,7 +283,7 @@ private createNativeConfig(): ProfilerPluginConfig<NativePluginConfig> {
     startup_mode: false,
     js_stack_report: 2,
     max_js_stack_depth: 5,
-    filter_napi_name: "info",
+    filter_napi_name: 'info',
     memtrace_enable: true,
     malloc_disable: true,
   };

@@ -973,7 +973,7 @@ export class SpRecordTrace extends BaseElement {
       let option = document.createElement('option');
       option.className = 'select';
       option.selected = supportVersion === '5.0+';
-      option.textContent =`OpenHarmony-${supportVersion}`;
+      option.textContent = `OpenHarmony-${supportVersion}`;
       option.setAttribute('device-version', supportVersion);
       this.deviceVersion!.append(option);
       SpRecordTrace.selectVersion = '5.0+';
