@@ -129,6 +129,13 @@ export const queryMemFilterIdMaxValue = (): Promise<Array<{ filterId: number; ma
   );
 };
 
+export const queryMemFilterIdMinValue = (): Promise<Array<{ filterId: number; minValue: number }>> => {
+  return query(
+    'queryMemFilterIdMinValue',
+    `select filter_id as filterId,min(value) minValue from process_measure group by filter_id;`
+  );
+};
+
 export const getTabVirtualMemoryType = (startTime: number, endTime: number): Promise<Array<string>> =>
   query(
     'getTabVirtualMemoryType',

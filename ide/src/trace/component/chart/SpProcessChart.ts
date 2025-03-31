@@ -38,7 +38,7 @@ import { processActualDataSender } from '../../database/data-trafic/process/Proc
 import { processDeliverInputEventDataSender } from '../../database/data-trafic/process/ProcessDeliverInputEventDataSender';
 import { processTouchEventDispatchDataSender } from '../../database/data-trafic/process/ProcessTouchEventDispatchDataSender';
 import { getMaxDepthByTid, queryProcessAsyncFunc, queryProcessAsyncFuncCat } from '../../database/sql/Func.sql';
-import { queryMemFilterIdMaxValue } from '../../database/sql/Memory.sql';
+import { queryMemFilterIdMaxValue, queryMemFilterIdMinValue } from '../../database/sql/Memory.sql';
 import { queryAllSoInitNames, queryAllSrcSlices, queryEventCountMap } from '../../database/sql/SqlLite.sql';
 import {
   queryProcessByTable,
@@ -78,6 +78,7 @@ export class SpProcessChart {
   private startupProcessArr: { pid: number }[] = [];
   private processSoMaxDepth: { pid: number; maxDepth: number }[] = [];
   private filterIdMaxValue: Map<number, number> = new Map();
+  private filterIdMinValue: Map<number, number> = new Map();
   private soInitNameMap: Map<number, string> = new Map();
   private processSrcSliceMap: Map<number, string> = new Map();
   private distributedDataMap: Map<
@@ -120,6 +121,7 @@ export class SpProcessChart {
     this.startupProcessArr = [];
     this.processSoMaxDepth = [];
     this.filterIdMaxValue.clear();
+    this.filterIdMinValue.clear();
     this.soInitNameMap.clear();
     this.processSrcSliceMap.clear();
     this.distributedDataMap.clear();
@@ -443,8 +445,12 @@ export class SpProcessChart {
   private async prepareData(traceId?: string): Promise<void> {
     if (!this.isDistributed) {
       let maxValues = await queryMemFilterIdMaxValue();
+      let minValues = await queryMemFilterIdMinValue();
       maxValues.forEach((it) => {
         this.filterIdMaxValue.set(it.filterId, it.maxValue);
+      });
+      minValues.forEach((it) => {
+        this.filterIdMinValue.set(it.filterId, it.minValue);
       });
       let soInitNamesArray = await queryAllSoInitNames();
       soInitNamesArray.forEach((it) => {
@@ -1525,8 +1531,11 @@ export class SpProcessChart {
         processMemDataSender(mem.trackId, row).then((resultProcess) => {
           //@ts-ignore
           let maxValue = this.filterIdMaxValue.get(mem.trackId) || 0;
+          //@ts-ignore
+          let minValue = this.filterIdMinValue.get(mem.trackId) || 0;
           for (let j = 0; j < resultProcess.length; j++) {
             resultProcess[j].maxValue = maxValue;
+            resultProcess[j].minValue = minValue;
             if (j === resultProcess.length - 1) {
               resultProcess[j].duration = (TraceRow.range?.totalNS || 0) - (resultProcess[j].startTime || 0);
             } else {
