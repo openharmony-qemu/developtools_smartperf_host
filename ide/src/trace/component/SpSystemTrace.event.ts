@@ -728,7 +728,10 @@ export function spSystemTraceDocumentOnMouseDown(sp: SpSystemTrace, ev: MouseEve
 
   TraceRow.isUserInteraction = true;
   if (sp.isMouseInSheet(ev)) {
+    sp.isInSheet = true;
     return;
+  } else {
+    sp.isInSheet = false;
   }
   sp.observerScrollHeightEnable = false;
   if (ev.offsetX > sp.timerShaftEL!.canvas!.offsetLeft) {
