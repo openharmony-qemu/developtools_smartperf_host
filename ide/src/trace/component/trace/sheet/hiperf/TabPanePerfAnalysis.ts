@@ -90,6 +90,8 @@ export class TabPanePerfAnalysis extends BaseElement {
     TabPanePerfAnalysis.tabLoadingList = [];
     this.currentSelection = val;
     this.tabName!.textContent = '';
+    // @ts-ignore
+    this.perfAnalysisHeadTips?.innerHTML = '';
     this.hideProcessCheckBox!.checked = false;
     this.hideThreadCheckBox!.checked = false;
     this.reset(this.perfTableProcess!, false);
