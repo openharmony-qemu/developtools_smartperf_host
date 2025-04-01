@@ -36,6 +36,7 @@ import { Utils } from '../component/trace/base/Utils';
 import { XpowerStatisticStruct } from '../database/ui-worker/ProcedureWorkerXpowerStatistic';
 import { XpowerThreadInfoStruct } from '../database/ui-worker/ProcedureWorkerXpowerThreadInfo';
 import { THREAD_ENERGY, THREAD_LOAD } from '../component/chart/SpXpowerChart';
+import { SpHiPerf } from '../component/chart/SpHiPerf';
 
 export class SelectionParam {
   traceId: string | undefined | null;
@@ -1049,6 +1050,7 @@ export class SelectionParam {
   // @ts-ignore
   pushThread(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_THREAD) {
+      this.perfEventTypeId = SpHiPerf.hiperfEvent === -2 ? undefined :  SpHiPerf.hiperfEvent;
       sp.pushPidToSelection(this, it.rowParentId!, it.protoPid);
       if (it.dataListCache && it.dataListCache.length) {
         //@ts-ignore

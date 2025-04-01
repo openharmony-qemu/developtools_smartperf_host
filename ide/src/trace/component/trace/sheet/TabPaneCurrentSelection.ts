@@ -68,6 +68,8 @@ import { HangStruct } from '../../../database/ui-worker/ProcedureWorkerHang';
 import { XpowerStruct } from '../../../database/ui-worker/ProcedureWorkerXpower';
 import { XpowerAppDetailStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerAppDetail';
 import { XpowerWifiStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerWifi';
+import { XpowerThreadCountStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerThreadCount';
+import { XpowerGpuFreqCountStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerGpuFreqCount';
 
 const INPUT_WORD =
   'This is the interval from when the task became eligible to run \n(e.g.because of notifying a wait queue it was a suspended on) to\n when it started running.';
@@ -873,6 +875,51 @@ export class TabPaneCurrentSelection extends BaseElement {
   }
 
   async setXpowerData(data: XpowerStruct): Promise<void> {  
+    if (SpApplication.traceType.indexOf('SQLite') === -1) {
+      await this.setRealTime();
+    }
+    this.setTableHeight('auto');
+    this.tabCurrentSelectionInit('Counter Details');
+    let list: unknown[] = [];
+    list.push({
+      name: 'StartTime(Relative)',
+      value: getTimeString(data.startNS || 0),
+    });
+    this.createStartTimeNode(list, data.startNS || 0, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
+    list.push({
+      name: 'Value',
+      value: String(data.value).indexOf('.') > -1 ? data.value || 0 : ColorUtils.formatNumberComma(data.value || 0),
+    });
+    list.push({ name: 'Duration', value: getTimeString(data.dur || 0) });
+    this.currentSelectionTbl!.dataSource = list;
+    let startTimeAbsolute = (data.startNS || 0) + Utils.getInstance().getRecordStartNS();
+    this.addClickToTransfBtn(startTimeAbsolute, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
+  }
+
+  
+  async setXpowerTreadCountData(data: XpowerThreadCountStruct): Promise<void> {  
+    if (SpApplication.traceType.indexOf('SQLite') === -1) {
+      await this.setRealTime();
+    }
+    this.setTableHeight('auto');
+    this.tabCurrentSelectionInit('Counter Details');
+    let list: unknown[] = [];
+    list.push({
+      name: 'StartTime(Relative)',
+      value: getTimeString(data.startNS || 0),
+    });
+    this.createStartTimeNode(list, data.startNS || 0, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
+    list.push({
+      name: 'Value',
+      value: String(data.value).indexOf('.') > -1 ? data.value || 0 : ColorUtils.formatNumberComma(data.value || 0),
+    });
+    list.push({ name: 'Duration', value: getTimeString(data.dur || 0) });
+    this.currentSelectionTbl!.dataSource = list;
+    let startTimeAbsolute = (data.startNS || 0) + Utils.getInstance().getRecordStartNS();
+    this.addClickToTransfBtn(startTimeAbsolute, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
+  }
+
+  async setXpowerGpuFreqCountData(data: XpowerGpuFreqCountStruct): Promise<void> {  
     if (SpApplication.traceType.indexOf('SQLite') === -1) {
       await this.setRealTime();
     }
@@ -1810,13 +1857,22 @@ export class TabPaneCurrentSelection extends BaseElement {
       value: ((data.startTs || 0) + Utils.getInstance().getRecordStartNS()) / 1000000000 + 's',
     });
     if (data.dur && data.dur > 0) {
-      list.push({
-        name: 'EndTime(Relative)',
-        value: `<div style="white-space: nowrap;display: flex;align-items: center">
-<div style="white-space:pre-wrap">${getTimeString((data.startTs || 0) + (data.dur || 0))}</div>
-<lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="end-jump" name="select" color="#7fa1e7" size="20"></lit-icon>
-</div>`,
-      });
+      if (data.startName > 6) {
+        list.push({
+          name: 'EndTime(Relative)',
+          value: `<div style="white-space: nowrap;display: flex;align-items: center">
+  <div style="white-space:pre-wrap">${getTimeString((data.startTs || 0) + (data.dur || 0))}</div>
+  </div>`,
+        });
+      } else {
+        list.push({
+          name: 'EndTime(Relative)',
+          value: `<div style="white-space: nowrap;display: flex;align-items: center">
+  <div style="white-space:pre-wrap">${getTimeString((data.startTs || 0) + (data.dur || 0))}</div>
+  <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="end-jump" name="select" color="#7fa1e7" size="20"></lit-icon>
+  </div>`,
+        });
+      }
       list.push({
         name: 'EndTime(Absolute)',
         value: ((data.startTs || 0) + (data.dur || 0) + Utils.getInstance().getRecordStartNS()) / 1000000000 + 's',
@@ -1857,6 +1913,12 @@ export class TabPaneCurrentSelection extends BaseElement {
                 sortedArray[index + 1].startTs
               )}`,
         });
+        if (data.startName === 6) {
+          data.endstartTs = sortedArray[index + 1].startTs;
+          data.endItid = sortedArray[index + 1].itid;
+        } else {
+          data.endstartTs = data.startTs! + data.dur!;
+        }
       }
     });
     this.currentSelectionTbl!.dataSource = list;
@@ -1883,10 +1945,9 @@ export class TabPaneCurrentSelection extends BaseElement {
     let endIcon = this.currentSelectionTbl?.shadowRoot?.querySelector('#end-jump');
     let scrollClick = (type: number): void => {
       let recordNs: number = Utils.getInstance().getRecordStartNS();
-      let useEnd = type === 1 && data.startName! < 6;
       queryThreadByItid(
-        useEnd ? data.endItid! : data.itid!,
-        useEnd ? recordNs + data.startTs! + data.dur! : recordNs + data.startTs!
+        type === 0 ? data.itid! : data.endItid!,
+        type === 0 ? recordNs + data.startTs! : recordNs + data.endstartTs!
       ).then((result) => {
         if (result.length > 0) {
           //@ts-ignore
@@ -1904,7 +1965,7 @@ export class TabPaneCurrentSelection extends BaseElement {
             dur: pt.dur,
             depth: pt.depth,
             funName: pt.name,
-            startTs: useEnd ? (data.startTs || 0) + (data.dur || 0) : data.startTs,
+            startTs: type === 0 ? data.startTs! : data.endstartTs!,
             keepOpen: true,
           });
         }
@@ -2411,6 +2472,7 @@ export class TabPaneCurrentSelection extends BaseElement {
         }
       });
       this.updateTableSettings(maxPriority, maxPriorityDuration, maxDuration);
+      this.wakeupListTbl!.style.display = 'flex';
       this.wakeupListTbl!.recycleDataSource = resource;
     });
   }

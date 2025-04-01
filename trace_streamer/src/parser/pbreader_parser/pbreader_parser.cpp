@@ -1210,10 +1210,22 @@ void PbreaderParser::GetTraceidInfoFromCallstack(
     std::string invalidTraceidStr("0x0");
     for (int i = 0; i < callStack.Size(); i++) {
         auto name = traceDataCache_->GetDataFromDict(callStack.NamesData()[i]);
-        if (!StartWith(name, "H:Napi execute, name:") || callStack.DursData()[i] == INVALID_UINT64) {
+        if (!StartWith(name, "H:Native async work execute callback") || callStack.DursData()[i] == INVALID_UINT64) {
             continue;
         }
-        auto traceidStr = name.substr(name.find(preWord) + preWord.size());
+        auto preWordPos = name.find(preWord);
+        if (preWordPos == std::string::npos) {
+            continue;
+        }
+        auto beginPos = preWordPos + preWord.size();
+        if (beginPos + 1 >= name.size()) {
+            continue;
+        }
+        auto endPos = name.find_first_of('|', beginPos + 1);
+        if (endPos == std::string::npos) {
+            continue;
+        }
+        auto traceidStr = name.substr(beginPos, endPos - beginPos);
         if (traceidStr == invalidTraceidStr) {
             continue;
         }

@@ -87,8 +87,8 @@ export class TabPerfFuncAsm extends BaseElement {
         } else {
           this.showUpData.sort((a, b) => {
             return sort === 1
-                ? a.selfcount - b.selfcount
-                : b.selfcount - a.selfcount;
+              ? a.selfcount - b.selfcount
+              : b.selfcount - a.selfcount;
           });
           this.assmblerTable!.recycleDataSource = this.showUpData;
           this.assmblerTable!.reMeauseHeight();
@@ -191,7 +191,7 @@ export class TabPerfFuncAsm extends BaseElement {
               }
             };
 
-            WebSocketManager.getInstance()?.registerCallback(TypeConstants.DISASSEMBLY_TYPE, callback);
+            WebSocketManager.getInstance()?.registerMessageListener(TypeConstants.DISASSEMBLY_TYPE, callback, () => { }, true);
           }),
           new Promise((_, reject) => setTimeout(() => {
             WebSocketManager.getInstance()?.unregisterCallback(TypeConstants.DISASSEMBLY_TYPE, callback);
@@ -229,7 +229,7 @@ export class TabPerfFuncAsm extends BaseElement {
       // @ts-ignore
       const count = this.funcSampleMap.get(item.offsetToVaddr) || 0;
       // @ts-ignore
-      this.funcSampleMap.set(item.offsetToVaddr, count + 1);
+      this.funcSampleMap.set(item.offsetToVaddr, count + item.count);
     });
   }
 

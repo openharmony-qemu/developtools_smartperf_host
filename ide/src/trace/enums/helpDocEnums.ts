@@ -41,6 +41,7 @@ const events = {
   XPOWER_EVENT: 'xpower',
   EXTEND_EVENT: 'extensions',
   FFRT_EVENT: 'ffrt',
+  LIMIT_EVENT: 'limit',
   TRACE_STREAMER_EXPLAIN_EVENT: 'trace_streamer_explain',
 };
 
@@ -191,9 +192,14 @@ export const eventDefinitions: { [key: string]: EventDefinition } = {
     name: 'quickstart_ffrt',
     index: 28,
   },
+  quickstart_limit: {
+    event: events.LIMIT_EVENT,
+    name: 'quickstart_limit',
+    index: 29,
+  },
   des_tables: {
     event: events.TRACE_STREAMER_EXPLAIN_EVENT,
     name: 'des_tables',
-    index: 29,
+    index: 30,
   },
 };

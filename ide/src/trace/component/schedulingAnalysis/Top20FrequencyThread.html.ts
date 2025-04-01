@@ -32,6 +32,9 @@ export const Top20FrequencyThreadHtml = `
             width: 80%;
             height: 500px;
         }
+        #nodata {
+            opacity: 0;
+        }
         .root{
             width: 100%;
             height: 100%;
@@ -45,7 +48,7 @@ export const Top20FrequencyThreadHtml = `
         <lit-progress-bar id="loading" style="height: 1px;width: 100%" loading></lit-progress-bar>
         <div style="padding: 15px">
                     Thread Search
-                    <lit-select default-value="1" id="thread_select" placement="bottom" tabselect></lit-select>
+                    <lit-select-v value default-value="" id="thread_select" rounded placement="bottom" placeholder="please select thread"></lit-select-v>
         </div>
         <table-no-data id="nodata" contentHeight="500px">
         <div class="root">

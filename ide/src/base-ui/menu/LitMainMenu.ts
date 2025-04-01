@@ -302,6 +302,7 @@ export class LitMainMenu extends BaseElement {
              <img class="ai_analysis" title="AI Assistant" src="img/ai-analysis.png" style="margin-left: 0.8em;width:16px;height:16px;margin-top: 1.4em;cursor: pointer;">
              <div class="version" style="">
              </div>
+             <div class='extend_connect' style="background-color:red;width: 15px; height: 10px; border-radius: 100%; margin-top: 22px; margin-right: 20px;"></div>
         </div>`;
   }
 }

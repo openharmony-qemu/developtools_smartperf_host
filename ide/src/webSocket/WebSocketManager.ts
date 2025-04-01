@@ -41,6 +41,7 @@ export class WebSocketManager {
     private status: string = GetStatuses.UNCONNECTED;
     private cacheInfo: Map<number, unknown> = new Map<number, unknown>();
     private reconnect: number = -1;
+    private connectStatus: HTMLElement | null | undefined;
 
     constructor() {
         if (WebSocketManager.instance) {
@@ -52,8 +53,12 @@ export class WebSocketManager {
     }
     //连接WebSocket
     connectWebSocket(): void {
+        // @ts-ignore
+        this.connectStatus = document.querySelector("body > sp-application").shadowRoot.querySelector("#main-menu").shadowRoot.querySelector("div.bottom > div.extend_connect");
         this.websocket = new WebSocket(this.url);
         this.websocket.binaryType = 'arraybuffer';
+        // @ts-ignore
+        setInterval(this.checkConnectionStatus(this.websocke), 5000);
         this.websocket.onopen = (): void => {
             this.status = GetStatuses.CONNECTED;
             // 设置心跳定时器
@@ -77,12 +82,27 @@ export class WebSocketManager {
         };
 
         this.websocket.onclose = (event): void => {
+            this.checkConnectionStatus(this.websocket);
             this.status = GetStatuses.UNCONNECTED;
             this.finalStatus();
             //初始化标志位
             this.initLoginInfo();
             this.clearHeartbeat();
         };
+    }
+
+    /**
+     * 实时监听websockets连接状态
+     */
+    checkConnectionStatus(websocket: WebSocket | null | undefined) {
+        // @ts-ignore
+        if (websocket?.readyState === websocket?.OPEN) {
+            // @ts-ignore
+            this.connectStatus?.style.backgroundColor = 'green';
+        } else {
+            // @ts-ignore
+            this.connectStatus?.style.backgroundColor = 'red';
+        }
     }
 
     /**
@@ -96,6 +116,8 @@ export class WebSocketManager {
         } else if (decode.type === TypeConstants.UPDATE_TYPE) {// 升级
             this.updateMessage(decode);
         } else {// type其他
+            // @ts-ignore
+            this.connectStatus?.style.backgroundColor = 'green';
             this.businessMessage(decode);
         }
     }
@@ -106,6 +128,8 @@ export class WebSocketManager {
             this.status = GetStatuses.LOGINED;
             this.sessionId = decode.session_id;
             this.session = decode.session;
+            // @ts-ignore
+            this.connectStatus?.style.backgroundColor = 'green';
             //检查版本
             this.getVersion();
         } else if (decode.cmd === Constants.SESSION_EXCEED) { // session满了
@@ -118,7 +142,7 @@ export class WebSocketManager {
     updateMessage(decode: MessageParam): void {
         if (decode.cmd === Constants.GET_VERSION_CMD) {
             // 小于则升级
-            let targetVersion = '1.0.8';
+            let targetVersion = '1.1.1';
             let currentVersion = new TextDecoder().decode(decode.data);
             let result = this.compareVersion(currentVersion, targetVersion);
             if (result === -1) {
@@ -212,20 +236,7 @@ export class WebSocketManager {
      * listener是不同模块传来接收数据的函数
      * 模块调用
     */
-    registerMessageListener(type: number, callback: Function, eventCallBack: Function): void {
-        this.register(type, callback, eventCallBack);
-    }
-
-    /**
-     * 消息监听器
-     * listener是不同模块传来接收数据的函数
-     * 模块调用
-     */
-    registerCallback(type: number, callback: Function): void {
-        this.register(type, callback);
-    }
-
-    private register(type: number, callback: Function, eventCallBack: Function = (): void => { }): void {
+registerMessageListener(type: number, callback: Function, eventCallBack: Function, allowMultipleCallback: boolean = false): void {
         let callbackObj = this.distributeMap.get(type);
         if (!callbackObj) {
             callbackObj = {
@@ -234,7 +245,7 @@ export class WebSocketManager {
             };
             this.distributeMap.set(type, callbackObj);
         } else {
-            if (!callbackObj.messageCallbacks.includes(callback)) {
+            if (allowMultipleCallback) {
                 callbackObj.messageCallbacks.push(callback);
             }
             callbackObj.eventCallBack = eventCallBack;
@@ -345,9 +356,13 @@ export class WebSocketManager {
         if (this.reconnect !== -1) {
             if (this.status === GetStatuses.READY) {
                 // @ts-ignore
+                this.connectStatus?.style.backgroundColor = 'green';
+                // @ts-ignore
                 this.sendMessage(this.reconnect, this.cacheInfo.get(this.reconnect)!.cmd, this.cacheInfo.get(this.reconnect)!.data);
                 return;
             }
+            // @ts-ignore
+            this.connectStatus?.style.backgroundColor = 'red';
             this.distributeMap.get(this.reconnect)!.eventCallBack(this.status);
         }
         this.reconnect = -1;

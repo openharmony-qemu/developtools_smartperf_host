@@ -142,12 +142,12 @@ export class SpLtpoChart {
   initFenceName(): void {
     SpLtpoChart.fanceNameList.map((item) => {
       let cutFanceNameArr = item.name!.split(' ');
-      if (cutFanceNameArr[cutFanceNameArr.length - 1] === 'signaled') {
+      if (cutFanceNameArr[cutFanceNameArr.length - 1].includes('signaled')) {
         item.fanceId = Number(cutFanceNameArr[2]);
         item.signaled = 1;
         SpLtpoChart.signaledFence.push(item);
       } else {
-        item.fanceId = Number(cutFanceNameArr[cutFanceNameArr.length - 1]);
+        item.fanceId = Number(cutFanceNameArr[cutFanceNameArr.length - 1].split('|')[0]);
       }
     });
   }
@@ -176,8 +176,8 @@ export class SpLtpoChart {
   //从render_service中获取nowTime
   initRsNowTime(): void {
     SpLtpoChart.rsNowTimeList.map((item) => {
-      let cutRsNameArr = item.name!.split(' ')[2].split(':');
-      item.nowTime = Number(cutRsNameArr[cutRsNameArr.length - 1]);
+      let cutRsNameArr = item.name!.split('now')[1].split(' ')[1];
+      item.nowTime = Number(cutRsNameArr);
     });
   }
   //处理fps
@@ -229,6 +229,8 @@ export class SpLtpoChart {
             SpLtpoChart.fpsnameList[fpsIndex].ts! + SpLtpoChart.fpsnameList[fpsIndex].dur!
           ) {
             fpsIndex++;
+          } else {
+            return;
           }
         } else {
           return;
@@ -294,6 +296,8 @@ export class SpLtpoChart {
             cutTimeSum += tempFps ? 1000 / tempFps : 1000 / SpLtpoChart.tempRsNowTimeList[nowTimeIndex - 1].fps!;
           }
           skipIndex++;
+        } else {
+          return;
         }
       } else {
         return;
@@ -352,6 +356,8 @@ export class SpLtpoChart {
           presentArr.splice(presentIndex, 1);
         } else if (presentArr[presentIndex].presentId! > ltpoDataArr[ltpoIndex].fanceId!) {
           ltpoDataArr.splice(ltpoIndex, 1);
+        } else {
+          break;
         }
       } else {
         break;

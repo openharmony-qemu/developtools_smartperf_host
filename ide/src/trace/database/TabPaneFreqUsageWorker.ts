@@ -283,7 +283,7 @@ function returnObj(
       break;
   }
   // @ts-ignore
-  if (comPower && (comPower!.get(item.cpu).broId || comPower!.get(item.cpu).broId === 0) && comPower!.get(item.cpu).smtRate) {
+  if (comPower && comPower!.get(item.cpu) && (comPower!.get(item.cpu).broId || comPower!.get(item.cpu).broId === 0) && comPower!.get(item.cpu).smtRate) {
     // @ts-ignore
     let broCpuDataList = broCpuData.filter((e) => (e.cpu === comPower!.get(item.cpu).broId) && // @ts-ignore
     !(e.startTime >= result!.ts + result!.dur || e.endTime <= result!.ts));
@@ -312,6 +312,8 @@ function returnObj(
       result.consumpower = result.consumpower * comPower!.get(item.cpu).smtRate;
       // @ts-ignore
       result.frequency = cpuFreqData.value / FREQ_MUTIPLE + ': ' + computorPower * comPower!.get(item.cpu).smtRate + '*';
+      // @ts-ignore
+      result.cpuload = result.consumpower / (timeZones * maxCommpuPower) * PERCENT;
       return result;
     } else {
       let resultArr = [
@@ -335,8 +337,10 @@ function returnObj(
           frequency: computorPower ? cpuFreqData.value / FREQ_MUTIPLE + ': ' + computorPower * comPower!.get(item.cpu).smtRate + '*' : cpuFreqData.value / FREQ_MUTIPLE,
           dur: parallelDur,
           percent: (parallelDur / sum) * PERCENT,
-          consumpower: computorPower * parallelDur,
-          cpuload: (computorPower * parallelDur) / (timeZones * maxCommpuPower) * PERCENT,
+          // @ts-ignore
+          consumpower: computorPower * parallelDur * comPower!.get(item.cpu).smtRate,
+          // @ts-ignore
+          cpuload: (computorPower * parallelDur * comPower!.get(item.cpu).smtRate) / (timeZones * maxCommpuPower) * PERCENT,
           // @ts-ignore
           ts: item.ts - recordStartNS
         }

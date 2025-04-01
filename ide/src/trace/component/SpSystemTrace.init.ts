@@ -466,7 +466,7 @@ function collectHandlerNo(sp: SpSystemTrace, currentRow: unknown, event: unknown
   // @ts-ignore
   currentRow.name = currentRow.tampName;
   //@ts-ignore  xpower转换名称
-  if (currentRow.rowType === 'xpower-system') {
+  if (currentRow.rowType === 'xpower-system' || (currentRow.parentRowEl && currentRow.parentRowEl.rowType === 'xpower-bundle-name-group')) {
     //@ts-ignore
     let titleEl = currentRow.shadowRoot?.querySelector('.name') as HTMLLabelElement;
     //@ts-ignore
@@ -533,7 +533,7 @@ function collectHandlerYes(sp: SpSystemTrace, currentRow: unknown, event: unknow
     sp.rowsEL!.replaceChild(replaceRow, currentRow);
   }
   //@ts-ignore  xpower转换名称
-  if (currentRow.rowType === 'xpower-system') {
+  if (currentRow.rowType === 'xpower-system' || (currentRow.parentRowEl && currentRow.parentRowEl.rowType === 'xpower-bundle-name-group')) {
     //@ts-ignore
     let titleEl = currentRow.shadowRoot?.querySelector('.name') as HTMLLabelElement;
     //@ts-ignore
@@ -629,7 +629,9 @@ function selectHandler(sp: SpSystemTrace): void {
       ];
     }
     checkRows = checkRows.filter((item, index, self) => {
-      return self.findIndex(obj => obj.rowId === item.rowId && obj.rowType === item.rowType && obj.name === item.name) === index;
+      return self.findIndex(
+        obj => obj.rowId === item.rowId && obj.rowType === item.rowType && obj.name === item.name && obj.rowParentId === item.rowParentId
+      ) === index;
     });
     selectHandlerRefreshCheckBox(sp, checkRows, refreshCheckBox);
     if (!sp.isSelectClick) {
@@ -874,7 +876,9 @@ export function spSystemTraceInitElement(sp: SpSystemTrace): void {
   sp.timerShaftEL = sp.shadowRoot.querySelector<TimerShaftElement>('.timer-shaft');
   sp.favoriteChartListEL = sp.shadowRoot.querySelector<SpChartList>('#favorite-chart-list');
   sp.collectEl1 = sp.favoriteChartListEL?.shadowRoot?.querySelector<HTMLDivElement>('#collect-group-1');
+  sp.collectEl2 = sp.favoriteChartListEL?.shadowRoot?.querySelector<HTMLDivElement>('#collect-group-2');
   sp.groupTitle1 = sp.favoriteChartListEL?.shadowRoot?.querySelector<HTMLDivElement>('#group-1-title');
+  sp.groupTitle2 = sp.favoriteChartListEL?.shadowRoot?.querySelector<HTMLDivElement>('#group-2-title');
   if (!sp.traceSheetEL.shadowRoot) {
     return;
   }
@@ -1413,18 +1417,7 @@ function savePresentData(sp: SpSystemTrace, row: TraceRow<unknown>, funcName: st
   });
 }
 function linkNodeHandler(linkNode: PairPoint[], sp: SpSystemTrace): void {
-  if (linkNode[0].rowEL.collect) {
-    linkNode[0].rowEL.translateY = linkNode[0].rowEL.getBoundingClientRect().top - 195;
-  } else {
-    linkNode[0].rowEL.translateY = linkNode[0].rowEL.offsetTop - sp.rowsPaneEL!.scrollTop;
-  }
-  linkNode[0].y = linkNode[0].rowEL!.translateY! + linkNode[0].offsetY;
-  if (linkNode[1].rowEL.collect) {
-    linkNode[1].rowEL.translateY = linkNode[1].rowEL.getBoundingClientRect().top - 195;
-  } else {
-    linkNode[1].rowEL.translateY = linkNode[1].rowEL.offsetTop - sp.rowsPaneEL!.scrollTop;
-  }
-  linkNode[1].y = linkNode[1].rowEL!.translateY! + linkNode[1].offsetY;
+  sp.handleCollectFunc([linkNode]);
 }
 
 const eventMap = {

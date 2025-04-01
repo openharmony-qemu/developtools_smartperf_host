@@ -85,7 +85,11 @@ export class SpChartList extends BaseElement {
     this.canvasCtx = this.canvas?.getContext('2d'); //@ts-ignore
     window.subscribe(window.SmartEvent.UI.RowHeightChange, (data: { expand: number; value: number }) => {
       this.resizeHeight();
-      if (!data.expand) {
+      if (data.expand) {
+        let offset = this.scrollTop + data.value;
+        offset = offset < 0 ? 0 : offset;
+        this.scrollTop = offset;
+      } else {
         let offset = this.scrollTop - data.value;
         offset = offset < 0 ? 0 : offset;
         this.scrollTop = offset;
@@ -103,41 +107,37 @@ export class SpChartList extends BaseElement {
         clearTimeout(offsetYTimeOut);
       }
       this.collect1Expand = !this.collect1Expand;
-      if (this.collect1Expand) {
+      if (this.collect1Expand) {//展开G1
         this.icon1!.style.transform = 'rotateZ(0deg)';
         this.collectEl1?.appendChild(this.fragmentGroup1);
-        if (!this.collect2Expand) { // G1展开，G2折叠时处理连线y坐标
-          this.handleCollect2LinkNodeY();
-        }
-      } else {
+        this.scrollTop = this.scrollHeight;
+      } else {//折叠G1
         this.icon1!.style.transform = 'rotateZ(-90deg)';
         this.collectRowList1.forEach((row) => this.fragmentGroup1.appendChild(row));
-        offsetYTimeOut = setTimeout(() => { //折叠G1收藏栏，连线处理 
-          this.handleCollect1LinkNodeY();
-          if (!this.collect2Expand) {
-            this.handleCollect2LinkNodeY();
-          }
-          this.spSystemTrace?.refreshCanvas(true);
-        }, 50);
+        this.scrollTop = 0;
       }
+      offsetYTimeOut = setTimeout(() => { 
+        this.handleCollectFunc();
+        this.spSystemTrace?.refreshCanvas(true);
+      }, 50);
       this.resizeHeight();
     };
     this.icon1?.addEventListener('click', () => foldCollect1());
     const foldCollect2 = (): void => {
       this.collect2Expand = !this.collect2Expand;
-      if (this.collect2Expand) {
+      if (this.collect2Expand) {//展开G2
         this.icon2!.style.transform = 'rotateZ(0deg)';
         this.collectEl2?.appendChild(this.fragmentGroup2);
         this.scrollTop = this.scrollHeight;
-      } else {
+      } else {//折叠G2
         this.icon2!.style.transform = 'rotateZ(-90deg)';
         this.collectRowList2.forEach((row) => this.fragmentGroup2.appendChild(row));
         this.scrollTop = 0;
-        offsetYTimeOut = setTimeout(() => {
-          this.handleCollect2LinkNodeY();
-          this.spSystemTrace?.refreshCanvas(true);
-        }, 50);
       }
+      offsetYTimeOut = setTimeout(() => {
+        this.handleCollectFunc();
+        this.spSystemTrace?.refreshCanvas(true);
+      }, 50);
       this.resizeHeight();
     };
     this.icon2?.addEventListener('click', () => foldCollect2());
@@ -185,37 +185,9 @@ export class SpChartList extends BaseElement {
     });
   }
 
-    // 处理G1收藏栏折叠时，连线的y坐标
-    private handleCollect1LinkNodeY(): void {
-      this.spSystemTrace?.linkNodes?.forEach(linkItem => {
-        if (linkItem[0].rowEL.collectGroup === linkItem[1].rowEL.collectGroup && linkItem[1].rowEL.collectGroup === '1') { // 起点终点都在G1
-          linkItem[0].rowEL.translateY = 23;
-          linkItem[1].rowEL.translateY = 23;
-        } else if (linkItem[0].rowEL.collectGroup !== linkItem[1].rowEL.collectGroup) { // 起点终点不在同个收藏栏
-          if (linkItem[0].rowEL.collectGroup === '1') {
-            linkItem[0].rowEL.translateY = 23;
-          } else if (linkItem[1].rowEL.collectGroup === '1') {
-            linkItem[1].rowEL.translateY = 23;
-          }
-        }
-      });
-    }
-  
-    // 处理G2收藏栏折叠时，连线的y坐标
-    private handleCollect2LinkNodeY(): void {
-      this.spSystemTrace?.linkNodes?.forEach(linkItem => { 
-        if (linkItem[0].rowEL.collectGroup === linkItem[1].rowEL.collectGroup && linkItem[1].rowEL.collectGroup === '2') { // 起点终点都在G2
-          linkItem[0].rowEL.translateY = 23;
-          linkItem[1].rowEL.translateY = 23;
-        } else if (linkItem[0].rowEL.collectGroup !== linkItem[1].rowEL.collectGroup) { // 起点终点不在同个收藏栏
-          if (linkItem[0].rowEL.collectGroup === '2') {
-            linkItem[0].rowEL.translateY = Number(this.groupTitle1?.clientHeight) + Number(this.collectEl1?.clientHeight) + 27;
-          } else if (linkItem[1].rowEL.collectGroup === '2') {
-            linkItem[1].rowEL.translateY = Number(this.groupTitle1?.clientHeight) + Number(this.collectEl1?.clientHeight) + 27;
-          }
-        }
-      });
-    }
+  private handleCollectFunc(): void {
+    this.spSystemTrace!.handleCollectFunc(this.spSystemTrace?.linkNodes!);
+  }
 
   removeAllCollectRow(): void {
     Array.from(this.collectRowList1).forEach(row => {

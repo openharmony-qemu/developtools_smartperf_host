@@ -559,8 +559,8 @@ export const queryProcessMemData = (trackId: number): Promise<Array<ProcessMemSt
     { $id: trackId }
   );
 
-export const queryThreads = (): //@ts-ignore
-  Promise<Array<unknown>> =>
+export const queryThreads = ():
+  Promise<Array<{ id: number; tid: number; name: string; }>> =>
   query('queryThreads', `select id,tid,(ifnull(name,'Thread') || '(' || tid || ')') name from thread where id != 0;`);
 
 export const queryDataDICT = async (): Promise<Array<unknown>> => {
@@ -1420,28 +1420,28 @@ export const queryRunningThread = (
   query(
     'getTabThread',
     `
-        select
-          P.pid,
-          T.tid,
-          S.itid,
-          S.ts,
-          P.name AS pName,
-          S.dur + S.ts as endTs
-        from
-          sched_slice AS S
-        left join
-          process P on S.ipid = P.ipid
-        left join
-          thread T on S.itid = T.itid
-        where
-          T.tid in (${tIds.join(',')})
-        and 
-          P.pid in (${pIds.join(',')})
-        and
-          not ((S.ts + ifnull(S.dur,0) < $leftStartNs) or (S.ts > $rightEndNs))
-        order by
-          S.ts;
-        `,
+            select
+              P.pid,
+              T.tid,
+              S.itid,
+              S.ts,
+              P.name AS pName,
+              ifnull(S.dur,0) + S.ts as endTs
+            from
+              sched_slice AS S
+            left join
+              process P on S.ipid = P.ipid
+            left join
+              thread T on S.itid = T.itid
+            where
+              T.tid in (${tIds.join(',')})
+            and 
+              P.pid in (${pIds.join(',')})
+            and
+              not ((S.ts + ifnull(S.dur,0) < $leftStartNs) or (S.ts > $rightEndNs))
+            order by
+              S.ts;
+            `,
     { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
   );
 
@@ -1455,30 +1455,30 @@ export const queryCoreRunningThread = (
   query(
     'getTabThread',
     `
-          select
-            P.pid,
-            T.tid,
-            S.cpu,
-            S.itid,
-            S.ts,
-            P.name AS pName,
-            S.dur + S.ts as endTs
-          from
-            sched_slice AS S
-          left join
-            process P on S.ipid = P.ipid
-          left join
-            thread T on S.itid = T.itid
-          where
-            T.tid in (${tIds.join(',')})
-          and 
-            P.pid in (${pIds.join(',')})
-          and
-            S.cpu in (${cpu.join(',')})
-          and
-            not ((S.ts + ifnull(S.dur,0) < $leftStartNs) or (S.ts > $rightEndNs))
-          order by
-            S.ts;
-          `,
+            select
+              P.pid,
+              T.tid,
+              S.cpu,
+              S.itid,
+              S.ts,
+              P.name AS pName,
+              ifnull(S.dur,0) + S.ts as endTs
+            from
+              sched_slice AS S
+            left join
+              process P on S.ipid = P.ipid
+            left join
+              thread T on S.itid = T.itid
+            where
+              T.tid in (${tIds.join(',')})
+            and 
+              P.pid in (${pIds.join(',')})
+            and
+              S.cpu in (${cpu.join(',')})
+            and
+              not ((S.ts + ifnull(S.dur,0) < $leftStartNs) or (S.ts > $rightEndNs))
+            order by
+              S.ts;
+            `,
     { $leftStartNs: leftStartNs, $rightEndNs: rightEndNs }
   );
