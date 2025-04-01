@@ -218,7 +218,7 @@ export class TabPaneXpowerGpuFreq extends BaseElement {
           tabXpowerGpuFreqStruct.avgIdleTime = parseFloat((sumIdleTime / itemArray.length).toFixed(2));
           tabXpowerGpuFreqStruct.maxIdleTime = maxIdleTime;
           tabXpowerGpuFreqStruct.minIdleTime = minIdleTime;
-        } else if (itemArray.length == 1) {
+        } else if (itemArray.length === 1) {
           tabXpowerGpuFreqStruct = this.setTabXpowerGpuFreqStruct(
             itemArray[0].runTime,
             itemArray[0].idleTime,

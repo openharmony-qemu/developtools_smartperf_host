@@ -197,7 +197,9 @@ export class SpChartManager {
     await this.initCpu(progress);
     await this.logChart.init();
     await this.spHiSysEvent.init();
-    await SpRecordTrace.snapShotList.length > 0 && SpRecordTrace.isSnapShotCapture && this.spSnapShotChart.init();
+    if (SpRecordTrace.snapShotList.length > 0) {
+      await this.spSnapShotChart.init();
+    }
     let idAndNameArr = await queryDmaFenceIdAndCat();
     this.handleDmaFenceName(idAndNameArr as { id: number; cat: string; seqno: number; driver: string; context: string }[]);
     if (FlagsConfig.getFlagsConfigEnableStatus('Hangs Detection')) {

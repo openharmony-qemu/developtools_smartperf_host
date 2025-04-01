@@ -236,7 +236,7 @@ export class WebSocketManager {
      * listener是不同模块传来接收数据的函数
      * 模块调用
     */
-    registerMessageListener(type: number, callback: Function, eventCallBack: Function, allowMultipleCallback: boolean = false): void {
+registerMessageListener(type: number, callback: Function, eventCallBack: Function, allowMultipleCallback: boolean = false): void {
         let callbackObj = this.distributeMap.get(type);
         if (!callbackObj) {
             callbackObj = {

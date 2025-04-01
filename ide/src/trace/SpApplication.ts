@@ -2662,7 +2662,7 @@ export class SpApplication extends BaseElement {
         const response = new Response(blob);
         caches.open('DB-file').then(cache => {
           return cache.put(`/${fileName}`, response);
-        })
+        });
       },
       'download-db'
     );

@@ -608,13 +608,15 @@ export class TabPanePerfAnalysis extends BaseElement {
         // @ts-ignore
         item.libName === this.selectedTabfileName &&
         // @ts-ignore
-        item.symbolName === it.tableName
-    })
+        item.symbolName === it.tableName;
+    });
     if (this.clickFuncVaddrList.length > 0) {
       const textEncoder = new TextEncoder();
       const queryData = {
-        elf_name: this.currentSoName,  //@ts-ignore
-        vaddr: this.clickFuncVaddrList[0].vaddrInFile,  //@ts-ignore
+        elf_name: this.currentSoName,  
+        //@ts-ignore
+        vaddr: this.clickFuncVaddrList[0].vaddrInFile,  
+        //@ts-ignore
         func: it.tableName
       };
       const dataString = JSON.stringify(queryData);
@@ -1195,7 +1197,7 @@ export class TabPanePerfAnalysis extends BaseElement {
     ];
     procedurePool.submitWithName('logic0', 'perf-vaddr', args, undefined, (results: Array<unknown>) => {
       this.vaddrList = results;
-    })
+    });
   }
 
   private getDataByWorker(val: SelectionParam, handler: Function): void {
