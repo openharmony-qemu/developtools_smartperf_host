@@ -80,7 +80,7 @@ export class RangeSelect {
       this.endPageX = mouseEventUp.pageX;
       this.endPageY = mouseEventUp.pageY;
     }
-    if (this.drag) {
+    if (!this.trace!.isInSheet && this.drag) {
       if (this.selectHandler) {
         this.selectHandler(this.rangeTraceRow || [], !this.isHover);
       }

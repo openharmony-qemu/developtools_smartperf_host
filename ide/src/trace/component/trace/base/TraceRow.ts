@@ -27,7 +27,7 @@ import '../../../../base-ui/tree/LitTree';
 import { LitPopover } from '../../../../base-ui/popover/LitPopoverV';
 import { info } from '../../../../log/Log';
 import { ColorUtils } from './ColorUtils';
-import { drawSelectionRange, isFrameContainPoint } from '../../../database/ui-worker/ProcedureWorkerCommon';
+import { drawSelectionRange, isFrameContainPoint, PairPoint } from '../../../database/ui-worker/ProcedureWorkerCommon';
 import { TraceRowConfig } from './TraceRowConfig';
 import { type TreeItemData, LitTree } from '../../../../base-ui/tree/LitTree';
 import { SpSystemTrace } from '../../SpSystemTrace';
@@ -238,6 +238,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   protoParentId: string | null | undefined;
   protoPid: string | undefined;
   summaryProtoPid: Array<string> | undefined;
+  private trace: SpSystemTrace | undefined;
 
   constructor(
     args: {
@@ -898,7 +899,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.nameEL!.style.marginLeft = `${value}px`;
   }
 
-  set xpowerRowTitle(value: string) { 
+  set xpowerRowTitle(value: string) {
     this.nameEL!.title = `${value}`;
   }
 
@@ -907,6 +908,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.checkBoxEL = this.shadowRoot?.querySelector<LitCheckBox>('.lit-check-box');
     this.collectEL = this.shadowRoot?.querySelector<LitIcon>('.collect');
     this.describeEl = this.shadowRoot?.querySelector('.describe');
+    this.trace = document.querySelector("body > sp-application")!.shadowRoot!.querySelector("#sp-system-trace") as SpSystemTrace;
     this.nameEL = this.shadowRoot?.querySelector('.name');
     this.canvasVessel = this.shadowRoot?.querySelector('.panel-vessel');
     this.tipEL = this.shadowRoot?.querySelector('.tip'); // @ts-ignore
@@ -1143,6 +1145,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
           this.style.height = `${this.funcMaxHeight}px`;
           this.funcExpand = true;
         }
+        this.trace!.linkNodes.length && this.trace!.linkNodes.forEach((linkNodeItem) => this.handlerLink(linkNodeItem));
         TraceRow.range!.refresh = true;
         this.needRefresh = true;
         //@ts-ignore
@@ -1150,11 +1153,18 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
         if (this.collect) {
           window.publish(window.SmartEvent.UI.RowHeightChange, {
             expand: this.funcExpand,
-            value: this.funcMaxHeight - H,
+            value: this.funcExpand ? this.funcMaxHeight : this.funcMaxHeight - H,
           });
         }
       }
     };
+  }
+
+  handlerLink(linkItem: PairPoint[]): void {
+    linkItem[0].offsetY = linkItem[0].rowEL.funcExpand ? linkItem[0].sourceOffsetY! : 7;//24/2-5
+    linkItem[1].offsetY = linkItem[1].rowEL.funcExpand ? linkItem[1].sourceOffsetY! : 7;
+    linkItem[0].y = linkItem[0].rowEL.translateY + linkItem[0].offsetY;
+    linkItem[1].y = linkItem[1].rowEL.translateY + linkItem[1].offsetY;
   }
 
   initCanvas(list: Array<HTMLCanvasElement>): void {

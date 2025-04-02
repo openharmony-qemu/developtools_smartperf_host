@@ -109,7 +109,7 @@ function fillArrays(arrays: { [key: string]: Float64Array }, res: unknown[], dat
     if ((data as unknown).params.trafic === TraficEnum.ProtoBuffer) { // @ts-ignore
       it = (it as unknown).xpowerAppDetailData;
     } // @ts-ignore
-    arrays['startTime'][i] = (it as unknown).startTime;
+    arrays.startTime[i] = (it as unknown).startTime;
     keysCopy.forEach((key) => { // @ts-ignore
       arrays[key][i] = (it as unknown)[key];
     });

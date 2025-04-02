@@ -242,7 +242,10 @@ export class SpSystemTrace extends BaseElement {
   presentList: Array<number> = [];
   static isAiAsk: boolean = false;
   collectEl1: HTMLDivElement | undefined | null;
+  collectEl2: HTMLDivElement | undefined | null;
   groupTitle1: HTMLDivElement | undefined | null;
+  groupTitle2: HTMLDivElement | undefined | null;
+  isInSheet: boolean = false;
 
   set snapshotFile(data: FileInfo) {
     this.snapshotFiles = data;
@@ -308,57 +311,13 @@ export class SpSystemTrace extends BaseElement {
 
   addPointPair(startPoint: PairPoint, endPoint: PairPoint, lineType?: string): void {
     if (startPoint !== null && startPoint.rowEL !== null && endPoint !== null && endPoint.rowEL !== null) {
-      if (startPoint.rowEL.collect) {
-        if (this.timerShaftEL?._checkExpand) {
-          startPoint.rowEL.translateY =
-            startPoint.rowEL.getBoundingClientRect().top - 195 + this.timerShaftEL._usageFoldHeight!;
-        } else {
-          startPoint.rowEL.translateY = startPoint.rowEL.getBoundingClientRect().top - 195;
-        }
-        if (!this.favoriteChartListEL?.collect1Expand) { // 折叠G1收藏栏
-          if (startPoint.rowEL.collectGroup === startPoint.rowEL.collectGroup && startPoint.rowEL.collectGroup === '1') { // 起点终点都在G1
-            startPoint.rowEL.translateY = 23;
-          } else if (startPoint.rowEL.collectGroup !== endPoint.rowEL.collectGroup) { // 起点终点不在同个收藏栏
-            if (startPoint.rowEL.collectGroup === '1') {
-              startPoint.rowEL.translateY = 23;
-            }
-          }
-        }
-        if (!this.favoriteChartListEL?.collect2Expand) { // 折叠G2收藏栏
-          if (startPoint.rowEL.collectGroup === endPoint.rowEL.collectGroup && endPoint.rowEL.collectGroup === '2') { // 起点终点都在G2
-            startPoint.rowEL.translateY = 23;
-          } else if (startPoint.rowEL.collectGroup !== endPoint.rowEL.collectGroup) { // 起点终点不在同个收藏栏
-            if (startPoint.rowEL.collectGroup === '2') {
-              startPoint.rowEL.translateY = Number(this.groupTitle1?.clientHeight) + Number(this.collectEl1?.clientHeight) + 27;
-            }
-          }
-        }
-      } else {
-        startPoint.rowEL.translateY = startPoint.rowEL.offsetTop - this.rowsPaneEL!.scrollTop;
-      }
-      if (endPoint.rowEL.collect) {
-        endPoint.rowEL.translateY = endPoint.rowEL.getBoundingClientRect().top - 195;
-        if (!this.favoriteChartListEL?.collect1Expand) { // 折叠G1收藏栏
-          if (startPoint.rowEL.collectGroup === endPoint.rowEL.collectGroup && endPoint.rowEL.collectGroup === '1') { // 起点终点都在G1
-            endPoint.rowEL.translateY = 23;
-          } else if (startPoint.rowEL.collectGroup !== endPoint.rowEL.collectGroup) { // 起点终点不在同个收藏栏
-            if (endPoint.rowEL.collectGroup === '1') {
-              endPoint.rowEL.translateY = 23;
-            }
-          }
-        }
-        if (!this.favoriteChartListEL?.collect2Expand) { // 折叠G2收藏栏
-          if (startPoint.rowEL.collectGroup === endPoint.rowEL.collectGroup && endPoint.rowEL.collectGroup === '2') { // 起点终点都在G2
-            endPoint.rowEL.translateY = 23;
-          } else if (startPoint.rowEL.collectGroup !== endPoint.rowEL.collectGroup) { // 起点终点不在同个收藏栏
-            if (endPoint.rowEL.collectGroup === '2') {
-              endPoint.rowEL.translateY = Number(this.groupTitle1?.clientHeight) + Number(this.collectEl1?.clientHeight) + 27;
-            }
-          }
-        }
-      } else {
-        endPoint.rowEL.translateY = endPoint.rowEL.offsetTop - this.rowsPaneEL!.scrollTop;
-      }
+      const LinkNodes: PairPoint[][] = [];
+      LinkNodes.push([startPoint, endPoint]);
+      startPoint.sourceOffsetY = startPoint.offsetY;
+      endPoint.sourceOffsetY = endPoint.offsetY;
+      startPoint.offsetY = startPoint.rowEL.funcExpand ? startPoint.sourceOffsetY : startPoint.rowEL._frame!.height;
+      endPoint.offsetY = endPoint.rowEL.funcExpand ? endPoint.sourceOffsetY : endPoint.rowEL._frame!.height;
+      this.handleCollectFunc(LinkNodes);
       startPoint.y = startPoint.rowEL!.translateY! + startPoint.offsetY;
       endPoint.y = endPoint.rowEL!.translateY! + endPoint.offsetY;
       startPoint.backrowEL = startPoint.rowEL;
@@ -660,66 +619,7 @@ export class SpSystemTrace extends BaseElement {
     // @ts-ignore
     const currentScrollY = e.target.scrollTop;
     const deltaY = currentScrollY - this.prevScrollY;
-    this.linkNodes.forEach((itln) => {
-      if (itln[0].rowEL.collect) {
-        if (this.timerShaftEL?._checkExpand) {
-          itln[0].rowEL.translateY =
-            itln[0].rowEL.getBoundingClientRect().top - 195 + this.timerShaftEL._usageFoldHeight!;
-        } else {
-          itln[0].rowEL.translateY = itln[0].rowEL.getBoundingClientRect().top - 195;
-        }
-        if (!this.favoriteChartListEL?.collect1Expand) { // 折叠G1收藏栏
-          if (itln[0].rowEL.collectGroup === itln[1].rowEL.collectGroup && itln[1].rowEL.collectGroup === '1') { // 起点终点都在G1
-            itln[0].rowEL.translateY = 23;
-          } else if (itln[0].rowEL.collectGroup !== itln[1].rowEL.collectGroup) { // 起点终点不在同个收藏栏
-            if (itln[0].rowEL.collectGroup === '1') {
-              itln[0].rowEL.translateY = 23;
-            }
-          }
-        }
-        if (!this.favoriteChartListEL?.collect2Expand) { // 折叠G2收藏栏
-          if (itln[0].rowEL.collectGroup === itln[1].rowEL.collectGroup && itln[1].rowEL.collectGroup === '2') { // 起点终点都在G2
-            itln[0].rowEL.translateY = 23;
-          } else if (itln[0].rowEL.collectGroup !== itln[1].rowEL.collectGroup) { // 起点终点不在同个收藏栏
-            if (itln[0].rowEL.collectGroup === '2') {
-              itln[0].rowEL.translateY = Number(this.groupTitle1?.clientHeight) + Number(this.collectEl1?.clientHeight) + 27;
-            }
-          }
-        }
-      } else {
-        itln[0].rowEL.translateY = itln[0].rowEL.offsetTop - this.rowsPaneEL!.scrollTop;
-      }
-      if (itln[1].rowEL.collect) {
-        if (this.timerShaftEL?._checkExpand) {
-          itln[1].rowEL.translateY =
-            itln[1].rowEL.getBoundingClientRect().top - 195 + this.timerShaftEL._usageFoldHeight!;
-        } else {
-          itln[1].rowEL.translateY = itln[1].rowEL.getBoundingClientRect().top - 195;
-        }
-        if (!this.favoriteChartListEL?.collect1Expand) { // 折叠G1收藏栏
-          if (itln[0].rowEL.collectGroup === itln[1].rowEL.collectGroup && itln[1].rowEL.collectGroup === '1') { // 起点终点都在G1
-            itln[1].rowEL.translateY = 23;
-          } else if (itln[0].rowEL.collectGroup !== itln[1].rowEL.collectGroup) { // 起点终点不在同个收藏栏
-            if (itln[1].rowEL.collectGroup === '1') {
-              itln[1].rowEL.translateY = 23;
-            }
-          }
-        }
-        if (!this.favoriteChartListEL?.collect2Expand) { // 折叠G2收藏栏
-          if (itln[0].rowEL.collectGroup === itln[1].rowEL.collectGroup && itln[1].rowEL.collectGroup === '2') { // 起点终点都在G2
-            itln[1].rowEL.translateY = 23;
-          } else if (itln[0].rowEL.collectGroup !== itln[1].rowEL.collectGroup) { // 起点终点不在同个收藏栏
-            if (itln[1].rowEL.collectGroup === '2') {
-              itln[1].rowEL.translateY = Number(this.groupTitle1?.clientHeight) + Number(this.collectEl1?.clientHeight) + 27;
-            }
-          }
-        }
-      } else {
-        itln[1].rowEL.translateY = itln[1].rowEL.offsetTop - this.rowsPaneEL!.scrollTop;
-      }
-      itln[0].y = itln[0].rowEL.translateY + itln[0].offsetY;
-      itln[1].y = itln[1].rowEL.translateY + itln[1].offsetY;
-    });
+    this.handleCollectFunc(this.linkNodes);
     this.hoverStructNull();
     if (this.scrollTimer) {
       // @ts-ignore
@@ -732,6 +632,121 @@ export class SpSystemTrace extends BaseElement {
     spSystemTraceParentRowSticky(this, deltaY);
     this.prevScrollY = currentScrollY;
   };
+
+  handleCollectFunc(linkNodes: PairPoint[][]): void {
+    let margin = this.timerShaftEL?._checkExpand ? this.timerShaftEL!._usageFoldHeight! - 195 : 0 - 195;
+    linkNodes.forEach((itln) => {
+      if (itln[0].rowEL.collect) {
+        if (itln[1].rowEL.collect) {
+          if (itln[0].rowEL.collectGroup === itln[1].rowEL.collectGroup && itln[1].rowEL.collectGroup === '1') {
+            if (this.favoriteChartListEL?.collect1Expand) {
+              itln[0].rowEL.translateY = itln[0].rowEL.getBoundingClientRect().top + margin;
+              itln[1].rowEL.translateY = itln[1].rowEL.getBoundingClientRect().top + margin;
+              itln[0].offsetY = itln[0].rowEL.funcExpand ? itln[0].sourceOffsetY! : itln[0].rowEL._frame!.height - 5;
+              itln[1].offsetY = itln[1].rowEL.funcExpand ? itln[1].sourceOffsetY! : itln[1].rowEL._frame!.height - 5;
+            } else {
+              itln[0].rowEL.translateY = this.groupTitle1!.getBoundingClientRect().top + margin;
+              itln[1].rowEL.translateY = this.groupTitle1!.getBoundingClientRect().top + margin;
+              itln[0].offsetY = this.groupTitle1!.offsetHeight / 2;
+              itln[1].offsetY = this.groupTitle1!.offsetHeight / 2;
+            }
+          } else if (itln[0].rowEL.collectGroup === itln[1].rowEL.collectGroup && itln[1].rowEL.collectGroup === '2') {
+            if (this.favoriteChartListEL?.collect2Expand) {
+              itln[0].rowEL.translateY = itln[0].rowEL.getBoundingClientRect().top + margin;
+              itln[1].rowEL.translateY = itln[1].rowEL.getBoundingClientRect().top + margin;
+              itln[0].offsetY = itln[0].rowEL.funcExpand ? itln[0].sourceOffsetY! : itln[0].rowEL._frame!.height - 5;
+              itln[1].offsetY = itln[1].rowEL.funcExpand ? itln[1].sourceOffsetY! : itln[1].rowEL._frame!.height - 5;
+            } else {
+              itln[0].rowEL.translateY = this.groupTitle2!.getBoundingClientRect().top + margin;
+              itln[1].rowEL.translateY = this.groupTitle2!.getBoundingClientRect().top + margin;
+              itln[0].offsetY = this.groupTitle2!.offsetHeight / 2;
+              itln[1].offsetY = this.groupTitle2!.offsetHeight / 2;
+            }
+          } else if (itln[0].rowEL.collectGroup === '1' && itln[1].rowEL.collectGroup === '2') {
+            if (this.favoriteChartListEL?.collect1Expand) {
+              itln[0].rowEL.translateY = itln[0].rowEL.getBoundingClientRect().top + margin;
+              itln[0].offsetY = itln[0].rowEL.funcExpand ? itln[0].sourceOffsetY! : itln[0].rowEL._frame!.height - 5;
+            } else {
+              itln[0].rowEL.translateY = this.groupTitle1!.getBoundingClientRect().top + margin;
+              itln[0].offsetY = this.groupTitle1!.offsetHeight / 2;
+            }
+
+            if (this.favoriteChartListEL?.collect2Expand) {
+              itln[1].rowEL.translateY = itln[1].rowEL.getBoundingClientRect().top + margin;
+              itln[1].offsetY = itln[1].rowEL.funcExpand ? itln[1].sourceOffsetY! : itln[1].rowEL._frame!.height - 5;
+            } else {
+              itln[1].rowEL.translateY = this.groupTitle2!.getBoundingClientRect().top + margin;
+              itln[1].offsetY = this.groupTitle2!.offsetHeight / 2;
+            }
+          } else if (itln[0].rowEL.collectGroup === '2' && itln[1].rowEL.collectGroup === '1') {
+            if (this.favoriteChartListEL?.collect1Expand) {
+              itln[1].rowEL.translateY = itln[1].rowEL.getBoundingClientRect().top + margin;
+              itln[1].offsetY = itln[1].rowEL.funcExpand ? itln[1].sourceOffsetY! : itln[1].rowEL._frame!.height - 5;
+            } else {
+              itln[1].rowEL.translateY = this.groupTitle1!.getBoundingClientRect().top + margin;
+              itln[1].offsetY = this.groupTitle1!.offsetHeight / 2;
+            }
+
+            if (this.favoriteChartListEL?.collect2Expand) {
+              itln[0].rowEL.translateY = itln[0].rowEL.getBoundingClientRect().top + margin;
+              itln[0].offsetY = itln[0].rowEL.funcExpand ? itln[0].sourceOffsetY! : itln[0].rowEL._frame!.height - 5;
+            } else {
+              itln[0].rowEL.translateY = this.groupTitle2!.getBoundingClientRect().top + margin;
+              itln[0].offsetY = this.groupTitle2!.offsetHeight / 2;
+            }
+          }
+        } else {
+          itln[1].rowEL.translateY = itln[1].rowEL.offsetTop - this.rowsPaneEL!.scrollTop;
+          itln[1].offsetY = itln[1].rowEL.funcExpand ? itln[1].offsetY! : itln[1].rowEL._frame!.height - 5;
+          if (itln[0].rowEL.collectGroup === '1') {
+            if (this.favoriteChartListEL?.collect1Expand) {
+              itln[0].rowEL.translateY = itln[0].rowEL.getBoundingClientRect().top + margin;
+              itln[0].offsetY = itln[0].rowEL.funcExpand ? itln[0].sourceOffsetY! : itln[0].rowEL._frame!.height - 5;
+            } else {
+              itln[0].rowEL.translateY = this.groupTitle1!.getBoundingClientRect().top + margin;
+              itln[0].offsetY = this.groupTitle1!.offsetHeight / 2;
+            }
+          } else {
+            if (this.favoriteChartListEL?.collect2Expand) {
+              itln[0].rowEL.translateY = itln[0].rowEL.getBoundingClientRect().top + margin;
+              itln[0].offsetY = itln[0].rowEL.funcExpand ? itln[0].sourceOffsetY! : itln[0].rowEL._frame!.height - 5;
+            } else {
+              itln[0].rowEL.translateY = this.groupTitle2!.getBoundingClientRect().top + margin;
+              itln[0].offsetY = this.groupTitle2!.offsetHeight / 2;
+            }
+          }
+        }
+      } else {
+        itln[0].rowEL.translateY = itln[0].rowEL.offsetTop - this.rowsPaneEL!.scrollTop;
+        itln[0].offsetY = itln[0].rowEL.funcExpand ? itln[0].offsetY! : itln[0].rowEL._frame!.height - 5;
+        if (itln[1].rowEL.collect) {
+          if (itln[1].rowEL.collectGroup === '1') {
+            if (this.favoriteChartListEL?.collect1Expand) {
+              itln[1].rowEL.translateY = itln[1].rowEL.getBoundingClientRect().top + margin;
+              itln[1].offsetY = itln[1].rowEL.funcExpand ? itln[1].sourceOffsetY! : itln[1].rowEL._frame!.height - 5;
+            } else {
+              itln[1].rowEL.translateY = this.groupTitle1!.getBoundingClientRect().top + margin;
+              itln[1].offsetY = this.groupTitle1!.offsetHeight / 2;
+            }
+          } else {
+            if (this.favoriteChartListEL?.collect2Expand) {
+              itln[1].rowEL.translateY = itln[1].rowEL.getBoundingClientRect().top + margin;
+              itln[1].offsetY = itln[1].rowEL.funcExpand ? itln[1].sourceOffsetY! : itln[1].rowEL._frame!.height - 5;
+            } else {
+              itln[1].rowEL.translateY = this.groupTitle2!.getBoundingClientRect().top + margin;
+              itln[1].offsetY = this.groupTitle2!.offsetHeight / 2;
+            }
+          }
+
+        } else {
+          itln[1].rowEL.translateY = itln[1].rowEL.offsetTop - this.rowsPaneEL!.scrollTop;
+          itln[1].offsetY = itln[1].rowEL.funcExpand ? itln[1].offsetY! : itln[1].rowEL._frame!.height - 5;
+        }
+      }
+      itln[0].y = itln[0].rowEL.translateY + itln[0].offsetY;
+      itln[1].y = itln[1].rowEL.translateY + itln[1].offsetY;
+    });
+  }
 
   private scrollTimer: unknown;
 
@@ -1901,7 +1916,7 @@ export class SpSystemTrace extends BaseElement {
       }
     }
     // @ts-ignore
-    if(record.leftNS && record.rightNS){
+    if (record.leftNS && record.rightNS) {
       // @ts-ignore
     this.timerShaftEL?.setRangeNS(record.leftNS, record.rightNS);
     }

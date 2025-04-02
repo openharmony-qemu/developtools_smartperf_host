@@ -347,7 +347,7 @@ void NativeHookFilter::ParseFreeEvent(uint64_t timeStamp, const ProtoReader::Byt
     if (addrToAllocEventRow_->count(freeEventReader.addr())) {
         row = addrToAllocEventRow_->at(freeEventReader.addr());
     }
-    if (row != INVALID_UINT64 && timeStamp > traceDataCache_->GetNativeHookData()->TimeStampData()[row]) {
+    if (row != INVALID_UINT64 && timeStamp >= traceDataCache_->GetNativeHookData()->TimeStampData()[row]) {
         addrToAllocEventRow_->erase(freeEventReader.addr());
         traceDataCache_->GetNativeHookData()->UpdateEndTimeStampAndDuration(row, timeStamp);
         freeHeapSize = traceDataCache_->GetNativeHookData()->MemSizes()[row];

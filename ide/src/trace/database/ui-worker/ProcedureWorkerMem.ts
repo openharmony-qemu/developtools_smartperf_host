@@ -62,40 +62,77 @@ export class ProcessMemStruct extends BaseProcessMemStruct {
       let width = data.frame.width || 0;
       memContext.fillStyle = ColorUtils.colorForTid(data.maxValue || 0);
       memContext.strokeStyle = ColorUtils.colorForTid(data.maxValue || 0);
+      data.maxValue = data.maxValue === 0 ? 1 : data.maxValue;
+      if ((data.value || 0) < 0) {
+        memContext.fillStyle = ColorUtils.colorForTid(data.minValue || 0);
+        memContext.strokeStyle = ColorUtils.colorForTid(data.minValue || 0);
+      }
+      let drawHeight: number = Math.floor(((data.value || 0) * (data.frame.height || 0) * 1.0) / data.maxValue!);
+      if (drawHeight === 0) {
+        drawHeight = 1;
+      }
+      let minHeight: number = 0;
+      let maxHeight: number = 0;
+      let sumHeight: number = 0;
+      let cutHeight: number = 0;
+      if (data.minValue! < 0) {
+        minHeight = Math.floor(((data.minValue || 0) * (data.frame.height || 0) * 1.0) / data.maxValue!);
+        maxHeight = Math.floor(((data.maxValue || 0) * (data.frame.height || 0) * 1.0) / data.maxValue!);
+        sumHeight = Math.abs(minHeight) + Math.abs(maxHeight);
+        let num = this.cal(Math.abs(minHeight), Math.abs(maxHeight));
+        drawHeight = Math.floor(drawHeight / num);
+        cutHeight = Math.abs(Math.floor(((data.minValue || 0) * (data.frame.height || 0) * 1.0) / data.maxValue!) / num) + 1;
+        if (data.maxValue! < 0) {
+          drawHeight = -drawHeight;
+          cutHeight = 30;
+        }
+      }
       if (data === ProcessMemStruct.hoverProcessMemStruct) {
         memContext.lineWidth = 1;
         memContext.globalAlpha = 0.6;
-        let memDrawHeight: number = Math.floor(
-          ((data.value || 0) * (data.frame.height || 0) * 1.0) / (data.maxValue || 1)
-        );
-        memDrawHeight = memDrawHeight > 0 ? memDrawHeight : 1;
-        memContext.fillRect(data.frame.x, data.frame.y + data.frame.height - memDrawHeight, width, memDrawHeight);
+        memContext.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight - cutHeight, width, drawHeight);
         memContext.beginPath();
-        memContext.arc(data.frame.x, data.frame.y + data.frame.height - memDrawHeight, 3, 0, 2 * Math.PI, true);
+        memContext.arc(data.frame.x, data.frame.y + data.frame.height - drawHeight - cutHeight, 3, 0, 2 * Math.PI, true);
         memContext.fill();
         memContext.globalAlpha = 1.0;
         memContext.stroke();
         memContext.closePath();
         memContext.beginPath();
-        memContext.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - memDrawHeight);
+        memContext.moveTo(data.frame.x + 3, data.frame.y + data.frame.height - drawHeight - cutHeight);
         memContext.lineWidth = 3;
-        memContext.lineTo(data.frame.x + width, data.frame.y + data.frame.height - memDrawHeight);
+        memContext.lineTo(data.frame.x + width, data.frame.y + data.frame.height - drawHeight - cutHeight);
         memContext.stroke();
         memContext.closePath();
       } else {
         memContext.globalAlpha = 0.6;
         memContext.lineWidth = 1;
-        let drawHeight: number = ((data.value || 0) * (data.frame.height || 0) * 1.0) / (data.maxValue || 1);
-        drawHeight = drawHeight > 0 ? drawHeight : 1;
-        memContext.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
+        memContext.fillRect(data.frame.x, data.frame.y + data.frame.height - drawHeight - cutHeight, width, drawHeight);
         if (width > 2) {
           memContext.lineWidth = 1;
           memContext.globalAlpha = 1.0;
-          memContext.strokeRect(data.frame.x, data.frame.y + data.frame.height - drawHeight, width, drawHeight);
+          memContext.strokeRect(data.frame.x, data.frame.y + data.frame.height - drawHeight - cutHeight, width, drawHeight);
         }
       }
     }
     memContext.globalAlpha = 1.0;
     memContext.lineWidth = 1;
+  }
+
+  static cal(minHeight: number, maxHeight: number): number {
+    let multiplier = 1;
+    let newSum: number;
+    do {
+      newSum = minHeight / multiplier + maxHeight / multiplier;
+      multiplier += 2;
+    } while (newSum > 30 && multiplier <= (minHeight + maxHeight) * 2);
+    if (newSum <= 30) {
+      multiplier -= 2;
+      while (minHeight / (multiplier + 2) + maxHeight / (multiplier + 2) > 30) {
+        multiplier += 2;
+      }
+      return multiplier;
+    } else {
+      return 2;
+    }
   }
 }

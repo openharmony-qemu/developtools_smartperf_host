@@ -103,6 +103,7 @@ HWTEST_F(EventParserTest, ParseLineNotEnoughArgs, TestSize.Level1)
     eventParser.FilterAllEvents();
     EXPECT_EQ(1,
               stream_.traceDataCache_->GetStatAndInfo()->GetValue(TRACE_EVENT_SCHED_SWITCH, STAT_EVENT_DATA_INVALID));
+    TS_LOGI("test5-2 Finished.");
 }
 /**
  * @tc.name: ParseLineUnCognizableEventname

@@ -60,8 +60,20 @@ export const TabPanePerfAnalysisHtml = `
     position: absolute;
     bottom: 0px;
 }
+#head-tips{
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    height: 20px;
+}
+#SO-err-tips{
+    color:red;
+}
 </style>
-<label id="time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label> 
+<div id="head-tips">
+    <div id="SO-err-tips"></div>
+    <label id="time-range" style="height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label> 
+</div>
 <div style="display: flex; flex-direction: row;" class="d-box">
     <lit-progress-bar class="perf-progress"></lit-progress-bar>
     <div id="left_table" style="width: 40%;height:auto;">

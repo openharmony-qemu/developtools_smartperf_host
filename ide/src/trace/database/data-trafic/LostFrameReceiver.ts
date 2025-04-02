@@ -45,7 +45,7 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
     dur[i] = it.dur;
     nofinish[i] = it.nofinish;
     argSetId[i] = it.argSetId;
-    presentId[i] = Number(nameCutArr[nameCutArr.length - 1]);
+    presentId[i] = Number(nameCutArr[nameCutArr.length - 1].split('|')[0]);
   });
   (self as unknown as Worker).postMessage(
     {

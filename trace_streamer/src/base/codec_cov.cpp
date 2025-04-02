@@ -152,7 +152,6 @@ std::wstring String2WString(const std::string &strInput)
 
     // 数据格式转换
     int to_result = MultiByteToWideChar(codePage, 0, (LPCSTR)strInput.c_str(), -1, (LPWSTR)wstr_out.c_str(), len_in);
-
     // 判断转换结果
     if (0 == to_result) {
         std::cout << "Can't transfer String to WString" << std::endl;

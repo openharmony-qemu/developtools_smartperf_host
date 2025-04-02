@@ -104,12 +104,13 @@ import { XpowerThreadInfoStruct } from '../../../database/ui-worker/ProcedureWor
 import { TabPaneXpowerThreadInfoSelection } from '../sheet/xpower/TabPaneXpowerThreadInfoSelection';
 import { TabPaneXpowerGpuFreqSelection } from '../sheet/xpower/TabPaneXpowerGpuFreqSelection';
 import { XpowerGpuFreqStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerGpuFreq';
-import { WebSocketManager } from "../../../../webSocket/WebSocketManager";
-import { Constants, TypeConstants } from "../../../../webSocket/Constants";
+import { WebSocketManager} from '../../../../webSocket/WebSocketManager';
+import { Constants, TypeConstants} from '../../../../webSocket/Constants';
 import { PerfFunctionAsmParam } from '../../../bean/PerfAnalysis';
 import { info, error } from '../../../../log/Log';
 import { XpowerThreadCountStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerThreadCount';
 import { XpowerGpuFreqCountStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerGpuFreqCount';
+
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -311,13 +312,13 @@ export class TraceSheet extends BaseElement {
 
   private functionAnalysisListener(evt: unknown, vaddrList: Array<unknown>): void {
     // @ts-ignore
-    this.currentPaneID = "box-perf-analysis";
+    this.currentPaneID = 'box-perf-analysis';
     //隐藏除了当前Tab页的其他Tab页
-    this.shadowRoot!.querySelectorAll<LitTabpane>("lit-tabpane").forEach(
+    this.shadowRoot!.querySelectorAll<LitTabpane>('lit-tabpane').forEach(
       (it): boolean =>
         it.id !== this.currentPaneID ? (it.hidden = true) : (it.hidden = false)
     );
-    let asmPane = this.getPaneByID("tab-perf-func-asm"); //通过Id找到需要展示的Tab页
+    let asmPane = this.getPaneByID('tab-perf-func-asm'); //通过Id找到需要展示的Tab页
     asmPane.closeable = true;
     asmPane.hidden = false;
     // @ts-ignore
@@ -614,9 +615,12 @@ export class TraceSheet extends BaseElement {
           importFileBt!.disabled = true;
           window.publish(window.SmartEvent.UI.Loading, { loading: true, text: 'Import So File' });
           this.uploadSoOrAN(fileList).then(r => {
+            // @ts-ignore
+            document.querySelector('body > sp-application').shadowRoot.querySelector('#sp-system-trace').shadowRoot.querySelector('div > trace-sheet').shadowRoot.querySelector('#box-perf-analysis > tabpane-perf-analysis').shadowRoot.querySelector('#SO-err-tips')?.innerHTML = '';
             let  soFileList = fileList.filter(item => !item.name.includes('.an'));
             if(soFileList.length === 0) {
               window.publish(window.SmartEvent.UI.UploadSOFile, {});
+              importFileBt!.disabled = false;
               return;
             }
             threadPool.submit(
@@ -691,7 +695,7 @@ export class TraceSheet extends BaseElement {
             wsInstance!.unregisterCallback(TypeConstants.DISASSEMBLY_TYPE, onAckReceived);
             reject(new Error('等待 ACK 超时：文件 ${fileName}，索引 ${bufferIndex})'));
           }, 10000);
-          function onAckReceived(cmd: number, result: Uint8Array) {
+          function onAckReceived(cmd: number, result: Uint8Array): void {
             const decoder = new TextDecoder();
             const jsonString = decoder.decode(result);
             let jsonRes = JSON.parse(jsonString);

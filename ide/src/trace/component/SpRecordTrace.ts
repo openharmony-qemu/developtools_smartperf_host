@@ -136,6 +136,7 @@ export class SpRecordTrace extends BaseElement {
   private static usbGetVersion: string;
   static snapShotList: Array<unknown> = [];
   static snapShotDuration: number = 0;
+  static isSnapShotCapture: boolean = false;
 
   set record_template(re: string) {
     if (re === 'true') {
@@ -591,7 +592,7 @@ export class SpRecordTrace extends BaseElement {
         let errorMsg = new TextDecoder().decode(result);
         this.useExtentTip!.style.display = 'block';
         let urlAsciiArr = [104,116,116,112,115,58,47,47,119,105,107,105,46,104,117,97,119,101,105,46,99,111,109,47,100,111,109,97,105,110,115,47,55,54,57,49,49,47,119,105,107,105,47,49,50,53,52,56,48,47,87,73,75,73,50,48,50,53,48,49,49,54,53,55,53,48,52,53,52];
-        let exceptGuid = String.fromCodePoint(...urlAsciiArr);//'https://wiki.huawei.com/domains/76911/wiki/125480/WIKI202501165750454'
+        let exceptGuid = String.fromCodePoint(...urlAsciiArr);
         this.useExtentTip!.innerHTML = `抓取trace异常：${errorMsg} 可根据[<span style='cursor:pointer;'><a href=${exceptGuid} syule = 'color:blue;' target='_blank'>常见异常处理</a></span>]解决异常`;
         this.refreshDisableStyle(false, false);
         this.recordButton!.hidden = false;
@@ -605,6 +606,7 @@ export class SpRecordTrace extends BaseElement {
         aElement.click();
       } else if (cmd === 5) {// @ts-ignore
         SpRecordTrace.snapShotList = JSON.parse(new TextDecoder('utf-8').decode(result)) as string[];
+        SpRecordTrace.isSnapShotCapture = true;
       } else if (cmd === 6) {
         this.litSearch!.setPercent('Start to record...', -1);
       } else if (cmd === 7) {

@@ -52,7 +52,8 @@ export const queryRSNowTimeList = (): Promise<Array<LtpoStruct>> =>
     'queryRSNowTimeList',
     `SELECT ts,dur,name FROM "callstack" WHERE callid in (SELECT id FROM "thread" WHERE name LIKE('render_service%'))
     AND (name LIKE('H:ReceiveVsync dataCount:24bytes%'))
-    OR (name LIKE('H:ReceiveVsync dataCount: 24bytes%'))`
+    OR (name LIKE('H:ReceiveVsync dataCount: 24bytes%'))
+    OR (name LIKE('H:ReceiveVsync name:rs dataCount: 24bytes%'))`
   );
 export const querySkipDataList = (): Promise<Array<LtpoStruct>> =>
   query(

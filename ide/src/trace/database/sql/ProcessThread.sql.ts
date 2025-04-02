@@ -559,8 +559,8 @@ export const queryProcessMemData = (trackId: number): Promise<Array<ProcessMemSt
     { $id: trackId }
   );
 
-export const queryThreads = (): //@ts-ignore
-  Promise<Array<unknown>> =>
+export const queryThreads = ():
+  Promise<Array<{ id: number; tid: number; name: string; }>> =>
   query('queryThreads', `select id,tid,(ifnull(name,'Thread') || '(' || tid || ')') name from thread where id != 0;`);
 
 export const queryDataDICT = async (): Promise<Array<unknown>> => {

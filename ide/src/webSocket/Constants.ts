@@ -27,6 +27,7 @@ export class Constants {
     static DISASSEMBLY_SAVE_BACK_CMD = 2;
     static DISASSEMBLY_QUERY_CMD = 3;
     static DISASSEMBLY_QUERY_BACK_CMD = 4;
+    static DISASSEMBLY_QUERY_ELF_CMD = 5;
 }
 
 export class TypeConstants {
