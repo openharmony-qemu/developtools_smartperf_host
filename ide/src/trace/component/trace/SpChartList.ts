@@ -32,6 +32,7 @@ import { CpuStruct } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { WakeupBean } from '../../bean/WakeupBean';
 import { LitIcon } from '../../../base-ui/icon/LitIcon';
 import { SpSystemTrace } from '../SpSystemTrace';
+import { LitPopover } from '../../../base-ui/popover/LitPopoverV';
 
 const maxScale = 0.8; //收藏最大高度为界面最大高度的80%
 const topHeight = 150; // 顶部cpu使用率部分高度固定为150px
@@ -629,10 +630,32 @@ export class SpChartList extends BaseElement {
   }
 
   refreshFavoriteCanvas(): void {
+    let sp = document.querySelector("body > sp-application")?.shadowRoot?.querySelector("#sp-system-trace") as SpSystemTrace;
+    let favoriteList = sp.shadowRoot?.querySelector("#favorite-chart-list") as SpChartList;
+    let popover = (favoriteList.shadowRoot?.querySelector("#collect-group-1 > trace-row")?.shadowRoot?.querySelector("#rowSetting") || favoriteList.shadowRoot?.querySelector("#collect-group-2 > trace-row")?.shadowRoot?.querySelector("#rowSetting")) as LitPopover;
+    let spChartList = document.querySelector("body > sp-application")?.shadowRoot?.querySelector("#sp-system-trace")?.shadowRoot?.querySelector("#favorite-chart-list");
     this.canvas!.style.width = `${this.clientWidth - 248}px`;
     this.canvas!.style.left = `248px`;
     this.canvas!.width = this.canvas?.clientWidth! * dpr();
     this.canvas!.height = this.clientHeight * dpr();
+    if (sp.collectRows && sp.collectRows.length) {
+      let isHiperf = sp.collectRows.some((row) => {
+        return row.rowId === 'HiPerf-callchart' && row.rowParentId === 'HiPerf';
+      });
+      let rowHeight = sp.collectRows.reduce((pre, row) => {
+        let height = row._frame?.height;
+        return pre + height!;
+      }, 0);
+      let titleHeight = sp.groupTitle1!.clientHeight || sp.groupTitle2!.clientHeight;
+      if (sp.collectEl1!.innerHTML.trim() !== '' && sp.collectEl2!.innerHTML.trim() !== '') {
+        titleHeight = titleHeight * 2;
+      }
+      let spChartListHeight = spChartList!.clientHeight * dpr();
+      let finalHeight = rowHeight + titleHeight > spChartListHeight ? spChartListHeight : rowHeight + titleHeight;
+      if (popover && isHiperf) {
+        favoriteList.style.height = popover.visible === 'true' ? `${this.canvas!.height}px` : `${finalHeight}px`;
+      }
+    }
     this.canvas!.getContext('2d')!.scale(dpr(), dpr());
     window.publish(window.SmartEvent.UI.RefreshCanvas, {});
   }
