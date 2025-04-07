@@ -33,6 +33,7 @@ import { type TreeItemData, LitTree } from '../../../../base-ui/tree/LitTree';
 import { SpSystemTrace } from '../../SpSystemTrace';
 import { TraceRowHtml } from './TraceRow.html';
 import { Utils } from './Utils';
+import { SpChartList } from '../SpChartList';
 
 export class RangeSelectStruct {
   startX: number | undefined;
@@ -1074,6 +1075,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
 
   addRowSettingPop(): void {
     let nameEl = this.shadowRoot && (this.shadowRoot.querySelector('.name') as HTMLLabelElement);
+    let favoriteList = this.trace!.shadowRoot?.querySelector("#favorite-chart-list") as SpChartList;
     nameEl && (nameEl.style.maxWidth = '160px');
     let collectEl = (this.shadowRoot && this.shadowRoot.querySelector('.collect') as LitIcon);
     collectEl && (collectEl.style.marginRight = '20px');
@@ -1101,6 +1103,9 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       this.rowSettingPop!.visible = isVisible;
       TraceRow.ROW_TYPE_HIPERF_THREADTYPE.push(Number(this.rowSettingTree!.getCheckdKeys())); //@ts-ignore
       this.onRowSettingChangeHandler?.(this.rowSettingTree!.getCheckdKeys(), this.rowSettingTree!.getCheckdNodes());
+      if (LitPopover) {
+        favoriteList.style.height = LitPopover.isChangeHeight ? `${LitPopover.finalHeight}px` : '300px';
+      }
     };
     this.rowSettingPop?.addEventListener('mouseenter', (): void => {
       window.publish(window.SmartEvent.UI.HoverNull, undefined);
