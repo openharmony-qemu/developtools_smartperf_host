@@ -77,9 +77,13 @@ export class SpXPowerRecord extends BaseElement {
           return;
         } else {
           Cmd.getPackage().then((packageList) => {
+            let appArr = [];
             if (packageList.length > 0) {
-              packageList.unshift('none');
-              this.xPowerSelectV!.dataSource(packageList, '', true);
+              packageList.forEach((item) => {
+                appArr.push(item.replace(/^\t+/, ''));
+              })
+              appArr.unshift('none');
+              this.xPowerSelectV!.dataSource(appArr, '', true);
               this.getSelectedOption();
             } else {
               this.xPowerSelectV!.dataSource([], '');

@@ -16,6 +16,7 @@
 import { BaseStruct, dataFilterHandler, drawLoadingFrame, drawString, Rect } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { SpSystemTrace } from '../../component/SpSystemTrace';
+import { SpApplication } from '../../SpApplication';
 
 export class SnapShotRender {
   renderMainThread(
@@ -44,7 +45,8 @@ export class SnapShotRender {
     let find = false;
     let offset = 3;
     for (let re of filter) {
-      SnapShotStruct.draw(req.snapShotContext, re, snapShotRow.translateY);
+      snapShotRow.isHover = SnapShotStruct.isClear && SnapShotStruct.hoverSnapShotStruct === undefined ? false : snapShotRow.isHover;
+      SnapShotStruct.draw(req.snapShotContext, re, snapShotRow.translateY, snapShotRow.isHover);
       if (snapShotRow.isHover) {
         if (
           re.frame &&
@@ -62,6 +64,22 @@ export class SnapShotRender {
   }
 }
 
+export function SnapShotOnClick(
+  rowType: string,
+  sp: SpSystemTrace,
+  entry?: SnapShotStruct,
+): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    if (rowType === TraceRow.ROW_TYPE_SNAPSHOT && (SnapShotStruct.hoverSnapShotStruct || entry)) {
+      SnapShotStruct.selectSnapShotStruct = entry || SnapShotStruct.hoverSnapShotStruct;
+      SpApplication.displaySnapShot(SnapShotStruct.selectSnapShotStruct);
+      reject(new Error());
+    } else {
+      resolve(null);
+    }
+  });
+}
+
 export class SnapShotStruct extends BaseStruct {
   static hoverSnapShotStruct: SnapShotStruct | undefined;
   static selectSnapShotStruct: SnapShotStruct | undefined;
@@ -69,6 +87,7 @@ export class SnapShotStruct extends BaseStruct {
   static index = 0;
   static maxDepth: number = 0;
   static imageCache: { [img: string]: Promise<HTMLImageElement> } = {};
+  static isClear: boolean;
 
   value: number | undefined = 20;
   startTime: number | undefined;
@@ -78,7 +97,8 @@ export class SnapShotStruct extends BaseStruct {
   static async draw(
     ctx: CanvasRenderingContext2D,
     data: SnapShotStruct,
-    translateY: number
+    translateY: number,
+    isHover: boolean
   ): Promise<void> {
     if (data.frame && data.img) {
       const imagePromise = SnapShotStruct.getImageFromCache(data.img);
@@ -91,6 +111,16 @@ export class SnapShotStruct extends BaseStruct {
           data.frame.width,
           data.frame.height
         );
+        if (data.startTime === SnapShotStruct.selectSnapShotStruct?.startTime) {
+          ctx.strokeStyle = 'red';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(data.frame.x, data.frame.y + translateY + 1, data.frame.width - 2, data.frame.height - 2);
+        }
+        if (isHover && SnapShotStruct.hoverSnapShotStruct && data.startTime === SnapShotStruct.hoverSnapShotStruct?.startTime) {
+          ctx.strokeStyle = '#000';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(data.frame.x, data.frame.y + translateY + 1, data.frame.width - 2, data.frame.height - 2);
+        }
       } catch (error) {
         console.error('Error loading image:', error);
       }
@@ -101,7 +131,7 @@ export class SnapShotStruct extends BaseStruct {
       SnapShotStruct.imageCache[img] = new Promise((resolve, reject) => {
         const image = new Image();
         image.onload = (): void => resolve(image);
-        image.onerror = (error): void => reject(new Error(`Failed to load image: ${img},${error}`)); 
+        image.onerror = (error): void => reject(new Error(`Failed to load image: ${img},${error}`));
         image.src = img;
       });
     }

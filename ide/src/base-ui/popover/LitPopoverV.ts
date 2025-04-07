@@ -15,6 +15,8 @@
 
 import { BaseElement, element } from '../BaseElement';
 import { replacePlaceholders } from '../utils/Template';
+import { SpSystemTrace } from '../../trace/component/SpSystemTrace';
+import { SpChartList } from '../../trace/component/trace/SpChartList';
 let css = `
 <style>
     :host{ 
@@ -440,6 +442,8 @@ export class LitPopover extends BaseElement {
   connectedCallback(): void {
     let popover: unknown = this.shadowRoot!.querySelector('.popover');
     let checkbox: unknown = this.shadowRoot!.querySelector('.trigger-click');
+    let sp = document.querySelector("body > sp-application")?.shadowRoot?.querySelector("#sp-system-trace") as SpSystemTrace;
+    let favoriteList = sp.shadowRoot?.querySelector("#favorite-chart-list") as SpChartList;
     this.setAttribute('tabindex', '1'); // @ts-ignore
     popover.onclick = (e: unknown): void => {
       // @ts-ignore
@@ -459,6 +463,21 @@ export class LitPopover extends BaseElement {
       if (!this.haveCheckbox) {
         // @ts-ignore
         this.visible = checkbox.checked;
+      }
+      if (sp.collectRows && sp.collectRows.length) {
+        let isHiperf = sp.collectRows.some((row) => {
+          return row.rowId === 'HiPerf-callchart' && row.rowParentId === 'HiPerf';
+        });
+        let isResetHeight = parseFloat(favoriteList.style.height.replace('px', '')) >= 300;
+        let rowHeight = sp.collectRows.reduce((pre, row) => {
+          let height = row._frame?.height;
+          return pre + height!;
+        }, 0);
+        let titleHeight = sp.groupTitle1!.clientHeight || sp.groupTitle2!.clientHeight;
+        if (sp.collectEl1!.innerHTML.trim() !== '' && sp.collectEl2!.innerHTML.trim() !== '') {
+          titleHeight = titleHeight * 2;
+        }
+        favoriteList.style.height = this.visible === 'true' && isHiperf && !isResetHeight ? '300px' : `${rowHeight + titleHeight}px`;
       }
     }; // @ts-ignore
     popover.onmouseleave = (): void => {

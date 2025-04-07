@@ -109,6 +109,7 @@ export class AppStartupStruct extends BaseStruct {
   stepName: string | undefined;
   StartSlice: string | undefined;
   EndSlice: string | undefined;
+  endstartTs: number | undefined;
 
   static draw(ctx: CanvasRenderingContext2D, data: AppStartupStruct): void {
     if (data.frame) {

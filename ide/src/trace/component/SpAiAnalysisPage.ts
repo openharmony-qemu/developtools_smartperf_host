@@ -101,7 +101,7 @@ export class SpAiAnalysisPage extends BaseElement {
         });
         // 自定义 link_open 规则
         // @ts-ignore
-        this.md.renderer.rules.link_open = (tokens, idx) => {
+        this.md.renderer.rules.link_open = (tokens, idx): string => {
             // @ts-ignore
             const href = tokens![idx].attrIndex('href');
             if (href < 0) {
@@ -169,8 +169,10 @@ export class SpAiAnalysisPage extends BaseElement {
 
         // 给右边栏添加点击事件
         // @ts-ignore
-        rightBarGroup.forEach((barItem: unknown, index: number) => {    // @ts-ignore
-            barItem.barEl.addEventListener('click', (ev: Event) => {    // @ts-ignore
+        rightBarGroup.forEach((barItem: unknown, index: number) => {    
+            // @ts-ignore
+            barItem.barEl.addEventListener('click', (ev: Event) => {    
+                // @ts-ignore
                 if (barItem.isMustLoadedTrace && !SpApplication.isTraceLoaded) {
                     let importTraceTips = '请先导入trace，再使用诊断功能';
                     this.tipContentArr = ['chat'];
@@ -178,23 +180,32 @@ export class SpAiAnalysisPage extends BaseElement {
                     return;
                 }
                 // this.tipsContent!.style.display = this.isNodata && barItem.barFlag === 'detect' ? 'flex' : 'none';
-                this.tipsContainer!.style.display = 'none';    // @ts-ignore
-                this.showPageFlag = barItem.barFlag;    // @ts-ignore
-                barItem.imgEl.src = barItem.activeImg;    // @ts-ignore
-                barItem.barEl.classList.add('active');    // @ts-ignore
-                barItem.showPage.style.display = 'block';    // @ts-ignore
+                this.tipsContainer!.style.display = 'none';    
+                // @ts-ignore
+                this.showPageFlag = barItem.barFlag;    
+                // @ts-ignore
+                barItem.imgEl.src = barItem.activeImg;    
+                // @ts-ignore
+                barItem.barEl.classList.add('active');    
+                // @ts-ignore
+                barItem.showPage.style.display = 'block';    
+                // @ts-ignore
                 if (this.tipContentArr.indexOf(barItem.barFlag) > -1) {
                     this.tipsContainer!.style.display = 'flex';
-                }    // @ts-ignore
+                }    
+                // @ts-ignore
                 for (let i = 0; i < rightBarGroup.length; i++) {
-                    if (i !== index) {    // @ts-ignore
-                        rightBarGroup[i].barEl.classList.remove('active');    // @ts-ignore
-                        rightBarGroup[i].imgEl.src = rightBarGroup[i].img;    // @ts-ignore
+                    if (i !== index) {    
+                        // @ts-ignore
+                        rightBarGroup[i].barEl.classList.remove('active');    
+                        // @ts-ignore
+                        rightBarGroup[i].imgEl.src = rightBarGroup[i].img;    
+                        // @ts-ignore
                         rightBarGroup[i].showPage.style.display = 'none';
                     }
                 }
-            })
-        })
+            });
+        });
 
         // 发送消息图标点击事件
         this.sendImg?.addEventListener('click', () => {
@@ -258,6 +269,8 @@ export class SpAiAnalysisPage extends BaseElement {
             if (e.key.toLocaleLowerCase() === 'control' || e.keyCode === 17) {
                 this.isCtrlDown = false;
             };
+            e.preventDefault();
+            e.stopPropagation();
         });
 
         // 下载诊断报告按钮监听
@@ -307,7 +320,7 @@ export class SpAiAnalysisPage extends BaseElement {
                         // 如果缓存中没有，从网络获取并存储
                         this.cacheDb(fileName);
                     }
-                })
+                });
             };
             // 点击一键诊断时先挂载loading
             this.loadingItem = this.loading('style="position:absolute;top:45%;left:45%;z-index:999"');
@@ -553,7 +566,7 @@ export class SpAiAnalysisPage extends BaseElement {
                 suggestonDiv!.appendChild(this.loading(''));
                 // @ts-ignore
                 this.getSuggestion(dataList, i, suggestonDiv, timeList);
-            })
+            });
             suggestonTitle.appendChild(getButton);
             this.draftList!.insertBefore(itemDiv!, this.loadingItem!);
             itemDiv!.style.animation = 'opcityliner 3s';
@@ -786,7 +799,7 @@ export class SpAiAnalysisPage extends BaseElement {
         // @ts-ignore
         this.abnormalPageTips(this.getStatusesPrompt()[result].prompt, '', 4000, ['detect']);
         this.draftBtn!.style.display = 'inline-block';
-    }
+    };
 
     // 发起诊断
     initiateDiagnosis(): void {
@@ -831,7 +844,7 @@ export class SpAiAnalysisPage extends BaseElement {
     // 获取提示语
     getStatusesPrompt(): unknown {
         let guideSrc = `https://${window.location.host.split(':')[0]}:${window.location.port
-            }/application/?action=help_27`;
+            }${window.location.pathname}?action=help_27`;
         return {
             unconnected: {
                 prompt: `未连接，请启动本地扩展程序再试！[</span><a href=${guideSrc} style="color: blue;" target="_blank">指导</a><span>]`

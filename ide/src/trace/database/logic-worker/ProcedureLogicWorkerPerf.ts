@@ -127,7 +127,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     }
   }
 
-  private getAnalysisData(data: unknown) {
+  private getAnalysisData(data: unknown): void {
     //@ts-ignore
     this.samplesData = convertJSON(data.params.list) || [];
     let result;
@@ -147,7 +147,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       });
   }
 
-  private getBottomUpData(data: unknown) {
+  private getBottomUpData(data: unknown): void {
     //@ts-ignore
     this.samplesData = convertJSON(data.params.list) || [];
     let result;
@@ -156,7 +156,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         funcName: 'getBottomUp',
         funcArgs: [true],
       },
-    ])
+    ]);
     self.postMessage({
       //@ts-ignore
       id: data.id,
@@ -167,7 +167,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     });
   }
 
-  private getProfileData(data: unknown) {
+  private getProfileData(data: unknown): void {
     //@ts-ignore
     this.samplesData = convertJSON(data.params.list) || [];
     let result;
@@ -187,7 +187,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
           funcName: 'getCallChainsBySampleIds',
           funcArgs: [this.isTopDown],
         },
-      ])
+      ]);
     }
     self.postMessage({
       //@ts-ignore
@@ -290,7 +290,7 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     }
   }
 
-  rebackVaddrList(data: unknown) {
+  rebackVaddrList(data: unknown): void {
     // @ts-ignore
     let vaddrCallchainList = convertJSON(data.params.list);
     let sampleCallChainList: unknown = [];
@@ -311,6 +311,8 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       funcVaddrLastItem.process_id = vaddrCallchainList[i].process_id;
       // @ts-ignore
       funcVaddrLastItem.thread_id = vaddrCallchainList[i].thread_id;
+      // @ts-ignore
+      funcVaddrLastItem.count = vaddrCallchainList[i].count;
       // @ts-ignore
       funcVaddrLastItem.libName = lastCallChain.fileName;
       // @ts-ignore
@@ -355,13 +357,13 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     }
   }
 
-  private perfGetVaddr(data: unknown) {
+  private perfGetVaddr(data: unknown): void {
     // @ts-ignore
     const params = data.params;
     this.backVaddrData(data);
   }
 
-  backVaddrData(data: unknown) {
+  backVaddrData(data: unknown): void {
     // @ts-ignore
     this.handleDataByFuncName(data.params[0].funcName, data.params[0].funcArgs);
   }
@@ -994,10 +996,30 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
         process.isSearch = false;
       });
       this.resetNewAllNode(sample);
-      if (this.searchValue !== '') {
-        this.markSearchNode(sample, this.searchValue, false);
-        this.resetNewAllNode(sample);
+      this.searchValue = this.searchValue.toLocaleLowerCase();
+      let researchValue = this.searchValue.substring(1, this.searchValue.length);
+      /*
+        *开头，正则表达式
+        非*开头，普通筛选
+        '!'开头，普通反选
+      */
+      if (this.searchValue[0] === '!') {
+        this.reMarkSearchNode(sample, researchValue, true);
+      } else {
+        if (this.searchValue[0] === '*') {
+          // 正则反选
+          if (this.searchValue[1] === '^') {
+            this.markUnRegexSearchNode(this.allProcess, researchValue, true);
+          } else {
+            // 正则正选
+            this.markRegexSearchNode(this.allProcess, researchValue, false);
+          }
+        } else {
+          // 普通正选
+          this.markSearchNode(sample, this.searchValue, false);
+        }
       }
+      this.resetNewAllNode(sample);
     }
   }
 
@@ -1127,11 +1149,15 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
     });
   }
 
+  // 普通正向筛选
   markSearchNode(sampleArray: PerfCallChainMerageData[], search: string, parentSearch: boolean): void {
     for (const sample of sampleArray) {
       if (search === '') {
         sample.searchShow = true;
         sample.isSearch = false;
+        // 将反选标记全部清除
+        sample.hiddenArray = [];
+        sample.isReverseFilter = false;
       } else {
         let isInclude = sample.symbol.toLocaleLowerCase().includes(search);
         if ((sample.symbol && isInclude) || parentSearch) {
@@ -1154,6 +1180,104 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       }
     }
   }
+
+  reMarkSearchNode(sampleArray: PerfCallChainMerageData[], search: string, parentSearch: boolean): void {
+    for (const sample of sampleArray) {
+      if (search === '') {
+        sample.searchShow = true;
+        sample.isReverseFilter = false;
+      } else {
+        // 反选符合要求的
+        let isInclude = !sample.symbol.toLocaleLowerCase().includes(search);
+        // 从上往下遍历，父节点不展示的直接不展示，并且标记为置为false
+        if (!parentSearch) {
+          sample.searchShow = false
+        } else {
+          // 父节点展示并符合要求的直接展示
+          if (sample.symbol && isInclude) {
+            sample.isReverseFilter = true;
+            sample.searchShow = true;
+          } else {
+            // 父节点展示子节点不展示的，反向向上遍历置false
+            sample.isSearch = false;
+            sample.searchShow = false;
+            let parentNode = sample.parent
+            parentNode?.hiddenArray.push(sample.symbolName);
+            // 多个子节点，只有所有子节点都不展示的才可以不展示并且继续向上遍历
+            while (parentNode && parentNode.children.length === parentNode.hiddenArray.length) {
+              parentNode.searchShow = false;
+              if (parentNode.parent?.hiddenArray.indexOf(parentNode.symbolName) === -1) {
+                parentNode.parent?.hiddenArray.push(parentNode.symbolName)
+              }
+              parentNode = parentNode.parent;
+            }
+          }
+        }
+      }
+      const children = this.isOnlyKernel ? sample.initChildren : sample.children;
+      if (children.length > 0) {
+        this.reMarkSearchNode(children, search, sample.searchShow);
+      }
+    }
+  }
+
+  markUnRegexSearchNode(sampleArray: PerfCallChainMerageData[], reg: string, parentSearch: boolean): void {
+    let regex = RegExp(reg);
+    for (const sample of sampleArray) {
+      // 反选符合要求的
+      let isInclude = regex.test(sample.symbol.toLocaleLowerCase());
+      if (!parentSearch) {
+        sample.searchShow = false
+      } else {
+        if (sample.symbol && isInclude) {
+          sample.isReverseFilter = true;
+          sample.searchShow = true;
+        } else {
+          sample.isSearch = false;
+          sample.searchShow = false;
+          let parentNode = sample.parent
+          parentNode?.hiddenArray.push(sample.symbolName);
+          while (parentNode && parentNode.children.length === parentNode.hiddenArray.length) {
+            parentNode.searchShow = false;
+            if (parentNode.parent?.hiddenArray.indexOf(parentNode.symbolName) === -1) {
+              parentNode.parent?.hiddenArray.push(parentNode.symbolName)
+            }
+            parentNode = parentNode.parent;
+          }
+        }
+      }
+      const children = this.isOnlyKernel ? sample.initChildren : sample.children;
+      if (children.length > 0) {
+        this.markUnRegexSearchNode(children, reg, sample.searchShow);
+      }
+    }
+  }
+
+  markRegexSearchNode(sampleArray: PerfCallChainMerageData[], reg: string, parentSearch: boolean): void {
+    let regex = RegExp(reg);
+    for (const sample of sampleArray) {
+      let isInclude = regex.test(sample.symbol.toLocaleLowerCase());
+      if ((sample.symbol && isInclude) || parentSearch) {
+        sample.searchShow = true;
+        sample.isSearch = sample.symbol !== undefined && isInclude;
+        let parentNode = sample.parent;
+        // 如果匹配，所有parent都显示
+        while (parentNode !== undefined && !parentNode.searchShow) {
+          parentNode.searchShow = true;
+          parentNode = parentNode.parent;
+        }
+      } else {
+        sample.searchShow = false;
+        sample.isSearch = false;
+      }
+
+      const children = this.isOnlyKernel ? sample.initChildren : sample.children;
+      if (children.length > 0) {
+        this.markRegexSearchNode(children, reg, sample.searchShow);
+      }
+    }
+  }
+
   splitAllProcess(processArray: { select: string; name: string; type: string; checked: boolean }[]): void {
     processArray.forEach((item: { select: string; name: string; type: string; checked: boolean }): void => {
       this.allProcess.forEach((process): void => {
@@ -1240,14 +1364,15 @@ export class ProcedureLogicWorkerPerf extends LogicHandler {
       'perf-vaddr-back',
       `select s.callchain_id,
             s.thread_id,
-            thread.process_id
+            thread.process_id,
+            count(callchain_id) as count
             from perf_sample s, trace_range t
             left join perf_thread thread on s.thread_id = thread.thread_id
             where timestamp_trace between ${selectionParam.leftNs} + t.start_ts
             and ${selectionParam.rightNs} + t.start_ts
             and s.callchain_id != -1
             and s.thread_id != 0  ${filterSql}
-        group by s.callchain_id`,
+        group by s.callchain_id,s.thread_id`,
       {
         $startTime: selectionParam.leftNs,
         $endTime: selectionParam.rightNs,
@@ -1609,6 +1734,8 @@ export class PerfCallChainMerageData extends ChartStruct {
   searchShow: boolean = true;
   isSearch: boolean = false;
   isState: boolean = false;
+  isReverseFilter: boolean = false;
+  hiddenArray: Array<string> = [];
   set parentNode(data: PerfCallChainMerageData | undefined) {
     this.parent = data;
     this.#parentNode = data;

@@ -39,7 +39,7 @@ export class HiperfProcessRender2 extends PerfRender {
     let offset = groupBy10MS ? 0 : 3;
     let find = false;
     for (let it of hiperfProcessFilter) {
-      HiPerfProcessStruct.draw(ctx, normalPath, specPath, it, groupBy10MS, textMetrics);
+      HiPerfProcessStruct.draw(ctx, normalPath, specPath, it, groupBy10MS, textMetrics,row);
       if (row.isHover) {
         if (it.frame && row.hoverX >= it.frame.x - offset && row.hoverX <= it.frame.x + it.frame.width + offset) {
           HiPerfProcessStruct.hoverStruct = it;

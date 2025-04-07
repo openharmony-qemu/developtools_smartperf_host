@@ -13,6 +13,7 @@ Hiperf 工具是对系统性能数据进行采样记录，并将采样数据保�
 -     Start Hiperf Sampling：配置项的总开关。
 -     Process：离线模式下配置的是整个系统的进程。
 -     Frequency：配置抓取的频率。
+-     Off CPU：配置抓取进程调度切换事件。
 -     Call Stack：配置抓取的堆栈类型。
 -     Advance Options：更多的抓取配置项。
   再点击 Record setting，在 output file path 输入文件名 hiprofiler_data_perf.htrace，拖动滚动条设置 buffer size 大小是 64MB，抓取时长是 50s。

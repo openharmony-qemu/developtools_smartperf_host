@@ -155,7 +155,7 @@ lit-switch {
             <lit-switch class="switch" id='memory-switch'></lit-switch>
         </div>
         <div class='memory'>
-            <lit-radio dis="round" class="radio" name="litRadio" checked type="0">Heap snapshot</lit-radio>
+            <lit-radio dis="round" class="radio" name="litRadio" checked type="0" id="heapsnapshot">Heap snapshot</lit-radio>
             <div style="margin-left: 10px;">
                 <span class="des">Heap snapshot profiles show memory distribution among your page’s 
                 JavaScript objects and related DOM nodes.</span>
@@ -170,7 +170,7 @@ lit-switch {
                     <span class="unit">S</span>
                 </div>
             </div>
-            <lit-radio dis="round" name="litRadio" class="radio" type="1">
+            <lit-radio dis="round" name="litRadio" class="radio" type="1" id="allcotimeline">
             Allocation insteumentation on timeline</lit-radio>
             <div style="margin-left: 10px;">
                 <span class="des">Allocation timelines show insturmented Javascript memory allocations 

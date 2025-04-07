@@ -217,7 +217,7 @@ button{
   <div class="snapShot">
     <div class="record-title">
         <span class="record-mode" >SnapShot</span>
-        <span class="record-prompt"> (max snapShot value is 1000MS) </span>
+        <span class="record-prompt"> (max snapShot value is 1000MS and min snapShot value is 200MS) </span>
     </div>
     <lit-slider id="snapShot" defaultColor="var(--dark-color4,#cdcafa)" open dir="right">
     </lit-slider>

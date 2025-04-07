@@ -70,6 +70,7 @@ export class SpHiPerf {
   private callChartType: number = 0;
   private callChartId: number = 0;
   private eventTypeId: number = -2;
+  static hiperfEvent: number | undefined = -2;
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -85,6 +86,7 @@ export class SpHiPerf {
     this.cpuData = await queryHiPerfCpuMergeData2();
     this.callChartType = 0;
     this.callChartId = 0;
+    SpHiPerf.hiperfEvent = -2;
     this.eventTypeId = -2; //@ts-ignore
     this.maxCpuId = this.cpuData.length > 0 ? this.cpuData[0].cpu_id : -Infinity;
     if (this.cpuData.length > 0) {
@@ -173,6 +175,7 @@ export class SpHiPerf {
       let drawType = parseInt(value[0]);
       if (this.eventTypeId !== drawType) {
         this.eventTypeId = drawType;
+        SpHiPerf.hiperfEvent = drawType;
         row.drawType = drawType;
         row.childrenList.forEach((child): void => {
           if (child.drawType !== drawType) {

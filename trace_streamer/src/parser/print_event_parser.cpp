@@ -187,7 +187,7 @@ bool PrintEventParser::HandleAnimationBeginEvent(const TracePoint &point, size_t
 }
 void PrintEventParser::SetTraceType(TraceFileType traceType)
 {
-    traceType_ = traceType;
+    streamFilters_->frameFilter_->SetTraceType(traceType);
 }
 void PrintEventParser::SetTraceClockId(BuiltinClocks clock)
 {
@@ -323,14 +323,6 @@ bool PrintEventParser::ReciveVsync(size_t callStackRow, std::string &args, const
         TS_LOGE("Now,expectedEnd or vsyncId should not be 0!");
         return false;
     }
-    if (convertVsyncTs_ && traceType_ == TRACE_FILETYPE_H_TRACE) {
-        if (now != INVALID_UINT64) {
-            now = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_MONOTONIC, now);
-        }
-        if (expectEnd != INVALID_UINT64) {
-            expectEnd = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_MONOTONIC, expectEnd);
-        }
-    }
     streamFilters_->frameFilter_->BeginVsyncEvent(line, now, expectEnd, vsyncId, callStackRow);
     auto iTid = streamFilters_->processFilter_->GetInternalTid(line.pid);
     if (vsyncSliceMap_.count(iTid)) {
@@ -361,12 +353,16 @@ bool PrintEventParser::DealUIVsyncTaskEvent(DataIndex eventName, const BytraceLi
     auto eventNameStr = traceDataCache_->GetDataFromDict(eventName);
     std::sregex_iterator it(eventNameStr.begin(), eventNameStr.end(), uiVsyncTaskPattern_);
     std::sregex_iterator end;
+    uint64_t timeId = 0;
     while (it != end) {
         std::smatch match = *it;
         std::string key = match.str(1);
         std::string value = match.str(2);
+        if (key == "timestamp") {
+            timeId = base::StrToInt<uint64_t>(value).value();
+        }
         if (key == "vsyncID") {
-            (void)streamFilters_->frameFilter_->UpdateVsyncId(line, base::StrToInt<uint32_t>(value).value());
+            (void)streamFilters_->frameFilter_->UpdateVsyncId(line, base::StrToInt<uint32_t>(value).value(), timeId);
             return true;
         }
         ++it;
@@ -408,6 +404,19 @@ bool PrintEventParser::OnRwTransaction(size_t callStackRow, std::string &args, c
         auto currentThreadId = streamFilters_->processFilter_->GetInternalTid(line.pid);
         return streamFilters_->frameFilter_->BeginRSTransactionData(
             currentThreadId, base::StrToInt<uint32_t>(flag2).value(), mainThreadId);
+    }
+    if (std::regex_search(args, match, newTransFlagPattern_)) {
+        std::string mainTheadId = match.str(1);
+        std::string currentThread = match.str(2);
+        std::string flag2 = match.str(3);
+        std::string timeFlag = match.str(4);
+        auto mainThreadId =
+            streamFilters_->processFilter_->GetInternalTid(base::StrToInt<uint32_t>(mainTheadId).value());
+        auto currentThreadId =
+            streamFilters_->processFilter_->GetInternalTid(base::StrToInt<uint32_t>(currentThread).value());
+        auto timeId = base::StrToInt<uint64_t>(timeFlag).value();
+        return streamFilters_->frameFilter_->BeginRSTransactionData(
+            currentThreadId, base::StrToInt<uint32_t>(flag2).value(), mainThreadId, timeId);
     }
     return true;
 }

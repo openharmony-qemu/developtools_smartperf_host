@@ -30,17 +30,23 @@ cd third_party
 
 if [ ! -f "sqlite/BUILD.gn" ];then
     rm -rf sqlite
-    git clone --depth=1 git@gitee.com:openharmony/third_party_sqlite.git
+    git clone  git@gitee.com:openharmony/third_party_sqlite.git
     if [ -d "third_party_sqlite" ];then
         mv third_party_sqlite sqlite
+        cd sqlite
+        git reset --hard d21e412dbc6f2cdde2e4c9828e2450fcfca4fbe9
+        cd ..
         $cp ../prebuilts/patch_sqlite/sqlite3build.gn ../third_party/sqlite/BUILD.gn
     fi
 fi
 if [ ! -f "protobuf/BUILD.gn" ];then
     rm -rf protobuf
-    git clone --depth=1 git@gitee.com:openharmony/third_party_protobuf.git
+    git clone  git@gitee.com:openharmony/third_party_protobuf.git
     if [ -d "third_party_protobuf" ];then
         mv third_party_protobuf protobuf
+        cd protobuf
+        git reset --hard aceafed4cf26d7a6be8169ae887cc13b749d5515
+        cd ..
         $cp ../prebuilts/patch_protobuf/protobufbuild.gn ../third_party/protobuf/BUILD.gn
     fi
 fi

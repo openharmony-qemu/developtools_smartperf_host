@@ -319,9 +319,9 @@ export class FrameChart extends BaseElement {
       node.isJsStack = false;
     }
 
-    //设置搜索以及点选的显示值，将点击/搜索的值设置为父节点的显示值
+    //设置搜索以及点选的显示值，将点击/搜索的值设置为父节点的显示值,或者反选有子节点并且只有一个子节点
     this.clearDisplayInfo(node);
-    if (node.isSearch && calDisplay) {
+    if ((node.isSearch && calDisplay) || (node.children && calDisplay && node.children.length === 0 && node.isReverseFilter)) {
       const module = new NodeValue();
       module.size = node.drawSize = node.searchSize = node.size;
       module.count = node.drawCount = node.searchCount = node.count;

@@ -12,22 +12,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TabPerfFuncAsmHtml } from "./TabPerfFuncAsm.html";
-import { BaseElement, element } from "../../../../../base-ui/BaseElement";
-import { LitTable } from "../../../../../base-ui/table/lit-table";
+import { TabPerfFuncAsmHtml } from './TabPerfFuncAsm.html';
+import { BaseElement, element } from '../../../../../base-ui/BaseElement';
+import { LitTable } from '../../../../../base-ui/table/lit-table';
 import {
   FormattedAsmInstruction,
   PerfFunctionAsmParam,
   OriginAsmInstruction,
-} from "../../../../bean/PerfAnalysis";
-import { WebSocketManager } from "../../../../../webSocket/WebSocketManager";
-import { Constants, TypeConstants } from "../../../../../webSocket/Constants";
+} from '../../../../bean/PerfAnalysis';
+import { WebSocketManager } from '../../../../../webSocket/WebSocketManager';
+import { Constants, TypeConstants } from '../../../../../webSocket/Constants';
 
-@element("tab-perf-func-asm")
+@element('tab-perf-func-asm')
 export class TabPerfFuncAsm extends BaseElement {
   private assmblerTable: LitTable | null | undefined;
   private loadingElement: HTMLElement | null | undefined;
-  private functionName: string = "";
+  private functionName: string = '';
   private totalCount: number = 0;
   private totalCountElement: HTMLDivElement | null | undefined;
   private textFileOffElement: HTMLDivElement | null | undefined;
@@ -46,54 +46,54 @@ export class TabPerfFuncAsm extends BaseElement {
 
   initElements(): void {
     this.assmblerTable = this.shadowRoot!.querySelector<LitTable>(
-        "#perf-function-asm-table"
+        '#perf-function-asm-table'
     );
     this.loadingElement =
-        this.shadowRoot!.querySelector<HTMLElement>("#loading");
+        this.shadowRoot!.querySelector<HTMLElement>('#loading');
     this.totalCountElement =
-        this.shadowRoot!.querySelector<HTMLDivElement>("#total-count");
+        this.shadowRoot!.querySelector<HTMLDivElement>('#total-count');
     this.textFileOffElement =
-        this.shadowRoot!.querySelector<HTMLDivElement>("#text-file-off");
-    this.errorMessageElement = this.shadowRoot!.querySelector<HTMLDivElement>("#error-message");
+        this.shadowRoot!.querySelector<HTMLDivElement>('#text-file-off');
+    this.errorMessageElement = this.shadowRoot!.querySelector<HTMLDivElement>('#error-message');
 
-    this.assmblerTable!.style.display = "grid";
+    this.assmblerTable!.style.display = 'grid';
 
-    this.assmblerTable!.itemTextHandleMap.set("addr", (value: unknown) => {
+    this.assmblerTable!.itemTextHandleMap.set('addr', (value: unknown) => {
       return `0x${(value as number).toString(16)}`;
     });
 
-    this.assmblerTable!.itemTextHandleMap.set("selfcount", (value: unknown) => {
-      return (value as number) === 0 ? "" : (value as number).toString();
+    this.assmblerTable!.itemTextHandleMap.set('selfcount', (value: unknown) => {
+      return (value as number) === 0 ? '' : (value as number).toString();
     });
 
-    this.assmblerTable!.itemTextHandleMap.set("percent", (value: unknown) => {
-      return (value as number) === 0 ? "" : (value as number).toString();
+    this.assmblerTable!.itemTextHandleMap.set('percent', (value: unknown) => {
+      return (value as number) === 0 ? '' : (value as number).toString();
     });
 
-    this.assmblerTable!.itemTextHandleMap.set("instruction", (value: unknown) => {
-      return (value as string) === "" ? "INVALID" : (value as string);
+    this.assmblerTable!.itemTextHandleMap.set('instruction', (value: unknown) => {
+      return (value as string) === '' ? 'INVALID' : (value as string);
     });
 
-    this.assmblerTable!.itemTextHandleMap.set("sourceLine", (value: unknown) => {
-      return (value as string) || "";
+    this.assmblerTable!.itemTextHandleMap.set('sourceLine', (value: unknown) => {
+      return (value as string) || '';
     });
 
-    this.assmblerTable!.addEventListener("column-click", ((evt: Event) => {
+    this.assmblerTable!.addEventListener('column-click', ((evt: Event) => {
       const {key, sort} = (evt as CustomEvent).detail;
-      if (key === "selfcount") {
+      if (key === 'selfcount') {
         if (sort === 0) {
           this.assmblerTable!.recycleDataSource = this.originalShowUpData;
           this.assmblerTable!.reMeauseHeight();
         } else {
           this.showUpData.sort((a, b) => {
             return sort === 1
-                ? a.selfcount - b.selfcount
-                : b.selfcount - a.selfcount;
+              ? a.selfcount - b.selfcount
+              : b.selfcount - a.selfcount;
           });
           this.assmblerTable!.recycleDataSource = this.showUpData;
           this.assmblerTable!.reMeauseHeight();
         }
-      } else if (key === "percent") {
+      } else if (key === 'percent') {
         if (sort === 0) {
           this.assmblerTable!.recycleDataSource = this.originalShowUpData;
           this.assmblerTable!.reMeauseHeight();
@@ -116,13 +116,13 @@ export class TabPerfFuncAsm extends BaseElement {
 
   private showLoading(): void {
     if (this.loadingElement) {
-      this.loadingElement.removeAttribute("hidden");
+      this.loadingElement.removeAttribute('hidden');
     }
   }
 
   private hideLoading(): void {
     if (this.loadingElement) {
-      this.loadingElement.setAttribute("hidden", "");
+      this.loadingElement.setAttribute('hidden', '');
     }
   }
 
@@ -144,7 +144,7 @@ export class TabPerfFuncAsm extends BaseElement {
       return;
     }
 
-    (async () => {
+    (async (): Promise<void> => {
       try {
         this.clearData();
         this.functionName = data.functionName;
@@ -164,7 +164,7 @@ export class TabPerfFuncAsm extends BaseElement {
 
         await Promise.race([
           new Promise<void>((resolve, reject) => {
-            callback = (cmd: number, e: Uint8Array) => {
+            callback = (cmd: number, e: Uint8Array): void => {
               try {
 
                 if (cmd === Constants.DISASSEMBLY_QUERY_BACK_CMD) {
@@ -191,7 +191,7 @@ export class TabPerfFuncAsm extends BaseElement {
               }
             };
 
-            WebSocketManager.getInstance()?.registerCallback(TypeConstants.DISASSEMBLY_TYPE, callback);
+            WebSocketManager.getInstance()?.registerMessageListener(TypeConstants.DISASSEMBLY_TYPE, callback, () => { }, true);
           }),
           new Promise((_, reject) => setTimeout(() => {
             WebSocketManager.getInstance()?.unregisterCallback(TypeConstants.DISASSEMBLY_TYPE, callback);
@@ -220,8 +220,8 @@ export class TabPerfFuncAsm extends BaseElement {
         addr: Number(BigInt.asUintN(64, this.funcBaseAddr + BigInt(offsetToVaddr))),
         instruction: '',
         sourceLine: ''
-      })
-    })
+      });
+    });
   }
 
   private calculateFuncAsmSapleCount(vaddrList: Array<unknown>): void {
@@ -229,11 +229,11 @@ export class TabPerfFuncAsm extends BaseElement {
       // @ts-ignore
       const count = this.funcSampleMap.get(item.offsetToVaddr) || 0;
       // @ts-ignore
-      this.funcSampleMap.set(item.offsetToVaddr, count + 1);
+      this.funcSampleMap.set(item.offsetToVaddr, count + item.count);
     });
   }
 
-  private formatAsmInstruction(originAsmInstruction: Array<OriginAsmInstruction>) {
+  private formatAsmInstruction(originAsmInstruction: Array<OriginAsmInstruction>): void {
     this.formattedAsmIntructionArray = originAsmInstruction.map(instructs => ({
       selfcount: 0,
       percent: 0,
@@ -258,7 +258,7 @@ export class TabPerfFuncAsm extends BaseElement {
       let instructionPosition = offsetToVaddr / 4;
       this.formattedAsmIntructionArray[instructionPosition].selfcount = selfCount;
       this.formattedAsmIntructionArray[instructionPosition].percent = Math.round((selfCount / this.totalCount) * 10000) / 100;
-    })
+    });
     this.originalShowUpData = this.formattedAsmIntructionArray;
   }
 

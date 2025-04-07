@@ -38,8 +38,8 @@ export class SpHelp extends BaseElement {
       this.removeAttribute('dark');
     }
     this.helpFile!.innerHTML =
-      '<object type="text/html" data=' +
-      `/application/doc/quickstart_device_record.html?${dark} width="100%" height="100%"></object>`;
+      '<iframe id="myIframe" type="text/html" src=' +
+      `/application/doc/quickstart_device_record.html?${dark} width="100%" height="100%"></iframe>`;
     this.navbarInit('quickstart_device_record');
   }
 
@@ -55,8 +55,10 @@ export class SpHelp extends BaseElement {
     let color = mainMenu.shadowRoot?.querySelector('.customColor') as HTMLDivElement;
     let analysis = mainMenu.shadowRoot?.querySelector('.ai_analysis') as HTMLDivElement;
     let version = mainMenu.shadowRoot?.querySelector('.version') as HTMLDivElement;
+    let extend_connect = mainMenu.shadowRoot?.querySelector('.extend_connect') as HTMLDivElement;
     color.style.display = 'none';
     analysis.style.display = 'none';
+    extend_connect.style.display = 'none';
     header.style.display = 'none';
     version.style.display = 'none';
     this.setupMainMenu(mainMenu, this);
@@ -90,8 +92,8 @@ export class SpHelp extends BaseElement {
     if (urlParams.get('action')!.length > 4) {
       let helpDocIndex = urlParams.get('action')!.substring(5);
       let helpDocDetail = this.getEventDefinitionByIndex(Number(helpDocIndex));
-      that.helpFile!.innerHTML = `<object type="text/html" data='/application/doc/${helpDocDetail!.name}.html?${that.dark
-        }' width="100%" height="100%"></object>`;
+      that.helpFile!.innerHTML = `<iframe id="myIframe" type="text/html" src='/application/doc/${helpDocDetail!.name}.html?${that.dark
+        }' width="100%" height="100%"></iframe>`;
 
       this.navbarInit(helpDocDetail!.name);
     }
@@ -208,6 +210,7 @@ export class SpHelp extends BaseElement {
       this.createSubMenuItem('Xpower抓取和展示说明', 'xpower', 'quickstart_xpower', that, '26'),
       this.createSubMenuItem('扩展程序安装指导', 'extensions', 'quickstart_extensions', that, '27'),
       this.createSubMenuItem('FFRT抓取和展示说明', 'ffrt', 'quickstart_ffrt', that, '28'),
+      this.createSubMenuItem('约束与限制', 'limit', 'quickstart_limit', that, '29'),
     ];
   }
 
@@ -266,7 +269,7 @@ export class SpHelp extends BaseElement {
       event: event,
       action: 'help_doc',
     });
-    that.helpFile!.innerHTML = `<object type="text/html" data='/application/doc/${docName}.html?${that.dark}' width="100%" height="100%"></object>`;
+    that.helpFile!.innerHTML = `<iframe id="myIframe" type="text/html" src='/application/doc/${docName}.html?${that.dark}' width="100%" height="100%"></iframe>`;
     this.navbarInit(docName);
     this.changeItemURL(index!);
   }
@@ -300,7 +303,7 @@ export class SpHelp extends BaseElement {
             navLink.closest('li')!.classList.add('active');
             let targetId = navLink.id;
             e.preventDefault();
-            this.helpFile!.innerHTML = `<object type="text/html" data='/application/doc/${docName}.html?dark=${this.dark}&targetId=${targetId}' width="100%" height="100%"></object>`;
+            this.helpFile!.innerHTML = `<iframe id="myIframe" type="text/html" src='/application/doc/${docName}.html?dark=${this.dark}&targetId=${targetId}' width="100%" height="100%"></iframe>`;
           });
         });
 
@@ -309,7 +312,7 @@ export class SpHelp extends BaseElement {
           navLinks.forEach((navLink) => {
             navLink.closest('li')?.classList.remove('active');
           });
-          this.helpFile!.innerHTML = `<object type="text/html" data='/application/doc/${docName}.html?dark=${this.dark}' width="100%" height="100%"></object>`;
+          this.helpFile!.innerHTML = `<iframe id="myIframe" type="text/html" src='/application/doc/${docName}.html?dark=${this.dark}' width="100%" height="100%"></iframe>`;
         });
 
       })
@@ -447,7 +450,7 @@ export class SpHelp extends BaseElement {
       title: 'TraceStreamer数据库说明',
       icon: '',
       clickHandler: function (item: MenuItem): void {
-        that.handleMemoryMenuItemClick(that, 'trace_streamer_explain', 'des_tables', '29');
+        that.handleMemoryMenuItemClick(that, 'trace_streamer_explain', 'des_tables', '30');
       },
     };
   }
@@ -557,13 +560,14 @@ export class SpHelp extends BaseElement {
           box-sizing: border-box;
         }
         #navbar-container { 
-          border-left: 5px solid #ecb829;
+          padding: 85px 10px 10px 10px;
         }
         #navbar-container ul {  
           list-style-type: none; 
           width:100%;
           margin: 0;  
           padding: 0;
+          border-left: 5px solid #ecb829;
         } 
         #navbar-container ul li { 
           position: relative;
@@ -639,15 +643,17 @@ export class SpHelp extends BaseElement {
          #navbar-container ul li.active, #navbar-container ul li.active a {  
           color: #ecb829;  
          }
-
+        iframe {
+          border-width: 0px;
+        }
         </style>
         <div class="sp-help-vessel">
          <div class="body">
             <lit-main-menu id="main-menu" class="menugroup" data=''></lit-main-menu>
             <div id="app-content" class="content">
-               <div id="help-file" style="width:100%;overflow-y: hidden;"></div>
-                      <nav id="navbar-container" style="position:fixed;top:80px;left:79%;width:18%;"></nav>
-                      <div class="back" style="position:fixed;top:80px;left:98%;width:2%;">
+               <div id="help-file" style="width:80%;overflow-y: hidden;"></div>
+                      <nav id="navbar-container" style="width:19%;"></nav>
+                      <div class="back" style="flex:1;padding:70px 10px;">
                           <lit-icon id="back-to-top" name="vertical-align-top" style="font-weight: bold;cursor: pointer;" size="20">
                           </lit-icon>
                       </div>

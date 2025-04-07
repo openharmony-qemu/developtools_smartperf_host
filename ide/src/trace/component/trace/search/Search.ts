@@ -141,6 +141,17 @@ export class LitSearch extends BaseElement {
       setTimeout((): void => {
         this.setAttribute('textRoll', '');
       }, 200);
+    } else if (value === -3) {
+      this.clear();
+      searchHide!.style.display = 'flex';
+      searchHide!.style.backgroundColor = 'var(--dark-background5,#e3e3e3)';
+      searchIcon?.setAttribute('name', 'search');
+      this.search!.setAttribute('placeholder', `${name}`);
+      this.search!.setAttribute('readonly', '');
+      this.search!.className = 'text-Roll';
+      setTimeout((): void => {
+        this.setAttribute('textRoll', '');
+      }, 200);
     } else {
       searchHide!.style.display = 'none';
     }

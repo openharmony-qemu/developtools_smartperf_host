@@ -37,7 +37,7 @@ export class TabpanePerfBottomUp extends BaseElement {
   private progressEL: LitProgressBar | null | undefined;
   private searchValue: string = '';
   private currentSelection: SelectionParam | undefined;
-  private static instance: TabpanePerfBottomUp | null;;
+  private static instance: TabpanePerfBottomUp | null;
 
   public initElements(): void {
     this.bottomUpTable = this.shadowRoot?.querySelector('#callTreeTable') as LitTable;
@@ -62,7 +62,7 @@ export class TabpanePerfBottomUp extends BaseElement {
     });
   }
 
-  public getBottomData(data: SelectionParam) {
+  public getBottomData(data: SelectionParam): void {
     this.getDataByWorker(data, (results: Array<PerfBottomUpStruct>) => {
       this.setBottomUpTableData(results);
     });

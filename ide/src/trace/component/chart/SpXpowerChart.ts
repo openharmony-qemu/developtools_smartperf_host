@@ -303,6 +303,7 @@ export class SpXpowerChart {
     traceRow.name = 'Thread Count';
     traceRow.rowHidden = !folder.expansion;
     traceRow.folderTextLeft = 40;
+    traceRow.xpowerRowTitle = convertTitle(traceRow.name);
     traceRow.setAttribute('children', '');
     traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     traceRow.selectChangeHandler = this.trace.selectChangeHandler;
@@ -359,6 +360,7 @@ export class SpXpowerChart {
     traceRow.name = 'Gpu Freq Count';
     traceRow.rowHidden = !folder.expansion;
     traceRow.folderTextLeft = 40;
+    traceRow.xpowerRowTitle = convertTitle(traceRow.name);
     traceRow.setAttribute('children', '');
     traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     traceRow.selectChangeHandler = this.trace.selectChangeHandler;
@@ -427,6 +429,7 @@ export class SpXpowerChart {
     traceRow.name = rowName;
     traceRow.rowHidden = !folder.expansion;
     traceRow.folderTextLeft = 40;
+    traceRow.xpowerRowTitle = convertTitle(traceRow.name);
     traceRow.setAttribute('children', '');
     traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     traceRow.selectChangeHandler = this.trace.selectChangeHandler;
@@ -695,6 +698,7 @@ export class SpXpowerChart {
     traceRow.name = 'Statistic';
     traceRow.rowHidden = !folder.expansion;
     traceRow.folderTextLeft = 40;
+    traceRow.xpowerRowTitle = convertTitle(traceRow.name);
     traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     traceRow.selectChangeHandler = this.trace.selectChangeHandler;
     traceRow.setAttribute('children', '');
@@ -774,6 +778,7 @@ export class SpXpowerChart {
     traceRow.name = 'Display';
     traceRow.rowHidden = !folder.expansion;
     traceRow.folderTextLeft = 40;
+    traceRow.xpowerRowTitle = convertTitle(traceRow.name);
     traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     traceRow.selectChangeHandler = this.trace.selectChangeHandler;
     traceRow.setAttribute('children', '');
@@ -842,6 +847,7 @@ export class SpXpowerChart {
       traceRow.name = it;
       traceRow.rowHidden = !folder.expansion;
       traceRow.folderTextLeft = 40;
+      traceRow.xpowerRowTitle = convertTitle(traceRow.name);
       traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
       traceRow.selectChangeHandler = this.trace.selectChangeHandler;
       traceRow.setAttribute('children', '');
@@ -908,6 +914,7 @@ export class SpXpowerChart {
     traceRow.name = 'GPU Freq';
     traceRow.rowHidden = !folder.expansion;
     traceRow.folderTextLeft = 40;
+    traceRow.xpowerRowTitle = convertTitle(traceRow.name);
     traceRow.setAttribute('children', '');
     traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     traceRow.selectChangeHandler = this.trace.selectChangeHandler;
@@ -959,6 +966,24 @@ export function convertTitle(title: string): string {
       return '外壳温度(单位℃)';
     case 'ThermalReport.ThermalLevel':
       return '温度等级';
+    case 'Statistic':
+        return '器件统计数据';
+    case 'WIFIPackets':
+        return 'wifi传输数据包个数';
+    case 'WIFIBytes':
+        return 'wifi字节数';
+    case 'Display':
+        return '屏幕刷新率';
+    case 'Gpu Freq Count':
+        return 'GPU频率计数';
+    case 'GPU Freq':
+        return 'GPU频率时间';
+    case 'Thread Count':
+        return '时间线程数';
+    case 'Thread Energy':
+        return '线程能耗';
+    case 'Thread Load':
+        return '线程负载';
     default:
       return title;
   }
