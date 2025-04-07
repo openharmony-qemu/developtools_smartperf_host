@@ -316,8 +316,11 @@ export class TraceSheet extends BaseElement {
     this.currentPaneID = 'box-perf-analysis';
     //隐藏除了当前Tab页的其他Tab页
     this.shadowRoot!.querySelectorAll<LitTabpane>('lit-tabpane').forEach(
-      (it): boolean =>
-        it.id !== this.currentPaneID ? (it.hidden = true) : (it.hidden = false)
+      (it)=>{
+        if(it.id === this.currentPaneID) {
+          it.hidden = false;
+        }
+      }
     );
     let asmPane = this.getPaneByID('tab-perf-func-asm'); //通过Id找到需要展示的Tab页
     asmPane.closeable = true;

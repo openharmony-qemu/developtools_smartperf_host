@@ -42,6 +42,7 @@ export class WebSocketManager {
     private cacheInfo: Map<number, unknown> = new Map<number, unknown>();
     private reconnect: number = -1;
     private connectStatus: HTMLElement | null | undefined;
+    static disaStatus: string = GetStatuses.UNCONNECTED;
 
     constructor() {
         if (WebSocketManager.instance) {
@@ -58,7 +59,7 @@ export class WebSocketManager {
         this.websocket = new WebSocket(this.url);
         this.websocket.binaryType = 'arraybuffer';
         // @ts-ignore
-        setInterval(this.checkConnectionStatus(this.websocke), 5000);
+        setInterval(this.checkConnectionStatus(this.websocket), 5000);
         this.websocket.onopen = (): void => {
             this.status = GetStatuses.CONNECTED;
             // 设置心跳定时器
@@ -82,8 +83,8 @@ export class WebSocketManager {
         };
 
         this.websocket.onclose = (event): void => {
-            this.checkConnectionStatus(this.websocket);
             this.status = GetStatuses.UNCONNECTED;
+            this.checkConnectionStatus(this.websocket);
             this.finalStatus();
             //初始化标志位
             this.initLoginInfo();
@@ -142,7 +143,7 @@ export class WebSocketManager {
     updateMessage(decode: MessageParam): void {
         if (decode.cmd === Constants.GET_VERSION_CMD) {
             // 小于则升级
-            let targetVersion = '1.1.1';
+            let targetVersion = '1.1.2';
             let currentVersion = new TextDecoder().decode(decode.data);
             let result = this.compareVersion(currentVersion, targetVersion);
             if (result === -1) {
@@ -281,6 +282,7 @@ registerMessageListener(type: number, callback: Function, eventCallBack: Functio
         } else {
             this.send(type, cmd, data);
         }
+        WebSocketManager.disaStatus = this.status;
     }
 
     send(type: number, cmd?: number, data?: Uint8Array): void {
@@ -300,6 +302,9 @@ registerMessageListener(type: number, callback: Function, eventCallBack: Functio
     sendHeartbeat(): void {
         this.heartbeatInterval = window.setInterval(() => {
             if (this.status === GetStatuses.READY) {
+                WebSocketManager.disaStatus = GetStatuses.READY;
+                // @ts-ignore
+                this.connectStatus?.style.backgroundColor = 'green';
                 this.send(TypeConstants.HEARTBEAT_TYPE, undefined, undefined);
             }
         }, Constants.INTERVAL_TIME);
@@ -355,12 +360,14 @@ registerMessageListener(type: number, callback: Function, eventCallBack: Functio
     finalStatus(): void {
         if (this.reconnect !== -1) {
             if (this.status === GetStatuses.READY) {
+                WebSocketManager.disaStatus = GetStatuses.READY;
                 // @ts-ignore
                 this.connectStatus?.style.backgroundColor = 'green';
                 // @ts-ignore
                 this.sendMessage(this.reconnect, this.cacheInfo.get(this.reconnect)!.cmd, this.cacheInfo.get(this.reconnect)!.data);
                 return;
             }
+            WebSocketManager.disaStatus = GetStatuses.UNCONNECTED;
             // @ts-ignore
             this.connectStatus?.style.backgroundColor = 'red';
             this.distributeMap.get(this.reconnect)!.eventCallBack(this.status);
