@@ -38,9 +38,7 @@ PrintEventParser::PrintEventParser(TraceDataCache *dataCache, const TraceStreame
         {marshRwTransactionData_, bind(&PrintEventParser::OnRwTransaction, this, std::placeholders::_1,
                                        std::placeholders::_2, std::placeholders::_3)},
         {rsMainThreadProcessCmd_, bind(&PrintEventParser::OnMainThreadProcessCmd, this, std::placeholders::_1,
-                                       std::placeholders::_2, std::placeholders::_3)},
-        {uvTrace_, bind(&PrintEventParser::DealUvTraceEvent, this, std::placeholders::_1, std::placeholders::_2,
-                        std::placeholders::_3)}};
+                                       std::placeholders::_2, std::placeholders::_3)}};
 }
 
 bool PrintEventParser::ParsePrintEvent(const std::string &comm,
@@ -333,21 +331,6 @@ bool PrintEventParser::ReciveVsync(size_t callStackRow, std::string &args, const
     return true;
 }
 
-bool PrintEventParser::DealUvTraceEvent(size_t callStackRow, std::string &args, const BytraceLine &line)
-{
-    Unused(args);
-    // deal H:UV_TRACE event, this event's thread is not main thread.
-    // this event do not has expect now and end.
-    streamFilters_->frameFilter_->BeginUVTraceEvent(line, callStackRow);
-    auto iTid = streamFilters_->processFilter_->GetInternalTid(line.pid);
-    if (vsyncSliceMap_.count(iTid)) {
-        vsyncSliceMap_[iTid].push_back(callStackRow);
-    } else {
-        vsyncSliceMap_[iTid] = {callStackRow};
-    }
-    return true;
-}
-
 bool PrintEventParser::DealUIVsyncTaskEvent(DataIndex eventName, const BytraceLine &line)
 {
     auto eventNameStr = traceDataCache_->GetDataFromDict(eventName);
@@ -372,10 +355,8 @@ bool PrintEventParser::DealUIVsyncTaskEvent(DataIndex eventName, const BytraceLi
 bool PrintEventParser::OnVsyncEvent(size_t callStackRow, std::string &args, const BytraceLine &line)
 {
     Unused(args);
+    streamFilters_->frameFilter_->BeginParallelTraceEvent(line, callStackRow);
     auto iTid = streamFilters_->processFilter_->GetInternalTid(line.pid);
-    if (!vsyncSliceMap_.count(iTid)) {
-        return false;
-    }
     // when there are mutiple nested OnVsyncEvent,only handle the OnvsyncEvent of the next layer under ReceiveVsync
     if (vsyncSliceMap_[iTid].size() >= maxVsyncEventSize_) {
         return false;
