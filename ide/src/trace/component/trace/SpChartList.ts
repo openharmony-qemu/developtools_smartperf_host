@@ -117,7 +117,7 @@ export class SpChartList extends BaseElement {
         this.collectRowList1.forEach((row) => this.fragmentGroup1.appendChild(row));
         this.scrollTop = 0;
       }
-      offsetYTimeOut = setTimeout(() => { 
+      offsetYTimeOut = setTimeout(() => {
         this.handleCollectFunc();
         this.spSystemTrace?.refreshCanvas(true);
       }, 50);
@@ -371,6 +371,7 @@ export class SpChartList extends BaseElement {
     vessel.addEventListener('mousedown', this.onMouseDown);
     vessel.addEventListener('mouseup', this.onMouseUp);
     vessel.addEventListener('mousemove', this.onMouseMove);
+    vessel.addEventListener('mouseenter', this.onMouseEnter);
     this.addEventListener('scroll', this.onScroll, { passive: true });
   }
 
@@ -380,6 +381,7 @@ export class SpChartList extends BaseElement {
     vessel.removeEventListener('mousedown', this.onMouseDown);
     vessel.removeEventListener('mouseup', this.onMouseUp);
     vessel.removeEventListener('mousemove', this.onMouseMove);
+    vessel.removeEventListener('mouseenter', this.onMouseEnter);
     this.removeEventListener('scroll', this.onScroll);
   }
 
@@ -394,6 +396,22 @@ export class SpChartList extends BaseElement {
       window.publish(window.SmartEvent.UI.RefreshCanvas, {});
     }, 100);
     window.publish(window.SmartEvent.UI.RefreshCanvas, {});
+  };
+
+  onMouseEnter = (ev: MouseEvent): void => {
+    if (this.canResize && this.isPress) {
+      // @ts-ignore
+      if (ev?.buttons === 0) { // 0表示鼠标没有按键动作，说明此时鼠标已经松开，使收藏显示区域拖拽伸缩功能不可用
+        this.isPress = false;
+        this.canResize = false;
+        this.style.cursor = 'default';
+        // @ts-ignore
+        (window as unknown).collectResize = false;
+        if (this.style.display === 'flex') {
+          this.refreshFavoriteCanvas();
+        }
+      }
+    }
   };
 
   onMouseDown = (ev: MouseEvent): void => {
@@ -432,6 +450,10 @@ export class SpChartList extends BaseElement {
       return;
     }
     if (this.canResize && this.isPress) {
+      //@ts-ignore
+      if (!(window as unknown).collectResize) {
+        return;
+      }
       // @ts-ignore
       (window as unknown).collectResize = true;
       // 拖动超过所有泳道最大高度 或小于一个泳道的高度，不支持拖动

@@ -1034,7 +1034,8 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this._rowSettingCheckBoxList && this._rowSettingCheckBoxList.forEach((item) => {
       checkboxHtml += `<div class="checkboxItem" style="margin-bottom: 2px;">
       <lit-check-box class="lit-checkbox" checked style="margin-left: 20px;" not-close value="${item}"></lit-check-box>
-      </div>`; });
+      </div>`;
+    });
     this._rowSettingCheckedBoxList = new Array(this._rowSettingCheckBoxList?.length).fill(true);
     this.rowSettingCheckBoxPop.innerHTML = `<div slot="content" id="settingList"
       style="display: block;height: auto;max-height:200px;overflow-y:auto">
@@ -1260,6 +1261,8 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.describeEl!.ondragleave = (ev: unknown): void => {
       // @ts-ignore
       this.drawLine(ev.currentTarget, '');
+      // @ts-ignore
+      (window as unknown).collectResize = false;
       return undefined;
     };
     this.describeElEvent();
