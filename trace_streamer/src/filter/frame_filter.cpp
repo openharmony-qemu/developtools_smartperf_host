@@ -62,14 +62,19 @@ void FrameFilter::BeginVsyncEvent(const BytraceLine &line,
         vsyncRenderSlice_[itid] = frameVec;
     }
 }
-void FrameFilter::BeginUVTraceEvent(const BytraceLine &line, uint32_t callStackSliceId)
+void FrameFilter::BeginParallelTraceEvent(const BytraceLine &line, uint32_t callStackSliceId)
 {
     auto frame = std::make_shared<FrameSlice>();
     frame->startTs_ = line.ts;
     frame->callStackSliceId_ = callStackSliceId;
-    frame->isUVTrace_ = true;
     auto itid = streamFilters_->processFilter_->GetInternalTid(line.pid);
     auto ipid = streamFilters_->processFilter_->GetInternalPid(line.tgid);
+    auto process = traceDataCache_->GetProcessData(ipid);
+    auto mainThreadId = process->pid_;
+    if (mainThreadId == line.pid) {
+        TS_LOGI("Only deal with the events which are not on main thread.");
+        return;
+    }
     frame->frameSliceRow_ =
         traceDataCache_->GetFrameSliceData()->AppendFrame(line.ts, ipid, itid, INVALID_UINT32, callStackSliceId);
 
