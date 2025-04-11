@@ -87,8 +87,6 @@ export class TabPaneSlices extends BaseElement {
     this.slicesTbl!.addEventListener('row-click', (evt) => {
       // @ts-ignore
       data = evt.detail.data;
-    });
-    this.slicesTbl!.addEventListener('click', () => {
       if (!this.isDbClick) {
         this.isDbClick = true;
         FuncStruct.funcSelect = false;

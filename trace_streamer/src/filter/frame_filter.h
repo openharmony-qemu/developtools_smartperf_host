@@ -47,7 +47,7 @@ public:
     bool StartFrameQueue(uint64_t ts, uint32_t itid);
     bool EndFrameQueue(uint64_t ts, uint32_t itid);
     bool UpdateVsyncId(const BytraceLine &line, uint32_t vsyncId, uint64_t timeId);
-    void BeginUVTraceEvent(const BytraceLine &line, uint32_t callStackSliceId);
+    void BeginParallelTraceEvent(const BytraceLine &line, uint32_t callStackSliceId);
     void Clear();
     void SetTraceType(TraceFileType traceType);
     void UpdateReadySize()
@@ -86,7 +86,6 @@ private:
         std::vector<uint64_t> sourceExpectedSlice_ = {};
         uint64_t dstFrameSliceId_ = INVALID_UINT64;
         uint64_t dstExpectedFrameSliceId_ = INVALID_UINT64;
-        bool isUVTrace_ = false;
         bool isEnd_ = false;
         uint64_t nowId_ = INVALID_UINT64;
     };

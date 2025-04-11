@@ -318,27 +318,41 @@ bool IsOldVersionTrace(ConStr &log)
     if (fPos == std::string::npos) {
         return false;
     }
-    size_t hCoPos = log.find(hCo, fPos + fPattern.size());
-    if (hCoPos != std::string::npos && hCoPos > fPos + fPattern.size()) {
-        bool valid = true;
-        std::string numStr = log.substr(fPos + fPattern.size(), hCoPos - fPos - fPattern.size());
-        int num = 0;
-        auto [ptr, ec] = std::from_chars(numStr.data(), numStr.data() + numStr.size(), num);
-        if (ec != std::errc{}) {
-            valid = false;
-        }
-        if (!valid) {
-            return false;
-        }
-        size_t afterCo = hCoPos + hCo.size();
-        while (afterCo < log.length() && isspace(log[afterCo])) {
-            ++afterCo;
-        }
-        if (afterCo < log.length() && isdigit(log[afterCo])) {
-            return true;
-        }
+
+    size_t num1Start = fPos + fPattern.size();
+    if (num1Start >= log.length() || !std::isdigit(log[num1Start])) {
+        return false;
     }
-    return false;
+    size_t num1End = num1Start;
+    while (num1End < log.length() && std::isdigit(log[num1End])) {
+        num1End++;
+    }
+    if (num1End == num1Start) {
+        return false;
+    }
+
+    size_t hCoPos = log.find(hCo, num1End);
+    if (hCoPos == std::string::npos) {
+        return false;
+    }
+
+    size_t afterHCo = hCoPos + hCo.size();
+    if (afterHCo >= log.length() || (log[afterHCo] != '|' && !std::isspace(log[afterHCo]))) {
+        return false;
+    }
+
+    size_t num2Start = afterHCo + 1;
+    if (num2Start >= log.length() || !std::isdigit(log[num2Start])) {
+        return false;
+    }
+    size_t num2End = num2Start;
+    while (num2End < log.length() && std::isdigit(log[num2End])) {
+        num2End++;
+    }
+    if (num2End == num2Start) {
+        return false;
+    }
+    return true;
 }
 
 void FfrtConverter::ClassifyLogsForFfrtWorker(FfrtPids& ffrtPids, FfrtWakeLogs& ffrtWakeLogs)
@@ -512,14 +526,14 @@ static size_t FindPatternStart(ConStr &log)
     return std::string::npos;
 }
 
-static size_t FindPatternEnd(ConStr &log)
+static std::pair<size_t, size_t> FindPatternEnd(ConStr &log)
 {
     size_t pos = 0;
     static std::string hr = "H:R";
     while (pos < log.size()) {
         pos = log.find(" F|", pos);
         if (pos == std::string::npos) {
-            return std::string::npos;
+            return {std::string::npos, std::string::npos};
         }
 
         size_t numStart = pos + 3;
@@ -558,12 +572,16 @@ static size_t FindPatternEnd(ConStr &log)
             }
 
             if (finalNum < log.length() && isdigit(log[finalNum])) {
-                return pos;
+                size_t endPos = finalNum;
+                while (endPos < log.length() && std::isdigit(log[endPos])) {
+                    endPos++;
+                }
+                return {pos, endPos - 1};
             }
         }
         pos = rPos;
     }
-    return std::string::npos;
+    return {std::string::npos, std::string::npos};
 }
 
 static void ParseOtherTraceLogs(LogInfo logInfo, WakeLogs &traceMap, FfrtWakeLogs &ffrtWakeLogs)
@@ -577,8 +595,10 @@ static void ParseOtherTraceLogs(LogInfo logInfo, WakeLogs &traceMap, FfrtWakeLog
         }
         traceMap[logInfo.tid].emplace_back(logInfo.lineno);
 
-        if (FindPatternEnd(logInfo.log) != std::string::npos) {
-            std::string hStr = logInfo.log.substr(logInfo.log.find_last_of('|') + 1);
+        auto posPair = FindPatternEnd(logInfo.log);
+        if (posPair.first != std::string::npos) {
+            std::string logSub = logInfo.log.substr(posPair.first, posPair.second - posPair.first + 1);
+            std::string hStr = logSub.substr(logSub.find_last_of('|') + 1);
             if (hStr[0] == 'H') {
                 hStr = hStr.substr(hStr.find_last_of(' ') + 1);
             }
@@ -876,14 +896,20 @@ static void HandleQueTaskInfoOut(ConStr &log, int lineno, int pid, QueueTaskInfo
     std::string pidStr = log.substr(fPos + fStr.size(), hPos - (fPos + fStr.size()));
     if (!pidStr.empty() && std::all_of(pidStr.begin(), pidStr.end(), ::isdigit)) {
         int spacePos = hPos + fStr.size() + 1;
-        while (log[spacePos] == ' ') {
-            spacePos++;
+        if (log[spacePos] != ' ' && log[spacePos] != '|') {
+            return;
         }
+        spacePos++;
         bool spaceFlage = spacePos != std::string::npos && spacePos < log.length();
         if (!spaceFlage) {
             return;
         }
-        std::string gidStr = log.substr(spacePos);
+        std::string gidStr = "";
+        if (log[spacePos - 1] == ' ') {
+            gidStr = log.substr(spacePos);
+        } else {
+            gidStr = log.substr(spacePos, log.substr(spacePos).find('|'));
+        }
         if (!gidStr.empty() && std::all_of(gidStr.begin(), gidStr.end(), ::isdigit)) {
             int gid = std::stoull(gidStr);
             if (queueTaskInfo[pid].find(gid) != queueTaskInfo[pid].end()) {
@@ -963,8 +989,14 @@ void FfrtConverter::ExceTaskGroups(std::vector<tidInfo> &group, WakeLogs &wakeLo
             int gid = group[i].gid;
             wakeLogs[firstGid].insert(wakeLogs[firstGid].end(), wakeLogs[gid].begin(), wakeLogs[gid].end());
             for (auto& lineno : group[i].begin) {
-                size_t strLen = context_[lineno].find_last_of("|") + 1;
-                context_[lineno] = context_[lineno].substr(0, strLen) + std::to_string(firstGid) + "\n";
+                size_t rightIndex = context_[lineno].find_last_of("|");
+                if (context_[lineno][rightIndex + 1] == 'I') {
+                    context_[lineno]
+                        = context_[lineno].substr(0, context_[lineno].substr(0, rightIndex).find_last_of("|") + 1)
+                        + std::to_string(firstGid) + context_[lineno].substr(rightIndex) + "\n";
+                } else {
+                    context_[lineno] = context_[lineno].substr(0, rightIndex + 1) + std::to_string(firstGid) + "\n";
+                }
             }
         }
     }
@@ -1049,29 +1081,55 @@ bool FfrtConverter::HandleFfrtTaskCo(ConStr &log, int lineno, bool &switchInFake
     return false;
 }
 
-static bool IsFfrtTaskBlockOrFinish(ConStr &log)
+bool IsFfrtTaskBlockOrFinish(ConStr &log)
 {
-    static const std::string fStr = " F|";
-    int fPos = log.find(fStr);
+    static const std::string fStr = "F|";
+    size_t fPos = log.find(fStr);
     if (fPos == std::string::npos) {
         return false;
     }
-    size_t hPos = log.find("|H:", fPos);
-    if (hPos != std::string::npos) {
-        size_t typePos = hPos + fStr.size();
-        if (typePos < log.length() &&
-        (log[typePos] == 'F' || log[typePos] == 'B')) {
-            int spacePos = typePos + 1;
-            while (spacePos < log.length() && isspace(log[spacePos])) {
-                ++spacePos;
-            }
 
-            if (spacePos < log.length() && isdigit(log[spacePos])) {
-                return true;
-            }
-        }
+    size_t num1Start = fPos + fStr.size();
+    if (num1Start >= log.length() || !std::isdigit(log[num1Start])) {
+        return false;
     }
-    return false;
+    size_t num1End = num1Start;
+    while (num1End < log.length() && std::isdigit(log[num1End])) {
+        num1End++;
+    }
+    if (num1End == num1Start) {
+        return false;
+    }
+
+    size_t hPos = log.find("|H:", num1End);
+    if (hPos == std::string::npos) {
+        return false;
+    }
+
+    size_t typePos = hPos + 3;
+    if (typePos >= log.length() || (log[typePos] != 'B' && log[typePos] != 'F')) {
+        return false;
+    }
+
+    size_t afterType = typePos + 1;
+    if (afterType >= log.length() || (log[afterType] != '|' && !std::isspace(log[afterType]))) {
+        return false;
+    }
+
+    size_t num2Start = afterType + 1;
+    if (num2Start >= log.length() || !std::isdigit(log[num2Start])) {
+        return false;
+    }
+    size_t num2End = num2Start;
+    while (num2End < log.length() && std::isdigit(log[num2End])) {
+        num2End++;
+    }
+
+    if (num2End == num2Start) {
+        return false;
+    }
+
+    return true;
 }
 
 bool FfrtConverter::HandleFfrtTaskExecute(FakeLogArgs &fakLogArg, WakeLogs &wakeLogs,
@@ -1096,7 +1154,14 @@ bool FfrtConverter::HandleFfrtTaskExecute(FakeLogArgs &fakLogArg, WakeLogs &wake
             if (pos + 1 >= fakLogArg.log.size()) {
                 return true;
             }
-            std::string gidStr = fakLogArg.log.substr(pos + 1);
+            std::string gidStr = "";
+            if (fakLogArg.log[pos + 1] == 'I') {
+                size_t rightIndex = fakLogArg.log.find_last_of("|");
+                size_t leftIndex = fakLogArg.log.substr(0, rightIndex).find_last_of("|") + 1;
+                gidStr = fakLogArg.log.substr(leftIndex, rightIndex - leftIndex);
+            } else {
+                gidStr = fakLogArg.log.substr(pos + 1);
+            }
             auto [ptr, ec] = std::from_chars(gidStr.data(), gidStr.data() + gidStr.size(), gid);
             if (ec != std::errc{}) {
                 return true;

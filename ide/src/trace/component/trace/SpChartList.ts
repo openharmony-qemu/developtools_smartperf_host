@@ -32,6 +32,7 @@ import { CpuStruct } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { WakeupBean } from '../../bean/WakeupBean';
 import { LitIcon } from '../../../base-ui/icon/LitIcon';
 import { SpSystemTrace } from '../SpSystemTrace';
+import { LitPopover } from '../../../base-ui/popover/LitPopoverV';
 
 const maxScale = 0.8; //收藏最大高度为界面最大高度的80%
 const topHeight = 150; // 顶部cpu使用率部分高度固定为150px
@@ -116,7 +117,7 @@ export class SpChartList extends BaseElement {
         this.collectRowList1.forEach((row) => this.fragmentGroup1.appendChild(row));
         this.scrollTop = 0;
       }
-      offsetYTimeOut = setTimeout(() => { 
+      offsetYTimeOut = setTimeout(() => {
         this.handleCollectFunc();
         this.spSystemTrace?.refreshCanvas(true);
       }, 50);
@@ -370,6 +371,7 @@ export class SpChartList extends BaseElement {
     vessel.addEventListener('mousedown', this.onMouseDown);
     vessel.addEventListener('mouseup', this.onMouseUp);
     vessel.addEventListener('mousemove', this.onMouseMove);
+    vessel.addEventListener('mouseenter', this.onMouseEnter);
     this.addEventListener('scroll', this.onScroll, { passive: true });
   }
 
@@ -379,6 +381,7 @@ export class SpChartList extends BaseElement {
     vessel.removeEventListener('mousedown', this.onMouseDown);
     vessel.removeEventListener('mouseup', this.onMouseUp);
     vessel.removeEventListener('mousemove', this.onMouseMove);
+    vessel.removeEventListener('mouseenter', this.onMouseEnter);
     this.removeEventListener('scroll', this.onScroll);
   }
 
@@ -393,6 +396,22 @@ export class SpChartList extends BaseElement {
       window.publish(window.SmartEvent.UI.RefreshCanvas, {});
     }, 100);
     window.publish(window.SmartEvent.UI.RefreshCanvas, {});
+  };
+
+  onMouseEnter = (ev: MouseEvent): void => {
+    if (this.canResize && this.isPress) {
+      // @ts-ignore
+      if (ev?.buttons === 0) { // 0表示鼠标没有按键动作，说明此时鼠标已经松开，使收藏显示区域拖拽伸缩功能不可用
+        this.isPress = false;
+        this.canResize = false;
+        this.style.cursor = 'default';
+        // @ts-ignore
+        (window as unknown).collectResize = false;
+        if (this.style.display === 'flex') {
+          this.refreshFavoriteCanvas();
+        }
+      }
+    }
   };
 
   onMouseDown = (ev: MouseEvent): void => {
@@ -431,6 +450,10 @@ export class SpChartList extends BaseElement {
       return;
     }
     if (this.canResize && this.isPress) {
+      //@ts-ignore
+      if (!(window as unknown).collectResize) {
+        return;
+      }
       // @ts-ignore
       (window as unknown).collectResize = true;
       // 拖动超过所有泳道最大高度 或小于一个泳道的高度，不支持拖动
@@ -629,10 +652,32 @@ export class SpChartList extends BaseElement {
   }
 
   refreshFavoriteCanvas(): void {
+    let sp = document.querySelector("body > sp-application")?.shadowRoot?.querySelector("#sp-system-trace") as SpSystemTrace;
+    let favoriteList = sp.shadowRoot?.querySelector("#favorite-chart-list") as SpChartList;
+    let popover = (favoriteList.shadowRoot?.querySelector("#collect-group-1 > trace-row")?.shadowRoot?.querySelector("#rowSetting") || favoriteList.shadowRoot?.querySelector("#collect-group-2 > trace-row")?.shadowRoot?.querySelector("#rowSetting")) as LitPopover;
+    let spChartList = document.querySelector("body > sp-application")?.shadowRoot?.querySelector("#sp-system-trace")?.shadowRoot?.querySelector("#favorite-chart-list");
     this.canvas!.style.width = `${this.clientWidth - 248}px`;
     this.canvas!.style.left = `248px`;
     this.canvas!.width = this.canvas?.clientWidth! * dpr();
     this.canvas!.height = this.clientHeight * dpr();
+    if (sp.collectRows && sp.collectRows.length) {
+      let isHiperf = sp.collectRows.some((row) => {
+        return row.rowId === 'HiPerf-callchart' && row.rowParentId === 'HiPerf';
+      });
+      let rowHeight = sp.collectRows.reduce((pre, row) => {
+        let height = row._frame?.height;
+        return pre + height!;
+      }, 0);
+      let titleHeight = sp.groupTitle1!.clientHeight || sp.groupTitle2!.clientHeight;
+      if (sp.collectEl1!.innerHTML.trim() !== '' && sp.collectEl2!.innerHTML.trim() !== '') {
+        titleHeight = titleHeight * 2;
+      }
+      let spChartListHeight = spChartList!.clientHeight * dpr();
+      let finalHeight = rowHeight + titleHeight > spChartListHeight ? spChartListHeight : rowHeight + titleHeight;
+      if (popover && isHiperf) {
+        favoriteList.style.height = popover.visible === 'true' ? `${this.canvas!.height}px` : `${finalHeight}px`;
+      }
+    }
     this.canvas!.getContext('2d')!.scale(dpr(), dpr());
     window.publish(window.SmartEvent.UI.RefreshCanvas, {});
   }
