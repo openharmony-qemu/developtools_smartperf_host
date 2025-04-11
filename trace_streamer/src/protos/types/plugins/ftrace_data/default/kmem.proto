@@ -30,7 +30,8 @@ message KmallocFormat {
     uint64 ptr = 2;
     uint64 bytes_req = 3;
     uint64 bytes_alloc = 4;
-    uint32 gfp_flags = 5;
+    uint64 gfp_flags = 5;
+    int32 node = 6;
 }
 
 // /sys/kernel/debug/tracing/events/kmem/kmalloc_node/format
@@ -49,7 +50,9 @@ message KmemCacheAllocFormat {
     uint64 ptr = 2;
     uint64 bytes_req = 3;
     uint64 bytes_alloc = 4;
-    uint32 gfp_flags = 5;
+    uint64 gfp_flags = 5;
+    int32 node = 6;
+    uint32 accounted = 7;
 }
 
 // /sys/kernel/debug/tracing/events/kmem/kmem_cache_alloc_node/format
@@ -66,13 +69,14 @@ message KmemCacheAllocNodeFormat {
 message KmemCacheFreeFormat {
     uint64 call_site = 1;
     uint64 ptr = 2;
+    string name = 3;
 }
 
 // /sys/kernel/debug/tracing/events/kmem/mm_page_alloc/format
 message MmPageAllocFormat {
     uint64 pfn = 1;
     uint32 order = 2;
-    uint32 gfp_flags = 3;
+    uint64 gfp_flags = 3;
     int32 migratetype = 4;
 }
 
@@ -91,6 +95,7 @@ message MmPageAllocZoneLockedFormat {
     uint64 pfn = 1;
     uint32 order = 2;
     int32 migratetype = 3;
+    int32 percpu_refill = 4;
 }
 
 // /sys/kernel/debug/tracing/events/kmem/mm_page_free/format
