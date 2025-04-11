@@ -146,6 +146,12 @@ message SchedStickNumaFormat {
     int32 src_nid = 5;
     int32 dst_cpu = 6;
     int32 dst_nid = 7;
+    int32 src_pid = 8;
+    int32 src_tgid = 9;
+    int32 src_ngid = 10;
+    int32 dst_pid = 11;
+    int32 dst_tgid = 12;
+    int32 dst_ngid = 13;
 }
 
 // /sys/kernel/debug/tracing/events/sched/sched_swap_numa/format

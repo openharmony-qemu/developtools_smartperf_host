@@ -26,6 +26,7 @@ message WorkqueueActivateWorkFormat {
 // /sys/kernel/debug/tracing/events/workqueue/workqueue_execute_end/format
 message WorkqueueExecuteEndFormat {
     uint64 work = 1;
+    uint64 function = 2;
 }
 
 // /sys/kernel/debug/tracing/events/workqueue/workqueue_execute_start/format
@@ -39,7 +40,8 @@ message WorkqueueQueueWorkFormat {
     uint64 work = 1;
     uint64 function = 2;
     uint64 workqueue = 3;
-    uint32 req_cpu = 4;
-    uint32 cpu = 5;
+    int32 req_cpu = 4;
+    int32 cpu = 5;
+    string workqueue_new = 6;
 }
 

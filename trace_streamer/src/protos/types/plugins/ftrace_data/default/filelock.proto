@@ -24,11 +24,12 @@ message BreakLeaseBlockFormat {
     uint64 i_ino = 2;
     uint64 s_dev = 3;
     uint64 fl_next = 4;
-    uint32 fl_owner = 5;
+    uint64 fl_owner = 5;
     uint32 fl_flags = 6;
     uint32 fl_type = 7;
     uint64 fl_break_time = 8;
     uint64 fl_downgrade_time = 9;
+    uint64 fl_blocker = 10;
 }
 
 // /sys/kernel/debug/tracing/events/filelock/break_lease_noblock/format
@@ -37,11 +38,12 @@ message BreakLeaseNoblockFormat {
     uint64 i_ino = 2;
     uint64 s_dev = 3;
     uint64 fl_next = 4;
-    uint32 fl_owner = 5;
+    uint64 fl_owner = 5;
     uint32 fl_flags = 6;
     uint32 fl_type = 7;
     uint64 fl_break_time = 8;
     uint64 fl_downgrade_time = 9;
+    uint64 fl_blocker = 10;
 }
 
 // /sys/kernel/debug/tracing/events/filelock/break_lease_unblock/format
@@ -50,11 +52,12 @@ message BreakLeaseUnblockFormat {
     uint64 i_ino = 2;
     uint64 s_dev = 3;
     uint64 fl_next = 4;
-    uint32 fl_owner = 5;
+    uint64 fl_owner = 5;
     uint32 fl_flags = 6;
     uint32 fl_type = 7;
     uint64 fl_break_time = 8;
     uint64 fl_downgrade_time = 9;
+    uint64 fl_blocker = 10;
 }
 
 // /sys/kernel/debug/tracing/events/filelock/generic_add_lease/format
@@ -64,9 +67,10 @@ message GenericAddLeaseFormat {
     int32 dcount = 3;
     int32 icount = 4;
     uint64 s_dev = 5;
-    uint32 fl_owner = 6;
+    uint64 fl_owner = 6;
     uint32 fl_flags = 7;
     uint32 fl_type = 8;
+    int32 rcount = 9;
 }
 
 // /sys/kernel/debug/tracing/events/filelock/generic_delete_lease/format
@@ -75,11 +79,12 @@ message GenericDeleteLeaseFormat {
     uint64 i_ino = 2;
     uint64 s_dev = 3;
     uint64 fl_next = 4;
-    uint32 fl_owner = 5;
+    uint64 fl_owner = 5;
     uint32 fl_flags = 6;
     uint32 fl_type = 7;
     uint64 fl_break_time = 8;
     uint64 fl_downgrade_time = 9;
+    uint64 fl_blocker = 10;
 }
 
 // /sys/kernel/debug/tracing/events/filelock/time_out_leases/format
@@ -88,10 +93,11 @@ message TimeOutLeasesFormat {
     uint64 i_ino = 2;
     uint64 s_dev = 3;
     uint64 fl_next = 4;
-    uint32 fl_owner = 5;
+    uint64 fl_owner = 5;
     uint32 fl_flags = 6;
     uint32 fl_type = 7;
     uint64 fl_break_time = 8;
     uint64 fl_downgrade_time = 9;
+    uint64 fl_blocker = 10;
 }
 
