@@ -2153,7 +2153,7 @@ export class SpSystemTrace extends BaseElement {
         rootRow.expandFunc(rootRow, this);
       }
       setTimeout(() => {
-        rootRow!.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        rootRow!.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }, 500);
     }
   }
