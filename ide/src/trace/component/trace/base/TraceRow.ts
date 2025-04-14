@@ -33,6 +33,7 @@ import { type TreeItemData, LitTree } from '../../../../base-ui/tree/LitTree';
 import { SpSystemTrace } from '../../SpSystemTrace';
 import { TraceRowHtml } from './TraceRow.html';
 import { Utils } from './Utils';
+import { SpChartList } from '../SpChartList';
 
 export class RangeSelectStruct {
   startX: number | undefined;
@@ -1033,7 +1034,8 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this._rowSettingCheckBoxList && this._rowSettingCheckBoxList.forEach((item) => {
       checkboxHtml += `<div class="checkboxItem" style="margin-bottom: 2px;">
       <lit-check-box class="lit-checkbox" checked style="margin-left: 20px;" not-close value="${item}"></lit-check-box>
-      </div>`; });
+      </div>`;
+    });
     this._rowSettingCheckedBoxList = new Array(this._rowSettingCheckBoxList?.length).fill(true);
     this.rowSettingCheckBoxPop.innerHTML = `<div slot="content" id="settingList"
       style="display: block;height: auto;max-height:200px;overflow-y:auto">
@@ -1074,6 +1076,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
 
   addRowSettingPop(): void {
     let nameEl = this.shadowRoot && (this.shadowRoot.querySelector('.name') as HTMLLabelElement);
+    let favoriteList = this.trace!.shadowRoot?.querySelector("#favorite-chart-list") as SpChartList;
     nameEl && (nameEl.style.maxWidth = '160px');
     let collectEl = (this.shadowRoot && this.shadowRoot.querySelector('.collect') as LitIcon);
     collectEl && (collectEl.style.marginRight = '20px');
@@ -1101,6 +1104,9 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       this.rowSettingPop!.visible = isVisible;
       TraceRow.ROW_TYPE_HIPERF_THREADTYPE.push(Number(this.rowSettingTree!.getCheckdKeys())); //@ts-ignore
       this.onRowSettingChangeHandler?.(this.rowSettingTree!.getCheckdKeys(), this.rowSettingTree!.getCheckdNodes());
+      if (LitPopover) {
+        favoriteList.style.height = LitPopover.isChangeHeight ? `${LitPopover.finalHeight}px` : '300px';
+      }
     };
     this.rowSettingPop?.addEventListener('mouseenter', (): void => {
       window.publish(window.SmartEvent.UI.HoverNull, undefined);
@@ -1255,6 +1261,8 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.describeEl!.ondragleave = (ev: unknown): void => {
       // @ts-ignore
       this.drawLine(ev.currentTarget, '');
+      // @ts-ignore
+      (window as unknown).collectResize = false;
       return undefined;
     };
     this.describeElEvent();

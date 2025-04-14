@@ -17,6 +17,7 @@ import { BaseElement, element } from '../BaseElement';
 import { replacePlaceholders } from '../utils/Template';
 import { SpSystemTrace } from '../../trace/component/SpSystemTrace';
 import { SpChartList } from '../../trace/component/trace/SpChartList';
+import { dpr } from '../../trace/component/trace/base/Extension';
 let css = `
 <style>
     :host{ 
@@ -369,6 +370,8 @@ const initHtmlStyle = (wid: string): string => {
 
 @element('lit-popover')
 export class LitPopover extends BaseElement {
+  static isChangeHeight: boolean = false;
+  static finalHeight: number = 0;
   static get observedAttributes(): string[] {
     return ['title', 'trigger', 'width', 'placement', 'visible'];
   }
@@ -468,7 +471,6 @@ export class LitPopover extends BaseElement {
         let isHiperf = sp.collectRows.some((row) => {
           return row.rowId === 'HiPerf-callchart' && row.rowParentId === 'HiPerf';
         });
-        let isResetHeight = parseFloat(favoriteList.style.height.replace('px', '')) >= 300;
         let rowHeight = sp.collectRows.reduce((pre, row) => {
           let height = row._frame?.height;
           return pre + height!;
@@ -477,7 +479,12 @@ export class LitPopover extends BaseElement {
         if (sp.collectEl1!.innerHTML.trim() !== '' && sp.collectEl2!.innerHTML.trim() !== '') {
           titleHeight = titleHeight * 2;
         }
-        favoriteList.style.height = this.visible === 'true' && isHiperf && !isResetHeight ? '300px' : `${rowHeight + titleHeight}px`;
+        let favoriteListHeight = favoriteList!.clientHeight * dpr();
+        let finalHeight = rowHeight + titleHeight > favoriteListHeight ? favoriteListHeight : rowHeight + titleHeight;
+        let isResetHeight = parseFloat(favoriteList.style.height.replace('px', '')) >= 300 && finalHeight >= 300;
+        favoriteList.style.height = this.visible === 'true' && isHiperf && !isResetHeight ? '300px' : `${finalHeight}px`;
+        LitPopover.isChangeHeight = this.visible === 'true' && isHiperf && !isResetHeight ? true : false;
+        LitPopover.finalHeight = finalHeight;
       }
     }; // @ts-ignore
     popover.onmouseleave = (): void => {

@@ -88,7 +88,6 @@ private:
     TraceStreamerConfig config_{};
     const DataIndex recvievVsync_ = traceDataCache_->GetDataIndex("H:ReceiveVsync");
     const DataIndex onVsyncEvent_ = traceDataCache_->GetDataIndex("H:OnVsyncEvent");
-    const DataIndex uvTrace_ = traceDataCache_->GetDataIndex("H:UV_TRACE");
     const std::string uiVsyncTaskStr_ = "H:UIVsyncTask";
     const std::string rsOnDoCompositionStr_ = "H:RSMainThread::DoComposition";
     DataIndex rsOnDoCompositionEvent_ = INVALID_DATAINDEX;

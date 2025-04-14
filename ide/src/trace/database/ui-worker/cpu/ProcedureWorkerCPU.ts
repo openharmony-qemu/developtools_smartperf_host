@@ -273,6 +273,7 @@ export class CpuStruct extends BaseStruct {
         ctx.globalAlpha = 1;
         ctx.fillStyle = '#e0e0e0';
       }
+      ctx.clearRect(data.frame.x, data.frame.y, width, data.frame.height);
       ctx.fillRect(data.frame.x, data.frame.y, width, data.frame.height);
       ctx.globalAlpha = 1;
       CpuStruct.drawText(ctx, data, width, pid, tid);

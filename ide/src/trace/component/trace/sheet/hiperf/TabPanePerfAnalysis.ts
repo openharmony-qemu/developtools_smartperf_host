@@ -582,18 +582,18 @@ export class TabPanePerfAnalysis extends BaseElement {
   callback = (cmd: number, e: Uint8Array): unknown => {
     if (cmd === Constants.DISASSEMBLY_QUERY_ELF_CMD) {
       const result = JSON.parse(new TextDecoder().decode(e));
-      if(result.resultCode !== 0){
+      if (result.resultCode !== 0) {
         // @ts-ignore
         this.perfAnalysisHeadTips?.innerHTML = result.resultMessage;
       }
-      WebSocketManager.getInstance()?.unregisterCallback(TypeConstants.DISASSEMBLY_TYPE,this.callback);
+      WebSocketManager.getInstance()?.unregisterCallback(TypeConstants.DISASSEMBLY_TYPE, this.callback);
     }
   }
 
   private functionClickEvent(it: unknown) {
     // @ts-ignore
     this.perfAnalysisHeadTips?.innerHTML = '';
-    if(this.selectedTabfileName.indexOf('.an') === -1 && this.selectedTabfileName.indexOf('.so') === -1) {
+    if (this.selectedTabfileName.indexOf('.an') === -1 && this.selectedTabfileName.indexOf('.so') === -1) {
       // @ts-ignore
       this.perfAnalysisHeadTips?.innerHTML = 'Call stack assembly-level parsing of non-.an and .so files is not supported.';
       return;
@@ -613,19 +613,24 @@ export class TabPanePerfAnalysis extends BaseElement {
     if (this.clickFuncVaddrList.length > 0) {
       const textEncoder = new TextEncoder();
       const queryData = {
-        elf_name: this.currentSoName,  
+        elf_name: this.currentSoName,
         //@ts-ignore
-        vaddr: this.clickFuncVaddrList[0].vaddrInFile,  
+        vaddr: this.clickFuncVaddrList[0].vaddrInFile,
         //@ts-ignore
         func: it.tableName
       };
       const dataString = JSON.stringify(queryData);
       encodedData = textEncoder.encode(dataString);
+      WebSocketManager.getInstance()?.registerMessageListener(TypeConstants.DISASSEMBLY_TYPE, this.callback, () => { }, true);
       WebSocketManager.getInstance()?.sendMessage(TypeConstants.DISASSEMBLY_TYPE, Constants.DISASSEMBLY_QUERY_ELF_CMD, encodedData);
+      if (WebSocketManager.disaStatus !== 'ready') {
+        // @ts-ignore
+        this.perfAnalysisHeadTips?.innerHTML = 'Request timed out.Install the extended service according to the help document.';
+        return;
+      }
     }
-    WebSocketManager.getInstance()?.registerMessageListener(TypeConstants.DISASSEMBLY_TYPE,this.callback,() => {},true);
     setTimeout(() => {
-      if(this.perfAnalysisHeadTips?.innerHTML === ''){
+      if (this.perfAnalysisHeadTips?.innerHTML === '') {
         // @ts-ignore
         WebSocketManager.getInstance()?.sendMessage(TypeConstants.DISASSEMBLY_TYPE, Constants.DISASSEMBLY_QUERY_CMD, encodedData);
         this.functionListener!(it, this.clickFuncVaddrList);

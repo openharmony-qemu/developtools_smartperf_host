@@ -249,11 +249,24 @@ bool FtraceEventProcessor::SchedSwitch(FtraceEvent &ftraceEvent, uint8_t data[],
     auto schedSwitchMsg = ftraceEvent.mutable_sched_switch_format();
     schedSwitchMsg->set_prev_comm(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
     schedSwitchMsg->set_prev_pid(FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
-    schedSwitchMsg->set_prev_prio(FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
+    // Optimizing the trace data structure for the HM kernel compatibility.
+    if (format.fields[index].size == NEW_SCHED_PRIO_SIZE) {
+        schedSwitchMsg->set_prev_prio(
+            FtraceFieldProcessor::HandleIntField<int16_t>(format.fields, index++, data, size));
+    } else {
+        schedSwitchMsg->set_prev_prio(
+            FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
+    }
     schedSwitchMsg->set_prev_state(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
     schedSwitchMsg->set_next_comm(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
     schedSwitchMsg->set_next_pid(FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
-    schedSwitchMsg->set_next_prio(FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
+    if (format.fields[index].size == NEW_SCHED_PRIO_SIZE) {
+        schedSwitchMsg->set_next_prio(
+            FtraceFieldProcessor::HandleIntField<int16_t>(format.fields, index++, data, size));
+    } else {
+        schedSwitchMsg->set_next_prio(
+            FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
+    }
     return true;
 }
 bool FtraceEventProcessor::SchedBlockedReason(FtraceEvent &ftraceEvent,
@@ -284,7 +297,11 @@ bool FtraceEventProcessor::SchedWakeup(FtraceEvent &ftraceEvent, uint8_t data[],
     auto schedWakeupMsg = ftraceEvent.mutable_sched_wakeup_format();
     schedWakeupMsg->set_comm(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
     schedWakeupMsg->set_pid(FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
-    schedWakeupMsg->set_prio(FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
+    if (format.fields[index].size == NEW_SCHED_PRIO_SIZE) {
+        schedWakeupMsg->set_prio(FtraceFieldProcessor::HandleIntField<int16_t>(format.fields, index++, data, size));
+    } else {
+        schedWakeupMsg->set_prio(FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
+    }
     schedWakeupMsg->set_success(FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
     schedWakeupMsg->set_target_cpu(FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
     return true;
