@@ -66,6 +66,8 @@ message ItimerStateFormat {
     uint64 value_usec = 4;
     uint64 interval_sec = 5;
     uint64 interval_usec = 6;
+    uint64 value_nsec = 7;
+    uint64 interval_nsec = 8;
 }
 
 // /sys/kernel/debug/tracing/events/timer/timer_cancel/format
@@ -78,6 +80,7 @@ message TimerExpireEntryFormat {
     uint64 timer = 1;
     uint64 now = 2;
     uint64 function = 3;
+    uint64 baseclk = 4;
 }
 
 // /sys/kernel/debug/tracing/events/timer/timer_expire_exit/format

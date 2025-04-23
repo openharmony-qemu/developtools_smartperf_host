@@ -35,7 +35,7 @@ message MmShrinkSlabStartFormat {
     uint64 shrink = 2;
     int32 nid = 3;
     uint64 nr_objects_to_shrink = 4;
-    uint32 gfp_flags = 5;
+    uint64 gfp_flags = 5;
     uint64 cache_items = 6;
     uint64 delta = 7;
     uint64 total_scan = 8;
@@ -46,7 +46,7 @@ message MmShrinkSlabStartFormat {
 message MmVmscanDirectReclaimBeginFormat {
     int32 order = 1;
     int32 may_writepage = 2;
-    uint32 gfp_flags = 3;
+    uint64 gfp_flags = 3;
     int32 classzone_idx = 4;
 }
 
@@ -77,6 +77,7 @@ message MmVmscanLruIsolateFormat {
     uint64 nr_taken = 6;
     uint32 isolate_mode = 7;
     int32 lru = 8;
+    int32 highest_zoneidx = 9;
 }
 
 // /sys/kernel/debug/tracing/events/vmscan/mm_vmscan_lru_shrink_inactive/format
@@ -93,6 +94,8 @@ message MmVmscanLruShrinkInactiveFormat {
     uint64 nr_unmap_fail = 10;
     int32 priority = 11;
     int32 reclaim_flags = 12;
+    uint32 nr_activate0 = 13;
+    uint32 nr_activate1 = 14;
 }
 
 // /sys/kernel/debug/tracing/events/vmscan/mm_vmscan_wakeup_kswapd/format
@@ -100,7 +103,7 @@ message MmVmscanWakeupKswapdFormat {
     int32 nid = 1;
     int32 zid = 2;
     int32 order = 3;
-    uint32 gfp_flags = 4;
+    uint64 gfp_flags = 4;
 }
 
 // /sys/kernel/debug/tracing/events/vmscan/mm_vmscan_writepage/format

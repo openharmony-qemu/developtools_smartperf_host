@@ -677,7 +677,7 @@ export class SelectionParam {
         Math.max(filterJank.ts! + filterJank.dur!, rangeData!.endNS || 0) -
         Math.min(filterJank.ts!, rangeData!.startNS || 0) <
         filterJank.dur! + (rangeData!.endNS || 0) - (rangeData!.startNS || 0);
-      if (it.name === 'Actual Timeline') {
+      if (it.name.startsWith('Actual Timeline')) {
         if (it.rowParentId === 'frameTime') {
           it.dataListCache.forEach((jankData: unknown) => {
             // @ts-ignore
@@ -691,7 +691,7 @@ export class SelectionParam {
       } else if (it.folder) {
         this.jankFramesData = [];
         it.childrenList.forEach((child) => {
-          if (child.rowType === TraceRow.ROW_TYPE_JANK && child.name === 'Actual Timeline') {
+          if (child.rowType === TraceRow.ROW_TYPE_JANK && child.name.startsWith('Actual Timeline')) {
             if (child.rowParentId === 'frameTime') {
               child.dataListCache.forEach((jankData: unknown) => {
                 // @ts-ignore

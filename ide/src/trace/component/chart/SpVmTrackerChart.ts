@@ -78,10 +78,6 @@ export class VmTrackerChart {
         }
       }
     }
-    const result = await querySmapsExits();
-    if (result.length <= 0) {
-      return;
-    }
     await this.initVmTrackerFolder();
     await this.initSMapsFolder();
     const rowNameList: Array<string> = ['Dirty', 'Swapped', 'RSS', 'PSS', 'USS'];
