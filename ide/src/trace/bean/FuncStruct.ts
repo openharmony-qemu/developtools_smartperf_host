@@ -46,6 +46,10 @@ export class FuncStruct extends BaseStruct {
   spanId: string | undefined;
   parentSpanId: string | undefined;
   chainFlag: string | undefined;
+  trace_level: string | undefined;
+  trace_tag: string | undefined;
+  custom_args: string | undefined;
+  category: string | undefined;
 
   static draw(funcBeanStructCanvasCtx: CanvasRenderingContext2D, funcBeanStruct: FuncStruct): void {
     if (funcBeanStruct.frame) {

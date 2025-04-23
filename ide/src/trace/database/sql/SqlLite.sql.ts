@@ -29,6 +29,7 @@ import type { DeviceStruct } from '../../bean/FrameComponentBean';
 import { LogStruct } from '../ui-worker/ProcedureWorkerLog';
 import { query } from '../SqlLite';
 import { Utils } from '../../component/trace/base/Utils';
+import { FuncStruct } from '../ui-worker/ProcedureWorkerFunc';
 
 export const queryEventCountMap = (
   traceId?: string
@@ -405,7 +406,11 @@ export const queryBinderBySliceId = (
     c.depth,
     c.argsetid,
     c.name AS funName,
-    c.cookie 
+    c.cookie,
+    c.trace_level,
+    c.trace_tag,
+    c.custom_category as category,
+    c.custom_args
   FROM
     callstack c,
     trace_range D
@@ -449,8 +454,12 @@ export const queryBinderByArgsId = (
     p.pid,
     c.depth,
     c.argsetid,
-      c.name as funName,
-      c.cookie
+    c.name as funName,
+    c.cookie,
+    c.trace_level,
+    c.trace_tag,
+    c.custom_category as category,
+    c.custom_args
     from callstack c,trace_range D
     left join thread t on c.callid = t.id
     left join process p on p.id = t.ipid
@@ -1592,3 +1601,21 @@ export const queryPerfToolsDur = (): Promise<Array<unknown>> =>
     dur 
     FROM callstack where name = 'H:GRAB'`
   );
+
+export const queryCallstackDetail = (): Promise<Array<FuncStruct>> =>
+    query(
+        'queryCallstackDetail',
+        `SELECT
+    id,
+    trace_level,
+    trace_tag,
+    custom_category as category,
+    custom_args
+    FROM callstack, trace_range AS TR 
+    where (trace_level is not null or
+           trace_tag is not null or
+           custom_args is not null or
+           custom_category is not null)
+      and ts - TR.start_ts >= 0
+      and TR.end_ts - ts >=0;`
+    );

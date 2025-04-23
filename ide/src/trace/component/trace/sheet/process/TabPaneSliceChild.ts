@@ -37,8 +37,10 @@ export class TabPaneSliceChild extends BaseElement {
     //合并SF异步信息，相同pid和tid的name
     let sfAsyncFuncMap: Map<string, { name: string[]; pid: number, tid: number | undefined }> = new Map();
     let filterSfAsyncFuncName = boxChildValue.selection!.funAsync;
-    if (!boxChildValue.param.isSummary!) {
-      filterSfAsyncFuncName = filterSfAsyncFuncName.filter((item) => item.name === boxChildValue.param.name![0]);
+    if (boxChildValue.param.name) {
+      filterSfAsyncFuncName = filterSfAsyncFuncName.filter((item) =>
+          boxChildValue.param.name?.some((boxItem) => item.name === boxItem)
+      );
     }
     filterSfAsyncFuncName.forEach((it: { name: string; pid: number, tid: number | undefined }) => {
       if (sfAsyncFuncMap.has(`${it.pid}-${it.tid}`)) {
