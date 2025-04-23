@@ -159,6 +159,8 @@ message Ext4DiscardBlocksFormat {
 message Ext4DiscardPreallocationsFormat {
     uint64 dev = 1;
     uint64 ino = 2;
+    uint32 len = 3;
+    uint32 needed = 4;
 }
 
 // /sys/kernel/debug/tracing/events/ext4/ext4_drop_inode/format
@@ -369,6 +371,9 @@ message Ext4ExtRemoveSpaceDoneFormat {
     int32 depth = 5;
     uint64 partial = 6;
     uint32 eh_entries = 7;
+    uint64 pc_pclu = 8;
+    uint32 pc_lblk = 9;
+    int32 pc_state = 10;
 }
 
 // /sys/kernel/debug/tracing/events/ext4/ext4_ext_rm_idx/format
@@ -387,6 +392,9 @@ message Ext4ExtRmLeafFormat {
     uint32 ee_lblk = 5;
     uint64 ee_pblk = 6;
     int32 ee_len = 7;
+    uint64 pc_pclu = 8;
+    uint32 pc_lblk = 9;
+    int32 pc_state = 10;
 }
 
 // /sys/kernel/debug/tracing/events/ext4/ext4_ext_show_extent/format
@@ -694,6 +702,7 @@ message Ext4PunchHoleFormat {
 message Ext4ReadBlockBitmapLoadFormat {
     uint64 dev = 1;
     uint32 group = 2;
+    uint32 prefetch = 3;
 }
 
 // /sys/kernel/debug/tracing/events/ext4/ext4_readpage/format
@@ -720,6 +729,9 @@ message Ext4RemoveBlocksFormat {
     uint64 ee_pblk = 6;
     uint32 ee_lblk = 7;
     uint32 ee_len = 8;
+    uint64 pc_pclu = 9;
+    uint32 pc_lblk = 10;
+    int32 pc_state = 11;
 }
 
 // /sys/kernel/debug/tracing/events/ext4/ext4_request_blocks/format

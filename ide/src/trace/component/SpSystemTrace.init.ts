@@ -462,6 +462,13 @@ function collectHandlerNo(sp: SpSystemTrace, currentRow: unknown, event: unknown
     // @ts-ignore
     `div[row-id='${traceId}${currentRow.rowId}-${currentRow.rowType}']`
   );
+  //@ts-ignore
+  if (currentRow!.tampName.startsWith("CallChart")) {
+    // @ts-ignore
+    let index = currentRow!.name.indexOf(']') + 1;
+    // @ts-ignore
+    currentRow!.tampName = index !== -1 ? currentRow!.name.substring(0, index) : currentRow!.name;
+  }
   // 取消收藏时，删除父亲ID
   // @ts-ignore
   currentRow.name = currentRow.tampName;
