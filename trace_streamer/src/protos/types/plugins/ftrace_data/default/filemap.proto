@@ -40,6 +40,7 @@ message MmFilemapAddToPageCacheFormat {
     uint64 i_ino = 2;
     uint64 index = 3;
     uint64 s_dev = 4;
+    uint32 order = 5;
 }
 
 // /sys/kernel/debug/tracing/events/filemap/mm_filemap_delete_from_page_cache/format
@@ -48,5 +49,6 @@ message MmFilemapDeleteFromPageCacheFormat {
     uint64 i_ino = 2;
     uint64 index = 3;
     uint64 s_dev = 4;
+    uint32 order = 5;
 }
 

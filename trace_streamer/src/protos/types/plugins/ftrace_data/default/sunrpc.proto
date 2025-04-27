@@ -46,6 +46,8 @@ message RpcSocketCloseFormat {
     uint64 ino = 3;
     string dstaddr = 4;
     string dstport = 5;
+    string saddr = 6;
+    string daddr = 7;
 }
 
 // /sys/kernel/debug/tracing/events/sunrpc/rpc_socket_connect/format
@@ -56,6 +58,8 @@ message RpcSocketConnectFormat {
     uint64 ino = 4;
     string dstaddr = 5;
     string dstport = 6;
+    string saddr = 7;
+    string daddr = 8;
 }
 
 // /sys/kernel/debug/tracing/events/sunrpc/rpc_socket_error/format
@@ -66,6 +70,8 @@ message RpcSocketErrorFormat {
     uint64 ino = 4;
     string dstaddr = 5;
     string dstport = 6;
+    string saddr = 7;
+    string daddr = 8;
 }
 
 // /sys/kernel/debug/tracing/events/sunrpc/rpc_socket_reset_connection/format
@@ -76,6 +82,8 @@ message RpcSocketResetConnectionFormat {
     uint64 ino = 4;
     string dstaddr = 5;
     string dstport = 6;
+    string saddr = 7;
+    string daddr = 8;
 }
 
 // /sys/kernel/debug/tracing/events/sunrpc/rpc_socket_shutdown/format
@@ -85,6 +93,8 @@ message RpcSocketShutdownFormat {
     uint64 ino = 3;
     string dstaddr = 4;
     string dstport = 5;
+    string saddr = 6;
+    string daddr = 7;
 }
 
 // /sys/kernel/debug/tracing/events/sunrpc/rpc_socket_state_change/format
@@ -94,6 +104,8 @@ message RpcSocketStateChangeFormat {
     uint64 ino = 3;
     string dstaddr = 4;
     string dstport = 5;
+    string saddr = 6;
+    string daddr = 7;
 }
 
 // /sys/kernel/debug/tracing/events/sunrpc/rpc_task_begin/format
@@ -163,6 +175,7 @@ message SvcProcessFormat {
     uint32 proc = 3;
     string service = 4;
     string addr = 5;
+    string procedure = 6;
 }
 
 // /sys/kernel/debug/tracing/events/sunrpc/svc_recv/format
@@ -179,6 +192,9 @@ message SvcSendFormat {
     int32 status = 2;
     uint64 flags = 3;
     string addr = 4;
+    uint32 server = 5;
+    uint32 client = 6;
+    uint32 netns_ino = 7;
 }
 
 // /sys/kernel/debug/tracing/events/sunrpc/svc_wake_up/format
@@ -192,8 +208,10 @@ message SvcXprtDequeueFormat {
     uint64 flags = 2;
     uint64 wakeup = 3;
     string addr = 4;
+    uint32 server = 5;
+    uint32 client = 6;
+    uint32 netns_ino = 7;
 }
-
 // /sys/kernel/debug/tracing/events/sunrpc/svc_xprt_do_enqueue/format
 message SvcXprtDoEnqueueFormat {
     uint64 xprt = 1;
@@ -224,6 +242,9 @@ message XprtTransmitFormat {
     int32 status = 2;
     string addr = 3;
     string port = 4;
+    uint32 task_id = 5;
+    uint32 client_id = 6;
+    uint32 seqno = 7;
 }
 
 // /sys/kernel/debug/tracing/events/sunrpc/xs_tcp_data_ready/format
