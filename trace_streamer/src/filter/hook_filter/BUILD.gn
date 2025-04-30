@@ -17,7 +17,7 @@ import("../../../build/ts.gni")
 config("native_hook_filter_cfg") {
   include_dirs = [
     ".",
-    "${COMMON_LIBRARY}/base/include",
+    "${COMMON_LIBRARY}/c_utils/base/include",
   ]
 }
 

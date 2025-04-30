@@ -13,6 +13,7 @@
 
 declare_args() {
   is_independent_compile = false
+  hiperf_debug = true
   enable_hiperf = true
   enable_ebpf = true
   enable_native_hook = true

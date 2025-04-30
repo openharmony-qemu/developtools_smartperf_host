@@ -103,12 +103,12 @@ private:
     void UpdateReportWorkloadInfo() const;
     void UpdateSymbolAndFilesData();
     void UpdateClockType();
-    bool RecordCallBack(std::unique_ptr<PerfEventRecord> record);
-    void UpdatePerfSampleData(uint32_t callChainId, std::unique_ptr<PerfRecordSample> &sample);
+    bool RecordCallBack(PerfEventRecord &record);
+    void UpdatePerfSampleData(uint32_t callChainId, const PerfRecordSample *sample);
     std::tuple<uint64_t, DataIndex> GetFileIdWithLikelyFilePath(const std::string &inputFilePath);
     bool ReloadPerfFile(const std::unique_ptr<SymbolsFile> &symbolsFile, uint64_t &fileId, DataIndex &filePathIndex);
     void ReloadPerfCallChain(const std::unique_ptr<SymbolsFile> &symbolsFile, uint64_t fileId, DataIndex filePathIndex);
-    uint32_t UpdateCallChainUnCompressed(const std::unique_ptr<PerfRecordSample> &sample);
+    uint32_t UpdateCallChainUnCompressed(const PerfRecordSample *sample);
     SplitPerfState DataLengthProcessing(const std::deque<uint8_t> &dequeBuffer,
                                         perf_event_header &dataHeader,
                                         uint64_t size,

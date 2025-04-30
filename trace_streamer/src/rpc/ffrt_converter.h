@@ -24,7 +24,7 @@
 namespace SysTuning {
 namespace TraceStreamer {
 
-    using ConStr = const std::string;
+using ConStr = const std::string;
 
 struct tidInfo {
     std::vector<int> begin;
@@ -78,13 +78,15 @@ public:
     bool RecoverTraceAndGenerateNewFile(ConStr &ffrtFileName, std::ofstream &outFile);
 
 private:
-
     void SetOSPlatformKey(const std::unordered_map<int, std::pair<std::string, std::vector<int>>> &ffrt_tid_map);
-    void FindFfrtProcClassifyLogs(LogInfo logInfo, WakeLogs &traceMap, PidMap &pidMap,
-                                                  FfrtTidMap &ffrtTidMap, FfrtWakeLogs &ffrtWakeLogs);
+    void FindFfrtProcClassifyLogs(LogInfo logInfo,
+                                  WakeLogs &traceMap,
+                                  PidMap &pidMap,
+                                  FfrtTidMap &ffrtTidMap,
+                                  FfrtWakeLogs &ffrtWakeLogs);
     void ClassifyLogsForFfrtWorker(FfrtPids &ffrt_pids, FfrtWakeLogs &ffrt_wake_logs);
 
-    void ConvertFrrtThreadToFfrtTaskOhos(FfrtPids &ffrtPids, FfrtWakeLogs& ffrtWakeLogs);
+    void ConvertFrrtThreadToFfrtTaskOhos(FfrtPids &ffrtPids, FfrtWakeLogs &ffrtWakeLogs);
     void ConvertFrrtThreadToFfrtTaskNohos(FfrtPids &ffrtPids, FfrtWakeLogs &ffrtWakeLogs);
 
     // trace content
@@ -95,19 +97,21 @@ private:
 
     void FindQueueTaskInfo(FfrtPids &ffrtPids, QueueTaskInfo &queueTaskInfo);
 
-    void HandleFfrtQueueTasks(FfrtQueueTasks &ffrtQueueTasks, FfrtWakeLogs& ffrtWakeLogs);
+    void HandleFfrtQueueTasks(FfrtQueueTasks &ffrtQueueTasks, FfrtWakeLogs &ffrtWakeLogs);
 
     void HandleMarks(ConStr &log, int lineno, int pid);
 
     bool HandleFfrtTaskCo(ConStr &log, int lineno, bool &switchInFakeLog, bool &switchOutFakeLog);
 
-    bool HandleFfrtTaskExecute(FakeLogArgs &fakLogArg, WakeLogs &wakeLogs,
-                               TaskLabels &taskLabels, std::string &label);
+    bool HandleFfrtTaskExecute(FakeLogArgs &fakLogArg, WakeLogs &wakeLogs, TaskLabels &taskLabels, std::string &label);
 
-    void GenTaskLabelsOhos(FfrtPids &ffrtPids, FfrtWakeLogs& ffrtWakeLogs, TaskLabels &taskLabels);
+    void GenTaskLabelsOhos(FfrtPids &ffrtPids, FfrtWakeLogs &ffrtWakeLogs, TaskLabels &taskLabels);
 
-    bool HandlePreLineno(FakeLogArgs &fakArg, WakeLogs &wakeLogs,
-                         TaskLabels &taskLabels, ConStr traceBeginMark, ConStr traceEndMark);
+    bool HandlePreLineno(FakeLogArgs &fakArg,
+                         WakeLogs &wakeLogs,
+                         TaskLabels &taskLabels,
+                         ConStr traceBeginMark,
+                         ConStr traceEndMark);
 
     void SetTracingMarkerKey(LogInfo logInfo);
 
@@ -117,17 +121,27 @@ private:
 
     void HandleTaskGroups(std::vector<std::vector<tidInfo>> &taskGroups, WakeLogs &wakeLogs);
 
-    void ExceTaskLabelOhos(TaskLabels &taskLabels, FfrtWakeLogs &ffrtWakeLogs, std::pair<int, FfrtTidMap> pidItem,
-                           std::string traceBeginMark, std::string traceEndMark);
+    void ExceTaskLabelOhos(TaskLabels &taskLabels,
+                           FfrtWakeLogs &ffrtWakeLogs,
+                           std::pair<int, FfrtTidMap> pidItem,
+                           std::string traceBeginMark,
+                           std::string traceEndMark);
 
-    bool HandleHFfrtTaskExecute(FakeLogArgs &fakeArgs, WakeLogs &wakeLogs, TaskLabels &taskLabels,
-                                std::string label, std::unordered_map<int, int> &schedWakeFlag);
+    bool HandleHFfrtTaskExecute(FakeLogArgs &fakeArgs,
+                                WakeLogs &wakeLogs,
+                                TaskLabels &taskLabels,
+                                std::string label,
+                                std::unordered_map<int, int> &schedWakeFlag);
 
-    bool HandlePreLinenoNohos(FakeLogArgs &fakArg, WakeLogs &wakeLogs,
-                             TaskLabels &taskLabels, std::unordered_map<int, int> &schedWakeFlag);
+    bool HandlePreLinenoNohos(FakeLogArgs &fakArg,
+                              WakeLogs &wakeLogs,
+                              TaskLabels &taskLabels,
+                              std::unordered_map<int, int> &schedWakeFlag);
 
-    void ExceTaskLabelNohos(TaskLabels &taskLabels, FfrtWakeLogs &ffrtWakeLogs,
-                           std::pair<int, FfrtTidMap> pidItem, std::unordered_map<int, int> &schedWakeFlag);
+    void ExceTaskLabelNohos(TaskLabels &taskLabels,
+                            FfrtWakeLogs &ffrtWakeLogs,
+                            std::pair<int, FfrtTidMap> pidItem,
+                            std::unordered_map<int, int> &schedWakeFlag);
 };
 } // namespace TraceStreamer
 } // namespace SysTuning
