@@ -661,6 +661,7 @@ function selectHandlerRefreshCheckBox(sp: SpSystemTrace, rows: Array<TraceRow<un
 }
 // @ts-ignore
 function selectHandlerRows(sp: SpSystemTrace, rows: Array<TraceRow<unknown>>): void {
+  Utils.isRangeSelectRefresh = true;
   let selection = new SelectionParam();
   selection.traceId = Utils.currentSelectTrace;
   selection.cpuStateRowsId = sp.stateRowsId;
