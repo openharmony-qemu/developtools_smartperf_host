@@ -13,16 +13,16 @@
  * limitations under the License.
  */
 #include "syscall_stdtype.h"
-
 namespace SysTuning {
 namespace TraceStdtype {
-size_t SysCall::AppendSysCallData(int64_t sysCallNum, DataIndex type, uint32_t ipid, uint64_t timeStamp, int64_t ret)
+size_t SysCall::AppendSysCallData(const SyscallInfoRow& syscallInfoRow)
 {
-    sysCallNums_.emplace_back(sysCallNum);
-    types_.emplace_back(type);
-    ipids_.emplace_back(ipid);
-    timeStamps_.emplace_back(timeStamp);
-    rets_.emplace_back(ret);
+    sysCallNumbers_.emplace_back(syscallInfoRow.number);
+    timeStamps_.emplace_back(syscallInfoRow.ts);
+    durs_.emplace_back(syscallInfoRow.dur);
+    itids_.emplace_back(syscallInfoRow.itid);
+    args_.emplace_back(syscallInfoRow.args);
+    rets_.emplace_back(syscallInfoRow.ret);
     return Size() - 1;
 }
 } // namespace TraceStdtype

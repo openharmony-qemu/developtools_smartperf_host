@@ -21,6 +21,7 @@
 #include <functional>
 #include <regex>
 #include "animation_filter.h"
+#include "syscall_filter.h"
 #include "app_start_filter.h"
 #include "args_filter.h"
 #include "binder_filter.h"
@@ -157,6 +158,7 @@ void TraceStreamerSelector::InitFilter()
     streamFilters_->argsFilter_ = std::make_unique<ArgsFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->irqFilter_ = std::make_unique<IrqFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->frameFilter_ = std::make_unique<FrameFilter>(traceDataCache_.get(), streamFilters_.get());
+    streamFilters_->syscallFilter_ = std::make_unique<SyscallFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->sysEventMemMeasureFilter_ =
         std::make_unique<SystemEventMeasureFilter>(traceDataCache_.get(), streamFilters_.get(), E_SYS_MEMORY_FILTER);
     streamFilters_->sysEventVMemMeasureFilter_ = std::make_unique<SystemEventMeasureFilter>(

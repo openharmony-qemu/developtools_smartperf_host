@@ -19,43 +19,57 @@
 
 namespace SysTuning {
 namespace TraceStdtype {
+struct SyscallInfoRow {
+    uint64_t ts = INVALID_UINT64;
+    uint64_t dur = INVALID_UINT64;
+    InternalTid itid = INVALID_UINT32;
+    uint32_t number = INVALID_UINT32;
+    DataIndex args = INVALID_UINT64;
+    int64_t ret = INVALID_INT64;
+};
 class SysCall : public CacheBase, public BatchCacheBase {
 public:
-    size_t AppendSysCallData(int64_t sysCallNum, DataIndex type, uint32_t ipid, uint64_t timeStamp, int64_t ret);
-    const std::deque<int64_t> &SysCallsData() const
+    size_t AppendSysCallData(const SyscallInfoRow& syscallNrInfoRow);
+    const std::deque<uint32_t> &SysCallNumbersData() const
     {
-        return sysCallNums_;
+        return sysCallNumbers_;
     }
-    const std::deque<DataIndex> &TypesData() const
+    const std::deque<uint64_t> &DursData() const
     {
-        return types_;
+        return durs_;
     }
-    const std::deque<uint32_t> &IpidsData() const
+    const std::deque<uint32_t> &ItidsData() const
     {
-        return ipids_;
+        return itids_;
     }
-    const std::deque<uint64_t> &RetsData() const
+    const std::deque<DataIndex> &ArgsData() const
+    {
+        return args_;
+    }
+    const std::deque<int64_t> &RetsData() const
     {
         return rets_;
     }
     void Clear() override
     {
         CacheBase::Clear();
-        sysCallNums_.clear();
-        types_.clear();
-        ipids_.clear();
+        sysCallNumbers_.clear();
+        durs_.clear();
+        itids_.clear();
+        args_.clear();
         rets_.clear();
     }
     void ClearExportedData() override
     {
-        EraseElements(timeStamps_, sysCallNums_, types_, ipids_, rets_);
+        EraseElements(sysCallNumbers_, timeStamps_, durs_, itids_, args_, rets_);
     }
 
 private:
-    std::deque<int64_t> sysCallNums_ = {};
-    std::deque<DataIndex> types_ = {};
-    std::deque<uint32_t> ipids_ = {};
-    std::deque<uint64_t> rets_ = {};
+    std::deque<uint64_t> durs_ = {};
+    std::deque<uint32_t> sysCallNumbers_ = {};
+    std::deque<uint32_t> itids_ = {};
+    std::deque<DataIndex> args_ = {};
+    std::deque<int64_t> rets_ = {};
 };
 } // namespace TraceStdtype
 } // namespace SysTuning

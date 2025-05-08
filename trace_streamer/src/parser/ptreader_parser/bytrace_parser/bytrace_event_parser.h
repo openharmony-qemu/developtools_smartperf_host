@@ -78,6 +78,8 @@ private:
     bool BinderTransaction(const ArgsMap &args, const BytraceLine &line) const;
     bool BinderTransactionReceived(const ArgsMap &args, const BytraceLine &line) const;
     bool BinderTransactionAllocBufEvent(const ArgsMap &args, const BytraceLine &line) const;
+    bool SysEnterEvent(const ArgsMap &args, const BytraceLine &line);
+    bool SysExitEvent(const ArgsMap &args, const BytraceLine &line);
     void GetDataSegArgs(const BytraceLine &bufLine, ArgsMap &args) const;
     void InterruptEventInitialization();
     void ClockEventInitialization();
