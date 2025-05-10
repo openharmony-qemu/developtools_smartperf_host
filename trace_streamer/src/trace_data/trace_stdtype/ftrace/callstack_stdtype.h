@@ -29,6 +29,7 @@ struct CallStackInternalRow {
     DataIndex cat = INVALID_UINT64;
     DataIndex name = INVALID_UINT64;
     uint8_t depth = INVALID_UINT8;
+    uint32_t childCallid = INVALID_UINT32;
 };
 class CallStack : public CacheBase, public CpuCacheBase, public BatchCacheBase {
 public:
@@ -43,7 +44,13 @@ public:
                            const std::string &parentSpanId,
                            const std::string &flag);
     void AppendDistributeInfo();
+    void AppendTraceMetadata();
     void SetDuration(size_t index, uint64_t timeStamp);
+    void SetTraceMetadata(size_t index,
+                          const std::string &traceLevel,
+                          const DataIndex &tag,
+                          const DataIndex &customArg,
+                          const DataIndex &customCategory = INVALID_UINT64);
     void SetDurationWithFlag(size_t index, uint64_t timeStamp);
     void SetFlag(size_t index, uint8_t flag);
     void SetDurationEx(size_t index, uint32_t dur);
@@ -67,11 +74,17 @@ public:
         parentSpanIds_.clear();
         flags_.clear();
         argSet_.clear();
+        traceLevels_.clear();
+        traceTags_.clear();
+        customCategorys_.clear();
+        customArgs_.clear();
+        childCallid_.clear();
     }
     void ClearExportedData() override
     {
         EraseElements(timeStamps_, ids_, durs_, cats_, cookies_, colorIndexs_, callIds_, names_, depths_, chainIds_,
-                      spanIds_, parentSpanIds_, flags_, argSet_);
+                      spanIds_, parentSpanIds_, flags_, argSet_, traceLevels_, traceTags_, customCategorys_,
+                      customArgs_, childCallid_);
     }
     const std::deque<std::optional<uint64_t>> &ParentIdData() const;
     const std::deque<DataIndex> &CatsData() const;
@@ -85,10 +98,19 @@ public:
     const std::deque<std::string> &ParentSpanIds() const;
     const std::deque<std::string> &Flags() const;
     const std::deque<uint32_t> &ArgSetIdsData() const;
+    const std::deque<std::string> &TraceLevelsData() const;
+    const std::deque<DataIndex> &TraceTagsData() const;
+    const std::deque<DataIndex> &CustomCategorysData() const;
+    const std::deque<DataIndex> &CustomArgsData() const;
+    const std::deque<std::optional<uint64_t>> &ChildCallidData() const;
 
 private:
     void AppendCommonInfo(uint64_t startT, uint64_t durationNs, InternalTid internalTid);
-    void AppendCallStack(DataIndex cat, DataIndex name, uint8_t depth, std::optional<uint64_t> parentId);
+    void AppendCallStack(DataIndex cat,
+                         DataIndex name,
+                         uint8_t depth,
+                         std::optional<uint64_t> childCallid,
+                         std::optional<uint64_t> parentId);
 
 private:
     std::deque<std::optional<uint64_t>> parentIds_;
@@ -103,6 +125,11 @@ private:
     std::deque<std::string> parentSpanIds_ = {};
     std::deque<std::string> flags_ = {};
     std::deque<uint32_t> argSet_ = {};
+    std::deque<std::string> traceLevels_ = {};
+    std::deque<DataIndex> traceTags_ = {};
+    std::deque<DataIndex> customCategorys_ = {};
+    std::deque<DataIndex> customArgs_ = {};
+    std::deque<std::optional<uint64_t>> childCallid_;
 };
 } // namespace TraceStdtype
 } // namespace SysTuning

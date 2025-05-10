@@ -53,6 +53,7 @@ public:
     void Finish();
     void SetTraceType(TraceFileType traceType);
     void SetTraceClockId(BuiltinClocks clock);
+    void ParseSplitTraceMetaData(const std::string &dataStr, TracePoint &outPoint, bool isAsynEvent) const;
 
 private:
     using FrameFuncCall = std::function<bool(const size_t callStackRow, std::string &args, const BytraceLine &line)>;
