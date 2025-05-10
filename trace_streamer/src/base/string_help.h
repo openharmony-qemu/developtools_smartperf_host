@@ -23,7 +23,9 @@
 namespace SysTuning {
 namespace base {
 char *GetDemangleSymbolIndex(const char *mangled);
-std::vector<std::string> SplitStringToVec(const std::string &str, const std::string &pat);
+std::vector<std::string> SplitStringToVec(const std::string &str,
+                                          const std::string &pat,
+                                          uint32_t expectedCount = UINT32_MAX);
 bool StartWith(const std::string &str, const std::string &res);
 bool EndWith(const std::string &str, const std::string &res);
 std::string FormatString(const char *p);
