@@ -103,6 +103,8 @@ export class SelectionParam {
   irqCallIds: Array<number> = [];
   softIrqCallIds: Array<number> = [];
   funTids: Array<number> = [];
+  threadSysCallIds: Array<number> = [];
+  processSysCallIds: Array<number> = [];
   funAsync: Array<{ name: string; pid: number, tid: number | undefined }> = [];
   funCatAsync: Array<{ pid: number; threadName: string }> = [];
   nativeMemory: Array<String> = [];
@@ -195,6 +197,16 @@ export class SelectionParam {
   }
 
   // @ts-ignore
+  pushSysCallIds(it: TraceRow<unknown>): void {
+    if (it.rowType === TraceRow.ROW_TYPE_THREAD_SYS_CALL) {
+      const arr = it.rowId?.split('-');
+      if (arr && arr.length === 3) {
+        this.threadSysCallIds.push(parseInt(arr[1]));
+      }
+    }
+  }
+
+  // @ts-ignore
   pushCpuStateFilterIds(it: TraceRow<unknown>): void {
     if (it.rowType === TraceRow.ROW_TYPE_CPU_STATE_ALL) {
       it.childrenList.forEach((child) => {
@@ -258,6 +270,14 @@ export class SelectionParam {
     if (it.rowType === TraceRow.ROW_TYPE_PROCESS || it.rowType === TraceRow.ROW_TYPE_IMPORT) {
       sp.pushPidToSelection(this, it.rowId!, it.summaryProtoPid);
       sp.pushPidToSelection(this, it.rowId!);
+      if (it.getRowSettingCheckStateByKey('SysCall Event')) {
+        let pid = parseInt(it.rowId!);
+        if (!isNaN(pid!)) {
+          if (!this.processSysCallIds.includes(pid!)) {
+            this.processSysCallIds.push(pid!);
+          }
+        }
+      }
       if (it.getAttribute('hasStartup') === 'true') {
         this.startup = true;
       }
@@ -1348,6 +1368,7 @@ export class SelectionParam {
     this.pushStaticInit(it, sp);
     this.pushAppStartUp(it, sp);
     this.pushThread(it, sp);
+    this.pushSysCallIds(it);
     this.pushVirtualMemory(it, sp);
     this.pushFps(it, sp);
     this.pushCpuAbility(it, sp);
@@ -1386,6 +1407,16 @@ export class BoxJumpParam {
   threadId: number[] | undefined;
   isJumpPage: boolean | undefined;
   currentId: string | undefined | null;
+}
+
+export class SysCallBoxJumpParam {
+  traceId: string | undefined | null;
+  leftNs: number = 0;
+  rightNs: number = 0;
+  processId: number[] | undefined;
+  threadId: number[] | undefined;
+  sysCallId: number | undefined;
+  isJumpPage: boolean | undefined;
 }
 
 export class SliceBoxJumpParam {

@@ -16,7 +16,12 @@
 import { BaseElement, element } from '../../../../base-ui/BaseElement';
 import { type LitTabs } from '../../../../base-ui/tabs/lit-tabs';
 import { LitTabpane } from '../../../../base-ui/tabs/lit-tabpane';
-import { BoxJumpParam, SelectionParam, SliceBoxJumpParam } from '../../../bean/BoxSelection';
+import { 
+  BoxJumpParam, 
+  SelectionParam,
+  SysCallBoxJumpParam,
+  SliceBoxJumpParam 
+} from '../../../bean/BoxSelection';
 import { type TabPaneCurrentSelection } from '../sheet/TabPaneCurrentSelection';
 import { type TabPaneFlag } from '../timer-shaft/TabPaneFlag';
 import { type Flag } from '../timer-shaft/Flag';
@@ -28,6 +33,7 @@ import { type CpuStruct } from '../../../database/ui-worker/cpu/ProcedureWorkerC
 import { CpuFreqStruct } from '../../../database/ui-worker/ProcedureWorkerFreq';
 import { CpuFreqLimitsStruct } from '../../../database/ui-worker/cpu/ProcedureWorkerCpuFreqLimits';
 import { type ThreadStruct } from '../../../database/ui-worker/ProcedureWorkerThread';
+import { type ThreadSysCallStruct } from '../../../database/ui-worker/ProcedureWorkerThreadSysCall';
 import { type FuncStruct } from '../../../database/ui-worker/ProcedureWorkerFunc';
 import { ProcessMemStruct } from '../../../database/ui-worker/ProcedureWorkerMem';
 import { CpuStateStruct } from '../../../database/ui-worker/cpu/ProcedureWorkerCpuState';
@@ -110,6 +116,7 @@ import { PerfFunctionAsmParam } from '../../../bean/PerfAnalysis';
 import { info, error } from '../../../../log/Log';
 import { XpowerThreadCountStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerThreadCount';
 import { XpowerGpuFreqCountStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerGpuFreqCount';
+import { TabPaneSysCallChild } from '../sheet/process/TabPaneSysCallChild';
 
 
 @element('trace-sheet')
@@ -300,6 +307,10 @@ export class TraceSheet extends BaseElement {
     // @ts-ignore
     this.getComponentByID<unknown>('box-slices')?.addEventListener('td-click', (evt: unknown) => {
       this.tdSliceClickHandler(evt);
+    });
+    // @ts-ignore
+    this.getComponentByID<unknown>('box-thread-syscall')?.addEventListener('td-click', (evt: unknown) => {
+      this.tdSysCallClickHandler(evt);
     });
   }
 
@@ -870,6 +881,9 @@ export class TraceSheet extends BaseElement {
       scrollPrio,
       callback
     );
+
+  displaySysCallData = (data: ThreadSysCallStruct) => 
+    this.displayTab<TabPaneCurrentSelection>('current-selection').setSysCallData(data);
   displayMemData = (data: ProcessMemStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setMemData(data);
   displayHangData = (data: HangStruct, sp: SpSystemTrace, scrollCallback: Function): Promise<void> =>
@@ -1380,6 +1394,43 @@ export class TraceSheet extends BaseElement {
     param.isJumpPage = true; // @ts-ignore
     param.currentId = e.target.parentElement.id; //根据父Tab页的标题，确认子Tab页的dur是否需要处理
     (pane.children.item(0) as TabPaneBoxChild).data = param;
+  }
+
+  tdSysCallClickHandler(e: unknown): void {
+    // @ts-ignore
+    this.currentPaneID = e.target.parentElement.id;
+    //隐藏除了当前Tab页的其他Tab页
+    this.shadowRoot!.querySelectorAll<LitTabpane>('lit-tabpane').forEach((it): boolean =>
+      it.id !== this.currentPaneID ? (it.hidden = true) : (it.hidden = false)
+    ); //todo：看能不能优化
+    let pane = this.getPaneByID('box-thread-syscall-child'); //通过Id找到需要展示的Tab页
+    pane.closeable = true; //关闭的ican显示
+    pane.hidden = false;
+    this.litTabs!.activeByKey(pane.key); //显示key值对应的Tab页
+    // @ts-ignore
+    pane.tab = e.detail.name; //设置Tab页标题，有的标题可直接用，有的标题需在此转换成需要展示的字符串
+    let param = new SysCallBoxJumpParam();
+    param.traceId = this.selection!.traceId;
+    param.leftNs = this.selection!.leftNs;
+    param.rightNs = this.selection!.rightNs;
+    // @ts-ignore
+    const level = e.detail.level;
+    if (level === 'Process') {
+      // @ts-ignore
+      param.processId = [e.detail.id];
+    } else if (level === 'Thread'){
+      // @ts-ignore
+      param.processId = [e.detail.parentId];
+      // @ts-ignore
+      param.threadId = [e.detail.id];
+    } else {
+      // @ts-ignore
+      param.threadId = [e.detail.parentId];
+      // @ts-ignore
+      param.sysCallId = e.detail.id;
+    }  
+    param.isJumpPage = true; // @ts-ignore
+    (pane.children.item(0) as TabPaneSysCallChild).data = param;
   }
 
   //Slice Tab点击Occurrences列下的td进行跳转

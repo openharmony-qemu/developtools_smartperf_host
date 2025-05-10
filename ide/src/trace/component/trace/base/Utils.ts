@@ -54,6 +54,7 @@ export class Utils {
   totalNS: number = 1;
   private trace1ThreadMap: Map<number, string> = new Map<number, string>();
   private trace1ProcessMap: Map<number, string> = new Map<number, string>();
+  sysCallEventTidsMap: Map<number, { tid: number; pid: number, itid: number, ipid: number }> = new Map();
   private trace1SchedSliceMap: Map<
     string,
     {
@@ -222,6 +223,7 @@ export class Utils {
     this.trace2ThreadMap.clear();
     this.trace1SchedSliceMap.clear();
     this.trace2SchedSliceMap.clear();
+    this.sysCallEventTidsMap.clear();
     Utils.distributedTrace = [];
   }
 
