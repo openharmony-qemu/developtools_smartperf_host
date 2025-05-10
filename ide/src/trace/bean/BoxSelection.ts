@@ -164,6 +164,7 @@ export class SelectionParam {
   hiSysEvents: Array<string> = [];
   sampleData: Array<unknown> = [];
   gpuCounter: Array<unknown> = [];
+  isImportSo: boolean = false;
 
   // @ts-ignore
   pushSampleData(it: TraceRow<unknown>): void {

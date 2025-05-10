@@ -66,8 +66,21 @@ export const TabPanePerfAnalysisHtml = `
     width: 100%;
     height: 20px;
 }
+@keyframes textGrowth {
+  0% {
+    font-size: 16px;
+    transform: scale(0.9);
+  }
+  100% {
+    font-size: 18px;
+    transform: scale(1.0);
+  }
+}
 #SO-err-tips{
     color:red;
+    animation: textGrowth 2.0s ease-in-out infinite alternate;
+    will-change: transform, font-size;
+    transform: translateZ(0);
 }
 </style>
 <div id="head-tips">
