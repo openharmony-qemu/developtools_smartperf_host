@@ -24,6 +24,9 @@ namespace SysTuning {
 namespace TraceStreamer {
 const uint8_t POINT_LENGTH = 1;
 const uint8_t MAX_POINT_LENGTH = 2;
+const uint8_t CATEGORY_INDEX = 2;
+const uint8_t PARSER_SYNC_SUM = 2;
+const uint8_t PARSER_ASYNC_SUM = 3;
 PrintEventParser::PrintEventParser(TraceDataCache *dataCache, const TraceStreamerFilters *filter)
     : EventParserBase(dataCache, filter)
 {
@@ -105,6 +108,10 @@ void PrintEventParser::ParseBeginEvent(const std::string &comm,
         // add distributed data
         traceDataCache_->GetInternalSlicesData()->SetDistributeInfo(index, point.chainId_, point.spanId_,
                                                                     point.parentSpanId_, point.flag_);
+
+        // add traceMeta data
+        traceDataCache_->GetInternalSlicesData()->SetTraceMetadata(index, point.traceLevel_, point.traceTagId_,
+                                                                   point.customArgsId_);
         if (HandleFrameSliceBeginEvent(point.funcPrefixId_, index, point.funcArgs_, line)) {
             return;
         }
@@ -136,9 +143,16 @@ void PrintEventParser::ParseStartEvent(const std::string &comm,
     auto cookie = static_cast<int64_t>(point.value_);
     auto index = streamFilters_->sliceFilter_->StartAsyncSlice(ts, pid, point.tgid_, cookie,
                                                                traceDataCache_->GetDataIndex(point.name_));
-    if (point.name_ == onFrameQueeuStartEvent_ && index != INVALID_UINT64) {
+    if (index == INVALID_UINT64) {
+        return;
+    }
+    // add traceMeta data
+    traceDataCache_->GetInternalSlicesData()->SetTraceMetadata(index, point.traceLevel_, point.traceTagId_,
+                                                               point.customArgsId_, point.customCategoryId_);
+
+    if (point.name_ == onFrameQueeuStartEvent_) {
         OnFrameQueueStart(ts, index, point.tgid_);
-    } else if (traceDataCache_->AnimationTraceEnabled() && index != INVALID_UINT64 &&
+    } else if (traceDataCache_->AnimationTraceEnabled() &&
                (base::EndWith(comm, onAnimationProcEvent_) ||
                 base::EndWith(comm, newOnAnimationProcEvent_))) { // the comm is taskName
         streamFilters_->animationFilter_->StartAnimationEvent(line, point, index);
@@ -247,6 +261,36 @@ std::string_view PrintEventParser::GetPointNameForBegin(std::string_view pointSt
     return name;
 }
 
+void PrintEventParser::ParseSplitTraceMetaData(const std::string &dataStr, TracePoint &outPoint, bool isAsynEvent) const
+{
+    std::string metaDataStr = base::Strip(dataStr);
+    uint32_t expectedCount = isAsynEvent ? PARSER_ASYNC_SUM : PARSER_SYNC_SUM;
+    std::vector<std::string> traceMetaDatas = base::SplitStringToVec(metaDataStr, "|", expectedCount);
+    if (traceMetaDatas.size() <= 1) {
+        TS_LOGD("traceMetaDatas size: %zu, dataStr: %s", traceMetaDatas.size(), dataStr.c_str());
+        return;
+    }
+
+    std::string &marker = traceMetaDatas[1];
+    if (!marker.empty()) {
+        outPoint.traceLevel_ = marker.substr(0, 1);
+        if (marker.size() > 1) {
+            std::string traceTag = marker.substr(1);
+            outPoint.traceTagId_ = traceDataCache_->GetDataIndex(traceTag);
+        }
+    }
+
+    if (isAsynEvent && traceMetaDatas.size() > CATEGORY_INDEX) {
+        std::string customCategory = traceMetaDatas[CATEGORY_INDEX];
+        outPoint.customCategoryId_ = traceDataCache_->GetDataIndex(customCategory);
+    }
+
+    if (traceMetaDatas.size() > expectedCount) {
+        std::string customArgs = traceMetaDatas[expectedCount];
+        outPoint.customArgsId_ = traceDataCache_->GetDataIndex(customArgs);
+    }
+}
+
 ParseResult PrintEventParser::HandlerB(std::string_view pointStr, TracePoint &outPoint, size_t tGidlength) const
 {
     outPoint.name_ = GetPointNameForBegin(pointStr, tGidlength);
@@ -274,6 +318,9 @@ ParseResult PrintEventParser::HandlerB(std::string_view pointStr, TracePoint &ou
         } else {
             outPoint.funcPrefixId_ = traceDataCache_->GetDataIndex(outPoint.name_);
         }
+
+        // traceMetaDatasSrt: H:name|%X%TAG|customArgs
+        ParseSplitTraceMetaData(outPoint.name_, outPoint, false);
     }
     return PARSE_SUCCESS;
 }
@@ -535,7 +582,11 @@ ParseResult PrintEventParser::HandlerCSF(std::string_view pointStr, TracePoint &
 
         outPoint.categoryGroup_ = std::string_view(pointStr.data() + valuePipe + 1, groupLen);
     }
-
+    // traceMetaDatasSrt: taskId|%X%TAG|customCategory|customArgs
+    std::string metaDataStr(pointStr.data() + valueIndex);
+    if (outPoint.phase_ == 'S') {
+        ParseSplitTraceMetaData(metaDataStr, outPoint, true);
+    }
     return PARSE_SUCCESS;
 }
 
