@@ -34,7 +34,12 @@ enum class Index : int32_t {
     CHAIN_IDS,
     SPAN_IDS,
     PARENT_SPAN_IDS,
-    FLAGS
+    FLAGS,
+    TRACE_LEVEL,
+    TRACE_TAG,
+    CUSTOM_CATEGORY,
+    CUSTOM_ARGS,
+    CHILD_CALLID
 };
 CallStackTable::CallStackTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
@@ -55,6 +60,11 @@ CallStackTable::CallStackTable(const TraceDataCache *dataCache) : TableBase(data
     tableColumn_.push_back(TableBase::ColumnInfo("spanId", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("parentSpanId", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("flag", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("trace_level", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("trace_tag", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("custom_category", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("custom_args", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("child_callid", "INTEGER"));
     tablePriKey_.push_back("callid");
     tablePriKey_.push_back("ts");
     tablePriKey_.push_back("depth");
@@ -215,6 +225,26 @@ void CallStackTable::Cursor::HandleTypeColumns(int32_t col) const
             SetTypeColumnTextNotEmpty(slicesObj_.Flags()[CurrentRow()].empty(),
                                       slicesObj_.Flags()[CurrentRow()].c_str());
             break;
+        case Index::TRACE_LEVEL:
+            SetTypeColumnTextNotEmpty(slicesObj_.TraceLevelsData()[CurrentRow()].empty(),
+                                      slicesObj_.TraceLevelsData()[CurrentRow()].c_str());
+            break;
+        case Index::TRACE_TAG:
+            SetTypeColumnText(slicesObj_.TraceTagsData()[CurrentRow()], INVALID_UINT64);
+            break;
+        case Index::CUSTOM_CATEGORY:
+            SetTypeColumnText(slicesObj_.CustomCategorysData()[CurrentRow()], INVALID_UINT64);
+            break;
+        case Index::CUSTOM_ARGS:
+            SetTypeColumnText(slicesObj_.CustomArgsData()[CurrentRow()], INVALID_UINT64);
+            break;
+        case Index::CHILD_CALLID: {
+            if (slicesObj_.ChildCallidData()[CurrentRow()].has_value()) {
+                sqlite3_result_int64(context_,
+                                     static_cast<int64_t>(slicesObj_.ChildCallidData()[CurrentRow()].value()));
+            }
+            break;
+        }
         default:
             TS_LOGF("Unregistered column : %d", col);
             break;

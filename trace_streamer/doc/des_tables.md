@@ -18,7 +18,7 @@ TraceStreamer可以将trace数据源转化为易于理解和使用的数据库�
 | app_startup | 记录了应用启动相关数据|
 | args | 记录方法参数集合|
 | bio_latency_sample | 记录IO操作相关方法调用，及调用栈数据|
-| callstack | 记录调用堆栈和异步调用信息，其中depth,stack_id和parent_stack_id仅在非异步调用中有效。当cookid不为空时，为异步调用，此时callid为进程唯一号，否则为线程唯一号|
+| callstack | 记录调用堆栈和异步调用信息，其中depth仅在非异步调用中有效。当cookid不为空时，为异步调用，此时callid为进程唯一号，child_callid为子线程唯一号|
 | clk_event_filter | 记录时钟相关的信息|
 | clock_event_filter | 此结构用来维护时钟事件，cpu与唯一的ID做关联|
 | clock_snapshot | 时钟号和时间，时钟名的映射表|
@@ -359,8 +359,13 @@ js_heap_sample:记录timeline的时间轴信息
 |spanId        |TEXT      |
 |parentSpanId  |TEXT      |
 |flag          |TEXT      |
+|trace_level   |TEXT      |
+|trace_tag     |TEXT      |
+|custom_category |TEXT      |
+|custom_args   |TEXT     |
+|child_callid  |INT      |
 #### 表描述
-记录调用堆栈和异步调用信息，其中depth,stack_id和parent_stack_id仅在非异步的调用中有效。当cookid不为空时，为异步调用，此时callid为进程唯一号，否则为线程唯一号。
+记录调用堆栈和异步调用信息，其中depth仅在非异步的调用中有效。当cookid不为空时，为异步调用，此时callid为进程唯一号，child_callid为子线程唯一号。
 #### 字段详细描述
 - id: 唯一标识
 - ts: 数据事件上报时间戳
@@ -376,6 +381,11 @@ js_heap_sample:记录timeline的时间轴信息
 - spanId：分布式调用关联关系，当前帧的id
 - parentSpanId: 分布式调用关联关系，当前帧的parent的SpanId，对应当前表的spandId
 - flag：C表示分布式调用发送方，S表示接受方  
+- trace_level：决定trace的等级，log和nolog等级不同，其中log表示详细记录所有相关的调用信息，nolog 表示不记录
+- trace_tag：Tag标签，标识请求的来源或类型
+- custom_category：聚合标签，用于关联同类信息
+- custom_args：自定义参数，用于存储与调用相关的额外信息
+- child_callid：当为异步调用，此时callid为进程唯一号，child_callid为子线程唯一号，反之为无效值
 
 ### clk_event_filter表
 #### 表结构

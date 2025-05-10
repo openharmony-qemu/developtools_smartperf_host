@@ -661,6 +661,7 @@ function selectHandlerRefreshCheckBox(sp: SpSystemTrace, rows: Array<TraceRow<un
 }
 // @ts-ignore
 function selectHandlerRows(sp: SpSystemTrace, rows: Array<TraceRow<unknown>>): void {
+  Utils.isRangeSelectRefresh = true;
   let selection = new SelectionParam();
   selection.traceId = Utils.currentSelectTrace;
   selection.cpuStateRowsId = sp.stateRowsId;
@@ -1124,6 +1125,14 @@ function findEntryTypeFunc(sp: SpSystemTrace, findEntry: unknown): void {
       funName: findEntry.funName,
       // @ts-ignore
       cookie: findEntry.cookie,
+      // @ts-ignore
+      trace_level: findEntry.trace_level,
+      // @ts-ignore
+      trace_tag: findEntry.trace_tag,
+      // @ts-ignore
+      custom_args: findEntry.custom_args,
+      // @ts-ignore
+      category:findEntry.category,
       // @ts-ignore
       //因异步trace分类出的rowId类型有三种，故新增row_id字段，该字段为异步方法的对应的rowId，支持搜索查询定位到该方法属于那个row，只有缓存的异步trace数据中含该字段
       row_id: findEntry.rowId ? findEntry.rowId : null,

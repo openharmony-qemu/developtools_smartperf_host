@@ -23,6 +23,7 @@ export class Utils {
   static currentSelectTrace: string | null | undefined;
   static currentTraceMode: TraceMode = TraceMode.NORMAL;
   static distributedTrace: string[] = [];
+  static isRangeSelectRefresh: boolean = false;
   static DMAFENCECAT_MAP: Map<
     number,
     {

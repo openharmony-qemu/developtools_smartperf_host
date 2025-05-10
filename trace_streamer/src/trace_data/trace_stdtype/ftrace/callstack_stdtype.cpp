@@ -21,8 +21,10 @@ size_t CallStack::AppendInternalAsyncSlice(const CallStackInternalRow &callStack
                                            const std::optional<uint64_t> &parentId)
 {
     AppendCommonInfo(callStackInternalRow.startT, callStackInternalRow.durationNs, callStackInternalRow.internalTid);
-    AppendCallStack(callStackInternalRow.cat, callStackInternalRow.name, callStackInternalRow.depth, parentId);
+    AppendCallStack(callStackInternalRow.cat, callStackInternalRow.name, callStackInternalRow.depth,
+                    callStackInternalRow.childCallid, parentId);
     AppendDistributeInfo();
+    AppendTraceMetadata();
     cookies_.emplace_back(cookid);
     ids_.emplace_back(id_++);
     return Size() - 1;
@@ -31,10 +33,12 @@ size_t CallStack::AppendInternalSlice(const CallStackInternalRow &callStackInter
                                       const std::optional<uint64_t> &parentId)
 {
     AppendCommonInfo(callStackInternalRow.startT, callStackInternalRow.durationNs, callStackInternalRow.internalTid);
-    AppendCallStack(callStackInternalRow.cat, callStackInternalRow.name, callStackInternalRow.depth, parentId);
+    AppendCallStack(callStackInternalRow.cat, callStackInternalRow.name, callStackInternalRow.depth,
+                    callStackInternalRow.childCallid, parentId);
     ids_.emplace_back(id_++);
     cookies_.emplace_back(INVALID_INT64);
     AppendDistributeInfo();
+    AppendTraceMetadata();
     return Size() - 1;
 }
 
@@ -45,12 +49,17 @@ void CallStack::AppendCommonInfo(uint64_t startT, uint64_t durationNs, InternalT
     callIds_.emplace_back(internalTid);
     colorIndexs_.emplace_back(0);
 }
-void CallStack::AppendCallStack(DataIndex cat, DataIndex name, uint8_t depth, std::optional<uint64_t> parentId)
+void CallStack::AppendCallStack(DataIndex cat,
+                                DataIndex name,
+                                uint8_t depth,
+                                std::optional<uint64_t> childCallid,
+                                std::optional<uint64_t> parentId)
 {
     parentIds_.emplace_back(parentId);
     cats_.emplace_back(cat);
     names_.emplace_back(name);
     depths_.emplace_back(depth);
+    childCallid_.emplace_back(childCallid);
 }
 void CallStack::SetDistributeInfo(size_t index,
                                   const std::string &chainId,
@@ -64,6 +73,17 @@ void CallStack::SetDistributeInfo(size_t index,
     flags_[index] = flag;
     argSet_[index] = INVALID_UINT32;
 }
+void CallStack::SetTraceMetadata(size_t index,
+                                 const std::string &traceLevel,
+                                 const DataIndex &tag,
+                                 const DataIndex &customArg,
+                                 const DataIndex &customCategory)
+{
+    traceLevels_[index] = traceLevel;
+    traceTags_[index] = tag;
+    customArgs_[index] = customArg;
+    customCategorys_[index] = customCategory;
+}
 void CallStack::AppendDistributeInfo()
 {
     chainIds_.emplace_back("");
@@ -71,6 +91,13 @@ void CallStack::AppendDistributeInfo()
     parentSpanIds_.emplace_back("");
     flags_.emplace_back("");
     argSet_.emplace_back(INVALID_UINT32);
+}
+void CallStack::AppendTraceMetadata()
+{
+    traceLevels_.emplace_back("");
+    traceTags_.emplace_back(INVALID_UINT64);
+    customArgs_.emplace_back(INVALID_UINT64);
+    customCategorys_.emplace_back(INVALID_UINT64);
 }
 void CallStack::SetDuration(size_t index, uint64_t timeStamp)
 {
@@ -160,6 +187,26 @@ const std::deque<std::string> &CallStack::Flags() const
 const std::deque<uint32_t> &CallStack::ArgSetIdsData() const
 {
     return argSet_;
+}
+const std::deque<std::string> &CallStack::TraceLevelsData() const
+{
+    return traceLevels_;
+}
+const std::deque<DataIndex> &CallStack::TraceTagsData() const
+{
+    return traceTags_;
+}
+const std::deque<DataIndex> &CallStack::CustomCategorysData() const
+{
+    return customCategorys_;
+}
+const std::deque<DataIndex> &CallStack::CustomArgsData() const
+{
+    return customArgs_;
+}
+const std::deque<std::optional<uint64_t>> &CallStack::ChildCallidData() const
+{
+    return childCallid_;
 }
 } // namespace TraceStdtype
 } // namespace SysTuning

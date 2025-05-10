@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 import { TabPerfFuncAsmHtml } from './TabPerfFuncAsm.html';
+import { Utils } from '../../base/Utils';
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import {
@@ -140,6 +141,9 @@ export class TabPerfFuncAsm extends BaseElement {
   }
 
   set data(data: PerfFunctionAsmParam) {
+    if (Utils.isRangeSelectRefresh) {
+      this.functionName = '';
+    }
     if (this.functionName === data.functionName || data.functionName === undefined) {
       return;
     }
@@ -151,6 +155,7 @@ export class TabPerfFuncAsm extends BaseElement {
         this.totalCount = data.totalCount;
         this.updateTotalCount();
         this.showLoading();
+        Utils.isRangeSelectRefresh = false;
         // @ts-ignore
         const vaddrInFile = data.vaddrList[0].vaddrInFile;
         // 1. 先转成 BigInt
@@ -256,8 +261,10 @@ export class TabPerfFuncAsm extends BaseElement {
   private calcutelateShowUpData(): void {
     this.funcSampleMap.forEach((selfCount, offsetToVaddr) => {
       let instructionPosition = offsetToVaddr / 4;
-      this.formattedAsmIntructionArray[instructionPosition].selfcount = selfCount;
-      this.formattedAsmIntructionArray[instructionPosition].percent = Math.round((selfCount / this.totalCount) * 10000) / 100;
+      if (this.formattedAsmIntructionArray[instructionPosition]) {
+        this.formattedAsmIntructionArray[instructionPosition].selfcount = selfCount;
+        this.formattedAsmIntructionArray[instructionPosition].percent = Math.round((selfCount / this.totalCount) * 10000) / 100;
+      }
     });
     this.originalShowUpData = this.formattedAsmIntructionArray;
   }
