@@ -98,8 +98,8 @@ export enum QueryEnum {
   XpowerGpuFreqData = 308,
   XpowerStatisticData = 309,
   XpowerWifiData = 310,
-  XpowerAppDetailData = 311
-
+  XpowerAppDetailData = 311,
+  ThreadDataSysCall = 312,
 }
 export const MAX_COUNT = 2000;
 export enum TraficEnum {

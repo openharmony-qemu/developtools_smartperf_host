@@ -87,6 +87,7 @@ import { hangDataReceiver } from '../HangDataReceiver';
 import { xpowerStatisticDataReceiver } from '../xpower/XpowerStatisticDataReceiver';
 import { xpowerDataGpuFreqCountReceiver, xpowerDataGpuFreqReceiver } from '../xpower/XpowerGpuFrequencyRecevier';
 import { xpowerDataThreadCountReceiver, xpowerDataThreadInfoReceiver } from '../xpower/XpowerThreadReceiver';
+import { threadSysCallDataReceiver } from '../process/ThreadSysCallDataReceiver';
 
 // @ts-ignore
 const traficHandlers: Map<number, unknown> = new Map<number, unknown>([]); // @ts-ignore
@@ -100,6 +101,7 @@ traficHandlers.set(QueryEnum.CpuStateData, cpuStateReceiver);
 traficHandlers.set(QueryEnum.CpuFreqLimitData, cpuFreqLimitReceiver);
 traficHandlers.set(QueryEnum.ProcessData, processDataReceiver);
 traficHandlers.set(QueryEnum.ThreadData, threadDataReceiver);
+traficHandlers.set(QueryEnum.ThreadDataSysCall, threadSysCallDataReceiver);
 traficHandlers.set(QueryEnum.FuncData, funcDataReceiver);
 traficHandlers.set(QueryEnum.HiperfCallChart, hiPerfCallChartDataHandler);
 traficHandlers.set(QueryEnum.HiperfCallStack, hiPerfCallStackCacheHandler);

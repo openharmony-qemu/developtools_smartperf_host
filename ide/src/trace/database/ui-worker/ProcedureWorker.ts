@@ -78,6 +78,7 @@ import { XpowerWifiRender } from './ProcedureWorkerXpowerWifi';
 import { XpowerGpuFreqCountRender } from './ProcedureWorkerXpowerGpuFreqCount';
 import { XpowerGpuFreqRender } from './ProcedureWorkerXpowerGpuFreq';
 import { SnapShotRender } from './ProcedureWorkerSnaps';
+import { ThreadSysCallRender } from './ProcedureWorkerThreadSysCall';
 
 let dataList: unknown = {};
 let dataList2: unknown = {};
@@ -106,6 +107,7 @@ export let renders = {
   'heap-snapshot': new HeapSnapshotRender(),
   mem: new MemRender(),
   thread: new ThreadRender(),
+  threadSysCall: new ThreadSysCallRender(),
   func: new FuncRender(),
   native: new NativeMemoryRender(),
   'HiPerf-Group': new EmptyRender(),

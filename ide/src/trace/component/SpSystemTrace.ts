@@ -144,6 +144,7 @@ import { XpowerThreadInfoStruct } from '../database/ui-worker/ProcedureWorkerXpo
 import { XpowerGpuFreqStruct } from '../database/ui-worker/ProcedureWorkerXpowerGpuFreq';
 import { LitProgressBar } from '../../base-ui/progress-bar/LitProgressBar';
 import { SnapShotStruct } from '../database/ui-worker/ProcedureWorkerSnaps';
+import { ThreadSysCallStruct } from '../database/ui-worker/ProcedureWorkerThreadSysCall';
 
 function dpr(): number {
   return window.devicePixelRatio || 1;
@@ -1370,6 +1371,7 @@ export class SpSystemTrace extends BaseElement {
     CpuStruct.hoverCpuStruct = undefined;
     CpuFreqStruct.hoverCpuFreqStruct = undefined;
     ThreadStruct.hoverThreadStruct = undefined;
+    ThreadSysCallStruct.hoverStruct = undefined;
     FuncStruct.hoverFuncStruct = undefined;
     ProcessMemStruct.hoverProcessMemStruct = undefined;
     HiPerfCpuStruct.hoverStruct = undefined;
@@ -1412,6 +1414,7 @@ export class SpSystemTrace extends BaseElement {
     CpuFreqStruct.selectCpuFreqStruct = undefined;
     ThreadStruct.selectThreadStruct = undefined;
     ThreadStruct.isClickPrio = false;
+    ThreadSysCallStruct.selectStruct = undefined;
     FuncStruct.selectFuncStruct = undefined;
     SpHiPerf.selectCpuStruct = undefined;
     CpuStateStruct.selectStateStruct = undefined;

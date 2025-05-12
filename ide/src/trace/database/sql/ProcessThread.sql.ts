@@ -604,6 +604,108 @@ WHERE
     )`
   );
 
+export const querySysCallThreadIds = (traceId?: string): Promise<Array<{ pid: number, tid: number, itid: number, ipid: number }>> =>
+  query(
+    'querySysCallThreadIds',
+    `SELECT tid, pid, itid, thread.ipid
+FROM
+    thread left join process on thread.ipid = process.ipid 
+WHERE
+    itid IN (SELECT DISTINCT( itid ) FROM syscall )
+    `,
+    {},
+    { traceId: traceId}
+  );
+
+export const querySysCallEventDetail = 
+(itid: number, startTs: number, dur: number, traceId?: string): Promise<Array<{tid: number, pid: number, 
+  tName: string, pName: string, args: string, ret: number}>> => 
+  query(
+    'querySysCallEventDetail',
+    `SELECT tid, thread.name as tName, pid, process.name as pName, args, ret 
+FROM
+  (select * from syscall where itid= ${itid} and ts = ${startTs} and dur = ${dur}) A
+  left join thread on A.itid = thread.itid 
+  left join process on thread.ipid = process.ipid 
+    `,
+    {},
+    { traceId: traceId}
+  );
+
+export const querySysCallEventWithBoxSelect = 
+(ipidArr: Array<number>, itidArr: Array<number>, leftNs: number, rightNs: number): Promise<Array<{
+  pName: string,
+  tName: string,
+  pid: number,
+  tid: number,
+  nameId: number,
+  sumDur: number,
+  totalCount: number
+}>> => 
+  query(
+    'querySysCallEventWithBoxSelect',
+    `select ifnull(process.name, 'Process') as pName, 
+	   ifnull(thread.name, 'Thread') as tName,
+	   process.pid,
+	   thread.tid,
+	   A.nameId,
+	   A.sumDur,
+	   A.totalCount 
+from (
+select itid, syscall_number as nameId, sum(dur) as sumDur, count(1) as totalCount
+from syscall
+where 
+  ${itidArr.length > 0 ? 'itid in (' + itidArr.join(',') + ')' : '1 = 1'}
+  and not ((ts - ${window.recordStartNS} + ifnull(dur,0) < ${leftNs}) or (ts - ${window.recordStartNS} > ${rightNs}))
+group by itid, syscall_number 
+) as A
+left join thread on A.itid = thread.itid
+left join process on thread.ipid = process.ipid  
+where
+  ${ipidArr.length > 0 ? 'thread.ipid in (' + ipidArr.join(',') + ')' : '1 = 1'}
+    `,
+    {}
+  );
+
+  export const querySysCallEventWithRange = 
+(ipidArr: Array<number>, itidArr: Array<number>, leftNs: number, rightNs: number, sysCallId?: number): Promise<Array<{
+  pName: string,
+  tName: string,
+  pid: number,
+  tid: number,
+  nameId: number,
+  startTs: number,
+  dur: number,
+  args: string,
+  ret: number,
+}>> => 
+  query(
+    'querySysCallEventWithRange',
+    `select ifnull(process.name, 'Process') as pName, 
+	   ifnull(thread.name, 'Thread') as tName,
+	   process.pid,
+	   thread.tid,
+	   A.nameId,
+	   A.startTs,
+	   A.dur,
+	   A.args,
+	   A.ret
+from (
+	select itid, syscall_number as nameId, (ts - ${window.recordStartNS}) as startTs, dur, args, ret
+	from syscall
+	where 
+		${itidArr.length > 0 ? 'itid in (' + itidArr.join(',') + ')' : '1 = 1'}
+		and ${sysCallId !== undefined ? 'syscall_number = ' + sysCallId : '1 = 1'  }
+		and not ((ts - ${window.recordStartNS} + ifnull(dur,0) < ${leftNs}) or (ts - ${window.recordStartNS} > ${rightNs}))
+	) as A
+	left join thread on A.itid = thread.itid
+	left join process on thread.ipid = process.ipid  
+where
+  ${ipidArr.length > 0 ? 'thread.ipid in (' + ipidArr.join(',') + ')' : '1 = 1'}
+    `,
+    {}
+  );
+
 export const queryProcessContentCount = (traceId?: string): Promise<Array<unknown>> =>
   query(
     `queryProcessContentCount`,
