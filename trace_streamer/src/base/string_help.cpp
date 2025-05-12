@@ -44,19 +44,21 @@ bool EndWith(const std::string &str, const std::string &res)
     return str.compare(str.size() - res.size(), res.size(), res) == 0;
 }
 
-std::vector<std::string> SplitStringToVec(const std::string &str, const std::string &pat)
+std::vector<std::string> SplitStringToVec(const std::string &str, const std::string &pat, uint32_t expectedCount)
 {
     std::vector<std::string> result;
     size_t curPos = 0;
     size_t strSize = str.size();
     size_t patSize = pat.size();
+    uint32_t endFlag = 0;
     while (curPos < strSize) {
         auto patPos = str.find(pat, curPos);
-        if (patPos == std::string::npos) {
+        if (patPos == std::string::npos || endFlag == expectedCount) {
             break;
         }
         result.emplace_back(str.substr(curPos, patPos - curPos));
         curPos = patPos + patSize;
+        endFlag++;
     }
     if (curPos < strSize) {
         result.emplace_back(str.substr(curPos));

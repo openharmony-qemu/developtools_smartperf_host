@@ -90,7 +90,11 @@ public:
           args_(point.args_),
           funcPrefixId_(point.funcPrefixId_),
           funcPrefix_(point.funcPrefix_),
-          funcArgs_(point.funcArgs_)
+          funcArgs_(point.funcArgs_),
+          traceLevel_(point.traceLevel_),
+          traceTagId_(point.traceTagId_),
+          customCategoryId_(point.customCategoryId_),
+          customArgsId_(point.customArgsId_)
     {
     }
     void operator=(const TracePoint &point)
@@ -108,6 +112,10 @@ public:
         funcPrefixId_ = point.funcPrefixId_;
         funcPrefix_ = point.funcPrefix_;
         funcArgs_ = point.funcArgs_;
+        traceLevel_ = point.traceLevel_;
+        traceTagId_ = point.traceTagId_;
+        customCategoryId_ = point.customCategoryId_;
+        customArgsId_ = point.customArgsId_;
     }
     char phase_ = '\0';
     uint32_t tgid_ = 0;
@@ -123,6 +131,10 @@ public:
     uint32_t funcPrefixId_ = 0;
     std::string funcPrefix_ = "";
     std::string funcArgs_ = "";
+    std::string traceLevel_ = "";
+    DataIndex traceTagId_ = INVALID_UINT64;
+    DataIndex customCategoryId_ = INVALID_UINT64;
+    DataIndex customArgsId_ = INVALID_UINT64;
 };
 
 enum class SplitDataDataType { SPLIT_FILE_DATA = 0, SPLIT_FILE_JSON };
