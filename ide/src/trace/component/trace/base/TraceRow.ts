@@ -79,6 +79,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_APP_STARTUP = 'app-startup';
   static ROW_TYPE_STATIC_INIT = 'static-init';
   static ROW_TYPE_THREAD = 'thread';
+  static ROW_TYPE_THREAD_SYS_CALL = 'thread-sys-call';
   static ROW_TYPE_THREAD_NAME = 'sameThread_process';
   static ROW_TYPE_MEM = 'mem';
   static ROW_TYPE_VIRTUAL_MEMORY_GROUP = 'virtual-memory-group';
@@ -354,12 +355,21 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   }
 
   set rowDiscard(value: boolean) {
+    let height = 0;
     if (value) {
       this.setAttribute('row-discard', '');
       this.style.display = 'none';
+      height = 0;
     } else {
       this.removeAttribute('row-discard');
       this.style.display = 'block';
+      height = this.clientHeight;
+    }
+    if (this.collect) {
+      window.publish(window.SmartEvent.UI.RowHeightChange, {
+        expand: this.funcExpand,
+        value: height,
+      });
     }
   }
 
@@ -656,7 +666,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   }
 
   // @ts-ignore
-  addChildTraceRowAfter(child: TraceRow<unknown>, targetRow: TraceRow<unknown>): void {
+  addChildTraceRowAfter(child: TraceRow<unknown>, targetRow: TraceRow<unknown>, hidden: boolean = false): void {
     // @ts-ignore
     TraceRowConfig.allTraceRowList.push(child);
     child.parentRowEl = this;
@@ -665,11 +675,11 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     child.setAttribute('scene', '');
     if (index !== -1) {
       this.childrenList.splice(index + 1, 0, child);
-      child.rowHidden = false;
+      child.rowHidden = hidden;
       this.fragment.insertBefore(child, this.fragment.childNodes.item(index + 1));
     } else {
       this.childrenList.push(child);
-      child.rowHidden = false;
+      child.rowHidden = hidden;
       this.fragment.append(child);
     }
   }
@@ -1022,21 +1032,23 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     this.describeEl?.appendChild(this.rowCheckFilePop);
   }
 
-  addRowSettingCheckBox(): void {
+  addRowSettingCheckBox(appendAll: boolean = true): void {
     let nameEl = this.shadowRoot && (this.shadowRoot.querySelector('.name') as HTMLLabelElement);
     nameEl && (nameEl.style.maxWidth = '160px');
     let collectEl = (this.shadowRoot && this.shadowRoot.querySelector('.collect') as LitIcon);
     collectEl && (collectEl.style.marginRight = '20px');
     this.rowSettingCheckBoxPop = document.createElement('lit-popover') as LitPopover;
     let checkboxHtml = '';
-    checkboxHtml += `<div class="checkboxAll" style="margin-bottom: 2px;">
+    if (appendAll) {
+      checkboxHtml += `<div class="checkboxAll" style="margin-bottom: 2px;">
         <lit-check-box class="lit-checkbox" value="All" checked></lit-check-box></div>`;
+    }
     this._rowSettingCheckBoxList && this._rowSettingCheckBoxList.forEach((item) => {
       checkboxHtml += `<div class="checkboxItem" style="margin-bottom: 2px;">
-      <lit-check-box class="lit-checkbox" checked style="margin-left: 20px;" not-close value="${item}"></lit-check-box>
+      <lit-check-box class="lit-checkbox" ${ appendAll ? 'checked' : '' } style="margin-left: ${appendAll ? 20 : 5}px;" not-close value="${item}"></lit-check-box>
       </div>`;
     });
-    this._rowSettingCheckedBoxList = new Array(this._rowSettingCheckBoxList?.length).fill(true);
+    this._rowSettingCheckedBoxList = new Array(this._rowSettingCheckBoxList?.length).fill(appendAll);
     this.rowSettingCheckBoxPop.innerHTML = `<div slot="content" id="settingList"
       style="display: block;height: auto;max-height:200px;overflow-y:auto">
       ${checkboxHtml} </div>
@@ -1048,21 +1060,25 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       item.onchange = (e: unknown): void => {
         // @ts-ignore
         this._rowSettingCheckedBoxList[this._rowSettingCheckBoxList?.indexOf(item.value)] = item.checked;
-        const allChecked = this._rowSettingCheckedBoxList!.every(item => item);
-        allCheckBox.checked = allChecked;
+        if (appendAll) {
+          const allChecked = this._rowSettingCheckedBoxList!.every(item => item);
+          allCheckBox.checked = allChecked;
+        }
         this.onRowSettingCheckBoxChangeHandler?.(this._rowSettingCheckedBoxList!);
       };
     });
-    allCheckBox.onchange = (e: unknown): void => {
-      checkBoxItems.forEach(item => {
-        // @ts-ignore
-        item.checked = allCheckBox.checked;
-      });
-      this._rowSettingCheckedBoxList!.forEach((_, index) => {
-        this._rowSettingCheckedBoxList![index] = allCheckBox.checked;
-      });
-      this.onRowSettingCheckBoxChangeHandler?.(this._rowSettingCheckedBoxList!);
-    };
+    if (appendAll) {
+      allCheckBox.onchange = (e: unknown): void => {
+        checkBoxItems.forEach(item => {
+          // @ts-ignore
+          item.checked = allCheckBox.checked;
+        });
+        this._rowSettingCheckedBoxList!.forEach((_, index) => {
+          this._rowSettingCheckedBoxList![index] = allCheckBox.checked;
+        });
+        this.onRowSettingCheckBoxChangeHandler?.(this._rowSettingCheckedBoxList!);
+      };
+    }
     this.rowSettingCheckBoxPop.id = 'rowSetting';
     this.rowSettingCheckBoxPop.className = 'popover setting';
     this.rowSettingCheckBoxPop.setAttribute('placement', 'bottomLeft');
@@ -1120,6 +1136,14 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
       return this.rowSettingTree!.getCheckdKeys();
     }
     return [];
+  }
+
+  getRowSettingCheckStateByKey(key: string): boolean {
+    const index = this._rowSettingCheckBoxList?.indexOf(key);
+    if (index != undefined) {
+      return this._rowSettingCheckedBoxList?.[index] === true;
+    }
+    return false;
   }
 
   //@ts-ignore
@@ -1388,6 +1412,10 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
     if (this.tipEL) {
       this.tipEL.style.display = 'none';
     }
+    if (this.rowSettingCheckBoxPop) {
+      //@ts-ignore
+      this.rowSettingCheckBoxPop.visible = false;
+    }
   }
 
   loadingPin1: number = 0;
@@ -1395,7 +1423,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static currentActiveRows: Array<string> = [];
 
   drawFrame(): void {
-    if (!this.hasAttribute('row-hidden')) {
+    if (!this.hasAttribute('row-hidden') && !this.hasAttribute('row-discard')) {
       if (!this.loadingFrame || window.isLastFrame || !this.isComplete) {
         if (this.needRefresh || window.isLastFrame) {
           this.loadingFrame = true;

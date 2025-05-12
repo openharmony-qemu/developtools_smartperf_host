@@ -24,6 +24,7 @@
 #include "process_filter.h"
 #include "slice_filter.h"
 #include "stat_filter.h"
+#include "syscall_filter.h"
 #include "string_to_numerical.h"
 #include "thread_state_flag.h"
 #include "ts_common.h"
@@ -71,6 +72,10 @@ BytraceEventParser::BytraceEventParser(TraceDataCache *dataCache, const TraceStr
          bind(&BytraceEventParser::IpiEntryEvent, this, std::placeholders::_1, std::placeholders::_2)},
         {config_.eventNameMap_.at(TRACE_EVENT_IPI_EXIT),
          bind(&BytraceEventParser::IpiExitEvent, this, std::placeholders::_1, std::placeholders::_2)},
+        {config_.eventNameMap_.at(TRACE_EVENT_SYS_ENTRY),
+         bind(&BytraceEventParser::SysEnterEvent, this, std::placeholders::_1, std::placeholders::_2)},
+        {config_.eventNameMap_.at(TRACE_EVENT_SYS_EXIT),
+         bind(&BytraceEventParser::SysExitEvent, this, std::placeholders::_1, std::placeholders::_2)},
     };
     InterruptEventInitialization();
     ClockEventInitialization();
@@ -186,6 +191,72 @@ void BytraceEventParser::StackEventsInitialization()
     eventToFunctionMap_.emplace(
         config_.eventNameMap_.at(TRACE_EVENT_WORKQUEUE_EXECUTE_END),
         bind(&BytraceEventParser::WorkqueueExecuteEndEvent, this, std::placeholders::_1, std::placeholders::_2));
+}
+
+bool BytraceEventParser::SysEnterEvent(const ArgsMap &args, const BytraceLine &line)
+{
+    Unused(args);
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SYS_ENTRY, STAT_EVENT_RECEIVED);
+    std::string sysEnterStr = base::Strip(line.argsStr);
+    if (sysEnterStr.empty()) {
+        TS_LOGD("SysEnterEvent: Empty args string for sysEnterStr, skipping.");
+        return true;
+    }
+
+    auto firstSpacePos = sysEnterStr.find(" ");
+    if (firstSpacePos == std::string::npos) {
+        TS_LOGD("SysEnterEvent: No space found in sysEnterStr: '%s', skipping.", sysEnterStr.c_str());
+        return true;
+    }
+
+    // eg:NR 240 (f73bfb0c, 80, 2, f73bfab8, 5f5d907, 0)
+    DataIndex argsDataIndex = INVALID_UINT64;
+    auto secondSpacePos = sysEnterStr.find(" ", firstSpacePos + 1);
+    if (secondSpacePos != std::string::npos) {
+        std::string argsStr = sysEnterStr.substr(secondSpacePos + 1);
+        argsDataIndex = traceDataCache_->GetDataIndex(argsStr);
+    } else {
+        secondSpacePos = sysEnterStr.length();
+    }
+
+    uint32_t syscallNumber = std::atoi(sysEnterStr.substr(firstSpacePos, secondSpacePos).c_str());
+    SyscallInfoRow syscallInfoRow;
+    syscallInfoRow.ts = line.ts;
+    syscallInfoRow.itid = line.pid;
+    syscallInfoRow.args = argsDataIndex;
+    syscallInfoRow.number = syscallNumber;
+    streamFilters_->syscallFilter_->UpdataSyscallEnterExitMap(syscallInfoRow);
+    return true;
+}
+
+bool BytraceEventParser::SysExitEvent(const ArgsMap &args, const BytraceLine &line)
+{
+    Unused(args);
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SYS_EXIT, STAT_EVENT_RECEIVED);
+    std::string sysExitStr = base::Strip(line.argsStr);
+    if (sysExitStr.empty()) {
+        TS_LOGD("SysExitEvent: Empty args string for sysExitStr, skipping.");
+        return true;
+    }
+
+    auto firstSpacePos = sysExitStr.find(" ");
+    if (firstSpacePos == std::string::npos) {
+        TS_LOGD("SysExitEvent: No space found in sysExitStr: '%s', skipping.", sysExitStr.c_str());
+        return true;
+    }
+
+    // eg:NR 85 = -22
+    int64_t ret = INVALID_INT64;
+    auto secondSpacePos = sysExitStr.find("= ");
+    if (secondSpacePos != std::string::npos) {
+        ret = std::atoi(sysExitStr.substr(secondSpacePos + 2).c_str());
+    } else {
+        secondSpacePos = sysExitStr.length();
+    }
+
+    uint32_t sysExitId = std::atoi(sysExitStr.substr(firstSpacePos, secondSpacePos).c_str());
+    streamFilters_->syscallFilter_->AppendSysCallInfo(line.pid, sysExitId, line.ts, ret);
+    return true;
 }
 
 bool BytraceEventParser::SchedSwitchEvent(const ArgsMap &args, const BytraceLine &line) const

@@ -31,6 +31,7 @@
 #include "process_filter.h"
 #include "slice_filter.h"
 #include "stat_filter.h"
+#include "syscall_filter.h"
 #include "system_event_measure_filter.h"
 #include "task_pool_filter.h"
 
@@ -45,6 +46,7 @@ void TraceStreamerFilters::FilterClear()
     cpuFilter_->Clear();
     irqFilter_->Clear();
     frameFilter_->Clear();
+    syscallFilter_->Clear();
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

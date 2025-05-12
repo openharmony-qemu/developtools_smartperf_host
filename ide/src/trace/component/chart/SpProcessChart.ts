@@ -29,6 +29,7 @@ import { SoRender, SoStruct } from '../../database/ui-worker/ProcedureWorkerSoIn
 import { FlagsConfig } from '../SpFlags';
 import { processDataSender } from '../../database/data-trafic/process/ProcessDataSender';
 import { threadDataSender } from '../../database/data-trafic/process/ThreadDataSender';
+import { threadSysCallDataSender } from '../../database/data-trafic/process/ThreadSysCallDataSender';
 import { funcDataSender } from '../../database/data-trafic/process/FuncDataSender';
 import { processMemDataSender } from '../../database/data-trafic/process/ProcessMemDataSender';
 import { processStartupDataSender } from '../../database/data-trafic/process/ProcessStartupDataSender';
@@ -43,6 +44,7 @@ import { queryAllSoInitNames, queryAllSrcSlices, queryEventCountMap, queryCallst
 import {
   queryProcessByTable,
   queryProcessContentCount,
+  querySysCallThreadIds,
   queryProcessMem,
   queryProcessSoMaxDepth,
   queryProcessThreadsByTable,
@@ -53,13 +55,13 @@ import {
 } from '../../database/sql/ProcessThread.sql';
 import { queryAllJankProcess } from '../../database/sql/Janks.sql';
 import { BaseStruct } from '../../bean/BaseStruct';
-import { promises } from 'dns';
 import { HangStruct } from '../../database/ui-worker/ProcedureWorkerHang';
 import { hangDataSender } from '../../database/data-trafic/HangDataSender';
 import { SpHangChart } from './SpHangChart';
 import { queryHangData } from '../../database/sql/Hang.sql';
 import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
+import { ThreadSysCallStruct } from '../../database/ui-worker/ProcedureWorkerThreadSysCall';
 
 const FOLD_HEIGHT = 24;
 export class SpProcessChart {
@@ -482,6 +484,12 @@ export class SpProcessChart {
     });
     info('convert tid and maxDepth array to map');
     let pidCountArray = await queryProcessContentCount(traceId);
+    info('fetch syscall event tid');
+    let sysCallTidArray = await querySysCallThreadIds(traceId);
+    Utils.getInstance().sysCallEventTidsMap.clear();
+    sysCallTidArray.forEach((it) => {
+      Utils.getInstance().sysCallEventTidsMap.set(it.tid, it);
+    });
     info('fetch per process  pid,switch_count,thread_count,slice_count,mem_count');
     pidCountArray.forEach((it) => {
       //@ts-ignore
@@ -612,6 +620,7 @@ export class SpProcessChart {
     processRow.rowType = TraceRow.ROW_TYPE_PROCESS;
     processRow.rowParentId = '';
     processRow.style.height = '40px';
+    this.processRowSettingConfig(processRow);
     processRow.folder = true;
     if (
       //@ts-ignore
@@ -642,6 +651,20 @@ export class SpProcessChart {
       this.trace
     );
     return processRow;
+  }
+
+  processRowSettingConfig(row: TraceRow<ProcessStruct>): void {
+    row.rowSettingCheckBoxList = ['SysCall Event'];
+    row.addRowSettingCheckBox(false);
+    row.rowSetting = 'enable';
+    row.rowSettingPopoverDirection = 'bottomLeft';
+    row.onRowSettingCheckBoxChangeHandler = (value): void => {
+      row.childrenList.forEach((childRow) => {
+        if (childRow.rowType === TraceRow.ROW_TYPE_THREAD_SYS_CALL) {
+          childRow.rowDiscard = !row.getRowSettingCheckStateByKey('SysCall Event');
+        }
+      })
+    };
   }
 
   addProcessRowListener(processRow: TraceRow<ProcessStruct>, actualRow: TraceRow<JankStruct> | null): void {
@@ -991,6 +1014,58 @@ export class SpProcessChart {
     return null;
   }
 
+  addThreadSysCallRow(
+    data: {
+      pid: number | null;
+      processName: string | null;
+    },
+    processRow: TraceRow<ProcessStruct>,
+    threadRow: TraceRow<ThreadStruct>,
+    thread: unknown
+  ): TraceRow<ThreadSysCallStruct> | null {
+      //@ts-ignore
+      const ids = Utils.getInstance().sysCallEventTidsMap.get(thread.tid);
+      if (ids) {
+        const threadSysCallRow = TraceRow.skeleton<ThreadSysCallStruct>();
+        threadSysCallRow.rowType = TraceRow.ROW_TYPE_THREAD_SYS_CALL;
+        threadSysCallRow.rowId = `${data.pid}-${ids.itid}-syscall`;
+        threadSysCallRow.rowParentId = `${data.pid}`;
+        threadSysCallRow.rowHidden = !processRow.expansion;
+        threadSysCallRow.style.width = '100%';
+        threadSysCallRow.name = `syscall event ${ids.tid}`;
+        threadSysCallRow.addTemplateTypes('SysCallEvent');
+        threadSysCallRow.setAttribute('children', '');
+        threadSysCallRow.supplierFrame = async (): Promise<ThreadSysCallStruct[]> => {
+          let promiseData = threadSysCallDataSender(ids.itid!, ids.tid!, data.pid!, threadSysCallRow);
+            if (promiseData === null) {
+              return new Promise<Array<ThreadSysCallStruct>>((resolve) => resolve([]));
+            } else {
+              return promiseData.then();
+            }
+        };
+        threadSysCallRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+        threadSysCallRow.selectChangeHandler = this.trace.selectChangeHandler;
+        threadSysCallRow.findHoverStruct = (): void => {
+          ThreadSysCallStruct.hoverStruct = threadSysCallRow.getHoverStruct();
+        };
+        threadSysCallRow.onThreadHandler = rowThreadHandler<ThreadSysCallStruct>(
+          'threadSysCall',
+          'context',
+          {
+            type: threadSysCallRow.rowId,
+            translateY: threadSysCallRow.translateY,
+          },
+          threadSysCallRow,
+          this.trace
+        );
+        threadSysCallRow.rowDiscard = true;
+        processRow.addChildTraceRowAfter(threadSysCallRow, threadRow);
+        return threadSysCallRow;
+      }
+      return null;
+  }
+
+
   jankSenderCallback(
     res: JankStruct[],
     type: string,
@@ -1336,6 +1411,7 @@ export class SpProcessChart {
       // @ts-ignore
       this.insertRowToDoc(it, j, thread, pRow, tRow, list, tRowArr, actualRow, expectedRow, hangRow, startupRow, soRow);
       this.addFuncStackRow(it, thread, j, list, tRowArr, tRow, pRow);
+      this.addThreadSysCallRow(it, pRow, tRow, thread);
       // @ts-ignore
       if ((thread.switchCount || 0) === 0) {
         tRow.rowDiscard = true;

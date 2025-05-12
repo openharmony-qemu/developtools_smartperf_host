@@ -51,6 +51,7 @@ import {
   queryDistributedRelationAllData,
   queryRWakeUpFrom,
   queryRunnableTimeByRunning,
+  querySysCallEventDetail,
   queryThreadStateArgs,
   queryThreadWakeUp,
   queryThreadWakeUpFrom,
@@ -70,6 +71,7 @@ import { XpowerAppDetailStruct } from '../../../database/ui-worker/ProcedureWork
 import { XpowerWifiStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerWifi';
 import { XpowerThreadCountStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerThreadCount';
 import { XpowerGpuFreqCountStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerGpuFreqCount';
+import { ThreadSysCallStruct } from '../../../database/ui-worker/ProcedureWorkerThreadSysCall';
 
 const INPUT_WORD =
   'This is the interval from when the task became eligible to run \n(e.g.because of notifying a wait queue it was a suspended on) to\n when it started running.';
@@ -1215,6 +1217,35 @@ export class TabPaneCurrentSelection extends BaseElement {
       }
       this.currentSelectionTbl!.dataSource = list;
     });
+  }
+
+  async setSysCallData(data: ThreadSysCallStruct) {
+    this.setTableHeight('350px');
+    this.initCanvas();
+    let leftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#leftTitle');
+    this.setTitleAndButtonStyle();
+    if (leftTitle) {
+      leftTitle.innerText = 'SysCall Event';
+    }
+    let list: unknown[] = [];
+    list.push({ name: 'Name', value: `${data.name} [${data.id}]` });
+    list.push({
+      name: 'StartTime(Relative)',
+      value: getTimeString(data.startTs || 0),
+    });
+    list.push({
+      name: 'StartTime(Absolute)',
+      value: ((data.startTs || 0) + Utils.getInstance().getRecordStartNS()) / 1000000000 + 's',
+    });
+    list.push({ name: 'Duration', value: getTimeString(data.dur || 0) });
+    const eventValue = await querySysCallEventDetail(data.itid!, data.startTs! + Utils.getInstance().getRecordStartNS(), data.dur!);
+    if (eventValue[0]) {
+      list.push({ name: 'Process', value: `${eventValue[0].pName} [${data.pid}]` });
+      list.push({ name: 'Thread', value: `${eventValue[0].tName} [${data.tid}]` });
+      list.push({ name: 'args', value: eventValue[0].args });
+      list.push({ name: 'ret', value: eventValue[0].ret });
+    }
+    this.currentSelectionTbl!.dataSource = list;
   }
 
   async setThreadData(

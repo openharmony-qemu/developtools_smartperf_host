@@ -63,6 +63,7 @@ import { XpowerGpuFreqStruct, XpowerGpuFreqStructOnClick } from '../database/ui-
 import { XpowerThreadCountStruct, XpowerThreadCountStructOnClick } from '../database/ui-worker/ProcedureWorkerXpowerThreadCount';
 import { XpowerGpuFreqCountStruct, XpowerGpuFreqCountStructOnClick } from '../database/ui-worker/ProcedureWorkerXpowerGpuFreqCount';
 import { SnapShotOnClick, SnapShotStruct } from '../database/ui-worker/ProcedureWorkerSnaps';
+import { ThreadSysCallStruct, ThreadSysCallStructOnClick } from '../database/ui-worker/ProcedureWorkerThreadSysCall';
 
 function timeoutJudge(sp: SpSystemTrace): number {
   let timeoutJudge = window.setTimeout((): void => {
@@ -421,6 +422,7 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
     .then(() => sampleStructOnClick(clickRowType, sp, row as TraceRow<SampleStruct>, entry as SampleStruct))
     .then(() => gpuCounterStructOnClick(clickRowType, sp, entry as GpuCounterStruct))
     .then(() => PerfToolsStructOnClick(clickRowType, sp, entry as PerfToolStruct))
+    .then(() => ThreadSysCallStructOnClick(clickRowType, sp, entry as ThreadSysCallStruct))
     .then(() => SnapShotOnClick(clickRowType, sp, entry as SnapShotStruct))
     .then(() => {
       if (!JankStruct.hoverJankStruct && JankStruct.delJankLineFlag) {
@@ -578,7 +580,8 @@ function spSystemTraceDocumentOnMouseMoveMouseUp(
     sp.hoverStructNull();
   }
   const transformYMatch = sp.canvasPanel?.style.transform.match(/\((\d+)[^\)]+\)/);
-  const transformY = transformYMatch![1];
+  if (transformYMatch && transformYMatch![1]) {
+    const transformY = transformYMatch![1];
   let favoriteHeight = sp.favoriteChartListEL!.getBoundingClientRect().height;
   // @ts-ignore
   let memTr = rows.filter((item: unknown) => item.rowType === TraceRow.ROW_TYPE_MEM);
@@ -611,6 +614,7 @@ function spSystemTraceDocumentOnMouseMoveMouseUp(
       tr.findHoverStruct?.();
       tr.focusHandler?.(ev);
     });
+  }
   requestAnimationFrame(() => sp.refreshCanvas(true, 'sp move up'));
 }
 

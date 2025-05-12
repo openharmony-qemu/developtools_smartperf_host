@@ -91,6 +91,7 @@ ohos_source_set("filter") {
     "process_filter.cpp",
     "slice_filter.cpp",
     "stat_filter.cpp",
+    "syscall_filter.cpp",
     "system_event_measure_filter.cpp",
     "task_pool_filter.cpp",
   ]

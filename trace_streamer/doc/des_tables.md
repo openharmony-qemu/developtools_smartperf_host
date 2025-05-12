@@ -1479,19 +1479,21 @@ source_arg_set_id: 同一个source_arg_set_id代表一组数据，一般取得�
 #### 表结构
 | Columns Name | SQL TYPE |
 |----          |----      |
-|syscall_num   |INT       |
-|type          |TEXT      |
-|ipid          |INT       |
+|syscall_number|INT       |
 |ts            |INT       |
+|dur           |INT       |
+|itid          |INT       |
+|args          |TEXT      |
 |ret           |INT       |
 #### 表描述
 记录用户空间函数与内核空间函数相互调用记录。
 #### 相关字段描述
-- syscall_num：系统调用的序号  
-- type：固定取值：enter或者exit  
-- ipid：线程所属的进程ID  
-- ts：时间戳  
-- ret：返回值，在type为exit时有效
+- syscall_number：系统调用的序号
+- ts：时间戳
+- dur：持续时间，记录系统调用的执行时间
+- itid: 记录发起调用的线程
+- args: 参数，记录系统调用的参数信息
+- ret：返回值，记录系统调用的返回结果
 
 ### sys_event_filter表
 #### 表结构
