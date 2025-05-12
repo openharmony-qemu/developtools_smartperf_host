@@ -81,7 +81,7 @@ ohos_source_set("trace_data") {
     "${THIRD_PARTY}/protobuf/src",
     "${THIRD_PARTY}/bounds_checking_function/include",
     "${THIRD_PARTY}/json/single_include/nlohmann",
-    "${THIRD_PARTY}/perf_include/hiviewdfx/faultloggerd/interfaces/nonlinux",
+    "${THIRD_PARTY}/hiviewdfx/faultloggerd/interfaces/nonlinux",
     "${SRC}/trace_data/trace_stdtype",
     "${SRC}/trace_data/trace_stdtype/ftrace",
     "${SRC}/trace_data/trace_stdtype/ftrace/template",

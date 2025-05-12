@@ -17,6 +17,7 @@ function help() {
     echo "Usage: $1 [linux/wasm/windows/macx] [debug] [-e <plugin1...>] [-d <plugin1...>]"
     echo "      -e <plugin1,plugin2,plugin3...>, enable the default plugins."
     echo "      -d <plugin1,plugin2,plugin3...>, enable the extend plugins."
+    echo "      -m <macro1,macro2,macro3...>, enable the macro plugins."
     echo "      -l Show the all plugin list."
     echo "      -h Show the help info."
     exit

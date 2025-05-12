@@ -683,17 +683,17 @@ void PerfDataParser::UpdateClockType()
         TS_LOGI("useClockId_ = %u, clockId_ = %u", useClockId_, clockId_);
     }
 }
-bool PerfDataParser::RecordCallBack(std::unique_ptr<PerfEventRecord> record)
+bool PerfDataParser::RecordCallBack(PerfEventRecord &record)
 {
     // tell process tree what happend for rebuild symbols
-    report_->virtualRuntime_.UpdateFromRecord(*record);
+    report_->virtualRuntime_.UpdateFromRecord(record);
 
-    if (record->GetType() == PERF_RECORD_SAMPLE) {
-        std::unique_ptr<PerfRecordSample> sample(static_cast<PerfRecordSample *>(record.release()));
+    if (record.GetType() == PERF_RECORD_SAMPLE) {
+        auto *sample = static_cast<PerfRecordSample *>(&record);
         uint32_t callChainId = UpdateCallChainUnCompressed(sample);
         UpdatePerfSampleData(callChainId, sample);
-    } else if (record->GetType() == PERF_RECORD_COMM) {
-        auto recordComm = static_cast<PerfRecordComm *>(record.get());
+    } else if (record.GetType() == PERF_RECORD_COMM) {
+        auto recordComm = static_cast<PerfRecordComm *>(&record);
         auto range = tidToPid_.equal_range(recordComm->data_.tid);
         for (auto it = range.first; it != range.second; it++) {
             if (it->second == recordComm->data_.pid) {
@@ -708,7 +708,7 @@ bool PerfDataParser::RecordCallBack(std::unique_ptr<PerfEventRecord> record)
     return true;
 }
 
-uint32_t PerfDataParser::UpdateCallChainUnCompressed(const std::unique_ptr<PerfRecordSample> &sample)
+uint32_t PerfDataParser::UpdateCallChainUnCompressed(const PerfRecordSample *sample)
 {
     std::string stackStr = "";
     for (auto &callFrame : sample->callFrames_) {
@@ -723,7 +723,7 @@ uint32_t PerfDataParser::UpdateCallChainUnCompressed(const std::unique_ptr<PerfR
     callChainId = ++callChainId_;
     pidAndStackHashToCallChainId_.Insert(pid, stackHash, callChainId);
     callChainIdToThreadInfo_.insert({callChainId, std::make_tuple(pid, sample->data_.tid)});
-    uint32_t depth = 0;
+uint32_t depth = 0;
     for (auto frame = sample->callFrames_.rbegin(); frame != sample->callFrames_.rend(); ++frame) {
         uint64_t fileId = INVALID_UINT64;
         auto fileDataIndex = traceDataCache_->dataDict_.GetStringIndex(frame->mapName);
@@ -737,7 +737,7 @@ uint32_t PerfDataParser::UpdateCallChainUnCompressed(const std::unique_ptr<PerfR
     return callChainId;
 }
 
-void PerfDataParser::UpdatePerfSampleData(uint32_t callChainId, std::unique_ptr<PerfRecordSample> &sample)
+void PerfDataParser::UpdatePerfSampleData(uint32_t callChainId, const PerfRecordSample *sample)
 {
     auto perfSampleData = traceDataCache_->GetPerfSampleData();
     uint64_t newTimeStamp = 0;

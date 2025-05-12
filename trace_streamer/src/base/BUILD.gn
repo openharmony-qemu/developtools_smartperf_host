@@ -17,7 +17,7 @@ ohos_source_set("base") {
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
   part_name = "${OHOS_PROFILER_PART_NAME}"
   public_deps = [
-    "${THIRD_PARTY}/zlib:libz",
+    "../parser/hiperf_parser:libz",
     "sqlite_ext:sqliteext",
   ]
   include_dirs = [

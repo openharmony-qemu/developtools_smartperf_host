@@ -106,11 +106,10 @@ ohos_source_set("trace_streamer_source") {
     "filter:filter",
     "metrics:metrics_parser",
     "parser:parser",
+    "parser/hiperf_parser:libsec_static",
     "proto_reader:proto_reader",
     "table:table",
     "trace_data:trace_data",
-    "//third_party/bounds_checking_function:libsec_static",
-    "//third_party/perf_include/hiviewdfx:libfaultloggerd",
   ]
   public_configs = [ ":trace_streamer_cfg" ]
   public_deps = []
