@@ -152,14 +152,19 @@ export const queryProcessAsyncFunc = (
       P.pid,
       c.ts-${traceRange.startTs} as startTs,
       c.dur,
-      c.cat,
+      c.custom_category as category,
       c.id,
       c.depth,
       c.argsetid,
-      c.cookie
+      c.cookie,
+      c.trace_level,
+      c.trace_tag,
+      c.custom_args,
+      c.child_callid
     FROM
-      (SELECT id, ts, parent_id, dur, depth, argsetid, cookie, cat from callstack where cookie NOT NULL) c
-    LEFT JOIN thread A ON A.id = c.parent_id
+      (SELECT id, ts, parent_id, dur, depth, argsetid, cookie, custom_category, child_callid, trace_level,
+              trace_tag, custom_args from callstack where cookie NOT NULL) c
+    LEFT JOIN thread A ON A.id = c.child_callid
     LEFT JOIN process P ON P.id = A.ipid
     WHERE
       startTs NOT NULL;`,
@@ -179,21 +184,26 @@ export const queryProcessAsyncFuncCat = (
     select 
       A.tid,
       P.pid,   
-      c.cat as threadName,
+      c.custom_category as threadName,
       c.name as funName,
       c.ts-${traceRange.startTs} as startTs,
       c.dur,
       c.depth,
-      c.cookie
+      c.cookie,
+      c.trace_level,
+      c.trace_tag,
+      c.custom_args,
+      c.child_callid
     from 
-      (select callid, name, ts, dur, cat, depth, cookie, parent_id from callstack where cookie not null and cat not null and parent_id is null) C
+      (select callid, name, ts, dur, custom_category, depth, cookie, parent_id,trace_level,trace_tag,
+              custom_args,child_callid from callstack where cookie not null and custom_category not null and child_callid is null) c 
 		left join 
-      thread A on A.id = C.callid
+      thread A on A.id = c.callid
     left join 
       process P on P.id = A.ipid      
     where 
       startTs not null 
-    order by cat;
+    order by custom_category;
   `,
     {}
   );
@@ -590,6 +600,10 @@ export const querySearchFunc = (search: string): Promise<Array<SearchFuncBean>> 
           t.name as threadName,
           p.pid,
           c.argsetid,
+          c.trace_level,
+          c.trace_tag,
+          c.custom_args,
+          c.custom_category as category,
           'func' as type 
    from callstack c left join thread t on c.callid = t.id left join process p on t.ipid = p.id
    left join trace_range r 
@@ -613,6 +627,10 @@ export const querySearchFunc = (search: string): Promise<Array<SearchFuncBean>> 
           t.name as threadName,
           p.pid,
           c.argsetid,
+          c.trace_level,
+          c.trace_tag,
+          c.custom_args,
+          c.custom_category as category,
           'func' as type 
    from callstack c left join thread t on c.callid = t.id left join process p on t.ipid = p.id
    left join trace_range r

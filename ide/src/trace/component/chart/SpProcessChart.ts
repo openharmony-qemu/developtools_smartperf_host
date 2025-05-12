@@ -40,7 +40,7 @@ import { processDeliverInputEventDataSender } from '../../database/data-trafic/p
 import { processTouchEventDispatchDataSender } from '../../database/data-trafic/process/ProcessTouchEventDispatchDataSender';
 import { getMaxDepthByTid, queryProcessAsyncFunc, queryProcessAsyncFuncCat } from '../../database/sql/Func.sql';
 import { queryMemFilterIdMaxValue, queryMemFilterIdMinValue } from '../../database/sql/Memory.sql';
-import { queryAllSoInitNames, queryAllSrcSlices, queryEventCountMap } from '../../database/sql/SqlLite.sql';
+import { queryAllSoInitNames, queryAllSrcSlices, queryEventCountMap, queryCallstackDetail } from '../../database/sql/SqlLite.sql';
 import {
   queryProcessByTable,
   queryProcessContentCount,
@@ -99,6 +99,7 @@ export class SpProcessChart {
   private traceId?: string | undefined;
   private parentRow: TraceRow<BaseStruct> | undefined;
   static asyncFuncCache: unknown[] = [];
+  private callStackDetail: Map<number, FuncStruct> = new Map();
   static threadStateList: Map<string, unknown> = new Map();
   static processRowSortMap: Map<string, unknown> = new Map();
   private sameThreadFolder!: TraceRow<ProcessStruct>;
@@ -129,6 +130,7 @@ export class SpProcessChart {
     this.distributedDataMap.clear();
     this.renderRow = null;
     SpProcessChart.asyncFuncCache = [];
+    this.callStackDetail.clear();
     if (this.parentRow) {
       this.parentRow.clearMemory();
       this.parentRow = undefined;
@@ -380,6 +382,7 @@ export class SpProcessChart {
         //@ts-ignore
         it.flag = 'Did not end';
       }
+      this.addCallStackDetail(it as FuncStruct)
       createDepth(0, i);
     });
     if (funcRow && !funcRow.isComplete) {
@@ -526,6 +529,13 @@ export class SpProcessChart {
         traceId: traceId!,
       });
     });
+    let callstackData: Array<FuncStruct> = await queryCallstackDetail();
+    for (let index = 0; index < callstackData.length; index++) {
+      const indexData = callstackData[index];
+      if (indexData && !this.callStackDetail.has(indexData.id!)) {
+        this.callStackDetail.set(indexData.id!, indexData);
+      }
+    }
     info('The amount of initialized process threads data is : ', this.processThreads!.length);
   }
 
@@ -1551,6 +1561,7 @@ export class SpProcessChart {
           funs[index].ipid = thread.upid;
           funs[index].tid = thread.tid;
           funs[index].pid = thread.pid;
+          this.addCallStackDetail(funs[index])
           funs[index].funName = this.traceId ? Utils.getInstance().getCallStatckMap().get(`${this.traceId}_${funs[index].id}`) : Utils.getInstance().getCallStatckMap().get(funs[index].id!);
           if (Utils.isBinder(fun)) {
           } else {
@@ -1756,18 +1767,18 @@ export class SpProcessChart {
     for (let i = 0; i < asyncFuncList.length; i++) {
       const el = asyncFuncList[i];
       // @ts-ignore
-      if (el.cat !== null) {
+      if (el.category !== null) {
         if (flag) {//business first
           asyncCatArr.push(el);
         } else {//thread first
           //@ts-ignore
-          if (asyncCatMap.has(`${el.cat}:${el.threadName} ${el.tid}`)) {
+          if (asyncCatMap.has(`${el.category}:${el.threadName} ${el.tid}`)) {
             //@ts-ignore
-            let item: Array<unknown> = asyncCatMap.get(`${el.cat}:${el.threadName} ${el.tid}`);
+            let item: Array<unknown> = asyncCatMap.get(`${el.category}:${el.threadName} ${el.tid}`);
             item.push(el);
           } else {
             //@ts-ignore
-            asyncCatMap.set(`${el.cat}:${el.threadName} ${el.tid}`, [el]);
+            asyncCatMap.set(`${el.category}:${el.threadName} ${el.tid}`, [el]);
           }
         }
       } else {
@@ -1775,7 +1786,7 @@ export class SpProcessChart {
         asyncRemoveCatArr.push(el);
       }
     }
-    asyncCat = flag ? Utils.groupBy(asyncCatArr, 'cat') : Object.fromEntries(asyncCatMap);
+    asyncCat = flag ? Utils.groupBy(asyncCatArr, 'category') : Object.fromEntries(asyncCatMap);
     return { asyncRemoveCatArr, asyncCat };
   }
   //处理cat字段为null的数据，按funname分类，分别按len>1和=1去处理
@@ -1919,6 +1930,16 @@ export class SpProcessChart {
       this.trace
     );
     processRow.addChildTraceRow(funcRow);
+  }
+
+   addCallStackDetail(item: FuncStruct): void {
+    if (this.callStackDetail.has(item.id!)) {
+      const data: FuncStruct | undefined = this.callStackDetail.get(item.id!);
+      item.custom_args =  data!.custom_args;
+      item.trace_level =  data!.trace_level;
+      item.trace_tag =  data!.trace_tag;
+      item.category =  data!.category;
+    }
   }
 
   addAsyncCatFunction(it: { pid: number; processName: string | null }, processRow: TraceRow<ProcessStruct>): void {

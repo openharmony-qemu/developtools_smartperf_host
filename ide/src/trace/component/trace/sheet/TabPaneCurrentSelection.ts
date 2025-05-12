@@ -475,6 +475,7 @@ export class TabPaneCurrentSelection extends BaseElement {
         }
         list.push(item);
       });
+      this.addTabSliceDetail(data, list)
       this.currentSelectionTbl!.dataSource = list;
       // @ts-ignore
       let startTimeAbsolute = (data.startTs || 0) + (window as unknown).recordStartNS;
@@ -496,6 +497,7 @@ export class TabPaneCurrentSelection extends BaseElement {
         name: 'Thread',
         value: (this.transferString(threadName ?? '') || 'NULL') + ' [' + dataTid + '] ',
       });
+      this.addTabSliceDetail(data, list)
       list.push({
         name: 'StartTime(Relative)',
         value: getTimeString(data.startTs || 0),
@@ -601,6 +603,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       argset.forEach((item) => {
         list.push({ name: item.keyName, value: item.strValue });
       });
+      this.addTabSliceDetail(data, list)
       this.addTabPanelContent(list, data, information);
       this.currentSelectionTbl!.dataSource = list;
     });
@@ -655,6 +658,7 @@ export class TabPaneCurrentSelection extends BaseElement {
         }
         );
       }
+      this.addTabSliceDetail(data, list)
       this.addTabPanelContent(list, data, information);
       this.currentSelectionTbl!.dataSource = list;
       let funcClick = this.currentSelectionTbl?.shadowRoot?.querySelector('#function-jump');
@@ -686,6 +690,21 @@ export class TabPaneCurrentSelection extends BaseElement {
         }
       });
     });
+  }
+
+  private addTabSliceDetail(data: FuncStruct, list: unknown[]) {
+    const properties = [
+      {key: 'trace_level', name: 'TraceLevel'},
+      {key: 'trace_tag', name: 'TraceTag'},
+      {key: 'category', name: 'Category'},
+      {key: 'custom_args', name: 'CustomArgs'},
+    ];
+    properties.forEach(prop => {
+      if (data[prop.key] && list !== undefined) {
+        list!.push({name: prop.name, value: data[prop.key]});
+      }
+    });
+    return list;
   }
 
   private handleAsyncBinder(
@@ -750,6 +769,7 @@ export class TabPaneCurrentSelection extends BaseElement {
           value: (this.transferString(threadName ?? '') || 'NULL') + ' [' + data.tid + '] ',
         });
       }
+      this.addTabSliceDetail(data, list)
       this.addTabPanelContent(list, data, information);
       this.currentSelectionTbl!.dataSource = list;
       let funcClick = this.currentSelectionTbl?.shadowRoot?.querySelector('#function-jump');
