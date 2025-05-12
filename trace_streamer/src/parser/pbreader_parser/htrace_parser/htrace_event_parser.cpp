@@ -39,6 +39,7 @@
 #include "signal.pbreader.h"
 #include "slice_filter.h"
 #include "stat_filter.h"
+#include "syscall_filter.h"
 #include "system_event_measure_filter.h"
 #include "task.pbreader.h"
 #include "thread_state_flag.h"
@@ -994,16 +995,18 @@ bool HtraceEventParser::SysEnterEvent(const EventInfo &event) const
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SYS_ENTRY, STAT_EVENT_RECEIVED);
     ProtoReader::SysEnterFormat_Reader msg(event.detail);
-    auto ipid = streamFilters_->processFilter_->UpdateOrCreateThread(event.timeStamp, event.tgid);
-    traceDataCache_->GetSysCallData()->AppendSysCallData(msg.id(), sysEnterName_, ipid, event.timeStamp, 0);
+    SyscallInfoRow syscallInfoRow;
+    syscallInfoRow.ts = event.timeStamp;
+    syscallInfoRow.itid = event.pid;
+    syscallInfoRow.number = msg.id();
+    streamFilters_->syscallFilter_->UpdataSyscallEnterExitMap(syscallInfoRow);
     return true;
 }
 bool HtraceEventParser::SysExitEvent(const EventInfo &event) const
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SYS_EXIT, STAT_EVENT_RECEIVED);
     ProtoReader::SysExitFormat_Reader msg(event.detail);
-    auto ipid = streamFilters_->processFilter_->UpdateOrCreateThread(event.timeStamp, event.tgid);
-    traceDataCache_->GetSysCallData()->AppendSysCallData(msg.id(), sysExitName_, ipid, event.timeStamp, msg.ret());
+    streamFilters_->syscallFilter_->AppendSysCallInfo(event.pid, msg.id(), event.timeStamp, msg.ret());
     return true;
 }
 

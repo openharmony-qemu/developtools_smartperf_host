@@ -17,15 +17,16 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-enum class Index : int32_t { SYSCALL_NUM = 0, TYPE, IPID, TS, RET };
+enum class Index : int32_t { SYSCALL_NUMBER, TS, DUR, ITID, ARGS, RET };
 SystemCallTable::SystemCallTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
-    tableColumn_.push_back(TableBase::ColumnInfo("syscall_num", "INTEGER"));
-    tableColumn_.push_back(TableBase::ColumnInfo("type", "TEXT"));
-    tableColumn_.push_back(TableBase::ColumnInfo("ipid", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("syscall_number", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("ts", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("dur", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("itid", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("args", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("ret", "INTEGER"));
-    tablePriKey_.push_back("syscall_num");
+    tablePriKey_.push_back("ts");
 }
 
 SystemCallTable::~SystemCallTable() {}
@@ -46,18 +47,20 @@ SystemCallTable::Cursor::~Cursor() {}
 int32_t SystemCallTable::Cursor::Column(int32_t column) const
 {
     switch (static_cast<Index>(column)) {
-        case Index::SYSCALL_NUM:
-            sqlite3_result_int64(context_, dataCache_->GetConstSysCallData().SysCallsData()[CurrentRow()]);
-            break;
-        case Index::TYPE:
-            sqlite3_result_text(context_, dataCache_->GetDataFromDict(sysCallObj_.TypesData()[CurrentRow()]).c_str(),
-                                STR_DEFAULT_LEN, nullptr);
-            break;
-        case Index::IPID:
-            sqlite3_result_int64(context_, dataCache_->GetConstSysCallData().IpidsData()[CurrentRow()]);
+        case Index::SYSCALL_NUMBER:
+            sqlite3_result_int(context_, dataCache_->GetConstSysCallData().SysCallNumbersData()[CurrentRow()]);
             break;
         case Index::TS:
             sqlite3_result_int64(context_, dataCache_->GetConstSysCallData().TimeStampData()[CurrentRow()]);
+            break;
+        case Index::DUR:
+            sqlite3_result_int64(context_, dataCache_->GetConstSysCallData().DursData()[CurrentRow()]);
+            break;
+        case Index::ITID:
+            sqlite3_result_int(context_, dataCache_->GetConstSysCallData().ItidsData()[CurrentRow()]);
+            break;
+        case Index::ARGS:
+            SetTypeColumnText(dataCache_->GetConstSysCallData().ArgsData()[CurrentRow()], INVALID_UINT64);
             break;
         case Index::RET:
             sqlite3_result_int64(context_, dataCache_->GetConstSysCallData().RetsData()[CurrentRow()]);
