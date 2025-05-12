@@ -36,6 +36,14 @@ size_t PerfDataFilter::AppendPerfFiles(uint64_t fileId, uint32_t serial, DataInd
     return size;
 }
 
+void PerfDataFilter::AppendInvalidVaddrIpToFuncName(uint64_t ip, DataIndex nameIndex)
+{
+    auto iter = invalidVaddrIpToFuncName_.find(ip);
+    if (iter == invalidVaddrIpToFuncName_.end()) {
+        invalidVaddrIpToFuncName_.emplace(ip, nameIndex);
+    }
+}
+
 void PerfDataFilter::BeforeReload()
 {
     traceDataCache_->GetPerfCallChainData()->Clear();
@@ -43,6 +51,7 @@ void PerfDataFilter::BeforeReload()
     fileIdToRowInFileTable_.Clear();
     fileIds_.clear();
     fileIdToRow_.clear();
+    invalidVaddrIpToFuncName_.clear();
 }
 void PerfDataFilter::Finish()
 {
@@ -62,13 +71,12 @@ void PerfDataFilter::Finish()
             continue;
         }
         if (vaddrs[i] == 0 || symbolsIds[i] == -1) {
-            auto pathIndex = filePath[fileIdToRow_.at(fileIds[i])];
-            auto fullPath = traceDataCache_->GetDataFromDict(pathIndex);
-            auto iPos = fullPath.find_last_of('/');
-            fullPath = fullPath.substr(iPos + 1, -1);
-            auto nameIndex = traceDataCache_->GetDataIndex(fullPath + "@0x" +
-                                                           base::number(ips[i] & flag, base::INTEGER_RADIX_TYPE_HEX));
-            traceDataCache_->GetPerfCallChainData()->SetName(i, nameIndex);
+            auto iter = invalidVaddrIpToFuncName_.find(ips[i]);
+            if (iter != invalidVaddrIpToFuncName_.end()) {
+                traceDataCache_->GetPerfCallChainData()->SetName(i, iter->second);
+            } else {
+                TS_LOGE("invalidVaddrIpToFuncName_ can't find ip:%p", ips[i]);
+            }
             continue;
         }
         // if there has the file Id to which the function belongs,and the symboleid is not -1 and vaddrinfile is not -1.
@@ -86,6 +94,7 @@ void PerfDataFilter::Finish()
     fileIdToRowInFileTable_.Clear();
     fileIds_.clear();
     fileIdToRow_.clear();
+    invalidVaddrIpToFuncName_.clear();
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

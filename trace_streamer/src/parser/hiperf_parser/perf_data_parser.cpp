@@ -732,6 +732,11 @@ uint32_t depth = 0;
         }
         PerfCallChainRow perfCallChainRow = {callChainId,      depth++, frame->pc,   frame->funcOffset,
                                              frame->mapOffset, fileId,  frame->index};
+        if (frame->funcOffset == 0 || frame->index == -1) {
+            auto iPos = frame->funcName.find_last_of('/');
+            auto nameIndex = traceDataCache_->dataDict_.GetStringIndex(frame->funcName.substr(iPos + 1, -1));
+            streamFilters_->perfDataFilter_->AppendInvalidVaddrIpToFuncName(frame->pc, nameIndex);
+        }
         traceDataCache_->GetPerfCallChainData()->AppendNewPerfCallChain(perfCallChainRow);
     }
     return callChainId;
