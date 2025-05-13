@@ -30,6 +30,7 @@
 #include "file.h"
 #include "filter_filter.h"
 #include "frame_filter.h"
+#include "config_filter.h"
 #ifdef ENABLE_HISYSEVENT
 #include "hi_sysevent_measure_filter.h"
 #endif
@@ -145,6 +146,7 @@ void TraceStreamerSelector::InitFilter()
 {
     streamFilters_ = std::make_unique<TraceStreamerFilters>();
     traceDataCache_ = std::make_unique<TraceDataCache>();
+    streamFilters_->configFilter_ = std::make_unique<ConfigFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->animationFilter_ = std::make_unique<AnimationFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->cpuFilter_ = std::make_unique<CpuFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->sliceFilter_ = std::make_unique<SliceFilter>(traceDataCache_.get(), streamFilters_.get());
@@ -174,6 +176,9 @@ void TraceStreamerSelector::InitFilter()
         std::make_unique<HiSysEventMeasureFilter>(traceDataCache_.get(), streamFilters_.get());
 #endif
     streamFilters_->taskPoolFilter_ = std::make_unique<TaskPoolFilter>(traceDataCache_.get(), streamFilters_.get());
+#if !IS_WASM
+    GetConfigFile();
+#endif
 }
 
 void TraceStreamerSelector::WaitForParserEnd()
@@ -197,7 +202,7 @@ void TraceStreamerSelector::WaitForParserEnd()
     }
 #endif
     traceDataCache_->UpdateTraceRange();
-    if (traceDataCache_->AnimationTraceEnabled()) {
+    if (streamFilters_->configFilter_->GetSwitchConfig().AnimationConfigEnabled()) {
         streamFilters_->animationFilter_->UpdateFrameInfo();
         streamFilters_->animationFilter_->UpdateDynamicFrameInfo();
     }
@@ -205,7 +210,17 @@ void TraceStreamerSelector::WaitForParserEnd()
     ComputeDataDictStrHash();
 #endif
 }
-
+void TraceStreamerSelector ::GetConfigFile()
+{
+    std::ifstream configReading("config/config.json");
+    if (!configReading.is_open()) {
+        TS_LOGE("Open config file failed!Please make sure that config/config.json exists.");
+        return;
+    }
+    std::stringstream buffer;
+    buffer << configReading.rdbuf();
+    streamFilters_->configFilter_->SetConfig(buffer.str());
+}
 MetaData *TraceStreamerSelector::GetMetaData()
 {
     return traceDataCache_->GetMetaData();
@@ -531,6 +546,14 @@ void TraceStreamerSelector::UpdateHMKernelTraceStatus(bool status)
 void TraceStreamerSelector::UpdateRawTraceCutStartTsStatus(bool status)
 {
     traceDataCache_->UpdateRawTraceCutStartTsStatus(status);
+}
+void TraceStreamerSelector::SetConfigFile(std::string &filePath)
+{
+    streamFilters_->configFilter_->SetConfig(filePath);
+}
+bool TraceStreamerSelector::GetFfrtConfig()
+{
+    return streamFilters_->configFilter_->GetSwitchConfig().FfrtConfigEnabled();
 }
 bool TraceStreamerSelector::LoadQueryFile(const std::string &sqlOperator, std::vector<std::string> &sqlStrings)
 {

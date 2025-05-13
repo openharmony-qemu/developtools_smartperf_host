@@ -62,6 +62,14 @@ else
     echo "begin to build ..."
     prebuilts/"$gn_path"/"$ninja" -C "$out_dir"
 fi
+if [ "$target" != "wasm" ]; then
+    if [ -f "config/config.json" ]; then
+        cp -r "config" "$out_dir"
+        echo "Successfully found the configuration!"
+    else
+        echo "Failed to find the configuration!"
+    fi
+fi
 if [ "$out_dir" == "out/macx" ];then
     ./mac_depend.sh
 fi

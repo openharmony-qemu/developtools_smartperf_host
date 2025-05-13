@@ -498,7 +498,8 @@ bool HtraceEventParser::BinderTractionEvent(const EventInfo &event) const
             destTid, transactionId, isReply, flags, msg.code());
     streamFilters_->binderFilter_->SendTraction(event.timeStamp, event.pid, transactionId, destNode, destTgid, destTid,
                                                 isReply, flags, msg.code());
-    if (traceDataCache_->BinderRunnableTraceEnabled() && !streamFilters_->binderFilter_->IsAsync(flags)) {
+    if (streamFilters_->configFilter_->GetSwitchConfig().BinderRunnableConfigEnabled() &&
+        !streamFilters_->binderFilter_->IsAsync(flags)) {
         streamFilters_->cpuFilter_->InsertRunnableBinderEvent(
             transactionId, streamFilters_->processFilter_->GetInternalTid(event.pid));
     }
@@ -510,7 +511,7 @@ bool HtraceEventParser::BinderTractionReceivedEvent(const EventInfo &event) cons
     ProtoReader::BinderTransactionReceivedFormat_Reader msg(event.detail);
     int32_t transactionId = msg.debug_id();
     streamFilters_->binderFilter_->ReceiveTraction(event.timeStamp, event.pid, transactionId);
-    if (traceDataCache_->BinderRunnableTraceEnabled()) {
+    if (streamFilters_->configFilter_->GetSwitchConfig().BinderRunnableConfigEnabled()) {
         streamFilters_->cpuFilter_->InsertRunnableBinderRecvEvent(
             transactionId, streamFilters_->processFilter_->GetInternalTid(event.pid));
     }
@@ -993,20 +994,41 @@ bool HtraceEventParser::DmaFenceSignaledEvent(const EventInfo &event) const
 }
 bool HtraceEventParser::SysEnterEvent(const EventInfo &event) const
 {
-    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SYS_ENTRY, STAT_EVENT_RECEIVED);
+    if (streamFilters_->configFilter_->GetSwitchConfig().SyscallsTsSet().empty()) {
+        return true;
+    }
     ProtoReader::SysEnterFormat_Reader msg(event.detail);
     SyscallInfoRow syscallInfoRow;
     syscallInfoRow.ts = event.timeStamp;
     syscallInfoRow.itid = event.pid;
     syscallInfoRow.number = msg.id();
+    // if (msg.has_args()) {
+    //     bool parseErrorInfo = false;
+    //     auto eventItor = msg.args(&parseErrorInfo);
+    //     std::ostringstream oss;
+    //     oss << "(";
+    //     while (eventItor) {
+    //         oss << std::hex << std::nouppercase << *eventItor;
+    //         eventItor++;
+    //         if (eventItor) {
+    //             oss << ", ";
+    //         }
+    //     }
+    //     oss << ")";
+    //     syscallInfoRow.args = traceDataCache_->GetDataIndex(oss.str());
+    // }
     streamFilters_->syscallFilter_->UpdataSyscallEnterExitMap(syscallInfoRow);
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SYS_ENTRY, STAT_EVENT_RECEIVED);
     return true;
 }
 bool HtraceEventParser::SysExitEvent(const EventInfo &event) const
 {
-    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SYS_EXIT, STAT_EVENT_RECEIVED);
+    if (streamFilters_->configFilter_->GetSwitchConfig().SyscallsTsSet().empty()) {
+        return true;
+    }
     ProtoReader::SysExitFormat_Reader msg(event.detail);
     streamFilters_->syscallFilter_->AppendSysCallInfo(event.pid, msg.id(), event.timeStamp, msg.ret());
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SYS_EXIT, STAT_EVENT_RECEIVED);
     return true;
 }
 
@@ -1070,7 +1092,7 @@ void HtraceEventParser::FilterAllEvents()
     streamFilters_->cpuFilter_->Finish();
     traceDataCache_->dataDict_.Finish();
     traceDataCache_->UpdataZeroThreadInfo();
-    if (traceDataCache_->AppStartTraceEnabled()) {
+    if (streamFilters_->configFilter_->GetSwitchConfig().AppConfigEnabled()) {
         streamFilters_->appStartupFilter_->FilterAllAPPStartupData();
     }
     traceDataCache_->GetThreadStateData()->SortAllRowByTs();

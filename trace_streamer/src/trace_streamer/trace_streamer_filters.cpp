@@ -34,6 +34,7 @@
 #include "syscall_filter.h"
 #include "system_event_measure_filter.h"
 #include "task_pool_filter.h"
+#include "config_filter.h"
 
 namespace SysTuning {
 namespace TraceStreamer {

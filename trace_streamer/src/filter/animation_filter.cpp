@@ -34,18 +34,15 @@ AnimationFilter::AnimationFilter(TraceDataCache *dataCache, const TraceStreamerF
     if (dynamicFrame_ == nullptr || callStackSlice_ == nullptr) {
         TS_LOGE("dynamicFrame_ or callStackSlice_ is nullptr.");
     }
-    onAnimationStartEvents_ = {
-        traceDataCache_->GetDataIndex("H:LAUNCHER_APP_LAUNCH_FROM_ICON"),
-        traceDataCache_->GetDataIndex("H:LAUNCHER_APP_LAUNCH_FROM_NOTIFICATIONBAR"),
-        traceDataCache_->GetDataIndex("H:LAUNCHER_APP_LAUNCH_FROM_NOTIFICATIONBAR_IN_LOCKSCREEN"),
-        traceDataCache_->GetDataIndex("H:LAUNCHER_APP_LAUNCH_FROM_RECENT"),
-        traceDataCache_->GetDataIndex("H:LAUNCHER_APP_SWIPE_TO_HOME"),
-        traceDataCache_->GetDataIndex("H:LAUNCHER_APP_BACK_TO_HOME"),
-        traceDataCache_->GetDataIndex("H:APP_TRANSITION_TO_OTHER_APP"),
-        traceDataCache_->GetDataIndex("H:APP_TRANSITION_FROM_OTHER_APP"),
-        traceDataCache_->GetDataIndex("H:APP_LIST_FLING")};
 }
 AnimationFilter::~AnimationFilter() {}
+void AnimationFilter::InitAnimationStartEvents()
+{
+    auto res = streamFilters_->configFilter_->GetAnimationConfig().GetOnAnimationStartEvents();
+    for (auto &eventName : res) {
+        onAnimationStartEvents_.insert(traceDataCache_->GetDataIndex(eventName));
+    }
+}
 bool AnimationFilter::UpdateDeviceFps(const BytraceLine &line)
 {
     generateVsyncCnt_++;
@@ -87,24 +84,24 @@ bool AnimationFilter::UpdateDeviceScreenSize(const TracePoint &point)
 bool AnimationFilter::UpdateDeviceInfoEvent(const TracePoint &point, const BytraceLine &line)
 {
     if (traceDataCache_->GetConstDeviceInfo().PhysicalFrameRate() == INVALID_UINT32 &&
-        StartWith(point.name_, frameRateCmd_)) {
+        streamFilters_->configFilter_->GetAnimationConfig().CheckIfFrameRateCmd(point.name_)) {
         return UpdateDeviceFps(line);
     } else if (traceDataCache_->GetConstDeviceInfo().PhysicalWidth() == INVALID_UINT32 &&
-               (StartWith(point.name_, newScreenSizeCmd_) || StartWith(point.name_, screenSizeCmd_))) {
+               streamFilters_->configFilter_->GetAnimationConfig().CheckIfScreenSizeCmd(point.name_)) {
         return UpdateDeviceScreenSize(point);
     }
     return false;
 }
 bool AnimationFilter::BeginDynamicFrameEvent(const TracePoint &point, size_t callStackRow)
 {
-    if (StartWith(point.name_, paralleCmd_)) {
+    if (streamFilters_->configFilter_->GetAnimationConfig().CheckIfParallelCmd(point.name_)) {
         isNewAnimation_ = true;
         return true;
     }
-    if (StartWith(point.name_, frameCountCmd_)) {
+    if (streamFilters_->configFilter_->GetAnimationConfig().CheckIfFrameCountCmd(point.name_)) {
         frameCountRows_.insert(callStackRow);
         return true;
-    } else if (StartWith(point.name_, realFrameRateCmd_)) {
+    } else if (streamFilters_->configFilter_->GetAnimationConfig().CheckIfRealFrameRateCmd(point.name_)) {
         // eg: `frame rate is 88.61: APP_LIST_FLING, com.taobao.taobao, pages/Index`
         auto infos = SplitStringToVec(point.funcArgs_, ": ");
         auto curRealFrameRateFlagInadex = traceDataCache_->GetDataIndex("H:" + infos.back());
@@ -116,7 +113,7 @@ bool AnimationFilter::BeginDynamicFrameEvent(const TracePoint &point, size_t cal
         traceDataCache_->GetAnimation()->UpdateFrameInfo(animationRow,
                                                          traceDataCache_->GetDataIndex(curFrameNum + curRealFrameRate));
         return true;
-    } else if (StartWith(point.name_, newFrameBeginCmd_) || StartWith(point.name_, frameBeginCmd_)) {
+    } else if (streamFilters_->configFilter_->GetAnimationConfig().CheckIfFrameBeginCmd(point.name_)) {
         // get the parent frame of data
         const std::optional<uint64_t> &parentId = callStackSlice_->ParentIdData()[callStackRow];
         uint8_t depth = callStackSlice_->Depths()[callStackRow];
@@ -178,8 +175,9 @@ bool AnimationFilter::UpdateDynamicEndTime(const uint64_t curFrameRow, uint64_t 
         curStackRow = callStackSlice_->ParentIdData()[curStackRow].value();
         // use frameEndTimeCmd_'s endTime as dynamicFrame endTime
         auto nameIndex = callStackSlice_->NamesData()[curStackRow];
-        if (isNewAnimation_ && StartWith(traceDataCache_->GetDataFromDict(nameIndex), renderFrameCmd_) ||
-            StartWith(traceDataCache_->GetDataFromDict(nameIndex), frameEndTimeCmd_)) {
+        if ((!isNewAnimation_ && StartWith(traceDataCache_->GetDataFromDict(nameIndex), frameEndTimeCmd_)) ||
+            streamFilters_->configFilter_->GetAnimationConfig().CheckIfFrameEndTimeCmd(
+                traceDataCache_->GetDataFromDict(nameIndex))) {
             auto endTime = callStackSlice_->TimeStampData()[curStackRow] + callStackSlice_->DursData()[curStackRow];
             dynamicFrame_->UpdateEndTime(curFrameRow, endTime);
             return true;

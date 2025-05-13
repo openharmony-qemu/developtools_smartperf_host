@@ -71,6 +71,9 @@ public:
     void UpdateHMKernelTraceStatus(bool status);
     void UpdateRawTraceCutStartTsStatus(bool status);
     void InitMetricsMap(std::map<std::string, std::string> &metricsMap);
+    void SetConfigFile(std::string &filePath);
+    bool GetFfrtConfig();
+    void GetConfigFile();
     const std::string MetricsSqlQuery(const std::string &metrics);
     auto GetPtreaderParser()
     {

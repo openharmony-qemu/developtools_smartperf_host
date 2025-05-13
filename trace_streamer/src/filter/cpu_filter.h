@@ -27,6 +27,7 @@
 #include "trace_data_cache.h"
 #include "trace_streamer_filters.h"
 #include "ts_common.h"
+#include "config_filter.h"
 
 namespace SysTuning {
 namespace TraceStreamer {

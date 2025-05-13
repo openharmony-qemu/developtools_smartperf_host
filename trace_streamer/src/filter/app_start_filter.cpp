@@ -175,20 +175,20 @@ void APPStartupFilter::ParserAppStartup()
         auto &nameString = traceDataCache_->GetDataFromDict(sliceData.NamesData()[i]);
         auto callId = sliceData.CallIds()[i];
         auto startTime = sliceData.TimeStampData()[i];
-        if (StartWith(nameString, procTouchCmd_)) {
+        if (streamFilters_->configFilter_->GetAppStartupConfig().CheckIfPhase1(nameString)) {
             procTouchItems_.emplace_back(
                 std::make_unique<APPStartupData>(callId, INVALID_UINT32, INVALID_UINT32, startTime, INVALID_UINT64));
-        } else if (StartWith(nameString, startUIAbilityBySCBCmd_)) {
+        } else if (streamFilters_->configFilter_->GetAppStartupConfig().CheckIfPhase2(nameString)) {
             startUIAbilityBySCBItems_.emplace_back(
                 std::make_unique<APPStartupData>(callId, INVALID_UINT32, INVALID_UINT32, startTime, INVALID_UINT64));
-        } else if (StartWith(nameString, loadAbilityCmd_)) {
+        } else if (streamFilters_->configFilter_->GetAppStartupConfig().CheckIfPhase3(nameString)) {
             loadAbilityItems_.emplace_back(
                 std::make_unique<APPStartupData>(callId, INVALID_UINT32, INVALID_UINT32, startTime, INVALID_UINT64));
-        } else if (StartWith(nameString, appLaunchCmd_)) {
+        } else if (streamFilters_->configFilter_->GetAppStartupConfig().CheckIfPhase4(nameString)) {
             UpdateAPPStartupData(i, nameString, APPLICATION_LAUNCHING);
-        } else if (StartWith(nameString, uiLaunchCmd_)) {
+        } else if (streamFilters_->configFilter_->GetAppStartupConfig().CheckIfPhase5(nameString)) {
             ProcAbilityLaunchData(nameString, i);
-        } else if (StartWith(nameString, uiOnForegroundFirstCmd_) || StartWith(nameString, uiOnForegroundSecCmd_)) {
+        } else if (streamFilters_->configFilter_->GetAppStartupConfig().CheckIfPhase6(nameString)) {
             ProcForegroundData(i);
         }
     }
