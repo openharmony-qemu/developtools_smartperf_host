@@ -39,6 +39,9 @@ export class TabPanePerfSampleChild extends BaseElement {
   private sortType: number = 0;
 
   set data(sampleChildParam: PerfSampleBoxJumpParam | null | undefined) {
+    if (sampleChildParam?.tsArr === undefined) {
+      return;
+    }
     this.perfSampleTbl!.style.visibility = 'visible';
     // @ts-ignore
     this.perfSampleTbl?.shadowRoot?.querySelector('.table')?.style?.height = `${
