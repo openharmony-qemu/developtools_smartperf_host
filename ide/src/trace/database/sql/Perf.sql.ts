@@ -80,6 +80,36 @@ where time >= $leftNs and time <= $rightNs and A.thread_id != 0
   });
 };
 
+export const queryPerfSampleChildListByTree = (
+  leftNs: number,
+  rightNs: number,
+  pid?: number,
+  tid?: number,
+): Promise<Array<PerfSample>> => {
+  let sql = `
+select A.callchain_id as sampleId,
+       A.thread_id as tid,
+       C.thread_name as threadName,
+       A.thread_state as state,
+       C.process_id as pid,
+       (timestamp_trace - R.start_ts) as time,
+       cpu_id as core
+from perf_sample A,trace_range R
+left join perf_thread C on A.thread_id = C.thread_id
+where time >= $leftNs and time <= $rightNs and A.thread_id != 0
+    `;
+  if (pid !== undefined) {
+    sql = `${sql} and C.process_id = ${pid}`;
+  }
+  if (tid !== undefined) {
+    sql = `${sql} and A.thread_id = ${tid}`;
+  }
+  return query('queryPerfSampleChildListByTree', sql, {
+    $leftNs: leftNs,
+    $rightNs: rightNs,
+  });
+};
+
 export const queryPerfSampleIdsByTimeRange = (
   leftNs: number,
   rightNs: number,
@@ -116,6 +146,8 @@ export const queryPerfSampleCallChain = (sampleId: number): Promise<Array<PerfSt
     file_id as fileId,
     symbol_id as symbolId,
     vaddr_in_file as vaddrInFile,
+    source_file_id as sourceId,
+    line_number as lineNumber,
     name as symbol
 from perf_callchain where callchain_id = $sampleId;
     `,

@@ -106,9 +106,16 @@ export class TabPanePerfSample extends BaseElement {
   setRightTableData(sample: PerfSample): void {
     queryPerfSampleCallChain(sample.sampleId).then((result) => {
       for (let stack of result) {
+         if (stack.sourceId !== undefined) {
+          stack.sourceFile = SpSystemTrace.DATA_DICT.get(stack.sourceId) || '';
+        }
         if (typeof stack.symbol === 'number') {
           stack.symbol = SpSystemTrace.DATA_DICT.get(stack.symbol) || '';
-        } // @ts-ignore
+        } 
+        if (stack.sourceFile && stack.lineNumber !== undefined) {
+          stack.symbol = `${stack.symbol}【${stack.sourceFile}（${stack.lineNumber}）】`;
+        }
+        //@ts-ignore
         let files = (perfDataQuery.filesData[stack.fileId] ?? []) as Array<PerfFile>;
         stack.path = files[stack.symbolId]?.path || '';
         stack.type = stack.path.endsWith('.so.1') || stack.path.endsWith('.dll') || stack.path.endsWith('.so') ? 0 : 1;
