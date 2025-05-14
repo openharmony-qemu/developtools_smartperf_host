@@ -804,21 +804,21 @@ export class TraceSheet extends BaseElement {
         let blob: Blob | null = file.slice(writeSize, writeSize + sliceLen);
         let buffer: ArrayBuffer | null = await blob.arrayBuffer();
         let data: Uint8Array | null = new Uint8Array(buffer);
-
-        const dataObject = {
+		const dataObject = {
           file_name: fileName,
           buffer_index: bufferIndex,
           buffer_size: sliceLen,
           total_size: file.size,
-          is_last: writeSize + sliceLen >= file.size,
-          buffer: Array.from(data),
+          is_last: writeSize + sliceLen >= file.size
         };
-
-
         const dataString = JSON.stringify(dataObject);
+		const jsonStr = `${dataString.length}|${dataString}`;
         const textEncoder = new TextEncoder();
-        const encodedData = textEncoder.encode(dataString);
-        wsInstance!.sendMessage(TypeConstants.DISASSEMBLY_TYPE, Constants.DISASSEMBLY_SAVE_CMD, encodedData);
+        const jsonData = textEncoder.encode(jsonStr);
+        let mergeData: Uint8Array = new Uint8Array(jsonData.length + data.length);
+        mergeData.set(jsonData);
+        mergeData.set(data, jsonData.length);
+        wsInstance!.sendMessage(TypeConstants.DISASSEMBLY_TYPE, Constants.DISASSEMBLY_SAVE_CMD, mergeData);
         writeSize += sliceLen;
         // 等待服务器端确认当前分片的 ACK
         await waitForAck();
@@ -912,14 +912,14 @@ export class TraceSheet extends BaseElement {
                               </div>
                               <lit-icon name="setting" size="20" id="setting"></lit-icon>
                         </lit-popover>
-                        <div title="Import SO" id="import_div" style="width: 20px;height: 20px;display: flex;flex-direction: row;margin-right: 10px">
+                        <div title="So Symbolization" id="import_div" style="width: 20px;height: 20px;display: flex;flex-direction: row;margin-right: 10px">
                             <input id="import-file" style="display: none;pointer-events: none" type="file" webkitdirectory>
                             <label style="width: 20px;height: 20px;cursor: pointer;" for="import-file">
                                 <lit-icon id="import-btn" name="so-symbol" style="pointer-events: none" size="20">
                                 </lit-icon>
                             </label>
                         </div>
-                        <div title="So Symbolization" id="symbol_div" style="width: 20px;height: 20px;display: flex;flex-direction: row;margin-right: 10px">
+                        <div title="Import SO" id="symbol_div" style="width: 20px;height: 20px;display: flex;flex-direction: row;margin-right: 10px">
                             <input id="so-symbolization" style="display: none;pointer-events: none" type="file" webkitdirectory>
                             <label style="width: 20px;height: 20px;cursor: pointer;" for="so-symbolization">
                                 <lit-icon id="import-btn" name="copy-csv" style="pointer-events: none" size="20">
