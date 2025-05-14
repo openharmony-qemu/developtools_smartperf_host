@@ -37,6 +37,7 @@ export class ChartStruct extends BaseStruct {
   static hoverFuncStruct: ChartStruct | undefined;
   static selectFuncStruct: ChartStruct | undefined;
   static lastSelectFuncStruct: ChartStruct | undefined;
+  static tempSelectStruct: ChartStruct | undefined;
   isDraw = false; // 是否绘制，太小的不绘制
   depth: number = 0;
   symbol: string = '';

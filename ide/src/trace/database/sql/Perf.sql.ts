@@ -98,10 +98,10 @@ from perf_sample A,trace_range R
 left join perf_thread C on A.thread_id = C.thread_id
 where time >= $leftNs and time <= $rightNs and A.thread_id != 0
     `;
-  if (pid !== undefined) {
+  if (pid) {
     sql = `${sql} and C.process_id = ${pid}`;
   }
-  if (tid !== undefined) {
+  if (pid && tid !== undefined) {
     sql = `${sql} and A.thread_id = ${tid}`;
   }
   return query('queryPerfSampleChildListByTree', sql, {

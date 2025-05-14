@@ -31,6 +31,7 @@ import {
 
 @element('tabpane-perf-sample-child')
 export class TabPanePerfSampleChild extends BaseElement {
+  private param: PerfSampleBoxJumpParam | null | undefined;
   private perfSampleTbl: LitTable | null | undefined;
   private tblData: LitTable | null | undefined;
   private perfSampleSource: Array<PerfSample> = [];
@@ -39,9 +40,10 @@ export class TabPanePerfSampleChild extends BaseElement {
   private sortType: number = 0;
 
   set data(sampleChildParam: PerfSampleBoxJumpParam | null | undefined) {
-    if (sampleChildParam?.tsArr === undefined) {
+    if (sampleChildParam === this.param || !sampleChildParam?.isJumpPage) {
       return;
     }
+    this.param = sampleChildParam;
     this.perfSampleTbl!.style.visibility = 'visible';
     // @ts-ignore
     this.perfSampleTbl?.shadowRoot?.querySelector('.table')?.style?.height = `${
@@ -70,7 +72,12 @@ export class TabPanePerfSampleChild extends BaseElement {
           this.processMap.set(process.pid, process);
         }
         
-        this.initPerfSampleData(samples.filter(it => sampleChildParam.tsArr.some(ts => ts === it.time)));
+        this.initPerfSampleData(samples.filter(it => {
+          if (sampleChildParam.tsArr && sampleChildParam.tsArr.length > 0) {
+            return sampleChildParam.tsArr.some(ts => it.time === ts)
+          }
+          return true; 
+        }));
       });
     }
   }
@@ -130,10 +137,20 @@ export class TabPanePerfSampleChild extends BaseElement {
   initElements(): void {
     this.perfSampleTbl = this.shadowRoot?.querySelector<LitTable>('#tb-perf-sample');
     this.tblData = this.shadowRoot?.querySelector<LitTable>('#tb-stack-data');
+    //监听row的点击事件，在对应起始时间上画标记棋子,并设置调用栈数据
     this.perfSampleTbl!.addEventListener('row-click', (e) => {
       // @ts-ignore
       let data = e.detail.data as PerfSample;
       this.setRightTableData(data);
+      // @ts-ignore
+      data.isSelected = true;
+      this.perfSampleTbl!.clearAllSelection(data);
+      this.perfSampleTbl!.setCurrentSelection(data);
+      document.dispatchEvent(
+        new CustomEvent('triangle-flag', {
+          detail: { time: [data.time], type: 'triangle' },
+        })
+      );
     });
     this.perfSampleTbl!.addEventListener('column-click', (evt) => {
       // @ts-ignore

@@ -674,6 +674,20 @@ export class FrameChart extends BaseElement {
     this.floatHint!.innerHTML = this.hintContent;
     this.floatHint!.style.display = 'block';
     this.floatHint!.style.zIndex = '9999999';
+    const countSpan = this.floatHint!.querySelector('.count');
+    if (countSpan) {
+      //@ts-ignore
+      countSpan.onclick = (e) => {
+        this.dispatchEvent(
+          new CustomEvent('td-click', {
+            detail: ChartStruct.tempSelectStruct,
+            composed: true,
+          })
+        );
+        // @ts-ignore
+        e.stopPropagation();
+      };
+    }
     let tipArea =
       this.tabPaneFilter?.getBoundingClientRect().top! -
       this.canvas.getBoundingClientRect().top -
@@ -857,6 +871,7 @@ export class FrameChart extends BaseElement {
       if (ChartStruct.hoverFuncStruct && ChartStruct.hoverFuncStruct !== ChartStruct.selectFuncStruct) {
         ChartStruct.lastSelectFuncStruct = ChartStruct.selectFuncStruct;
         ChartStruct.selectFuncStruct = ChartStruct.hoverFuncStruct;
+        ChartStruct.tempSelectStruct = undefined;
         this.isClickMode = ChartStruct.selectFuncStruct !== this.rootNode;
         this.rect.width = this.canvas!.clientWidth;
         // 重置缩放
@@ -875,8 +890,13 @@ export class FrameChart extends BaseElement {
           })
         );
       }
+      this.hideTip();
+    } else {
+      // mouse right button
+      if (ChartStruct.hoverFuncStruct) {
+        ChartStruct.tempSelectStruct = ChartStruct.hoverFuncStruct;
+      }
     }
-    this.hideTip();
   }
 
   private hideTip(): void {
@@ -928,7 +948,7 @@ export class FrameChart extends BaseElement {
                       <span class="bold">Lib: </span> <span class="text">${hoverNode?.lib}</span> <br>
                       <span class="bold">Addr: </span> <span>${hoverNode?.addr}</span> <br>
                       ${sourceHint}
-                      <span class="bold">${label}: </span> <span> ${count}</span>`;
+                      <span class="bold">${label}: </span> <span class="count" jump> ${count}</span>`;
           break;
       }
       if (this._mode !== ChartMode.Byte) {
@@ -984,14 +1004,20 @@ export class FrameChart extends BaseElement {
     const searchResult = this.searchDataByCoord(this.currentData!, this.canvasX, this.canvasY);
     if (searchResult && (searchResult.isDraw || searchResult.depth === 0)) {
       ChartStruct.hoverFuncStruct = searchResult;
+      if (ChartStruct.hoverFuncStruct !== ChartStruct.tempSelectStruct) {
+        ChartStruct.tempSelectStruct = undefined;
+      }
       // 悬浮的node未改变，不需要更新悬浮框文字信息，不绘图
       if (searchResult !== lastNode) {
         this.updateTipContent();
         this.calculateChartData();
       }
-      this.showTip();
+      if (ChartStruct.tempSelectStruct === undefined) {
+        this.showTip();
+      }
     } else {
       this.hideTip();
+      ChartStruct.tempSelectStruct = undefined;
       ChartStruct.hoverFuncStruct = undefined;
     }
   }
@@ -1022,7 +1048,6 @@ export class FrameChart extends BaseElement {
     this.canvas = this.shadowRoot!.querySelector('#canvas')!;
     this.canvasContext = this.canvas.getContext('2d')!;
     this.floatHint = this.shadowRoot?.querySelector('#float_hint');
-
     this.canvas!.oncontextmenu = (): boolean => {
       return false;
     };
@@ -1041,10 +1066,11 @@ export class FrameChart extends BaseElement {
     };
 
     this.canvas!.onmouseleave = (): void => {
-      this.isFocusing = false;
-      this.hideTip();
+      if (!ChartStruct.tempSelectStruct) {
+        this.isFocusing = false;
+        this.hideTip();
+      }
     };
-
     document.addEventListener('keydown', (e) => {
       if (!this.isFocusing) {
         return;
@@ -1094,6 +1120,10 @@ export class FrameChart extends BaseElement {
             }
             .bold{
                 font-weight: bold;
+            }
+            .count {
+              text-decoration: underline;
+              cursor: pointer
             }
             .text{
                 max-width:350px;
