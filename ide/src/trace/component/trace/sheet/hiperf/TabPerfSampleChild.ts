@@ -123,7 +123,7 @@ export class TabPanePerfSampleChild extends BaseElement {
           stack.symbol = SpSystemTrace.DATA_DICT.get(stack.symbol) || '';
         } 
         if (stack.sourceFile && stack.lineNumber !== undefined) {
-          stack.symbol = `${stack.symbol}【${stack.sourceFile}（${stack.lineNumber}）】`;
+          stack.symbol = `${stack.symbol}[${stack.sourceFile}(${stack.lineNumber})]`;
         }
         // @ts-ignore
         let files = (perfDataQuery.filesData[stack.fileId] ?? []) as Array<PerfFile>;
