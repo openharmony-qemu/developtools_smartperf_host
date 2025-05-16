@@ -20,7 +20,8 @@ import {
   BoxJumpParam, 
   SelectionParam,
   SysCallBoxJumpParam,
-  SliceBoxJumpParam 
+  SliceBoxJumpParam, 
+  PerfSampleBoxJumpParam
 } from '../../../bean/BoxSelection';
 import { type TabPaneCurrentSelection } from '../sheet/TabPaneCurrentSelection';
 import { type TabPaneFlag } from '../timer-shaft/TabPaneFlag';
@@ -117,6 +118,7 @@ import { info, error } from '../../../../log/Log';
 import { XpowerThreadCountStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerThreadCount';
 import { XpowerGpuFreqCountStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerGpuFreqCount';
 import { TabPaneSysCallChild } from '../sheet/process/TabPaneSysCallChild';
+import { TabPanePerfSampleChild } from '../sheet/hiperf/TabPerfSampleChild';
 
 
 @element('trace-sheet')
@@ -313,6 +315,10 @@ export class TraceSheet extends BaseElement {
     // @ts-ignore
     this.getComponentByID<unknown>('box-thread-syscall')?.addEventListener('td-click', (evt: unknown) => {
       this.tdSysCallClickHandler(evt);
+    });
+    // @ts-ignore
+    this.getComponentByID<unknown>('box-perf-profile')?.addEventListener('td-click', (evt: unknown) => {
+      this.tdPerfSampleClickHandler(evt);
     });
   }
 
@@ -1506,6 +1512,35 @@ export class TraceSheet extends BaseElement {
     }  
     param.isJumpPage = true; // @ts-ignore
     (pane.children.item(0) as TabPaneSysCallChild).data = param;
+  }
+
+  tdPerfSampleClickHandler(e: unknown): void {
+    // @ts-ignore
+    this.currentPaneID = e.target.parentElement.id;
+    //隐藏除了当前Tab页的其他Tab页
+    this.shadowRoot!.querySelectorAll<LitTabpane>('lit-tabpane').forEach((it): boolean =>
+      it.id !== this.currentPaneID ? (it.hidden = true) : (it.hidden = false)
+    ); //todo：看能不能优化
+    let pane = this.getPaneByID('box-perf-sample-child'); //通过Id找到需要展示的Tab页
+    pane.closeable = true; //关闭的ican显示
+    pane.hidden = false;
+    this.litTabs!.activeByKey(pane.key); //显示key值对应的Tab页
+    // @ts-ignore
+    pane.tab = e.detail.symbol; //设置Tab页标题，有的标题可直接用，有的标题需在此转换成需要展示的字符串
+    let param = new PerfSampleBoxJumpParam();
+    param.traceId = this.selection!.traceId;
+    param.leftNs = this.selection!.leftNs;
+    param.rightNs = this.selection!.rightNs;
+    //@ts-ignore
+    param.pid = e.detail.pid;
+    //@ts-ignore
+    param.tid = e.detail.tid;
+    //@ts-ignore
+    param.count = e.detail.dur || 0;
+    //@ts-ignore
+    param.tsArr = e.detail.tsArray || [];
+    param.isJumpPage = true;
+    (pane.children.item(0) as TabPanePerfSampleChild).data = param;
   }
 
   //Slice Tab点击Occurrences列下的td进行跳转

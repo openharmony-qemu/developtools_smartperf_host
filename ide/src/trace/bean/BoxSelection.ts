@@ -1420,6 +1420,17 @@ export class SysCallBoxJumpParam {
   isJumpPage: boolean | undefined;
 }
 
+export class PerfSampleBoxJumpParam {
+  traceId: string | undefined | null;
+  leftNs: number = 0;
+  rightNs: number = 0;
+  isJumpPage: boolean | undefined;
+  pid: number | undefined;
+  tid: number | undefined;
+  count: number = 0;
+  tsArr: number[] = [];
+}
+
 export class SliceBoxJumpParam {
   traceId: string | undefined | null;
   leftNs: number = 0;

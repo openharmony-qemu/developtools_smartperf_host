@@ -64,7 +64,7 @@ selector{
             <lit-table-column width="1fr" title="Local" data-index="selfDur" key="selfDur" 
             align="flex-start"  order></lit-table-column>
             <lit-table-column width="1fr" title="Sample Count" data-index="weight" key="weight" 
-            align="flex-start"  order></lit-table-column>
+            align="flex-start"  order tdJump></lit-table-column>
             <lit-table-column width="1fr" title="%" data-index="weightPercent" key="weightPercent" 
             align="flex-start"  order></lit-table-column>
             <lit-table-column width="1fr" title="Event Count" data-index="eventCount" key="eventCount" 
