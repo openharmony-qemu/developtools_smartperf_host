@@ -144,7 +144,7 @@ index 56d5b2ce7dc3..827184b7a5e0 100644
 +    deps = [
 +      "//llvm/include/llvm/Config:config",
 +      "//llvm/lib/Demangle",
-+      "//third_party/zlib:libz",
++      "//src/parser/hiperf_parser:libz",
 +    ]
 +  } else {
 +    deps = [

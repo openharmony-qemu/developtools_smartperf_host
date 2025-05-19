@@ -30,6 +30,7 @@ import { TabPaneNMStatstics } from '../sheet/native-memory/TabPaneNMStatstics';
 import { TabPaneNMemory } from '../sheet/native-memory/TabPaneNMemory';
 import { TabPaneNMSampleList } from '../sheet/native-memory/TabPaneNMSampleList';
 import { TabpanePerfProfile } from '../sheet/hiperf/TabPerfProfile';
+import { TabPanePerfSampleChild } from '../sheet/hiperf/TabPerfSampleChild';
 import { TabPanePerfSample } from '../sheet/hiperf/TabPerfSampleList';
 import { TabPaneLiveProcesses } from '../sheet/ability/TabPaneLiveProcesses';
 import { TabPaneHistoryProcesses } from '../sheet/ability/TabPaneHistoryProcesses';
@@ -261,6 +262,10 @@ export let tabConfig: {
     title: 'Sample List',
     type: TabPanePerfSample,
     require: (param: SelectionParam) => param.perfSampleIds.length > 0,
+  },
+  'box-perf-sample-child': {
+    title: '',
+    type: TabPanePerfSampleChild
   },
   'box-perf-async': {
     title: 'Async Call Profile',

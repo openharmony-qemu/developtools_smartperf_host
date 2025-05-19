@@ -20,7 +20,8 @@ import {
   BoxJumpParam, 
   SelectionParam,
   SysCallBoxJumpParam,
-  SliceBoxJumpParam 
+  SliceBoxJumpParam, 
+  PerfSampleBoxJumpParam
 } from '../../../bean/BoxSelection';
 import { type TabPaneCurrentSelection } from '../sheet/TabPaneCurrentSelection';
 import { type TabPaneFlag } from '../timer-shaft/TabPaneFlag';
@@ -117,6 +118,7 @@ import { info, error } from '../../../../log/Log';
 import { XpowerThreadCountStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerThreadCount';
 import { XpowerGpuFreqCountStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerGpuFreqCount';
 import { TabPaneSysCallChild } from '../sheet/process/TabPaneSysCallChild';
+import { TabPanePerfSampleChild } from '../sheet/hiperf/TabPerfSampleChild';
 
 
 @element('trace-sheet')
@@ -313,6 +315,10 @@ export class TraceSheet extends BaseElement {
     // @ts-ignore
     this.getComponentByID<unknown>('box-thread-syscall')?.addEventListener('td-click', (evt: unknown) => {
       this.tdSysCallClickHandler(evt);
+    });
+    // @ts-ignore
+    this.getComponentByID<unknown>('box-perf-profile')?.addEventListener('td-click', (evt: unknown) => {
+      this.tdPerfSampleClickHandler(evt);
     });
   }
 
@@ -804,21 +810,21 @@ export class TraceSheet extends BaseElement {
         let blob: Blob | null = file.slice(writeSize, writeSize + sliceLen);
         let buffer: ArrayBuffer | null = await blob.arrayBuffer();
         let data: Uint8Array | null = new Uint8Array(buffer);
-
-        const dataObject = {
+		const dataObject = {
           file_name: fileName,
           buffer_index: bufferIndex,
           buffer_size: sliceLen,
           total_size: file.size,
-          is_last: writeSize + sliceLen >= file.size,
-          buffer: Array.from(data),
+          is_last: writeSize + sliceLen >= file.size
         };
-
-
         const dataString = JSON.stringify(dataObject);
+		const jsonStr = `${dataString.length}|${dataString}`;
         const textEncoder = new TextEncoder();
-        const encodedData = textEncoder.encode(dataString);
-        wsInstance!.sendMessage(TypeConstants.DISASSEMBLY_TYPE, Constants.DISASSEMBLY_SAVE_CMD, encodedData);
+        const jsonData = textEncoder.encode(jsonStr);
+        let mergeData: Uint8Array = new Uint8Array(jsonData.length + data.length);
+        mergeData.set(jsonData);
+        mergeData.set(data, jsonData.length);
+        wsInstance!.sendMessage(TypeConstants.DISASSEMBLY_TYPE, Constants.DISASSEMBLY_SAVE_CMD, mergeData);
         writeSize += sliceLen;
         // 等待服务器端确认当前分片的 ACK
         await waitForAck();
@@ -912,14 +918,14 @@ export class TraceSheet extends BaseElement {
                               </div>
                               <lit-icon name="setting" size="20" id="setting"></lit-icon>
                         </lit-popover>
-                        <div title="Import SO" id="import_div" style="width: 20px;height: 20px;display: flex;flex-direction: row;margin-right: 10px">
+                        <div title="So Symbolization" id="import_div" style="width: 20px;height: 20px;display: flex;flex-direction: row;margin-right: 10px">
                             <input id="import-file" style="display: none;pointer-events: none" type="file" webkitdirectory>
                             <label style="width: 20px;height: 20px;cursor: pointer;" for="import-file">
                                 <lit-icon id="import-btn" name="so-symbol" style="pointer-events: none" size="20">
                                 </lit-icon>
                             </label>
                         </div>
-                        <div title="So Symbolization" id="symbol_div" style="width: 20px;height: 20px;display: flex;flex-direction: row;margin-right: 10px">
+                        <div title="Import SO" id="symbol_div" style="width: 20px;height: 20px;display: flex;flex-direction: row;margin-right: 10px">
                             <input id="so-symbolization" style="display: none;pointer-events: none" type="file" webkitdirectory>
                             <label style="width: 20px;height: 20px;cursor: pointer;" for="so-symbolization">
                                 <lit-icon id="import-btn" name="copy-csv" style="pointer-events: none" size="20">
@@ -1506,6 +1512,35 @@ export class TraceSheet extends BaseElement {
     }  
     param.isJumpPage = true; // @ts-ignore
     (pane.children.item(0) as TabPaneSysCallChild).data = param;
+  }
+
+  tdPerfSampleClickHandler(e: unknown): void {
+    // @ts-ignore
+    this.currentPaneID = e.target.parentElement.id;
+    //隐藏除了当前Tab页的其他Tab页
+    this.shadowRoot!.querySelectorAll<LitTabpane>('lit-tabpane').forEach((it): boolean =>
+      it.id !== this.currentPaneID ? (it.hidden = true) : (it.hidden = false)
+    ); //todo：看能不能优化
+    let pane = this.getPaneByID('box-perf-sample-child'); //通过Id找到需要展示的Tab页
+    pane.closeable = true; //关闭的ican显示
+    pane.hidden = false;
+    this.litTabs!.activeByKey(pane.key); //显示key值对应的Tab页
+    // @ts-ignore
+    pane.tab = e.detail.symbol; //设置Tab页标题，有的标题可直接用，有的标题需在此转换成需要展示的字符串
+    let param = new PerfSampleBoxJumpParam();
+    param.traceId = this.selection!.traceId;
+    param.leftNs = this.selection!.leftNs;
+    param.rightNs = this.selection!.rightNs;
+    //@ts-ignore
+    param.pid = e.detail.pid;
+    //@ts-ignore
+    param.tid = e.detail.tid;
+    //@ts-ignore
+    param.count = e.detail.dur || 0;
+    //@ts-ignore
+    param.tsArr = e.detail.tsArray || [];
+    param.isJumpPage = true;
+    (pane.children.item(0) as TabPanePerfSampleChild).data = param;
   }
 
   //Slice Tab点击Occurrences列下的td进行跳转

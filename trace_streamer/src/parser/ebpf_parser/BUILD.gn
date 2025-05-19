@@ -77,7 +77,7 @@ ohos_static_library("ebpf_parser") {
   public_configs = [ ":ebpf_parser_cfg" ]
   public_deps = [
     "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/memory_data:memory_data_reader",
-    "${PERF_DIR}/hiperf:hiperf_src",
+    "../hiperf_parser:ts_hiperf_src",
   ]
   deps = [
     "${THIRD_PARTY}/protobuf:protobuf_lite_static",

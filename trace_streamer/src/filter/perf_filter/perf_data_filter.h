@@ -34,6 +34,7 @@ public:
 
 public:
     size_t AppendPerfFiles(uint64_t fileId, uint32_t serial, DataIndex symbols, DataIndex filePath);
+    void AppendInvalidVaddrIpToFuncName(uint64_t ip, DataIndex nameIndex);
     void Finish();
     void BeforeReload();
 
@@ -41,6 +42,7 @@ private:
     DoubleMap<uint64_t, uint32_t, uint64_t> fileIdToRowInFileTable_;
     std::set<uint64_t> fileIds_;
     std::map<uint64_t, uint64_t> fileIdToRow_{};
+    std::map<uint64_t, DataIndex> invalidVaddrIpToFuncName_{};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

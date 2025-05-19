@@ -59,6 +59,12 @@ config("default") {
     "-Wformat",
     "-Wno-unused-variable",
   ]
+
+  # for third part hiperf
+  defines += [ "HIPERF_DEBUG" ]
+
+  # for third part libbpf
+  defines += [ "__LITTLE_ENDIAN_BITFIELD" ]
   if (enable_hiperf) {
     defines += [ "ENABLE_HIPERF" ]
   }
@@ -191,17 +197,17 @@ config("default") {
     cflags += [ "-D SUPPORTTHREAD" ]
   }
   if (is_win) {
-    cflags += [ "-D is_mingw" ]
+    cflags += [ "-D is_mingw=true" ]
     defines += [ "WIN32_LEAN_AND_MEAN" ]
     libs += [ "wsock32" ]
     libs += [ "ws2_32" ]
     cflags += [ "-Wno-attributes" ]
   }
   if (is_linux) {
-    cflags += [ "-D is_linux" ]
+    cflags += [ "-D is_linux=true" ]
   }
   if (is_mac) {
-    cflags += [ "-D is_mac" ]
+    cflags += [ "-D is_mac=true" ]
   }
 }
 

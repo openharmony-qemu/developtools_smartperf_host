@@ -121,6 +121,9 @@ export class PerfStack {
   fileId: number = 0;
   type: number = 0;
   vaddrInFile: number = 0;
+  sourceId: number | undefined;
+  sourceFile: string | undefined;
+  lineNumber: number | undefined;
 }
 
 export class PerfCmdLine {
