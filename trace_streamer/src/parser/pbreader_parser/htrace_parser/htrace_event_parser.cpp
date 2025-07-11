@@ -1002,21 +1002,6 @@ bool HtraceEventParser::SysEnterEvent(const EventInfo &event) const
     syscallInfoRow.ts = event.timeStamp;
     syscallInfoRow.itid = event.pid;
     syscallInfoRow.number = msg.id();
-    // if (msg.has_args()) {
-    //     bool parseErrorInfo = false;
-    //     auto eventItor = msg.args(&parseErrorInfo);
-    //     std::ostringstream oss;
-    //     oss << "(";
-    //     while (eventItor) {
-    //         oss << std::hex << std::nouppercase << *eventItor;
-    //         eventItor++;
-    //         if (eventItor) {
-    //             oss << ", ";
-    //         }
-    //     }
-    //     oss << ")";
-    //     syscallInfoRow.args = traceDataCache_->GetDataIndex(oss.str());
-    // }
     streamFilters_->syscallFilter_->UpdataSyscallEnterExitMap(syscallInfoRow);
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SYS_ENTRY, STAT_EVENT_RECEIVED);
     return true;
