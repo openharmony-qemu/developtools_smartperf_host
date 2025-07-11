@@ -21,6 +21,7 @@
 #include "ftrace_processor.h"
 #include "kernel_symbols_processor.h"
 #include "trace_data_cache.h"
+#include "config_filter.h"
 
 namespace SysTuning {
 namespace TraceStreamer {

@@ -23,6 +23,7 @@
 #include "trace_data_cache.h"
 #include "trace_streamer_filters.h"
 #include "ts_common.h"
+#include "config_filter.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
@@ -81,19 +82,6 @@ private:
     std::deque<std::unique_ptr<APPStartupData>> loadAbilityItems_;
     appMap mAPPStartupData_;
     std::map<uint32_t, appMap> mAPPStartupDataWithPid_;
-    const std::string procTouchCmd_ = "H:client dispatch touchId:";
-    const std::string startUIAbilityBySCBCmd_ =
-        "H:OHOS::ErrCode OHOS::AAFwk::AbilityManagerClient::StartUIAbilityBySCB";
-    const std::string loadAbilityCmd_ = "H:virtual void OHOS::AppExecFwk::AppMgrServiceInner::LoadAbility";
-    const std::string appLaunchCmd_ =
-        "H:virtual void OHOS::AppExecFwk::AppMgrServiceInner::AttachApplication(const pid_t, const "
-        "sptr<OHOS::AppExecFwk::IAppScheduler> &)##";
-    const std::string uiLaunchCmd_ =
-        "H:void OHOS::AppExecFwk::MainThread::HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &)##";
-    const std::string uiOnForegroundFirstCmd_ =
-        "H:void OHOS::AbilityRuntime::FAAbilityThread::HandleAbilityTransaction(const OHOS::AbilityRuntime::Want &, "
-        "const OHOS::AbilityRuntime::LifeCycleStateInfo &, sptr<AppExecFwk::SessionInfo>)##";
-    const std::string uiOnForegroundSecCmd_ = "H:void OHOS::AbilityRuntime::UIAbilityThread::HandleAbilityTransaction";
     const std::string dlopenCmd_ = "dlopen:";
 };
 } // namespace TraceStreamer

@@ -15,7 +15,7 @@
 #include "syscall_stdtype.h"
 namespace SysTuning {
 namespace TraceStdtype {
-size_t SysCall::AppendSysCallData(const SyscallInfoRow& syscallInfoRow)
+size_t SysCall::AppendSysCallData(const SyscallInfoRow &syscallInfoRow)
 {
     sysCallNumbers_.emplace_back(syscallInfoRow.number);
     timeStamps_.emplace_back(syscallInfoRow.ts);

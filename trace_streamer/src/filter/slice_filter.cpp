@@ -325,12 +325,9 @@ size_t SliceFilter::StartSlice(uint64_t timeStamp,
     uint32_t depth = stack.size();
     auto slices = traceDataCache_->GetInternalSlicesData();
     uint32_t parentId = depth == 0 ? INVALID_UINT32 : slices->IdsData()[stack.back().index];
-    CallStackInternalRow callStackInternalRow = {sliceData.timeStamp,
-                                                 static_cast<uint64_t>(sliceData.duration),
-                                                 sliceData.internalTid,
-                                                 sliceData.cat,
-                                                 sliceData.name,
-                                                 0,
+    CallStackInternalRow callStackInternalRow = {sliceData.timeStamp,   static_cast<uint64_t>(sliceData.duration),
+                                                 sliceData.internalTid, sliceData.cat,
+                                                 sliceData.name,        0,
                                                  INVALID_UINT32};
     size_t index = slices->AppendInternalSlice(callStackInternalRow, parentId);
     if (depth >= std::numeric_limits<uint8_t>::max()) {
@@ -469,8 +466,8 @@ uint64_t SliceFilter::StartAsyncSlice(uint64_t timeStamp,
     // do not mean the parent-to-child relationship, it is different from no-async call
     uint8_t depth = 0;
     uint32_t childCallid = parentId;
-    CallStackInternalRow callStackInternalRow = {timeStamp, static_cast<uint64_t>(-1), internalTid, cat, nameIndex,
-                                                 depth, childCallid};
+    CallStackInternalRow callStackInternalRow = {
+        timeStamp, static_cast<uint64_t>(-1), internalTid, cat, nameIndex, depth, childCallid};
     size_t index = slices->AppendInternalAsyncSlice(callStackInternalRow, cookie, parentId);
     asyncEventFilterMap_.insert(std::make_pair(asyncEventSize_, AsyncEvent{timeStamp, index}));
     return index;

@@ -82,6 +82,7 @@ ohos_source_set("filter") {
     "args_filter.cpp",
     "binder_filter.cpp",
     "clock_filter_ex.cpp",
+    "config_filter.cpp",
     "cpu_filter.cpp",
     "filter_base.cpp",
     "filter_filter.cpp",

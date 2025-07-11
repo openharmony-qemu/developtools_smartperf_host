@@ -116,10 +116,10 @@ void PrintEventParser::ParseBeginEvent(const std::string &comm,
             return;
         }
         bool isDiscontinued = false;
-        if (traceDataCache_->TaskPoolTraceEnabled()) {
+        if (streamFilters_->configFilter_->GetSwitchConfig().TaskPoolConfigEnabled()) {
             isDiscontinued = streamFilters_->taskPoolFilter_->TaskPoolEvent(point.name_, index);
         }
-        if (traceDataCache_->AnimationTraceEnabled() && !isDiscontinued) {
+        if (streamFilters_->configFilter_->GetSwitchConfig().AnimationConfigEnabled() && !isDiscontinued) {
             (void)HandleAnimationBeginEvent(point, index, line);
         }
     } else {
@@ -130,7 +130,7 @@ void PrintEventParser::ParseEndEvent(uint64_t ts, uint32_t pid, const TracePoint
 {
     uint32_t index = streamFilters_->sliceFilter_->EndSlice(ts, pid, point.tgid_);
     HandleFrameSliceEndEvent(ts, point.tgid_, pid, index);
-    if (traceDataCache_->AnimationTraceEnabled()) {
+    if (streamFilters_->configFilter_->GetSwitchConfig().AnimationConfigEnabled()) {
         streamFilters_->animationFilter_->EndDynamicFrameEvent(ts, index);
     }
 }
@@ -152,9 +152,9 @@ void PrintEventParser::ParseStartEvent(const std::string &comm,
 
     if (point.name_ == onFrameQueeuStartEvent_) {
         OnFrameQueueStart(ts, index, point.tgid_);
-    } else if (traceDataCache_->AnimationTraceEnabled() &&
-               (base::EndWith(comm, onAnimationProcEvent_) ||
-                base::EndWith(comm, newOnAnimationProcEvent_))) { // the comm is taskName
+    } else if (streamFilters_->configFilter_->GetSwitchConfig().AnimationConfigEnabled() && index != INVALID_UINT64 &&
+               streamFilters_->configFilter_->GetAnimationConfig().CheckIfAnimationEvents(
+                   comm)) { // the comm is taskName
         streamFilters_->animationFilter_->StartAnimationEvent(line, point, index);
     }
 }
@@ -164,7 +164,7 @@ void PrintEventParser::ParseFinishEvent(uint64_t ts, uint32_t pid, const TracePo
     auto index = streamFilters_->sliceFilter_->FinishAsyncSlice(ts, pid, point.tgid_, cookie,
                                                                 traceDataCache_->GetDataIndex(point.name_));
     HandleFrameQueueEndEvent(ts, point.tgid_, point.tgid_, index);
-    if (traceDataCache_->AnimationTraceEnabled()) {
+    if (streamFilters_->configFilter_->GetSwitchConfig().AnimationConfigEnabled()) {
         streamFilters_->animationFilter_->FinishAnimationEvent(line, index);
     }
 }

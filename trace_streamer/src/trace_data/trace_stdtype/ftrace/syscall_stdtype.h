@@ -29,7 +29,7 @@ struct SyscallInfoRow {
 };
 class SysCall : public CacheBase, public BatchCacheBase {
 public:
-    size_t AppendSysCallData(const SyscallInfoRow& syscallNrInfoRow);
+    size_t AppendSysCallData(const SyscallInfoRow &syscallNrInfoRow);
     const std::deque<uint32_t> &SysCallNumbersData() const
     {
         return sysCallNumbers_;

@@ -244,7 +244,7 @@ void CpuDetailParser::FinishCpuDetailParser()
     streamFilters_->cpuFilter_->Finish();
     traceDataCache_->dataDict_.Finish();
     traceDataCache_->UpdataZeroThreadInfo();
-    if (traceDataCache_->AppStartTraceEnabled()) {
+    if (streamFilters_->configFilter_->GetSwitchConfig().AppConfigEnabled()) {
         streamFilters_->appStartupFilter_->FilterAllAPPStartupData();
     }
     Clear();

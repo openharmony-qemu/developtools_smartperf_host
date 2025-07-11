@@ -195,17 +195,21 @@ void BytraceEventParser::StackEventsInitialization()
 
 bool BytraceEventParser::SysEnterEvent(const ArgsMap &args, const BytraceLine &line)
 {
+    if (streamFilters_->configFilter_->GetSwitchConfig().SyscallsTsSet().empty()) {
+        return true;
+    }
     Unused(args);
-    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SYS_ENTRY, STAT_EVENT_RECEIVED);
     std::string sysEnterStr = base::Strip(line.argsStr);
     if (sysEnterStr.empty()) {
         TS_LOGD("SysEnterEvent: Empty args string for sysEnterStr, skipping.");
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SYS_ENTRY, STAT_EVENT_DATA_INVALID);
         return true;
     }
 
     auto firstSpacePos = sysEnterStr.find(" ");
     if (firstSpacePos == std::string::npos) {
         TS_LOGD("SysEnterEvent: No space found in sysEnterStr: '%s', skipping.", sysEnterStr.c_str());
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SYS_ENTRY, STAT_EVENT_DATA_INVALID);
         return true;
     }
 
@@ -226,22 +230,27 @@ bool BytraceEventParser::SysEnterEvent(const ArgsMap &args, const BytraceLine &l
     syscallInfoRow.args = argsDataIndex;
     syscallInfoRow.number = syscallNumber;
     streamFilters_->syscallFilter_->UpdataSyscallEnterExitMap(syscallInfoRow);
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SYS_ENTRY, STAT_EVENT_RECEIVED);
     return true;
 }
 
 bool BytraceEventParser::SysExitEvent(const ArgsMap &args, const BytraceLine &line)
 {
+    if (streamFilters_->configFilter_->GetSwitchConfig().SyscallsTsSet().empty()) {
+        return true;
+    }
     Unused(args);
-    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SYS_EXIT, STAT_EVENT_RECEIVED);
     std::string sysExitStr = base::Strip(line.argsStr);
     if (sysExitStr.empty()) {
         TS_LOGD("SysExitEvent: Empty args string for sysExitStr, skipping.");
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SYS_EXIT, STAT_EVENT_DATA_INVALID);
         return true;
     }
 
     auto firstSpacePos = sysExitStr.find(" ");
     if (firstSpacePos == std::string::npos) {
         TS_LOGD("SysExitEvent: No space found in sysExitStr: '%s', skipping.", sysExitStr.c_str());
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SYS_EXIT, STAT_EVENT_DATA_INVALID);
         return true;
     }
 
@@ -256,6 +265,7 @@ bool BytraceEventParser::SysExitEvent(const ArgsMap &args, const BytraceLine &li
 
     uint32_t sysExitId = std::atoi(sysExitStr.substr(firstSpacePos, secondSpacePos).c_str());
     streamFilters_->syscallFilter_->AppendSysCallInfo(line.pid, sysExitId, line.ts, ret);
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SYS_ENTRY, STAT_EVENT_RECEIVED);
     return true;
 }
 
@@ -778,8 +788,8 @@ bool BytraceEventParser::BinderTransaction(const ArgsMap &args, const BytraceLin
     streamFilters_->binderFilter_->SendTraction(line.ts, line.pid, transactionId.value(), destNode.value(),
                                                 destProc.value(), destThread.value(), isReply.value(), flags.value(),
                                                 codeStr.value());
-    if (traceDataCache_->BinderRunnableTraceEnabled() && transactionId.has_value() && flags.has_value() &&
-        !streamFilters_->binderFilter_->IsAsync(flags.value())) {
+    if (streamFilters_->configFilter_->GetSwitchConfig().BinderRunnableConfigEnabled() && transactionId.has_value() &&
+        flags.has_value() && !streamFilters_->binderFilter_->IsAsync(flags.value())) {
         streamFilters_->cpuFilter_->InsertRunnableBinderEvent(transactionId.value(),
                                                               streamFilters_->processFilter_->GetInternalTid(line.pid));
     }
@@ -795,7 +805,7 @@ bool BytraceEventParser::BinderTransactionReceived(const ArgsMap &args, const By
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BINDER_TRANSACTION_RECEIVED, STAT_EVENT_RECEIVED);
     auto transactionId = base::StrToInt<int64_t>(args.at("transaction"));
     streamFilters_->binderFilter_->ReceiveTraction(line.ts, line.pid, transactionId.value());
-    if (traceDataCache_->BinderRunnableTraceEnabled() && transactionId.has_value()) {
+    if (streamFilters_->configFilter_->GetSwitchConfig().BinderRunnableConfigEnabled() && transactionId.has_value()) {
         streamFilters_->cpuFilter_->InsertRunnableBinderRecvEvent(
             transactionId.value(), streamFilters_->processFilter_->GetInternalTid(line.pid));
     }
@@ -892,7 +902,7 @@ void BytraceEventParser::FilterAllEvents()
     streamFilters_->cpuFilter_->Finish();
     traceDataCache_->dataDict_.Finish();
     traceDataCache_->UpdataZeroThreadInfo();
-    if (traceDataCache_->AppStartTraceEnabled()) {
+    if (streamFilters_->configFilter_->GetSwitchConfig().AppConfigEnabled()) {
         streamFilters_->appStartupFilter_->FilterAllAPPStartupData();
     }
     traceDataCache_->GetThreadStateData()->SortAllRowByTs();

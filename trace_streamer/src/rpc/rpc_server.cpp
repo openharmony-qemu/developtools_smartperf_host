@@ -839,13 +839,8 @@ bool RpcServer::ParserConfig(std::string parserConfigJson)
 {
     json jMessage = json::parse(parserConfigJson);
     jsonns::ParserConfig parserConfig = jMessage.at("config");
-    ts_->UpdateAppStartTraceStatus(parserConfig.appConfigValue);
-    ts_->UpdateAnimationTraceStatus(parserConfig.aniConfigValue);
-    ts_->UpdateTaskPoolTraceStatus(parserConfig.taskConfigValue);
-    ts_->UpdateBinderRunnableTraceStatus(parserConfig.binderConfigValue);
-    ts_->UpdateHMKernelTraceStatus(parserConfig.HMKernelConfigValue);
-    ts_->UpdateRawTraceCutStartTsStatus(parserConfig.rawTraceCutStartTsValue);
-    ffrtConvertEnabled_ = parserConfig.ffrtConvertConfigValue;
+    ts_->SetConfigFile(parserConfigJson);
+    ffrtConvertEnabled_ = ts_->GetFfrtConfig();
     startParseTime_ =
         (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()))
             .count();

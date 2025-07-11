@@ -15,6 +15,7 @@
 
 #include "syscall_filter.h"
 
+#include "config_filter.h"
 #include "process_filter.h"
 
 namespace SysTuning {
@@ -27,23 +28,27 @@ SyscallFilter::~SyscallFilter() {}
 
 void SyscallFilter::UpdataSyscallEnterExitMap(const SyscallInfoRow &syscallInfoRow)
 {
-    TS_LOGI("SysEnterEvent: SysEnter ID %u", syscallInfoRow.number);
-    auto key = std::make_pair(syscallInfoRow.itid, syscallInfoRow.number);
-    syscallEnterExitMap_[key] = syscallInfoRow;
+    TS_LOGD("SysEnterEvent: SysEnter ID %u", syscallInfoRow.number);
+    const auto &syscallNrSet = streamFilters_->configFilter_->GetSwitchConfig().SyscallsTsSet();
+    if (syscallNrSet.find(syscallInfoRow.number) == syscallNrSet.end()) {
+        return;
+    }
+    syscallEnterExitMap_[syscallInfoRow.itid] = syscallInfoRow;
 }
 
 void SyscallFilter::AppendSysCallInfo(uint32_t pid, uint32_t syscallNr, uint64_t ts, int64_t ret)
 {
-    TS_LOGI("SysExitEvent: SysEnter ID %u", syscallNr);
-    auto key = std::make_pair(pid, syscallNr);
-    auto syscallEnterExitItor = syscallEnterExitMap_.find(key);
-    if (syscallEnterExitItor != syscallEnterExitMap_.end() && syscallEnterExitItor->second.ts <= ts) {
-        uint64_t dur = ts - syscallEnterExitItor->second.ts;
-        syscallEnterExitItor->second.dur = dur;
-        syscallEnterExitItor->second.ret = ret;
-        syscallEnterExitItor->second.itid = streamFilters_->processFilter_->UpdateOrCreateThread(ts, pid);
-        traceDataCache_->GetSysCallData()->AppendSysCallData(syscallEnterExitItor->second);
-        syscallEnterExitMap_.erase(key);
+    TS_LOGD("SysExitEvent: SysEnter ID %u", syscallNr);
+    auto syscallEnterExitItor = syscallEnterExitMap_.find(pid);
+    if (syscallEnterExitItor != syscallEnterExitMap_.end()) {
+        auto &syscallInfoRow = syscallEnterExitItor->second;
+        if (syscallInfoRow.number == syscallNr && syscallInfoRow.ts <= ts) {
+            syscallInfoRow.dur = ts - syscallInfoRow.ts;
+            syscallInfoRow.ret = ret;
+            syscallInfoRow.itid = streamFilters_->processFilter_->UpdateOrCreateThread(ts, pid);
+            traceDataCache_->GetSysCallData()->AppendSysCallData(syscallInfoRow);
+        }
+        syscallEnterExitMap_.erase(pid);
     } else {
         TS_LOGW("SysExitEvent: No matching sysExit event found for syscallID = %u.", syscallNr);
     }

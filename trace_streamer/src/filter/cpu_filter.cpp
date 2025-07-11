@@ -69,7 +69,7 @@ void CpuFilter::ProcPrevPidSwitchEvent(uint64_t ts,
         auto lastState = traceDataCache_->GetConstThreadStateData().StatesData()[lastRow];
         auto lastStartTs = traceDataCache_->GetConstThreadStateData().TimeStampData()[lastRow];
         if ((cpu != lastCpu) && (lastState == TASK_RUNNING)) {
-            if (traceDataCache_->HMKernelTraceEnabled() || (ts == lastStartTs)) {
+            if (streamFilters_->configFilter_->GetSwitchConfig().HMKernelTraceEnabled() || (ts == lastStartTs)) {
                 isChangeCpu = true;
             }
         }
@@ -128,7 +128,8 @@ void CpuFilter::InsertSwitchEvent(uint64_t ts,
     if (prevPid) {
         ProcPrevPidSwitchEvent(ts, cpu, prevPid, prevState, btInfo);
     }
-    if (traceDataCache_->BinderRunnableTraceEnabled() && iTidToTransaction_.find(prevPid) != iTidToTransaction_.end()) {
+    if (streamFilters_->configFilter_->GetSwitchConfig().BinderRunnableConfigEnabled() &&
+        iTidToTransaction_.find(prevPid) != iTidToTransaction_.end()) {
         uint64_t transactionId = iTidToTransaction_.at(prevPid);
         auto iter = transactionIdToInfo_.find(transactionId);
         if (prevState != TASK_NEW || iter == transactionIdToInfo_.end() || iter->second.iTidFrom != prevPid ||

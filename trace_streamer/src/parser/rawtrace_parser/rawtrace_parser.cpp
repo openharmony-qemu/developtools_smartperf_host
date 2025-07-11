@@ -46,7 +46,7 @@ void RawTraceParser::WaitForParserEnd()
 }
 void RawTraceParser::UpdateTraceMinRange()
 {
-    if (!traceDataCache_->RawTraceCutStartTsEnabled()) {
+    if (!streamFilters_->configFilter_->GetSwitchConfig().RawTraceCutStartTsEnabled()) {
         return;
     }
     auto schedSlice = traceDataCache_->GetConstSchedSliceData();

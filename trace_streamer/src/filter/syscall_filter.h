@@ -36,7 +36,7 @@ public:
     void Clear();
 
 private:
-    std::map<std::pair<uint32_t /*itid*/, uint32_t /*sysCallId*/>, SyscallInfoRow> syscallEnterExitMap_;
+    std::map<uint32_t /*itid*/, SyscallInfoRow> syscallEnterExitMap_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

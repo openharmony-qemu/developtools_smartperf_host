@@ -723,7 +723,7 @@ uint32_t PerfDataParser::UpdateCallChainUnCompressed(const PerfRecordSample *sam
     callChainId = ++callChainId_;
     pidAndStackHashToCallChainId_.Insert(pid, stackHash, callChainId);
     callChainIdToThreadInfo_.insert({callChainId, std::make_tuple(pid, sample->data_.tid)});
-uint32_t depth = 0;
+    uint32_t depth = 0;
     for (auto frame = sample->callFrames_.rbegin(); frame != sample->callFrames_.rend(); ++frame) {
         uint64_t fileId = INVALID_UINT64;
         auto fileDataIndex = traceDataCache_->dataDict_.GetStringIndex(frame->mapName);

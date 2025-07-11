@@ -25,6 +25,7 @@
 #include "string_help.h"
 #include "string_to_numerical.h"
 #include "trace_streamer_filters.h"
+#include "config_filter.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
@@ -40,6 +41,7 @@ public:
     bool FinishAnimationEvent(const BytraceLine &line, size_t callStackRow);
     void UpdateDynamicFrameInfo();
     void UpdateFrameInfo();
+    void InitAnimationStartEvents();
     void Clear();
 
 private:
@@ -49,18 +51,7 @@ private:
     const std::regex framePixPattern_ =
         std::regex(R"(\[(.*?)\]\s*\(\s*-?(\d+),\s*-?(\d+),\s*(\d+),\s*(\d+)\)\s*Alpha:\s+-*(\d+\.\d+))");
     // for calculate the frame rate
-    const std::string frameRateCmd_ = "H:GenerateVsyncCount";
-    // if the realFrameRate present, no calculation is required
-    const std::string realFrameRateCmd_ = "H:RSJankStats::RecordAnimationDynamicFrameRate"; // 动效过程帧率
-    const std::string frameCountCmd_ = "H:Repaint";
-    const std::string frameBeginCmd_ = "H:RSUniRender::Process:[WindowScene_";
-    const std::string newFrameBeginCmd_ = "H:RSSurfaceRenderNodeDrawable::OnDraw:[WindowScene_"; // 动效帧数据
-    const std::string frameBeginPrefix_ = "H:RSUniRender::Process:[";
-    const std::string screenSizeCmd_ = "H:RSUniRender::Process:[SCBDesktop";
-    const std::string newScreenSizeCmd_ = "H:RSSurfaceRenderNodeDrawable::OnDraw:[SCBDesktop"; // 设备分辨率
     const std::string frameEndTimeCmd_ = "H:RSMainThread::DoComposition";
-    const std::string paralleCmd_ = "H:PostAndWait, parallel type"; // 并行化标志
-    const std::string renderFrameCmd_ = "H:RenderFrame";            // 并行化后动效帧结束时间相关trace点
     std::unordered_set<DataIndex> onAnimationStartEvents_ = {};
     // for update dynamicFrameInfo at the end, first is callStackRow, second is dynamicFramRow
     std::deque<uint64_t> callstackWithDynamicFrameRows_ = {};

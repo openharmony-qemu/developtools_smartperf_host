@@ -32,6 +32,7 @@ class ArgsFilter;
 class IrqFilter;
 class SyscallFilter;
 class SystemEventMeasureFilter;
+class ConfigFilter;
 #ifdef ENABLE_HISYSEVENT
 class HiSysEventMeasureFilter;
 #endif
@@ -61,6 +62,7 @@ public:
     std::unique_ptr<SystemEventMeasureFilter> sysEventMemMeasureFilter_;
     std::unique_ptr<SystemEventMeasureFilter> sysEventVMemMeasureFilter_;
     std::unique_ptr<SystemEventMeasureFilter> sysEventSourceFilter_;
+    std::unique_ptr<ConfigFilter> configFilter_;
 #ifdef ENABLE_HISYSEVENT
     std::unique_ptr<HiSysEventMeasureFilter> hiSysEventMeasureFilter_;
 #endif
