@@ -24,7 +24,7 @@ developtools/smartperf_host/smartperf_device/device_command
 ├── smartperf_command.cpp                       # 程序执行文件
 ├── smartperf_main.cpp                          # 程序入口文件
 ├── sp_log.cpp                                  # log文件
-├── sp_factory.cpp                     # 采集工厂文件
+├── sp_factory.cpp                              # 采集工厂文件
 ├── sp_server_socket.cpp                        # 与SmartPerf hap通讯代码文件
 ├── sp_task.cpp                                 # 与SmartPerf editor通讯代码文件
 ├── sp_utils.cpp                                # 工具类
