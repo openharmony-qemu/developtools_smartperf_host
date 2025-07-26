@@ -29,26 +29,17 @@ fi
 cd third_party
 
 if [ ! -f "sqlite/BUILD.gn" ];then
-    rm -rf sqlite
-    git clone  git@gitee.com:openharmony/third_party_sqlite.git
-    if [ -d "third_party_sqlite" ];then
-        mv third_party_sqlite sqlite
-        cd sqlite
-        git reset --hard d21e412dbc6f2cdde2e4c9828e2450fcfca4fbe9
-        cd ..
-        $cp ../prebuilts/patch_sqlite/sqlite3build.gn ../third_party/sqlite/BUILD.gn
-    fi
+    git clone git@gitee.com:openharmony/third_party_sqlite.git sqlite
+    cd sqlite
+    git reset --hard d21e412dbc6f2cdde2e4c9828e2450fcfca4fbe9
+    cd ..
 fi
+
 if [ ! -f "protobuf/BUILD.gn" ];then
-    rm -rf protobuf
-    git clone  git@gitee.com:openharmony/third_party_protobuf.git
-    if [ -d "third_party_protobuf" ];then
-        mv third_party_protobuf protobuf
-        cd protobuf
-        git reset --hard aceafed4cf26d7a6be8169ae887cc13b749d5515
-        cd ..
-        $cp ../prebuilts/patch_protobuf/protobufbuild.gn ../third_party/protobuf/BUILD.gn
-    fi
+    git clone git@gitee.com:openharmony/third_party_protobuf.git protobuf
+    cd protobuf
+    git reset --hard aceafed4cf26d7a6be8169ae887cc13b749d5515
+    cd ..
 fi
 
 if [ ! -f "zlib/BUILD.gn" ];then
@@ -57,27 +48,14 @@ fi
 
 if [ ! -f "bzip2/BUILD.gn" ];then
     git clone --depth=1 git@gitee.com:openharmony/third_party_bzip2.git bzip2
-    cd bzip2
-    ./install.sh $(pwd)
-    cd ..
 fi
 
 if [ ! -f "googletest/BUILD.gn" ];then
-    rm -rf googletest
-    git clone --depth=1 git@gitee.com:openharmony/third_party_googletest.git
-    if [ -d "third_party_googletest" ];then
-        mv third_party_googletest googletest
-        $cp ../prebuilts/patch_googletest/googletestbuild.gn ../third_party/googletest/BUILD.gn
-        $patch -p1 < ../prebuilts/patch_googletest/gtest.patch
-    fi
+    git clone --depth=1 git@gitee.com:openharmony/third_party_googletest.git googletest
 fi
 
-if [ ! -f "json/BUILD.gn" ];then
-    rm -rf json
-    git clone --depth=1 git@gitee.com:openharmony/third_party_json.git
-    if [ -d "third_party_json" ];then
-        mv third_party_json json
-    fi
+if [ ! -d "json" ];then
+    git clone --depth=1 git@gitee.com:openharmony/third_party_json.git json
 fi
 
 if [ ! -d "libbpf" ];then
@@ -87,6 +65,7 @@ fi
 if [ ! -d "hiviewdfx/faultloggerd" ];then
    git clone --depth=1 git@gitee.com:openharmony/hiviewdfx_faultloggerd.git hiviewdfx/faultloggerd/
    cd hiviewdfx/faultloggerd
+   perl -pi -e 's/\r$//' interfaces/innerkits/unwinder/src/elf/dfx_elf.cpp
    $patch -p1  < ../../../prebuilts/patch_hiperf/hiviewdfx_faultloggerd.patch
    cd ../../
 fi
@@ -103,15 +82,8 @@ if [ ! -d "commonlibrary/c_utils" ];then
     git clone --depth=1 git@gitee.com:openharmony/commonlibrary_c_utils.git commonlibrary/c_utils
 fi
 
-if [ ! -f "profiler/device/plugins/ftrace_plugin/include/ftrace_common_type.h" ];then
-    rm -rf profiler
-    git clone --depth=1 git@gitee.com:openharmony/developtools_profiler.git
-    if [ -d "developtools_profiler" ];then
-        mkdir -p profiler/device/plugins/ftrace_plugin/include
-        $cp developtools_profiler/device/plugins/ftrace_plugin/include/ftrace_common_type.h profiler/device/plugins/ftrace_plugin/include
-        $cp developtools_profiler/device/plugins/ftrace_plugin/include/ftrace_namespace.h profiler/device/plugins/ftrace_plugin/include
-        rm -rf developtools_profiler
-    fi
+if [ ! -d "profiler" ];then
+    git clone --depth=1 git@gitee.com:openharmony/developtools_profiler.git profiler
 fi
 
 if [ ! -d "llvm-project" ];then
