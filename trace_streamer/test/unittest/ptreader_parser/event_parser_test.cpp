@@ -19,6 +19,7 @@
 #include <string>
 #include <unordered_map>
 
+#define private public
 #include "cpu_filter.h"
 #include "parser/ptreader_parser/bytrace_parser/bytrace_event_parser.h"
 #include "parser/ptreader_parser/ptreader_parser.h"
@@ -39,6 +40,7 @@ public:
     void SetUp()
     {
         stream_.InitFilter();
+        stream_.streamFilters_->configFilter_->switchConfig_.UpdateSyscallsTsSet("145;146;147");
     }
 
     void TearDown()
@@ -1173,6 +1175,106 @@ HWTEST_F(EventParserTest, HandlerCsfParseErrorFormate, TestSize.Level1)
     int32_t result = eventParser.printEventParser_.HandlerCSF(str, outPoint, length);
 
     EXPECT_TRUE(result == PARSE_ERROR);
+}
+
+/**
+ * @tc.name: HandlerBParseSystemDataTracking
+ * @tc.desc: Parse "B|2483|H:hitraceTest|M62|key1=value1" using HandlerB interface
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, HandlerBParseSystemDataTracking, TestSize.Level1)
+{
+    TS_LOGI("test5-56");
+    size_t length{4};
+    TracePoint outPoint;
+    std::string str = "B|2483|H:hitraceTest";
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    int32_t result = eventParser.printEventParser_.HandlerB(str, outPoint, length);
+    EXPECT_TRUE(result == PARSE_SUCCESS);
+    EXPECT_EQ(outPoint.customArgsId_, INVALID_UINT64);
+
+    str = "B|2483|H:hitraceTest|M62|key1=value1";
+    result = eventParser.printEventParser_.HandlerB(str, outPoint, length);
+    EXPECT_TRUE(result == PARSE_SUCCESS);
+    EXPECT_NE(outPoint.customArgsId_, INVALID_UINT64);
+}
+
+/**
+ * @tc.name: HandlerCsfParseSystemDataTracking
+ * @tc.desc: Parse "S|2483|H:hitraceTest|M62|customCategoryTest|key1=value1" using HandlerCSF interface
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, HandlerCsfParseSystemDataTracking, TestSize.Level1)
+{
+    TS_LOGI("test5-57");
+    size_t length{4};
+    TracePoint outPoint;
+    outPoint.phase_ = 'S';
+    std::string str = "S|2483|H:hitraceTest|123";
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    int32_t result = eventParser.printEventParser_.HandlerCSF(str, outPoint, length);
+    EXPECT_TRUE(result == PARSE_SUCCESS);
+    EXPECT_EQ(outPoint.customCategoryId_, INVALID_UINT64);
+
+    str = "S|2483|H:hitraceTest|123|M62|categoryTest|key=value";
+    result = eventParser.printEventParser_.HandlerCSF(str, outPoint, length);
+    EXPECT_TRUE(result == PARSE_SUCCESS);
+    EXPECT_NE(outPoint.customCategoryId_, INVALID_UINT64);
+}
+
+/**
+ * @tc.name: ParseSysEnterEventAndSysEnterEvent
+ * @tc.desc: Parse SysEnterEvent and SysEnterEvent interface
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, ParseSysEnterEventAndSysEnterEvent, TestSize.Level1)
+{
+    TS_LOGI("test5-58");
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 1616439852302;
+    bytraceLine.pid = 1;
+    bytraceLine.eventName = "sys_enter";
+    bytraceLine.argsStr = "";
+    std::unordered_map<std::string, std::string> args;
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    int32_t result = eventParser.SysEnterEvent(args, bytraceLine);
+    EXPECT_TRUE(result);
+    result = eventParser.SysExitEvent(args, bytraceLine);
+    EXPECT_TRUE(result);
+    auto eventCount = stream_.traceDataCache_->GetConstSysCallData().Size();
+    EXPECT_EQ(eventCount, 0);
+
+    bytraceLine.argsStr = "NR";
+    result = eventParser.SysEnterEvent(args, bytraceLine);
+    EXPECT_TRUE(result);
+    result = eventParser.SysExitEvent(args, bytraceLine);
+    EXPECT_TRUE(result);
+    eventCount = stream_.traceDataCache_->GetConstSysCallData().Size();
+    EXPECT_EQ(eventCount, 0);
+
+    bytraceLine.argsStr = "NR 146 (6, f663d4e8, 3, 42, 3, f663d4e8)";
+    result = eventParser.SysEnterEvent(args, bytraceLine);
+    EXPECT_TRUE(result);
+    bytraceLine.argsStr = "NR 145 = 66";
+    result = eventParser.SysExitEvent(args, bytraceLine);
+    EXPECT_TRUE(result);
+    EXPECT_EQ(eventCount, 0);
+
+    bytraceLine.argsStr = "NR 146 = 66";
+    result = eventParser.SysExitEvent(args, bytraceLine);
+    EXPECT_TRUE(result);
+    eventCount = stream_.traceDataCache_->GetConstSysCallData().Size();
+    EXPECT_EQ(eventCount, 0);
+
+    bytraceLine.argsStr = "NR 147 (6, f663d4e8, 3, 42, 3, f663d4e8)";
+    result = eventParser.SysEnterEvent(args, bytraceLine);
+    EXPECT_TRUE(result);
+
+    bytraceLine.argsStr = "NR 147 = 66";
+    result = eventParser.SysExitEvent(args, bytraceLine);
+    EXPECT_TRUE(result);
+    eventCount = stream_.traceDataCache_->GetConstSysCallData().Size();
+    EXPECT_EQ(eventCount, 1);
 }
 } // namespace TraceStreamer
 } // namespace SysTuning
