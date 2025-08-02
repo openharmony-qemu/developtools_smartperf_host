@@ -323,7 +323,7 @@ void TaskManager::MainLoop()
     ProcessOnceTask(false);
     running_ = false;
     finishCond_.notify_all();
-    scheduleSaveDataCond_.notify_all(); 
+    scheduleSaveDataCond_.notify_all();
 }
 
 void TaskManager::WriteToCSV()
