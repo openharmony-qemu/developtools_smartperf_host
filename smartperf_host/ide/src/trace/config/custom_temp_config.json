@@ -1,0 +1,1819 @@
+{
+  "subsystems": [
+    {
+      "subsystem": "Cpu",
+      "components": [
+        {
+          "component": "Cpu",
+          "charts": [
+            {
+              "chartName": "Cpu",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "Cpu Frequency",
+          "charts": [
+            {
+              "chartName": "Cpu Frequency",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "Cpu State",
+          "charts": [
+            {
+              "chartName": "Cpu State",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "Cpu Freq Limit",
+          "charts": [
+            {
+              "chartName": "Cpu Freq Limit",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "Irqs",
+      "components": [
+        {
+          "component": "Irqs",
+          "charts": [
+            {
+              "chartName": "Irqs",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "FrameTimeline",
+      "components": [
+        {
+          "component": "FrameTimeline",
+          "charts": [
+            {
+              "chartName": "FrameTimeline",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "arkui",
+      "components": [
+        {
+          "component": "ace_engine",
+          "charts": [
+            {
+              "chartName": "ui_service",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "napi",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "account",
+      "components": [
+        {
+          "component": "os_account",
+          "charts": [
+            {
+              "chartName": "accountmgr",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "barrierfree",
+      "components": [
+        {
+          "component": "accessibility",
+          "charts": [
+            {
+              "chartName": "accessibility",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "distributeddatamgr",
+      "components": [
+        {
+          "component": "relational_store",
+          "charts": [
+            {
+              "chartName": "distributeddata",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "preferences",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "data_share",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "datamgr_service",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "kv_store",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "data_object",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "e2fsprogs",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "pasteboard",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "filemanagement",
+      "components": [
+        {
+          "component": "user_file_service",
+          "charts": [
+            {
+              "chartName": "com.ohos.medialibrary.medialibrarydata",
+              "chartId": ""
+            },
+            {
+              "chartName": "cloudfiledaemon",
+              "chartId": ""
+            },
+            {
+              "chartName": "backup_sa",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "file_api",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "storage_service",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "dfs_service",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "app_file_service",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "security",
+      "components": [
+        {
+          "component": "appverify",
+          "charts": [
+            {
+              "chartName": "security_guard",
+              "chartId": ""
+            },
+            {
+              "chartName": "dlp_credential_service",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "huks",
+          "charts": [
+            {
+              "chartName": "huks_service",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "certificate_manager",
+          "charts": [
+            {
+              "chartName": "cert_manager_service",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "device_auth",
+          "charts": [
+            {
+              "chartName": "deviceauth_service",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "crypto_framework",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "access_token",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "device_security_level",
+          "charts": [
+            {
+              "chartName": "dslm_service",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "dataclassification",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "startup",
+      "components": [
+        {
+          "component": "startup_l2",
+          "charts": [
+            {
+              "chartName": "param_watcher",
+              "chartId": ""
+            },
+            {
+              "chartName": "ueventd",
+              "chartId": ""
+            },
+            {
+              "chartName": "watchdog_service",
+              "chartId": ""
+            },
+            {
+              "chartName": "nwebspawn",
+              "chartId": ""
+            },
+            {
+              "chartName": "sh",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "appspawn",
+          "charts": [
+            {
+              "chartName": "appspawn",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "init",
+          "charts": [
+            {
+              "chartName": "init",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "hiviewdfx",
+      "components": [
+        {
+          "component": "hiviewdfx_hilog_native",
+          "charts": [
+            {
+              "chartName": "hdcd",
+              "chartId": ""
+            },
+            {
+              "chartName": "logdeflatsvr",
+              "chartId": ""
+            },
+            {
+              "chartName": "pmom_cat",
+              "chartId": ""
+            },
+            {
+              "chartName": "sleeplogcat",
+              "chartId": ""
+            },
+            {
+              "chartName": "inputlogcat",
+              "chartId": ""
+            },
+            {
+              "chartName": "chargelogcat",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "hilog_native",
+          "charts": [
+            {
+              "chartName": "hilogd",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "hilog_service",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "hisysevent_native",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "hiappevent_native",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "hiappevent_js",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "hichecker_native",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "hichecker_js",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "hidumper",
+          "charts": [
+            {
+              "chartName": "hidumper",
+              "chartId": ""
+            },
+            {
+              "chartName": "hidumper_service",
+              "chartId": ""
+            },
+            {
+              "chartName": "hidumperd",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "hiview",
+          "charts": [
+            {
+              "chartName": "hiview",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "faultloggerd",
+          "charts": [
+            {
+              "chartName": "faultloggerd",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "hitrace_native",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "hicollie_native",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "bundlemanager",
+      "components": [
+        {
+          "component": "bundle_framework",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "bundle_tool",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "distributed_bundle_framework",
+          "charts": [
+            {
+              "chartName": "dbms",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "ability",
+      "components": [
+        {
+          "component": "ability_runtime",
+          "charts": [
+            {
+              "chartName": "com.ohos.formrenderservice",
+              "chartId": ""
+            },
+            {
+              "chartName": "quick_fix",
+              "chartId": ""
+            },
+            {
+              "chartName": "upms",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "ability_tools",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "idl_tool",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "form_fwk",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "ability_base",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "dmsfwk",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "communication",
+      "components": [
+        {
+          "component": "bluetooth",
+          "charts": [
+            {
+              "chartName": "locationhub",
+              "chartId": ""
+            },
+            {
+              "chartName": "location_host",
+              "chartId": ""
+            },
+            {
+              "chartName": "nfc_host",
+              "chartId": ""
+            },
+            {
+              "chartName": "secure_element_host",
+              "chartId": ""
+            },
+            {
+              "chartName": "blue_host",
+              "chartId": ""
+            },
+            {
+              "chartName": "nfc_service",
+              "chartId": ""
+            },
+            {
+              "chartName": "bluetooth_service",
+              "chartId": ""
+            },
+            {
+              "chartName": "a2dp_host",
+              "chartId": ""
+            },
+            {
+              "chartName": "connected_tag_h",
+              "chartId": ""
+            },
+            {
+              "chartName": "se_service",
+              "chartId": ""
+            },
+            {
+              "chartName": "wpa_supplicant",
+              "chartId": ""
+            },
+            {
+              "chartName": "wireless_hid_ac",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "ipc",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "ipc_js",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "net_manager",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "netmanager_base",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "netmanager_ext",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "netstack",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "dsoftbus",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "wifi",
+          "charts": [
+            {
+              "chartName": "wifi_manager_service",
+              "chartId": ""
+            },
+            {
+              "chartName": "wifi_hal_service",
+              "chartId": ""
+            },
+            {
+              "chartName": "wifi_hal_service_1",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "dhcp",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "bluetooth_native_js",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "location",
+      "components": [
+        {
+          "component": "location",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "location_common",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "location_locator",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "location_network",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "location_gnss",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "location_passive",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "location_geocode",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "updater",
+      "components": [
+        {
+          "component": "updater",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            },
+            {
+              "chartName": "migrate_server",
+              "chartId": ""
+            },
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "update_service",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "sys_installer",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "sensors",
+      "components": [
+        {
+          "component": "miscdevice",
+          "charts": [
+            {
+              "chartName": "multimodalinput",
+              "chartId": ""
+            },
+            {
+              "chartName": "msdp",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "sensor",
+          "charts": [
+            {
+              "chartName": "sensors",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "start",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "graphic",
+      "components": [
+        {
+          "component": "graphic_standard",
+          "charts": [
+            {
+              "chartName": "render_service",
+              "chartId": ""
+            },
+            {
+              "chartName": "bootanimation",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "graphic_chipsetsdk",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "useriam",
+      "components": [
+        {
+          "component": "pin_auth",
+          "charts": [
+            {
+              "chartName": "pinauth",
+              "chartId": ""
+            },
+            {
+              "chartName": "pin_auth_host",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "user_auth_framework",
+          "charts": [
+            {
+              "chartName": "useriam",
+              "chartId": ""
+            },
+            {
+              "chartName": "user_auth_host",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "face_auth",
+          "charts": [
+            {
+              "chartName": "face_auth_host",
+              "chartId": ""
+            },
+            {
+              "chartName": "fingerprint_auth_host",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "theme",
+      "components": [
+        {
+          "component": "screenlock_mgr",
+          "charts": [
+            {
+              "chartName": "com.ohos.screenlock",
+              "chartId": ""
+            },
+            {
+              "chartName": "screenlock_server",
+              "chartId": ""
+            },
+            {
+              "chartName": "com.ohos.mms",
+              "chartId": ""
+            },
+            {
+              "chartName": "com.ohos.systemui",
+              "chartId": ""
+            },
+            {
+              "chartName": "com.ohos.settings",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "wallpaper_mgr",
+          "charts": [
+            {
+              "chartName": "com.ohos.launcher.phone_entry:WallpaperExtAbility",
+              "chartId": ""
+            },
+            {
+              "chartName": "com.ohos.launcher",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "multimedia",
+      "components": [
+        {
+          "component": "multimedia_histreamer",
+          "charts": [
+            {
+              "chartName": "pulseaudio",
+              "chartId": ""
+            },
+            {
+              "chartName": "media_service",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "multimedia_player_framework",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "multimedia_audio_framework",
+          "charts": [
+            {
+              "chartName": "audio_policy",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "multimedia_camera_framework",
+          "charts": [
+            {
+              "chartName": "camera_service",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "multimedia_image_framework",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "multimedia_av_session",
+          "charts": [
+            {
+              "chartName": "av_session",
+              "chartId": ""
+            },
+            {
+              "chartName": "av_codec_service",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "media_library",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "multimodalinput",
+      "components": [
+        {
+          "component": "input",
+          "charts": [
+            {
+              "chartName": "uinput_inject",
+              "chartId": ""
+            },
+            {
+              "chartName": "udevd",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "telephony",
+      "components": [
+        {
+          "component": "core_service",
+          "charts": [
+            {
+              "chartName": "riladapter_host",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "telephony_data",
+          "charts": [
+            {
+              "chartName": "telephony",
+              "chartId": ""
+            },
+            {
+              "chartName": "com.ohos.telephonydataability",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "state_registry",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "cellular_call",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "cellular_data",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "sms_mms",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "call_manager",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "global",
+      "components": [
+        {
+          "component": "i18n",
+          "charts": [
+            {
+              "chartName": "edm",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "timezone",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "resource_management",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "systemres",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "powermgr",
+      "components": [
+        {
+          "component": "power_manager",
+          "charts": [
+            {
+              "chartName": "powerct",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "battery_manager",
+          "charts": [
+            {
+              "chartName": "battery_extra_host",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "battery_statistics",
+          "charts": [
+            {
+              "chartName": "bms_event",
+              "chartId": ""
+            },
+            {
+              "chartName": "bsoh",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "display_manager",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "thermal_manager",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "contacts_data",
+      "components": [
+        {
+          "component": "contacts_data",
+          "charts": [
+            {
+              "chartName": "com.ohos.contacts",
+              "chartId": ""
+            },
+            {
+              "chartName": "com.ohos.contactsdataability",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "settingsnapi",
+      "components": [
+        {
+          "component": "settings_standard",
+          "charts": [
+            {
+              "chartName": "com.ohos.settingsdata",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "xts",
+      "components": [
+        {
+          "component": "xts_acts",
+          "charts": [
+            {
+              "chartName": "devattest_service ",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "xts_hats",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "xts_dcts",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "device_attest",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "distributedhardware",
+      "components": [
+        {
+          "component": "device_manager",
+          "charts": [
+            {
+              "chartName": "device_manager",
+              "chartId": ""
+            },
+            {
+              "chartName": "daudio_host",
+              "chartId": ""
+            },
+            {
+              "chartName": "dinput",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "distributed_hardware_fwk",
+          "charts": [
+            {
+              "chartName": "dhardware",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "distributed_camera",
+          "charts": [
+            {
+              "chartName": "dcamera_host",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "distributed_screen",
+          "charts": [
+            {
+              "chartName": "dscreen",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "resourceschedule",
+      "components": [
+        {
+          "component": "resource_schedule_service",
+          "charts": [
+            {
+              "chartName": "resource_schedule_service",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "soc_perf",
+          "charts": [
+            {
+              "chartName": "socperf_service",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "background_task_mgr",
+          "charts": [
+            {
+              "chartName": "bgtaskmgr_service",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "work_scheduler",
+          "charts": [
+            {
+              "chartName": "work_scheduler_service",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "memmgr",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "frame_aware_sched",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "device_usage_statistics",
+          "charts": [
+            {
+              "chartName": "device_usage_stats_service",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "usb",
+      "components": [
+        {
+          "component": "usb_manager",
+          "charts": [
+            {
+              "chartName": "usb_service",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "hdf",
+      "components": [
+        {
+          "component": "hdf_core",
+          "charts": [
+            {
+              "chartName": "lcd_host",
+              "chartId": ""
+            },
+            {
+              "chartName": "tp_host",
+              "chartId": ""
+            },
+            {
+              "chartName": "hdf_devmgr",
+              "chartId": ""
+            },
+            {
+              "chartName": "composer_host",
+              "chartId": ""
+            },
+            {
+              "chartName": "allocator_host",
+              "chartId": ""
+            },
+            {
+              "chartName": "audio_host",
+              "chartId": ""
+            },
+            {
+              "chartName": "disp_gralloc_host",
+              "chartId": ""
+            },
+            {
+              "chartName": "audio_hdi_server_host",
+              "chartId": ""
+            },
+            {
+              "chartName": "hwc_host",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "drivers_interface_sensor",
+          "charts": [
+            {
+              "chartName": "sensor_host",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "drivers_interface_camera",
+          "charts": [
+            {
+              "chartName": "camera_host",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "drivers_interface_codec",
+          "charts": [
+            {
+              "chartName": "codec_host",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "drivers_interface_motion",
+          "charts": [
+            {
+              "chartName": "motion_host",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "drivers_interface_light",
+          "charts": [
+            {
+              "chartName": "light_host",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "drivers_interface_vibrator",
+          "charts": [
+            {
+              "chartName": "vibrator_host",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "drivers_interface_power",
+          "charts": [
+            {
+              "chartName": "power_host",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "drivers_interface_battery",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "drivers_interface_thermal",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "drivers_interface_pin_auth",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "drivers_interface_face_auth",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "drivers_interface_user_auth",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "drivers_interface_fingerprint_auth",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "drivers_interface_input",
+          "charts": [
+            {
+              "chartName": "input_user_host",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "drivers_interface_memorytracker",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "drivers_interface_wlan",
+          "charts": [
+            {
+              "chartName": "wifi_host",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "drivers_interface_location_agnss",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "drivers_interface_location_geofence",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "drivers_interface_location_gnss",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "drivers_interface_usb",
+          "charts": [
+            {
+              "chartName": "usb_host",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "ril_device_driver_interface",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "drivers_interface_display",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "drivers_interface_distributed_camera",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "drivers_interface_ril",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "drivers_interface_partitionslot",
+          "charts": [
+            {
+              "chartName": "partitionslot_host",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "drivers_interface_nnrt",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "subsystem": "ai",
+      "components": [
+        {
+          "component": "neural_network_runtime",
+          "charts": [
+            {
+              "chartName": "ai_decision",
+              "chartId": ""
+            }
+          ]
+        },
+        {
+          "component": "mindspore",
+          "charts": [
+            {
+              "chartName": "",
+              "chartId": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

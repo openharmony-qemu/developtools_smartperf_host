@@ -1,0 +1,157 @@
+# Copyright (C) 2021 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("../build/config.gni")
+
+## Build so {{{
+config("config") {
+  visibility = [ ":*" ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-g3",
+    "-Wunused-variable",
+    "-Wno-unused-but-set-variable",
+  ]
+  cflags_cc = [ "-fexceptions" ]
+}
+
+config("public_config") {
+  include_dirs = [
+    ".",
+    "include",
+    "interface",
+    "cmds",
+    "cmds/include",
+    "collector",
+    "collector/include",
+    "scenarios",
+    "scenarios/include",
+    "services/ipc",
+    "services/ipc/include",
+    "services/task_mgr",
+    "services/task_mgr/include",
+    "utils",
+    "utils/include",
+  ]
+}
+
+ohos_shared_headers("smartperf_daemon") {
+  include_dirs = [
+    "interface"
+  ]
+
+  subsystem_name = "${OHOS_SMARTPERF_DEVICE_SUBSYS_NAME}"
+  part_name = "${OHOS_SMARTPERF_DEVICE_PART_NAME}"
+}
+
+ohos_executable("SP_daemon") {
+  sources = [
+    "collector/src/AI_schedule.cpp",
+    "collector/src/ByTrace.cpp",
+    "collector/src/CPU.cpp",
+    "collector/src/Capture.cpp",
+    "collector/src/DDR.cpp",
+    "collector/src/Dubai.cpp",
+    "collector/src/FPS.cpp",
+    "collector/src/FileDescriptor.cpp",
+    "collector/src/GPU.cpp",
+    "collector/src/GameEvent.cpp",
+    "collector/src/GpuCounter.cpp",
+    "collector/src/GpuCounterCallback.cpp",
+    "collector/src/Network.cpp",
+    "collector/src/Power.cpp",
+    "collector/src/RAM.cpp",
+    "collector/src/Temperature.cpp",
+    "collector/src/Threads.cpp",
+    "collector/src/cpu_info.cpp",
+    "collector/src/hiperf.cpp",
+    "collector/src/lock_frequency.cpp",
+    "collector/src/effective.cpp",
+    "collector/src/navigation.cpp",
+    "collector/src/parse_slide_fps_trace.cpp",
+    "collector/src/sdk_data_recv.cpp",
+    "cmds/src/client_control.cpp",
+    "cmds/src/control_call_cmd.cpp",
+    "cmds/src/editor_command.cpp",
+    "cmds/src/smartperf_command.cpp",
+    "utils/src/GetLog.cpp",
+    "utils/src/service_plugin.cpp",
+    "utils/src/sp_log.cpp",
+    "utils/src/sp_utils.cpp",
+    "utils/src/startup_delay.cpp",
+    "utils/src/sp_profiler_factory.cpp",
+    "scenarios/src/parse_click_complete_trace.cpp",
+    "scenarios/src/parse_click_response_trace.cpp",
+    "scenarios/src/parse_radar.cpp",
+    "scenarios/src/stalling_rate_trace.cpp",
+    "services/ipc/src/sp_server_socket.cpp",
+    "services/ipc/src/sp_thread_socket.cpp",
+    "services/task_mgr/src/sp_task.cpp",
+    "heartbeat.cpp",
+    "smartperf_main.cpp",
+  ]
+
+  sources += [
+    "services/task_mgr/src/argument_parser.cpp",
+    "services/task_mgr/src/task_manager.cpp",
+    "services/task_mgr/src/thread_pool.cpp",
+  ]
+
+  cflags = [
+    "-O2",
+    "-ffunction-sections",
+    "-fdata-sections",
+    "-fvisibility=hidden",
+    "-flto",
+  ]
+  ldflags = [
+    "-Wl,--gc-sections",
+    "-flto",
+  ]
+  public_configs = [ ":public_config" ]
+  configs = [ ":config" ]
+  deps = [
+    ":smartperf_daemon"
+  ]
+  subsystem_name = "${OHOS_SMARTPERF_DEVICE_SUBSYS_NAME}"
+  part_name = "${OHOS_SMARTPERF_DEVICE_PART_NAME}"
+  external_deps = [
+    "ability_base:want",
+    "c_utils:utils",
+    "common_event_service:cesfwk_innerkits",
+    "graphic_2d:librender_service_base",
+    "graphic_2d:librender_service_client",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hiview:libucollection_utility",
+    "image_framework:image_native",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "libpng:libpng",
+    "samgr:samgr_proxy",
+    "window_manager:libdm",
+    "window_manager:libwm",
+  ]
+  defines = [
+    "HI_LOG_ENABLE",
+    "LOG_DOMAIN = 0xD004100",
+  ]
+  if (smartperf_arkxtest_able) {
+    external_deps += [ "arkxtest:test_server_client" ]
+    defines += [ "ARKTEST_ENABLE" ]
+  }
+}
+## Build so }}}

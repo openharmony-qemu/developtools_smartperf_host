@@ -1,0 +1,147 @@
+# Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("../build/ts.gni")
+if (use_wasm) {
+  import("//gn/wasm.gni")
+}
+
+# for third part sqlite
+ohos_source_set("ts_sqlite") {
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
+  sources = [ "//third_party/sqlite/src/sqlite3.c" ]
+  include_dirs = [ "//third_party/sqlite/include" ]
+  cflags = [
+    "-Wno-shorten-64-to-32",
+    "-Wno-double-promotion",
+    "-Wno-disabled-macro-expansion",
+    "-Wno-float-equal",
+    "-Wno-cast-qual",
+    "-Wno-conversion",
+    "-Wno-cast-align",
+    "-Wno-unused-macros",
+    "-Wno-comma",
+    "-Wno-unreachable-code-break",
+    "-Wno-unreachable-code",
+    "-Wno-unreachable-code-return",
+    "-DSQLITE_THREADSAFE=1",
+    "-DQLITE_DEFAULT_MEMSTATUS=0",
+    "-DSQLITE_LIKE_DOESNT_MATCH_BLOBS",
+    "-DSQLITE_OMIT_DEPRECATED",
+    "-DSQLITE_OMIT_SHARED_CACHE",
+    "-DHAVE_USLEEP",
+    "-DHAVE_UTIME",
+    "-DSQLITE_BYTEORDER=1234",
+    "-DSQLITE_DEFAULT_AUTOVACUUM=0",
+    "-DSQLITE_DEFAULT_MMAP_SIZE=0",
+    "-DSQLITE_CORE",
+    "-DSQLITE_TEMP_STORE=3",
+    "-DSQLITE_OMIT_LOAD_EXTENSION",
+    "-DSQLITE_EXPORT_SYMBOLS",
+  ]
+
+  if (is_mingw || is_mac) {
+    include_dirs += [ "${THIRD_PARTY}/libbpf/include/uapi" ]
+  }
+}
+
+config("trace_streamer_cfg") {
+  include_dirs = [ "." ]
+  if (enable_ts_utest && !use_wasm) {
+    cflags = [
+      "-fprofile-arcs",
+      "-ftest-coverage",
+    ]
+    ldflags = [
+      "-fprofile-arcs",
+      "-ftest-coverage",
+      "--coverage",
+    ]
+    if (is_test) {
+      cflags += [ "-D IS_UT" ]
+    }
+  }
+  if (!is_independent_compile) {
+    configs = [ "${TS_DIR}/gn:ts_config" ]
+  }
+  if (is_mingw || is_mac) {
+    include_dirs += [
+      "${THIRD_PARTY}/libbpf/include/uapi",
+      "${THIRD_PARTY}/elfutils/libelf",
+    ]
+  }
+}
+
+ohos_source_set("trace_streamer_source") {
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
+  sources = [
+    "cfg/trace_streamer_config.cpp",
+    "rpc/ffrt_converter.cpp",
+    "rpc/rpc_server.cpp",
+    "trace_streamer/trace_streamer_filters.cpp",
+    "trace_streamer/trace_streamer_selector.cpp",
+    "version.cpp",
+  ]
+  if (!is_test && !is_fuzz) {
+    sources += [ "main.cpp" ]
+  }
+  if (use_wasm) {
+    sources += [ "rpc/wasm_func.cpp" ]
+  }
+  deps = [
+    ":ts_sqlite",
+    "base:base",
+    "filter:filter",
+    "metrics:metrics_parser",
+    "parser:parser",
+    "parser/hiperf_parser:libsec_static",
+    "proto_reader:proto_reader",
+    "table:table",
+    "trace_data:trace_data",
+  ]
+  public_configs = [ ":trace_streamer_cfg" ]
+  public_deps = []
+  if (!use_wasm && !is_test && !is_fuzz) {
+    public_deps += [
+      "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos:protoc(${host_toolchain})",
+      "proto_reader/protoc_plugin:protoreader_plugin(${host_toolchain})",
+    ]
+  }
+}
+
+if (use_wasm) {
+  ohos_source_set("trace_streamer_builtin") {
+    subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+    part_name = "${OHOS_PROFILER_PART_NAME}"
+    sources = []
+    include_dirs = []
+    deps = []
+    public_deps = []
+  }
+  wasm_lib("trace_streamer_builtin_wasm") {
+    name = "trace_streamer_builtin"
+    deps = [ ":trace_streamer_source" ]
+  }
+} else {
+  if (!is_test && !is_fuzz) {
+    ohos_executable("trace_streamer") {
+      subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+      part_name = "${OHOS_PROFILER_PART_NAME}"
+      sources = []
+      deps = [ ":trace_streamer_source" ]
+    }
+  }
+}

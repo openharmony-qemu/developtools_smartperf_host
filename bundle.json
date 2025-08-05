@@ -1,7 +1,7 @@
 {
   "name": "@ohos/smartperf_host",
-  "description": "xxx",
-  "version": "xxx",
+  "description": "The SmartPerf performance tuning tool includes SmartPerf_Host and SmartPerf_Device.",
+  "version": "1.0.0",
   "license": "Apache License 2.0",
   "publishAs": "code-segment",
   "segment": {
@@ -15,24 +15,58 @@
     "adapted_system_type": [
       "standard"
     ],
-    "rom": "xxxKB",
-    "ram": "xxxKB",
+    "hisysevent_config": [
+      "//developtools/smartperf_host/smartperf_device/hisysevent.yaml"
+    ],
+    "rom": "188KB",
+    "ram": "2000KB",
     "deps": {
       "components": [
-        "c_utils"
+        "ability_base",
+        "arkxtest",
+        "bounds_checking_function",
+        "common_event_service",
+        "c_utils",
+        "hilog",
+        "hisysevent",
+        "hiview",
+        "ipc",
+        "init",
+        "libpng",
+        "protobuf",
+        "samgr",
+        "graphic_2d",
+        "window_manager",
+        "image_framework",
+        "zlib"
       ],
       "third_party": [
-        "zlib",
         "libsec_static",
-        "bounds_checking_function",
-        "protobuf",
         "libunwind",
         "sqlite"
       ]
     },
     "build": {
       "sub_component": [
-        "//developtools/smartperf_host:trace_streamer"
+        "//developtools/smartperf_host/smartperf_device/device_command/:SP_daemon",
+        "//developtools/smartperf_host/smartperf_device/:SmartPerf",
+        "//developtools/smartperf_host/smartperf_device/device_command:smartperf_daemon"
+      ],
+      "inner_kits": [
+        {
+          "header": {
+            "header_base": "//developtools/smartperf_host/smartperf_device/device_command/interface",
+            "header_files": [
+              "GameServicePlugin.h",
+              "GameEventCallback.h",
+              "GpuCounterCallback.h"
+            ]
+          },
+          "name": "//developtools/smartperf_host/smartperf_device/device_command:smartperf_daemon"
+        }
+      ],
+      "test": [
+        "//developtools/smartperf_host/smartperf_device/device_command/test:unittest"
       ]
     }
   }

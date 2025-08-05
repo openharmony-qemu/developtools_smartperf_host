@@ -1,0 +1,82 @@
+# Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+declare_args() {
+  is_independent_compile = false
+  hiperf_debug = true
+  enable_hiperf = true
+  enable_ebpf = true
+  enable_native_hook = true
+  enable_hilog = true
+  enable_hisysevent = true
+  enable_arkts = true
+  enable_bytrace = true
+  enable_rawtrace = true
+  enable_htrace = true
+  enable_ffrt = true
+  enable_memory = true
+  enable_hidump = true
+  enable_cpudata = true
+  enable_network = true
+  enable_diskio = true
+  enable_process = true
+  enable_xpower = true
+  enable_stream_extend = false
+}
+
+if (is_independent_compile) {
+  asdk_libs_dir = "."
+  PERF_DIR = "//third_party"
+  clang_x64_folder = "."
+  enable_ts_utest = target == "test"
+  TS_DIR = "//."
+  COMMON_LIBRARY = "//third_party/commonlibrary"
+} else {
+  PERF_DIR = "//developtools"
+  clang_x64_folder = "clang_x64"
+  is_test = false
+  is_protoc = false
+  is_spb = false
+  is_sdkdemo = false
+  is_sdkdemo_test = false
+  use_wasm = false
+  enable_ts_utest = false
+  is_fuzz = false
+  TS_DIR = "//developtools/smartperf_host/trace_streamer"
+  COMMON_LIBRARY = "//commonlibrary"
+}
+
+device_kernel_version = "default"
+OHOS_TRACE_STREAMER_PROTOS_DIR = get_path_info("../src", "abspath")
+
+OHOS_TRACE_STREAMER_DIR = get_path_info("../", "abspath")
+SRC = "${OHOS_TRACE_STREAMER_DIR}/src"
+EXTEND_SRC = "${OHOS_TRACE_STREAMER_DIR}/trace_extend/src"
+EXTEND_TEST = "${OHOS_TRACE_STREAMER_DIR}/trace_extend/test"
+PREBUILTS = "//prebuilts"
+THIRD_PARTY = "//third_party"
+kernel_version = "."
+LLVM_ROOT = "//llvm"
+
+TOOLS_DIR = rebase_path("//tools") 
+
+OHOS_TRACE_STREAMER_DIR_PROTOC = get_path_info("./protoc.sh", "abspath")
+
+if (target_os == "windows") {
+  OHOS_TRACE_STREAMER_DIR_PROTOC = get_path_info("./protoc_w.py", "abspath")
+}
+
+OHOS_PROFILER_3RDPARTY_PROTOBUF_DIR = "${THIRD_PARTY}/protobuf"
+OHOS_PROFILER_3RDPARTY_GOOGLETEST_DIR = "${THIRD_PARTY}/googletest"
+OHOS_PROFILER_SUBSYS_NAME = "developtools"
+OHOS_PROFILER_PART_NAME = "smartperf_host"

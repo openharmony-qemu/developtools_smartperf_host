@@ -1,0 +1,135 @@
+# Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+import("//build/ohos.gni")
+import("../../../build/ts.gni")
+ohos_source_set("pbreader_parser_src") {
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
+  sources = [
+    "../parser_base.cpp",
+    "pbreader_clock_detail_parser.cpp",
+    "pbreader_parser.cpp",
+  ]
+  include_dirs = [
+    "../../proto_reader/include",
+    ".",
+    "htrace_parser",
+    "../../include",
+    "../../",
+    "../",
+    "../../trace_data",
+    "../../cfg",
+    "../../trace_streamer",
+    "../../metrics",
+    "${THIRD_PARTY}/bounds_checking_function/include",
+    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/src",
+    "${THIRD_PARTY}/sqlite/include",
+    "${THIRD_PARTY}/json/single_include/nlohmann",
+    "../../filter",
+    "../../base",
+    "../../rpc",
+    "../ebpf_parser",
+  ]
+  include_dirs += [
+    "${SRC}/trace_data/trace_stdtype",
+    "${SRC}/trace_data/trace_stdtype/ftrace",
+    "${SRC}/trace_data/trace_stdtype/ftrace/template",
+    "${SRC}/trace_data/trace_stdtype/hilog",
+    "${SRC}/trace_data/trace_stdtype/hiperf",
+    "${SRC}/trace_data/trace_stdtype/hisysevent",
+    "${SRC}/trace_data/trace_stdtype/htrace",
+    "${SRC}/trace_data/trace_stdtype/measure",
+    "${SRC}/trace_data/trace_stdtype/xpower",
+  ]
+  if (is_mingw || is_mac) {
+    include_dirs += [
+      "${THIRD_PARTY}/elfutils/libelf",
+      "${THIRD_PARTY}/libbpf/include/uapi",
+    ]
+  }
+
+  if (!is_independent_compile) {
+    configs = [ "${TS_DIR}/gn:ts_config" ]
+  }
+  if (enable_ts_utest && !use_wasm) {
+    cflags = [
+      "-fprofile-arcs",
+      "-ftest-coverage",
+    ]
+    ldflags = [
+      "-fprofile-arcs",
+      "-ftest-coverage",
+      "--coverage",
+    ]
+    if (is_test) {
+      cflags += [ "-D IS_UT" ]
+    }
+  }
+  public_deps =
+      [ "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/services:ts_all_type_cpp" ]
+  if (enable_ebpf) {
+    public_deps += [ "../ebpf_parser:ebpf_parser" ]
+  }
+  if (enable_hiperf) {
+    public_deps += [ "../hiperf_parser:hiperf_parser" ]
+  }
+  if (enable_native_hook) {
+    public_deps += [ "native_hook_parser:native_hook_parser" ]
+  }
+  if (enable_hilog) {
+    public_deps += [ "hilog_parser:pbreader_hilog_parser" ]
+  }
+  if (enable_hisysevent) {
+    public_deps += [ "hisysevent_parser:pbreader_hisysevent_parser" ]
+  }
+  if (enable_arkts) {
+    public_deps += [ "arkts:pbreader_arkts_parser" ]
+  }
+  if (enable_htrace) {
+    public_deps += [ "htrace_parser:pbreader_htrace_parser" ]
+  }
+  if (enable_ffrt) {
+    public_deps += [ "ffrt_parser:pbreader_ffrt_parser" ]
+  }
+  if (enable_memory) {
+    public_deps += [ "mem_parser:pbreader_mem_parser" ]
+  }
+  if (enable_xpower) {
+    public_deps += [ "xpower_parser:pbreader_xpower_parser" ]
+  }
+  if (enable_hidump) {
+    public_deps += [ "hidump_parser:pbreader_hidump_parser" ]
+  }
+  if (enable_cpudata) {
+    public_deps += [ "cpu_data_parser:cpu_data_parser" ]
+  }
+  if (enable_network) {
+    public_deps += [ "network_parser:network_parser" ]
+  }
+  if (enable_diskio) {
+    public_deps += [ "disk_io_parser:disk_io_parser" ]
+  }
+  if (enable_process) {
+    public_deps += [ "process_parser:process_parser" ]
+  }
+  if (enable_stream_extend) {
+    public_deps +=
+        [ "${EXTEND_SRC}/parser/pbreader_stream_parser:stream_extend_parser" ]
+  }
+  public_deps += [
+    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos:protobuf_lite_static",
+    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos:protobuf_static",
+    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/services:ts_all_type_cpp_standard",
+    "../hiperf_parser:libz",
+  ]
+}

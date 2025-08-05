@@ -214,6 +214,7 @@ static int ProcessSpecificParameter(int argc, char *argv[], std::vector<std::str
         RecordCapacity();
         return 0;
     }
+
     return 1;
 }
 

@@ -1,0 +1,203 @@
+# Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http:/www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("../build/ohos.gni")
+import("../build/test.gni")
+import("../build/ts.gni")
+import("test_ts.gni")
+
+if (is_test) {
+  ohos_unittest("trace_streamer_ut") {
+    sources = [
+      "unittest/base/export_test.cpp",  # Don't comment, for common method
+      "unittest/base/file_test.cpp",
+      "unittest/ebpf/bio_parser_test.cpp",
+      "unittest/ebpf/ebpf_file_system_test.cpp",
+      "unittest/ebpf/ebpf_parser_test.cpp",
+      "unittest/ebpf/paged_memory_parser_test.cpp",
+      "unittest/filter/animation_filter_test.cpp",
+      "unittest/filter/app_start_filter_test.cpp",
+      "unittest/filter/binder_filter_test.cpp",
+      "unittest/filter/clock_filter_test.cpp",
+      "unittest/filter/cpu_filter_test.cpp",
+      "unittest/filter/filter_filter_test.cpp",
+      "unittest/filter/frame_filter_test.cpp",
+      "unittest/filter/irq_filter_test.cpp",
+      "unittest/filter/measure_filter_test.cpp",
+      "unittest/filter/process_filter_test.cpp",
+      "unittest/filter/slice_filter_test.cpp",
+      "unittest/filter/task_pool_filter_test.cpp",
+      "unittest/interface/rpc_server_test.cpp",
+      "unittest/interface/split_file_data_test.cpp",
+      "unittest/interface/wasm_func_test.cpp",
+      "unittest/pbreader/parser_pbreader_test.cpp",
+      "unittest/pbreader/proto_reader_test.cpp",
+      "unittest/pbreader_parser/arkts/js_cpu_profiler_test.cpp",
+      "unittest/pbreader_parser/arkts/js_memory_test.cpp",
+      "unittest/pbreader_parser/diskio_parser_test.cpp",
+      "unittest/pbreader_parser/hidump_parser_test.cpp",
+      "unittest/pbreader_parser/hilog_parser_test.cpp",
+      "unittest/pbreader_parser/hisys_event_parser_test.cpp",
+      "unittest/pbreader_parser/htrace_binder_event_test.cpp",
+      "unittest/pbreader_parser/htrace_cpu_detail_parser_test.cpp",
+      "unittest/pbreader_parser/htrace_event_parser_test.cpp",
+      "unittest/pbreader_parser/htrace_irq_event_test.cpp",
+      "unittest/pbreader_parser/native_memory/native_hook_parser_test.cpp",
+      "unittest/pbreader_parser/pbreader_cpu_data_parser_test.cpp",
+      "unittest/pbreader_parser/pbreader_ffrt_parser_test.cpp",
+      "unittest/pbreader_parser/pbreader_mem_parser_test.cpp",
+      "unittest/pbreader_parser/pbreader_network_parser_test.cpp",
+      "unittest/pbreader_parser/pbreader_process_parser_test.cpp",
+      "unittest/pbreader_parser/pbreader_sys_mem_parser_test.cpp",
+      "unittest/pbreader_parser/pbreader_sys_vmem_parser_test.cpp",
+      "unittest/pbreader_parser/pbreader_xpower_parser_test.cpp",
+      "unittest/pbreader_parser/smaps_parser_test.cpp",
+      "unittest/ptreader_parser/event_parser_test.cpp",
+      "unittest/ptreader_parser/ptreader_parser_test.cpp",
+      "unittest/query/query_file_test.cpp",
+      "unittest/query/query_metrics_test.cpp",
+      "unittest/query/span_join_test.cpp",
+      "unittest/query/sqllite_prepar_cache_data_test.cpp",
+      "unittest/rawtrace/ftrace_field_processor_test.cpp",
+      "unittest/rawtrace/rawtrace_cpu_detail_parse_test.cpp",
+      "unittest/rawtrace/rawtrace_parser_test.cpp",
+      "unittest/table/table_test.cpp",
+    ]
+
+    deps = [
+      "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/smartperf_host:ts_all_sph_cpp",
+      "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/cpu_data:ts_cpu_data_cpp",
+      "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/diskio_data:ts_diskio_data_cpp",
+      "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/ffrt_profiler:ts_ffrt_profiler_cpp",
+      "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/ftrace_data/${device_kernel_version}:ts_ftrace_data_cpp",
+      "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/hidump_data:ts_hidump_data_cpp",
+      "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/hilog_data:ts_hilog_data_cpp",
+      "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/hisysevent_data:ts_hisysevent_data_cpp",
+      "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/js_memory:ts_js_memory_data_cpp",
+      "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/memory_data:ts_memory_data_cpp",
+      "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/native_hook:ts_native_hook_cpp",
+      "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/network_data:ts_network_data_cpp",
+      "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/process_data:ts_process_data_cpp",
+      "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/test_data:test_data_cpp",
+      "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/xpower_data:ts_xpower_data_cpp",
+      "${SRC}/parser/hiperf_parser:libsec_static",
+      "${SRC}/parser/rawtrace_parser:rawtrace_parser",
+      "../src:trace_streamer_source",
+      "../src/parser/pbreader_parser:pbreader_parser_src",
+      "../src/proto_reader:proto_reader",
+      "../src/protos:protobuf_lite_static",
+      "../src/protos:protobuf_static",
+      "unittest:gtest",
+      "unittest:gtest_main",
+    ]
+    public_configs = []
+    if (enable_stream_extend) {
+      sources +=
+          [ "${EXTEND_TEST}/unittest/pbreader/pbreader_stream_parser_test.cpp" ]
+      public_configs +=
+          [ "${EXTEND_SRC}/parser/pbreader_stream_parser:pbreader_stream_cfg" ]
+      deps +=
+          [ "${EXTEND_SRC}/parser/pbreader_stream_parser:stream_extend_parser" ]
+    }
+    include_dirs = [
+      "${SRC}",
+      "${SRC}/trace_data",
+      "${SRC}/table",
+      "${SRC}/table/base",
+      "${SRC}/filter",
+      "${SRC}/metrics",
+      "${SRC}/base",
+      "${SRC}/rpc",
+      "${SRC}/metrics",
+      "${SRC}/include",
+      "${SRC}/trace_streamer",
+      "${SRC}/parser/ptreader_parser",
+      "${SRC}/parser/ptreader_parser/bytrace_parser",
+      "${SRC}/parser",
+      "${SRC}/cfg",
+      "${SRC}/metrics",
+      "${SRC}/parser/ebpf_parser",
+      "${SRC}/parser/hiperf_parser",
+      "${SRC}/parser/hiperf_parser/include",
+      "${SRC}/proto_reader",
+      "${SRC}/proto_reader/include",
+      "${SRC}/table/base/include",
+      "..",
+      "unittest/base",
+      "${THIRD_PARTY}/googletest/googletest/include/gtest",
+      "${THIRD_PARTY}/protobuf/src",
+      "${THIRD_PARTY}/protobuf/src/google/protobuf",
+      "${THIRD_PARTY}/json/single_include/nlohmann",
+      "${THIRD_PARTY}/perf_include/libbpf",
+      "${THIRD_PARTY}/perf_include/include",
+      "${THIRD_PARTY}/perf_include",
+      "${THIRD_PARTY}/perf_include/linux",
+      "${THIRD_PARTY}/sqlite/include",
+      "${THIRD_PARTY}/bounds_checking_function/include",
+      "${THIRD_PARTY}/json/single_include/nlohmann",
+      "${SRC}/parser/pbreader_parser",
+      "${SRC}/parser/pbreader_parser/htrace_parser",
+      "${SRC}/proto_reader",
+      "${SRC}/proto_reader/include",
+      "${SRC}/metrics",
+      "${SRC}/parser/rawtrace_parser",
+    ]
+
+    cflags = [
+      "-Wno-inconsistent-missing-override",
+      "-Dprotected=public",  #allow test code access protect members
+      "-fprofile-arcs",
+      "-ftest-coverage",
+      "-Wno-unused-command-line-argument",
+      "-Wno-format",
+      "-Wno-unused-const-variable",
+      "-Wno-unused-variable",
+      "-Wno-used-but-marked-unused",
+    ]
+    ldflags = [
+      "-fprofile-arcs",
+      "-ftest-coverage",
+      "--coverage",
+    ]
+    cflags += [
+      # clang coverage options:
+      "--coverage",
+      "-mllvm",
+      "-limited-coverage-experimental=true",
+      "-fno-use-cxa-atexit",
+      "-DIS_UT",
+      "-DIS_WASM",
+    ]
+    if (is_mac) {
+      lib_dirs = [ "/usr/local/opt/llvm/lib" ]
+    }
+    libs = [ "LLVMCore" ]
+  }
+}
+
+# this is the dest for ohos.build
+if (is_test) {
+  group("unittest") {
+    testonly = true
+    deps = [ ":trace_streamer_ut" ]
+  }
+} else if (target == "fuzz") {
+  group("fuzztest") {
+    testonly = true
+    deps = [
+      "test_fuzzer/bytrace_fuzzer:fuzztest",
+      "test_fuzzer/htrace_fuzzer:fuzztest",
+      "test_fuzzer/selector_fuzzer:fuzztest",
+    ]
+  }
+}

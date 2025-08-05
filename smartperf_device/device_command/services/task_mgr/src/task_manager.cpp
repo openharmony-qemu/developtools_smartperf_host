@@ -276,54 +276,49 @@ void TaskManager::Start(bool record)
         SetRecordState(true);
     }
     mainLoop_ = std::thread([this]() {
-        MainLoop();
+        while (running_) {
+            auto loopStart = std::chrono::steady_clock::now();
+            bool recordData = recordData_.load();
+            if (dataIndex_++ == collectCount_) {
+                break;
+            }
+            LOGD("data index: %u", dataIndex_);
+            std::map<std::string, std::string> currDatas;
+            currDatas.emplace("timestamp", std::to_string(SPUtils::GetCurTime()));
+            if (recordData) {
+                datas_.emplace(dataIndex_,
+                    std::map<std::string, std::string>{{"timestamp", std::to_string(SPUtils::GetCurTime())}});
+            }
+            for (auto& item : priorityTask_) {
+                currDatas.merge(threadPool_.PushTask(&TaskManager::TaskFun, this, item, dataIndex_, recordData).get());
+            }
+            std::vector<std::future<std::map<std::string, std::string>>> result;
+            for (auto& item : normalTask_) {
+                result.emplace_back(threadPool_.PushTask(&TaskManager::TaskFun, this, item, dataIndex_, recordData));
+            }
+            for (auto& item : result) {
+                currDatas.merge(item.get());
+            }
+            for (auto& item : OHOS::SmartPerf::GpuCounter::GetInstance().GetGpuRealtimeData()) {
+                currDatas.insert(item);
+            }
+            if (nextTime_ != nullptr) {
+                *nextTime_ = SPUtils::GetCurTime();
+            }
+            ProcessCurrentBatch(currDatas);
+            auto loopEnd = std::chrono::steady_clock::now();
+            SaveRegularly(loopEnd);
+            auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(loopEnd - loopStart);
+            if (elapsed < std::chrono::seconds(1)) {
+                std::this_thread::sleep_for(std::chrono::seconds(1) - elapsed);
+            }
+        }
+        LOGD("main loop exit");
+        ProcessOnceTask(false);
+        running_ = false;
+        finishCond_.notify_all();
+        scheduleSaveDataCond_.notify_all();
     });
-}
-
-void TaskManager::MainLoop()
-{
-    while (running_) {
-        auto loopStart = std::chrono::steady_clock::now();
-        bool recordData = recordData_.load();
-        if (dataIndex_++ == collectCount_) {
-            break;
-        }
-        LOGD("data index: %u", dataIndex_);
-        std::map<std::string, std::string> currDatas;
-        currDatas.emplace("timestamp", std::to_string(SPUtils::GetCurTime()));
-        if (recordData) {
-            datas_.emplace(dataIndex_,
-                std::map<std::string, std::string>{{"timestamp", std::to_string(SPUtils::GetCurTime())}});
-        }
-        for (auto& item : priorityTask_) {
-            currDatas.merge(threadPool_.PushTask(&TaskManager::TaskFun, this, item, dataIndex_, recordData).get());
-        }
-        std::vector<std::future<std::map<std::string, std::string>>> result;
-        for (auto& item : normalTask_) {
-            result.emplace_back(threadPool_.PushTask(&TaskManager::TaskFun, this, item, dataIndex_, recordData));
-        }
-        for (auto& item : result) {
-            currDatas.merge(item.get());
-        }
-        for (auto& item : OHOS::SmartPerf::GpuCounter::GetInstance().GetGpuRealtimeData()) {
-            currDatas.insert(item);
-        }
-        if (nextTime_ != nullptr) {
-            *nextTime_ = SPUtils::GetCurTime();
-        }
-        ProcessCurrentBatch(currDatas);
-        auto loopEnd = std::chrono::steady_clock::now();
-        SaveRegularly(loopEnd);
-        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(loopEnd - loopStart);
-        if (elapsed < std::chrono::seconds(1)) {
-            std::this_thread::sleep_for(std::chrono::seconds(1) - elapsed);
-        }
-    }
-    LOGD("main loop exit");
-    ProcessOnceTask(false);
-    running_ = false;
-    finishCond_.notify_all();
-    scheduleSaveDataCond_.notify_all();
 }
 
 void TaskManager::WriteToCSV()
