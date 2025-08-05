@@ -154,12 +154,7 @@ void SPUtils::ForDirFiles(const std::string &path, std::vector<std::string> &fil
         return;
     }
 
-    while (true) {
-        struct dirent *ptr = readdir(dir);
-        if (ptr == nullptr) {
-            break;
-        }
-
+    while (struct dirent *ptr = readdir(dir)) {
         // current dir OR parent dir
         if ((strcmp(ptr->d_name, ".") == 0) || (strcmp(ptr->d_name, "..") == 0)) {
             continue;
@@ -383,11 +378,7 @@ std::map<std::string, std::string> SPUtils::GetCpuInfo(bool isTcpMessage)
     if (dir == nullptr) {
         return resultMap;
     }
-    while (true) {
-        struct dirent *ptr = readdir(dir);
-        if (ptr == nullptr) {
-            break;
-        }
+    while (struct dirent *ptr = readdir(dir)) {
         if ((strcmp(ptr->d_name, ".") == 0) || (strcmp(ptr->d_name, "..") == 0)) {
             continue;
         }
