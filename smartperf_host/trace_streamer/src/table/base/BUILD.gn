@@ -1,0 +1,62 @@
+# Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("../../../build/ts.gni")
+config("base_tables_cfg") {
+  include_dirs = [
+    "include",
+    "${THIRD_PARTY}/sqlite/include",
+    "${SRC}/base",
+    "../../parser",
+    "${SRC}/trace_data",
+    "${SRC}/include",
+    "${SRC}",
+    "${SRC}/cfg",
+    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/src",
+    "${THIRD_PARTY}/bounds_checking_function/include",
+  ]
+  include_dirs += [
+    "${SRC}/trace_data/trace_stdtype",
+    "${SRC}/trace_data/trace_stdtype/ftrace",
+    "${SRC}/trace_data/trace_stdtype/ftrace/template",
+    "${SRC}/trace_data/trace_stdtype/hilog",
+    "${SRC}/trace_data/trace_stdtype/hiperf",
+    "${SRC}/trace_data/trace_stdtype/hisysevent",
+    "${SRC}/trace_data/trace_stdtype/htrace",
+    "${SRC}/trace_data/trace_stdtype/measure",
+    "${SRC}/trace_data/trace_stdtype/xpower",
+  ]
+}
+ohos_source_set("base_tables") {
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
+  sources = [
+    "args_table.cpp",
+    "data_dict_table.cpp",
+    "data_type_table.cpp",
+    "datasource_clockid_table.cpp",
+    "device_info_table.cpp",
+    "meta_table.cpp",
+    "range_table.cpp",
+    "span_join.cpp",
+    "stat_table.cpp",
+    "symbols_table.cpp",
+    "table_base.cpp",
+    "trace_config_table.cpp",
+  ]
+  public_configs = [ ":base_tables_cfg" ]
+  if (!is_independent_compile) {
+    configs = [ "${TS_DIR}/gn:ts_config" ]
+  }
+}

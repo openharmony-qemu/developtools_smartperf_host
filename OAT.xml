@@ -63,19 +63,19 @@ Note:If the text contains special characters, please escape them according to th
         </policylist>
         <filefilterlist>
             <filefilter name="defaultPolicyFilter" desc="Filters for compatibility，license header policies">
-                <filteritem type="filepath" name="trace_streamer/test/resource/.*" desc="the trace_streamer test file, no license header"/>
+                <filteritem type="filepath" name="smartperf_host/trace_streamer/test/resource/.*" desc="the trace_streamer test file, no license header"/>
                 <filteritem type="filepath" name="*.patch" desc="the third_party patch file, no license header"/>
-                <filteritem type="filepath" name="trace_streamer/.clang-format" desc="clang format file, no license header"/>
-                <filteritem type="filepath" name="trace_streamer/.clang-tidy" desc="clang tidy file, no license header"/>            
+                <filteritem type="filepath" name="smartperf_host/trace_streamer/.clang-format" desc="clang format file, no license header"/>
+                <filteritem type="filepath" name="smartperf_host/trace_streamer/.clang-tidy" desc="clang tidy file, no license header"/>            
             </filefilter>
             <filefilter name="copyrightPolicyFilter" desc="Filters for copyright header policies">
-                <filteritem type="filepath" name="trace_streamer/test/resource/.*" desc="the trace_streamer test file, no copyright header"/>
+                <filteritem type="filepath" name="smartperf_host/trace_streamer/test/resource/.*" desc="the trace_streamer test file, no copyright header"/>
                 <filteritem type="filepath" name="*.patch" desc="the third_party patch file, no copyright header"/>
-                <filteritem type="filepath" name="trace_streamer/.clang-format" desc="clang format file, no copyright header"/>
-                <filteritem type="filepath" name="trace_streamer/.clang-tidy" desc="clang tidy file, no copyright header"/>            
+                <filteritem type="filepath" name="smartperf_host/trace_streamer/.clang-format" desc="clang format file, no copyright header"/>
+                <filteritem type="filepath" name="smartperf_host/trace_streamer/.clang-tidy" desc="clang tidy file, no copyright header"/>            
             </filefilter>
             <filefilter name="binaryFileTypePolicyFilter" desc="Filters for binary file policies">
-                <filteritem type="filepath" name="trace_streamer/test/resource/.*" desc="the trace_streamer test file, the file is htrace file or ftrace file or SQLite db file"/>
+                <filteritem type="filepath" name="smartperf_host/trace_streamer/test/resource/.*" desc="the trace_streamer test file, the file is htrace file or ftrace file or SQLite db file"/>
                 <filteritem type="filepath" name="*.patch" desc="the third_party patch file, the file is self-developed"/>
                 <filteritem type="filename" name="*.jpg" desc="all jpg file have check"/>
                 <filteritem type="filename" name="*.gif" desc="all gif file have check"/>

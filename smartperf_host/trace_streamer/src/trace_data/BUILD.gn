@@ -1,0 +1,101 @@
+# Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("../../build/ts.gni")
+
+ohos_source_set("trace_data") {
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
+  sources = [
+    "sqllite_prepar_cache_data.cpp",
+    "trace_data_cache.cpp",
+    "trace_data_cache_base.cpp",
+    "trace_data_cache_reader.cpp",
+    "trace_data_cache_writer.cpp",
+    "trace_data_db.cpp",
+    "trace_stdtype/base_stdtype.cpp",
+    "trace_stdtype/common_stdtype.cpp",
+    "trace_stdtype/ftrace/callstack_stdtype.cpp",
+    "trace_stdtype/ftrace/render_service_stdtype.cpp",
+    "trace_stdtype/ftrace/sched_stdtype.cpp",
+    "trace_stdtype/ftrace/syscall_stdtype.cpp",
+    "trace_stdtype/ftrace/template/animation_stdtype.cpp",
+    "trace_stdtype/ftrace/template/app_startup_stdtype.cpp",
+    "trace_stdtype/ftrace/template/task_pool_stdtype.cpp",
+    "trace_stdtype/hilog/hilog_stdtype.cpp",
+    "trace_stdtype/hiperf/hiperf_stdtype.cpp",
+    "trace_stdtype/hisysevent/hisysevent_stdtype.cpp",
+    "trace_stdtype/htrace/activity_monitor_stdtype.cpp",
+    "trace_stdtype/htrace/arkts_stdtype.cpp",
+    "trace_stdtype/htrace/ebpf_stdtype.cpp",
+    "trace_stdtype/htrace/native_memory_stdtype.cpp",
+    "trace_stdtype/measure/measure_stdtype.cpp",
+    "trace_stdtype/xpower/xpower_stdtype.cpp",
+  ]
+
+  if (!is_independent_compile) {
+    configs = [ "${TS_DIR}/gn:ts_config" ]
+  }
+  if (enable_ts_utest && !use_wasm) {
+    cflags = [
+      "-fprofile-arcs",
+      "-ftest-coverage",
+    ]
+    ldflags = [
+      "-fprofile-arcs",
+      "-ftest-coverage",
+      "--coverage",
+    ]
+    if (is_test) {
+      cflags += [ "-D IS_UT" ]
+    }
+  }
+  include_dirs = [
+    "${THIRD_PARTY}/sqlite/include",
+    "${SRC}",
+    "${SRC}/base",
+    "${SRC}/cfg",
+    "${SRC}/include",
+    "${SRC}/table",
+    "${SRC}/table/base/include",
+    "${SRC}/table/ebpf/include",
+    "${SRC}/table/ftrace/include",
+    "${SRC}/table/hiperf/include",
+    "${SRC}/table/hi_sysevent/include",
+    "${SRC}/table/js_memory/include",
+    "${SRC}/table/monitor/include",
+    "${SRC}/table/native_hook/include",
+    "${SRC}/table/xpower/include",
+    ".",
+    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/src",
+    "${THIRD_PARTY}/bounds_checking_function/include",
+    "${THIRD_PARTY}/json/single_include/nlohmann",
+    "${THIRD_PARTY}/hiviewdfx/faultloggerd/interfaces/nonlinux",
+    "${SRC}/trace_data/trace_stdtype",
+    "${SRC}/trace_data/trace_stdtype/ftrace",
+    "${SRC}/trace_data/trace_stdtype/ftrace/template",
+    "${SRC}/trace_data/trace_stdtype/hilog",
+    "${SRC}/trace_data/trace_stdtype/hiperf",
+    "${SRC}/trace_data/trace_stdtype/hisysevent",
+    "${SRC}/trace_data/trace_stdtype/htrace",
+    "${SRC}/trace_data/trace_stdtype/measure",
+    "${SRC}/trace_data/trace_stdtype/xpower",
+  ]
+
+  deps = [
+    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/smartperf_host:ts_all_sph_cpp",
+  ]
+  public_deps = [ "${SRC}/base:base" ]
+  public_configs = [ "${SRC}/base/sqlite_ext:sqlite_ext_cfg" ]
+}

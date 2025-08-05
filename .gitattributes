@@ -1,1 +1,2 @@
 /trace_streamer/test/resource/pbreader.htrace filter=lfs diff=lfs merge=lfs -text
+/smartperf_host/trace_streamer/test/resource/pbreader.htrace filter=lfs diff=lfs merge=lfs -text

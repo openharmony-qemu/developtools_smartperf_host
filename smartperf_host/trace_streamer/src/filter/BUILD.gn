@@ -1,0 +1,118 @@
+# Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("../../build/ts.gni")
+
+config("filter_cfg") {
+  if (!is_independent_compile) {
+    configs = [ "${TS_DIR}/gn:ts_config" ]
+  }
+  if (enable_ts_utest && !use_wasm) {
+    cflags = [
+      "-fprofile-arcs",
+      "-ftest-coverage",
+    ]
+    ldflags = [
+      "-fprofile-arcs",
+      "-ftest-coverage",
+      "--coverage",
+    ]
+    if (is_test) {
+      cflags += [ "-D IS_UT" ]
+    }
+  }
+  include_dirs = [
+    "${SRC}/base",
+    "${SRC}/trace_streamer",
+    "${SRC}/trace_data",
+    "${SRC}/parser",
+    "${SRC}/include",
+    "${SRC}/filter",
+    "${SRC}/filter/hi_sysevent_filter",
+    "${SRC}/cfg",
+    "${SRC}",
+    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/src",
+    "${THIRD_PARTY}/sqlite/include",
+    "${PERF_DIR}/hiperf/include",
+    "${PERF_DIR}/hiperf/include/nonlinux/linux",
+    "${THIRD_PARTY}/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/include",
+    "${THIRD_PARTY}/hiviewdfx/faultloggerd/interfaces/nonlinux",
+    "${THIRD_PARTY}/hiviewdfx/faultloggerd/interfaces/common",
+    "${THIRD_PARTY}/hiviewdfx/faultloggerd/common/dfxlog",
+    "${THIRD_PARTY}/hiviewdfx/faultloggerd/common/dfxutil",
+    "${THIRD_PARTY}/hiviewdfx/faultloggerd/common/dfxlog",
+    "${PERF_DIR}/hiperf/include/nonlinux",
+    "${THIRD_PARTY}/libbpf/include/uapi",
+    "${THIRD_PARTY}/bounds_checking_function/include",
+    "${THIRD_PARTY}/json/single_include/nlohmann",
+    "../proto_reader/include",
+    ".",
+  ]
+  include_dirs += [
+    "${SRC}/trace_data/trace_stdtype",
+    "${SRC}/trace_data/trace_stdtype/ftrace",
+    "${SRC}/trace_data/trace_stdtype/ftrace/template",
+    "${SRC}/trace_data/trace_stdtype/hilog",
+    "${SRC}/trace_data/trace_stdtype/hiperf",
+    "${SRC}/trace_data/trace_stdtype/hisysevent",
+    "${SRC}/trace_data/trace_stdtype/htrace",
+    "${SRC}/trace_data/trace_stdtype/measure",
+    "${SRC}/trace_data/trace_stdtype/xpower",
+  ]
+  if (is_mingw || is_mac) {
+    include_dirs += [ "${THIRD_PARTY}/elfutils/libelf" ]
+  }
+}
+
+ohos_source_set("filter") {
+  subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+  part_name = "${OHOS_PROFILER_PART_NAME}"
+  sources = [
+    "animation_filter.cpp",
+    "app_start_filter.cpp",
+    "args_filter.cpp",
+    "binder_filter.cpp",
+    "clock_filter_ex.cpp",
+    "config_filter.cpp",
+    "cpu_filter.cpp",
+    "filter_base.cpp",
+    "filter_filter.cpp",
+    "frame_filter.cpp",
+    "irq_filter.cpp",
+    "measure_filter.cpp",
+    "process_filter.cpp",
+    "slice_filter.cpp",
+    "stat_filter.cpp",
+    "syscall_filter.cpp",
+    "system_event_measure_filter.cpp",
+    "task_pool_filter.cpp",
+  ]
+
+  public_deps =
+      [ "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/services:ts_all_type_cpp" ]
+  if (enable_hiperf) {
+    public_deps += [ "perf_filter:hiperf_filter" ]
+  }
+  if (enable_native_hook) {
+    public_deps += [ "hook_filter:native_hook_filter" ]
+    public_deps += [
+      "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/native_hook:native_hook_data_reader",
+      "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/native_hook:ts_native_hook_cpp",
+    ]
+  }
+  if (enable_hisysevent) {
+    public_deps += [ "hi_sysevent_filter:hi_sysevent_filter" ]
+  }
+  public_configs = [ ":filter_cfg" ]
+}

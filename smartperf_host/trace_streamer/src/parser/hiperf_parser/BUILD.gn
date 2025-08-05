@@ -1,0 +1,343 @@
+# Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("../../../build/ts.gni")
+
+# for third part bzip2
+config("bzip2_config") {
+  include_dirs = [ "${THIRD_PARTY}/bzip2" ]
+}
+
+ohos_source_set("bzip2_src") {
+  sources = [
+    "${THIRD_PARTY}/bzip2/blocksort.c",
+    "${THIRD_PARTY}/bzip2/bzlib.c",
+    "${THIRD_PARTY}/bzip2/compress.c",
+    "${THIRD_PARTY}/bzip2/crctable.c",
+    "${THIRD_PARTY}/bzip2/decompress.c",
+    "${THIRD_PARTY}/bzip2/huffman.c",
+    "${THIRD_PARTY}/bzip2/randtable.c",
+  ]
+  configs += [ ":bzip2_config" ]
+
+  part_name = "bzip2"
+  subsystem_name = "thirdparty"
+}
+
+ohos_source_set("libbz2") {
+  deps = [ ":bzip2_src" ]
+  public_configs = [ ":bzip2_config" ]
+
+  part_name = "bzip2"
+  subsystem_name = "thirdparty"
+}
+
+# for third part zlib
+config("zlib_config") {
+  cflags = [
+    "-Wno-incompatible-pointer-types",
+    "-Werror",
+    "-Wno-strict-prototypes",
+    "-Wimplicit-function-declaration",
+    "-D HAVE_BZIP2",
+  ]
+}
+
+config("zlib_public_config") {
+  include_dirs = [ "${THIRD_PARTY}/zlib" ]
+}
+
+sources_zlib_with_ts_common = [
+  "${THIRD_PARTY}/zlib/adler32.c",
+  "${THIRD_PARTY}/zlib/compress.c",
+  "${THIRD_PARTY}/zlib/contrib/minizip/ioapi.c",
+  "${THIRD_PARTY}/zlib/contrib/minizip/unzip.c",
+  "${THIRD_PARTY}/zlib/contrib/minizip/zip.c",
+  "${THIRD_PARTY}/zlib/crc32.c",
+  "${THIRD_PARTY}/zlib/deflate.c",
+  "${THIRD_PARTY}/zlib/gzclose.c",
+  "${THIRD_PARTY}/zlib/gzlib.c",
+  "${THIRD_PARTY}/zlib/gzread.c",
+  "${THIRD_PARTY}/zlib/gzwrite.c",
+  "${THIRD_PARTY}/zlib/infback.c",
+  "${THIRD_PARTY}/zlib/inffast.c",
+  "${THIRD_PARTY}/zlib/inflate.c",
+  "${THIRD_PARTY}/zlib/inftrees.c",
+  "${THIRD_PARTY}/zlib/trees.c",
+  "${THIRD_PARTY}/zlib/uncompr.c",
+  "${THIRD_PARTY}/zlib/zutil.c",
+]
+ohos_source_set("libz") {
+  sources = sources_zlib_with_ts_common
+  configs += [ ":zlib_config" ]
+  public_configs = [ ":zlib_public_config" ]
+  public_deps = [ ":libbz2" ]
+  part_name = "zlib"
+  subsystem_name = "thirdparty"
+}
+
+# for third part bounds_checking_function
+sources_libsec_with_ts_common = [
+  "${THIRD_PARTY}/bounds_checking_function/src/fscanf_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/fwscanf_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/gets_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/memcpy_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/memmove_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/memset_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/scanf_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/securecutil.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/secureinput_a.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/secureinput_w.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/secureprintoutput_a.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/secureprintoutput_w.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/snprintf_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/sprintf_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/sscanf_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/strcat_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/strcpy_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/strncat_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/strncpy_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/strtok_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/swprintf_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/swscanf_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/vfscanf_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/vfwscanf_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/vscanf_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/vsnprintf_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/vsprintf_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/vsscanf_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/vswprintf_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/vswscanf_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/vwscanf_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/wcscat_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/wcscpy_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/wcsncat_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/wcsncpy_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/wcstok_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/wmemcpy_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/wmemmove_s.c",
+  "${THIRD_PARTY}/bounds_checking_function/src/wscanf_s.c",
+]
+
+ohos_source_set("libsec_static") {
+  sources = sources_libsec_with_ts_common
+  include_dirs = [ "${THIRD_PARTY}/bounds_checking_function/include" ]
+  cflags = [
+    "-D_INC_STRING_S",
+    "-D_INC_WCHAR_S",
+    "-D_SECIMP=//",
+    "-D_STDIO_S_DEFINED",
+    "-D_INC_STDIO_S",
+    "-D_INC_STDLIB_S",
+    "-D_INC_MEMORY_S",
+  ]
+}
+
+# for third part hiviewdfx faultloggerd
+config("faultloggerd_config") {
+  cflags = [
+    "-D ALWAYSTRUE",
+    "-D DFX_NO_PRINT_LOG",
+    "-D is_host",
+  ]
+}
+config("faultloggerd_public_config") {
+  include_dirs = [
+    "${THIRD_PARTY}/hiviewdfx/faultloggerd/common/dfxlog",
+    "${THIRD_PARTY}/hiviewdfx/faultloggerd/common/dfxutil",
+    "${THIRD_PARTY}/hiviewdfx/faultloggerd/common/trace/include",
+    "${THIRD_PARTY}/hiviewdfx/faultloggerd/interfaces/common",
+    "${THIRD_PARTY}/hiviewdfx/faultloggerd/interfaces/nonlinux",
+    "${THIRD_PARTY}/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/include",
+    "${THIRD_PARTY}/bounds_checking_function/include",
+    "${COMMON_LIBRARY}/c_utils/base/include",
+  ]
+}
+sources_faultloggerd_with_ts_common = [
+  "${THIRD_PARTY}/hiviewdfx/faultloggerd/common/dfxutil/dfx_util.cpp",
+  "${THIRD_PARTY}/hiviewdfx/faultloggerd/common/trace/dfx_trace_dlsym.cpp",
+  "${THIRD_PARTY}/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/src/ark/dfx_hap.cpp",
+  "${THIRD_PARTY}/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/src/elf/dfx_elf.cpp",
+  "${THIRD_PARTY}/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/src/elf/dfx_elf_parser.cpp",
+  "${THIRD_PARTY}/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/src/elf/dfx_symbols.cpp",
+  "${THIRD_PARTY}/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/src/elf/dfx_mmap.cpp",
+  "${THIRD_PARTY}/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/src/elf/elf_factory.cpp",
+  "${THIRD_PARTY}/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/src/elf/elf_factory_selector.cpp",
+  "${THIRD_PARTY}/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/src/maps/dfx_map.cpp",
+  "${THIRD_PARTY}/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/src/maps/dfx_maps.cpp",
+  "${THIRD_PARTY}/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/src/memory/dfx_memory.cpp",
+  "${THIRD_PARTY}/hiviewdfx/faultloggerd/interfaces/innerkits/unwinder/src/utils/unwinder_config.cpp",
+]
+ohos_source_set("libfaultloggerd") {
+  sources = sources_faultloggerd_with_ts_common
+  configs += [ ":faultloggerd_config" ]
+  public_configs = [ ":faultloggerd_public_config" ]
+  public_deps = [ ":libsec_static" ]
+  part_name = "faultloggerd"
+  subsystem_name = "thirdparty"
+}
+
+# for third part hiperf
+sources_platform_with_ts_common = [
+  "${PERF_DIR}/hiperf/src/dwarf_encoding.cpp",
+  "${PERF_DIR}/hiperf/src/option.cpp",
+  "${PERF_DIR}/hiperf/src/perf_event_record.cpp",
+  "${PERF_DIR}/hiperf/src/perf_file_format.cpp",
+  "${PERF_DIR}/hiperf/src/perf_file_reader.cpp",
+  "${PERF_DIR}/hiperf/src/register.cpp",
+  "${PERF_DIR}/hiperf/src/report.cpp",
+  "${PERF_DIR}/hiperf/src/subcommand.cpp",
+  "${PERF_DIR}/hiperf/src/symbols_file.cpp",
+  "${PERF_DIR}/hiperf/src/unique_stack_table.cpp",
+  "${PERF_DIR}/hiperf/src/utilities.cpp",
+  "${PERF_DIR}/hiperf/src/virtual_runtime.cpp",
+  "${PERF_DIR}/hiperf/src/virtual_thread.cpp",
+]
+
+if (hiperf_debug) {
+  sources_platform_with_ts_common +=
+      [ "${PERF_DIR}/hiperf/src/debug_logger.cpp" ]
+}
+
+config("ts_hiperf_config") {
+  cflags = [
+    "-D ALWAYSTRUE",
+    "-D CONFIG_NO_HILOG",
+  ]
+  cflags_cc = [
+    "-std=c++17",
+    "-fvisibility=hidden",
+    "-Wno-unused-variable",
+  ]
+}
+config("ts_hiperf_public_config") {
+  include_dirs = [
+    "${PERF_DIR}/hiperf/include",
+    "${PERF_DIR}/hiperf/include/nonlinux",
+    "${PERF_DIR}/hiperf/include/nonlinux/linux",
+  ]
+  include_dirs += [
+    "${THIRD_PARTY}/bounds_checking_function/include",
+    "${COMMON_LIBRARY}/c_utils/base/include",
+    "${THIRD_PARTY}/libbpf/include/uapi",
+  ]
+  if (is_mingw) {
+    cflags = [ "-includeMingW64Fix.h" ]
+  }
+}
+ohos_source_set("ts_hiperf_src") {
+  subsystem_name = "thirdparty"
+  part_name = "hiperf"
+  configs -= [ trace_cfg_path ]
+  configs += [ ":ts_hiperf_config" ]
+  public_configs = [ ":ts_hiperf_public_config" ]
+  public_deps = [
+    ":libfaultloggerd",
+    ":libz",
+  ]
+  sources = sources_platform_with_ts_common
+}
+
+# for hiperf parser
+config("hiperf_parser_cfg") {
+  if (!is_independent_compile) {
+    configs = [ "${TS_DIR}/gn:ts_config" ]
+  }
+  if (enable_ts_utest && !use_wasm) {
+    cflags = [
+      "-fprofile-arcs",
+      "-ftest-coverage",
+    ]
+    ldflags = [
+      "-fprofile-arcs",
+      "-ftest-coverage",
+      "--coverage",
+    ]
+    if (is_test) {
+      cflags += [ "-D IS_UT" ]
+    }
+  }
+  include_dirs = [
+    ".",
+    "../../base",
+    "../../cfg",
+    "../../include",
+    "../../",
+    "../../filter",
+    "../../trace_data",
+    "..",
+    "../../trace_streamer",
+    "../../proto_reader/include",
+    "${THIRD_PARTY}/bounds_checking_function/include",
+    "${THIRD_PARTY}/sqlite/include",
+    "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/src",
+    "${COMMON_LIBRARY}/c_utils/base/include",
+    "${THIRD_PARTY}/googletest/googletest/include",
+  ]
+  include_dirs += [
+    "${SRC}/trace_data/trace_stdtype",
+    "${SRC}/trace_data/trace_stdtype/ftrace",
+    "${SRC}/trace_data/trace_stdtype/ftrace/template",
+    "${SRC}/trace_data/trace_stdtype/hilog",
+    "${SRC}/trace_data/trace_stdtype/hiperf",
+    "${SRC}/trace_data/trace_stdtype/hisysevent",
+    "${SRC}/trace_data/trace_stdtype/htrace",
+    "${SRC}/trace_data/trace_stdtype/measure",
+    "${SRC}/trace_data/trace_stdtype/xpower",
+  ]
+  include_dirs += [
+    "${THIRD_PARTY}/googletest/googletest/include",
+    "${THIRD_PARTY}/libbpf/include/uapi",
+    "../hiperf_parser",
+    "../hiperf_parser/include",
+    "${COMMON_LIBRARY}/c_utils/base/include",
+    "${THIRD_PARTY}/sqlite",
+  ]
+  if (enable_addr2line) {
+    include_dirs += [
+      "${LLVM_ROOT}/include",
+      "$root_gen_dir/llvm/include",
+    ]
+  }
+  if (is_mingw || is_mac) {
+    include_dirs += [ "${THIRD_PARTY}/libbpf/include/uapi" ]
+  }
+}
+
+if (enable_hiperf) {
+  ohos_static_library("hiperf_parser") {
+    subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
+    part_name = "${OHOS_PROFILER_PART_NAME}"
+    sources = [ "perf_data_parser.cpp" ]
+    public_configs = [
+      ":hiperf_parser_cfg",
+      "../../filter/perf_filter:hiperf_filter_cfg",
+    ]
+    public_deps = [
+      ":ts_hiperf_src",
+      "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos:protobuf_lite_static",
+      "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos:protobuf_static",
+    ]
+    if (enable_addr2line) {
+      public_deps += [
+        "${LLVM_ROOT}/lib/DebugInfo/DWARF",
+        "${LLVM_ROOT}/lib/DebugInfo/PDB",
+        "${LLVM_ROOT}/lib/DebugInfo/Symbolize",
+        "${LLVM_ROOT}/lib/Demangle",
+        "${LLVM_ROOT}/lib/Object",
+        "${LLVM_ROOT}/lib/Support",
+      ]
+    }
+  }
+}
