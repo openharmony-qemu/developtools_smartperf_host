@@ -119,6 +119,10 @@ ErrCode SPTask::InitTask(const std::string &recvStr)
     WLOGI("Received init task string: %s", recvStr.substr(recvStr.find("-SESSIONID")).c_str());
     ExceptionMsg exMsg = ParseToTask(recvStr, curTaskInfo);
     if (exMsg == ExceptionMsg::NO_ERR) {
+        if (taskMgr_ != nullptr) {
+            taskMgr_->Stop();
+            taskMgr_->WriteToCSV();
+        }
         taskMgr_ = std::make_shared<TaskManager>(true);
         taskMgr_->AddTask(recvStr);
         if (curTaskInfo.stuckInfo.isEffective) {
@@ -256,7 +260,7 @@ std::map<std::string, std::string> SPTask::SetTaskInfo()
         { "endTime", std::to_string(endTime) },
         { "testDuration", std::to_string(testDuration) },
         { "taskName", "testtask" },
-        { "board", "hw" },
+        { "board", SPUtils::GetProductName() },
         { "target_fps", refreshrate },
         { "gpuDataVersion", gpuDataVersion },
         { "battery_change", std::to_string(battaryEnd - battaryStart) },

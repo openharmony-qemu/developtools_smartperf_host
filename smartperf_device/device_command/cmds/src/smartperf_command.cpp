@@ -41,6 +41,7 @@ SmartPerfCommand::SmartPerfCommand(std::vector<std::string>& argv)
     taskMgr_.AddTask(argv);
     LOGD("SmartPerfCommand::SmartPerfCommand size(%u)", argv.size());
     if (argv.size() == oneParam) {
+        SPUtils::KillStartDaemon();
         SpThreadSocket::GetInstance().SetNeedUdpToken(false);
         DeviceServer(true);
     }
@@ -149,6 +150,9 @@ void SmartPerfCommand::CreateSocketThread() const
 
 std::string SmartPerfCommand::ExecCommand()
 {
+    if (taskMgr_.GetArgumentParser().Get("-N") == std::nullopt) {
+        return "command exec finished!";
+    }
     RAM &ram = RAM::GetInstance();
     ram.SetFirstFlag();
     taskMgr_.DeleteTask(&AISchedule::GetInstance());
