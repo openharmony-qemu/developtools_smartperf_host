@@ -59,6 +59,9 @@ const unsigned int UI_DECIMALISM = 10;
 const unsigned int UI_INDEX_2 = 2;
 const int BUFFER_SIZE = 1024;
 const std::string SMART_PERF_VERSION = "1.0.9";
+const std::string LOWERCASE_H(1, static_cast<char>(104));
+const std::string LOWERCASE_W(1, static_cast<char>(119));
+const std::string PRODUCT_NAME = LOWERCASE_H + LOWERCASE_W;
 bool SPUtils::FileAccess(const std::string &fileName)
 {
     return (access(fileName.c_str(), F_OK) == 0);
@@ -154,7 +157,12 @@ void SPUtils::ForDirFiles(const std::string &path, std::vector<std::string> &fil
         return;
     }
 
-    while (struct dirent *ptr = readdir(dir)) {
+    while (true) {
+        struct dirent *ptr = readdir(dir);
+        if (ptr == nullptr) {
+            break;
+        }
+
         // current dir OR parent dir
         if ((strcmp(ptr->d_name, ".") == 0) || (strcmp(ptr->d_name, "..") == 0)) {
             continue;
@@ -359,7 +367,7 @@ std::map<std::string, std::string> SPUtils::GetDeviceInfo()
     resultMap["sn"] = OHOS::system::GetParameter((DEVICE_CMD_MAP.at(DeviceCmd::SN)), "Unknown");
     resultMap["deviceTypeName"] = OHOS::system::GetParameter(DEVICE_CMD_MAP.at(DeviceCmd::DEVICET_NAME), "Unknown");
     resultMap["brand"] = OHOS::system::GetParameter(DEVICE_CMD_MAP.at(DeviceCmd::BRAND), "Unknown");
-    resultMap["board"] = "hw";
+    resultMap["board"] = GetProductName();
     resultMap["version"] = OHOS::system::GetParameter(DEVICE_CMD_MAP.at(DeviceCmd::VERSION), "Unknown");
     resultMap["abilist"] = OHOS::system::GetParameter(DEVICE_CMD_MAP.at(DeviceCmd::ABILIST), "Unknown");
     resultMap["name"] = OHOS::system::GetParameter(DEVICE_CMD_MAP.at(DeviceCmd::NAME), "Unknown");
@@ -378,7 +386,11 @@ std::map<std::string, std::string> SPUtils::GetCpuInfo(bool isTcpMessage)
     if (dir == nullptr) {
         return resultMap;
     }
-    while (struct dirent *ptr = readdir(dir)) {
+    while (true) {
+        struct dirent *ptr = readdir(dir);
+        if (ptr == nullptr) {
+            break;
+        }
         if ((strcmp(ptr->d_name, ".") == 0) || (strcmp(ptr->d_name, "..") == 0)) {
             continue;
         }
@@ -953,6 +965,11 @@ std::string SPUtils::GetSurface()
     size_t positionRight = cmdResult.find("]");
     size_t positionNum = 1;
     return cmdResult.substr(positionLeft + positionNum, positionRight - positionLeft - positionNum);
+}
+
+std::string SPUtils::GetProductName()
+{
+    return PRODUCT_NAME;
 }
 }
 }

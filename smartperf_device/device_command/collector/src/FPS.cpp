@@ -30,6 +30,7 @@
 #include "include/GameEvent.h"
 #include "transaction/rs_interfaces.h"
 #include "include/ByTrace.h"
+#include "include/sp_profiler_factory.h"
 namespace OHOS {
 namespace SmartPerf {
 bool HAVE_CATON = false;
@@ -83,7 +84,12 @@ std::map<std::string, std::string> FPS::GetFpsAndJitters(FpsInfo &fpsInfoResult,
         jitterStr.c_str());
     SetFpsCurrentFpsTime(fpsInfoResult);
     if (isCatchTrace > 0) {
-        ByTrace::GetInstance().CheckFpsJitters(fpsInfoResult.jitters, fpsInfoResult.fps);
+        long long maxJitters = 0;
+        if (!fpsInfoResult.jitters.empty()) {
+            auto maxElement = std::max_element(fpsInfoResult.jitters.begin(), fpsInfoResult.jitters.end());
+            maxJitters = *maxElement / oneSec;
+        }
+        ByTrace::GetInstance().CheckFpsJitters(maxJitters, fpsInfoResult.fps);
     }
     return result;
 }
@@ -171,6 +177,10 @@ FpsInfo FPS::GetFpsInfo()
     fpsInfoData.fps = 0;
     if (isGameApp) {
         if (gameLayerName.empty()) {
+            std::string processIds = "";
+            OHOS::SmartPerf::StartUpDelay sp;
+            processId = sp.GetPidByPkg(pkgName, &processIds);
+            SpProfilerFactory::SetProfilerPidByPkg(processId, processIds);
             gameLayerName = GetGameLayer();
             if (gameLayerName.empty()) {
                 fpsInfoData.fps = 0;
@@ -409,6 +419,9 @@ void FPS::CalcJitters()
             prevScreenTimestamp = curScreenTimestamp;
         }
     }
+    if (!fpsInfo.jitters.empty()) {
+        fpsInfo.jitters.erase(fpsInfo.jitters.begin());
+    }
 }
         
 long long FPS::CalculateJitter() const
@@ -443,7 +456,7 @@ std::string FPS::FindFpsRefreshrate()
         while ((pos = screenInfo.find(";")) != std::string::npos) {
             token = screenInfo.substr(0, pos);
             screenInfo.erase(0, pos + 1);
-            if (token.find("current_fps:") != std::string::npos) {
+            if (token.find("current_fps:") != std::string::npos || token.find("lcd_fps:") != std::string::npos) {
                 value = token.substr(token.find(":") + 1);
                 break;
             }
