@@ -25,7 +25,8 @@
 #include <atomic>
 #include <condition_variable>
 
-namespace OHOS::SmartPerf {
+namespace OHOS {
+namespace SmartPerf {
 class CPUInfo : public SpProfiler {
 public:
     static CPUInfo &GetInstance()
@@ -51,5 +52,5 @@ private:
     std::string buffer_;
 };
 }
-
+}
 #endif // CPU_INFO_H
