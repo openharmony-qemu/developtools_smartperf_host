@@ -16,7 +16,7 @@ import("./build/config.gni")
 
 group("SmartPerf") {
   deps = []
-  if (support_jsapi && smartperf_Device) {
+  if (support_jsapi && smartperf_host_Device) {
     deps +=
         [ "//developtools/smartperf_host/smartperf_device/device_ui/:SmartPerf" ]
   }
