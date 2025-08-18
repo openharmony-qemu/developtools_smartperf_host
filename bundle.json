@@ -15,9 +15,6 @@
     "adapted_system_type": [
       "standard"
     ],
-    "features": [
-      "smartperf_Device"
-    ],
     "hisysevent_config": [
       "//developtools/smartperf_host/smartperf_device/hisysevent.yaml"
     ],
