@@ -18,7 +18,7 @@ group("SmartPerf") {
   deps = []
   if (support_jsapi && smartperf_host_device) {
     deps += [
-      "//developtools/smartperf_host/smartperf_device/device_ui/:SmartPerf"
+      "//developtools/smartperf_host/smartperf_device/device_ui/:SmartPerf",
     ]
   }
 }
