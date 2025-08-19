@@ -16,7 +16,7 @@
       "standard"
     ],
     "features": [
-      "smartperf_host_Device"
+      "smartperf_host_device"
     ],
     "hisysevent_config": [
       "//developtools/smartperf_host/smartperf_device/hisysevent.yaml"
