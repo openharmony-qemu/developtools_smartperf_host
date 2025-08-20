@@ -15,10 +15,11 @@ OHOS_SMARTPERF_HOST_DIR = get_path_info("../..", "abspath")
 
 OHOS_SMARTPERF_DEVICE_SUBSYS_NAME = "developtools"
 OHOS_SMARTPERF_DEVICE_PART_NAME = "smartperf_host"
-OHOS_SMARTPERF_DEVICE_TEST_MODULE_OUTPUT_PATH = "smartperf_host/smartperf_device"
+OHOS_SMARTPERF_DEVICE_TEST_MODULE_OUTPUT_PATH =
+    "smartperf_host/smartperf_device"
 
 declare_args() {
-  smartperf_Device = true
+  smartperf_host_device = false
 }
 
 declare_args() {
