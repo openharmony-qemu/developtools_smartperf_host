@@ -45,6 +45,7 @@
 #include "include/RAM.h"
 #include "include/FPS.h"
 #include "include/hiperf.h"
+#include "include/CPU.h"
 
 #define SMARTPERF "smartperf"
 namespace OHOS {
@@ -780,6 +781,7 @@ void SpThreadSocket::UdpStartMessProcess(SpServerSocket &spSocket, SpProfiler *p
             taskMgr_->AddTask(&SdkDataRecv::GetInstance(), false);
         }
         bytrace.ClearTraceFiles();
+        CPU::GetInstance().SetCoreCurFreqFlag();
         StartHapCollecting(spSocket);
     } else if (iterator->first == MessageType::APP_RECEIVE_DATA_ON) {
         if (taskMgr_ != nullptr) {
@@ -928,8 +930,6 @@ void SpThreadSocket::StartHapCollecting(SpServerSocket &spSocket)
     LOGD("UDP START Task starting...");
     RAM &ram = RAM::GetInstance();
     ram.SetFirstFlag();
-    CPU &cpu = CPU::GetInstance();
-    cpu.SetCoreCurFreqFlag();
     if (udpStartCollect.joinable()) {
         udpStartCollect.join();
     }
