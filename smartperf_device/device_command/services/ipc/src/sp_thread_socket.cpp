@@ -928,6 +928,8 @@ void SpThreadSocket::StartHapCollecting(SpServerSocket &spSocket)
     LOGD("UDP START Task starting...");
     RAM &ram = RAM::GetInstance();
     ram.SetFirstFlag();
+    CPU &cpu = CPU::GetInstance();
+    cpu.SetCoreCurFreqFlag();
     if (udpStartCollect.joinable()) {
         udpStartCollect.join();
     }
