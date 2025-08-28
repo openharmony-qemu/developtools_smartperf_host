@@ -490,7 +490,7 @@ std::string TaskManager::MapToString(std::map<std::string, std::string>& myMap)
             "cpu7Frequency", "cpu8Frequency", "cpu9Frequency", "cpu10Frequency", "cpu11Frequency", "gpuFrequency",
             "pss", "shell_frame", "shell_back", "soc_thermal", "cpu0Usage", "cpu1Usage", "cpu2Usage", "cpu3Usage",
             "cpu4Usage", "cpu5Usage", "cpu6Usage", "cpu7Usage", "cpu8Usage", "cpu9Usage", "cpu10Usage", "cpu11Usage",
-            "gpuLoad", "cpu0_curFrequency", "cpu1_curFrequency", "cpu_curFrequency"};
+            "gpuLoad", "cpu0_curFrequency", "cpu1_curFrequency", "cpu2_curFrequency"};
         for (const auto& key : keysToFind) {
             if (auto iter = myMap.find(key); iter != myMap.end()) {
                 appCollectMap += iter->first + ":" + iter->second + ",";
