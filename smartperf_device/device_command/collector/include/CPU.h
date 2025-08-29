@@ -52,6 +52,7 @@ public:
     std::map<std::string, std::string> GetCpuCoreCurFreqs();
     void GetCpuFreqItemData(std::map<std::string, std::string> &cpuFreqResult);
     void GetCpuUsageItemData(std::map<std::string, std::string> &cpuUsageResult);
+    void SetCoreCurFreqFlag();
 private:
     CPU() {};
     CPU(const CPU &);
@@ -62,6 +63,7 @@ private:
     const std::string totalcpu = "Totalcpu";
     int twenty = 20;
     int thousand = 1000;
+    bool coreCurFreqFlag = false;
 };
 }
 }

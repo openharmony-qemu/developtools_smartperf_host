@@ -52,9 +52,11 @@ std::map<std::string, std::string> CPU::ItemData()
         }
     }
 
-    std::map<std::string, std::string> cpuCoreCurFreqs = GetCpuCoreCurFreqs();
-    for (const auto& item : cpuCoreCurFreqs) {
-        result[item.first] = item.second;
+    if (coreCurFreqFlag) {
+        std::map<std::string, std::string> cpuCoreCurFreqs = GetCpuCoreCurFreqs();
+        for (const auto& item : cpuCoreCurFreqs) {
+            result[item.first] = item.second;
+        }
     }
 
     LOGI("CPU:ItemData map size(%u)", result.size());
@@ -257,6 +259,11 @@ std::map<std::string, std::string> CPU::GetCpuCoreCurFreqs()
         cpuCoreCurFreqs[nameBase + "curFrequency"] = curFreq;
     }
     return cpuCoreCurFreqs;
+}
+
+void CPU::SetCoreCurFreqFlag()
+{
+    coreCurFreqFlag = true;
 }
 }
 }
