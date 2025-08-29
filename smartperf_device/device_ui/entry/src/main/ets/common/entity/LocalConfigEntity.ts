@@ -12,10 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import urlConfig from './url.json';
-
-export { urlConfig };
+import urlConfig  from './url.json';
 
 export enum TestMode {
   ONLINE,
@@ -149,11 +146,11 @@ export class QuestionItem {
     this.question = question;
   }
 }
-
+export const configReadme = urlConfig.usageUrl;
 export const questionList = new Array(
   new QuestionItem(
     '1.SP工具怎么使用',
-    '有关详细指南, 请访问以下地址: ${urlConfig.usageUrl.configReadme}'
+    '有关详细指南, 请访问以下地址: ' + configReadme
   ),
   new QuestionItem('2.SP工具支持FPS采集吗?', '可以, fps依赖Hidumper能力..'),
   new QuestionItem('3.SP工具支持RAM采集吗?', 'ram采集目前是 读取进程节点内存信息中的PSS值...'),
