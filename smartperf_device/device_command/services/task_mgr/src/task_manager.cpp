@@ -634,4 +634,9 @@ ArgumentParser& TaskManager::GetArgumentParser()
 {
     return parameter_;
 }
+
+void TaskManager::SetFileTitleFlag()
+{
+    firstSetTitle_ = true;
+}
 }
