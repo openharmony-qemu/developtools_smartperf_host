@@ -409,6 +409,7 @@ int SPTask::GetCurrentBattary()
 
 ErrCode SPTask::StartRecord()
 {
+    taskMgr_->SetFileTitleFlag();
     battaryStart = GetCurrentBattary();
     startTime = SPUtils::GetCurTime();
     WLOGI("StartRecord initiated: Battery %d, Start time %lld.", battaryStart, startTime);
