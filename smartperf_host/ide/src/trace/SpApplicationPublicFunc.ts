@@ -357,7 +357,6 @@ export const applicationHtml: string = `
         }
         </style>
         <div class="root" style="position: relative;">
-            <sp-bubble-ai style="visibility: visible; top:50%;right:2px;position: absolute;z-index: 10000" id="sp-bubbles" draggable ="true"></sp-bubble-ai>
             <sp-advertisement style="bottom:2px;right:2px;position: absolute;z-index: 10086" id= "sp-advertisement"></sp-advertisement>
             <lit-main-menu id="main-menu" class="menu" data=''></lit-main-menu>
             <sp-keyboard style="width:100%;height:100%;overflow:auto;visibility:hidden;top:0px;left:0px;right:0;bottom:0px;position:absolute;z-index: 8888" id="sp-keyboard">

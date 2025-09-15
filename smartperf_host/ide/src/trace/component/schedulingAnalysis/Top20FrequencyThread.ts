@@ -78,6 +78,7 @@ export class Top20FrequencyThread extends BaseElement {
         this.queryData();
       } else {
         this.frequencyThreadProgress!.loading = false;
+        console.log('No match found');
       }
     });
 

@@ -150,6 +150,9 @@ private:
     void UpdateAnonMmapDataDbIndex(uint64_t addr, uint64_t size, uint64_t row);
     void UpdateLastCallerPathAndSymbolIndexs();
     void UpdateFilePathIndexToCallStackRowMap(size_t row, DataIndex filePathIndex);
+    bool IsSameSymbolTable(std::shared_ptr<ProtoReader::SymbolTable_Reader> reader1,
+                           std::shared_ptr<ProtoReader::SymbolTable_Reader> reader2);
+    bool AreBytesViewsEqual(const ProtoReader::BytesView &view1, const ProtoReader::BytesView &view2);
 
 private:
     // first key is addr, second key is size, value is set<row> in db

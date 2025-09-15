@@ -560,12 +560,13 @@ export function exportData(that: unknown): void {
     return;
   } //@ts-ignore
   that.exportLoading = true; //@ts-ignore
-  that.exportProgress!.loading = true;
+  that.exportProgress!.loading = true;//@ts-ignore
+  const newArray = filterTree(that.ds);
   let date = new Date();
   JSONToCSV.csvExport({
     //@ts-ignore
     columns: that.columns as unknown[], //@ts-ignore
-    tables: that.ds,
+    tables: newArray,
     fileName: `${date.getTime()}`, //@ts-ignore
     columnFormatter: that.itemTextHandleMap, //@ts-ignore
     exportFormatter: that.exportTextHandleMap,
@@ -574,6 +575,34 @@ export function exportData(that: unknown): void {
     that.exportLoading = false; //@ts-ignore
     that.exportProgress!.loading = false;
   });
+}
+
+function filterTree(data: unknown, isRoot = true): unknown {
+  if (Array.isArray(data)) {
+    return data
+      .map(item => filterTree(item, isRoot))
+      .filter(item => item !== null);
+  }
+  if (typeof data === 'object' && data !== null) {
+    const obj = data as Record<string, unknown>;
+    if (isRoot && obj.status === false) {
+      return { ...obj, children: [] };
+    }
+    if (obj.status === true) {
+      const newNode = { ...obj };
+      if (Array.isArray(newNode.children)) {
+        newNode.children = newNode.children
+          .map(child => filterTree(child, false))
+          .filter(child => child !== null);
+      }
+      return newNode;
+    }
+    if (obj.status !== true) {
+      return { ...obj, children: [] };
+    }
+    return null;
+  }
+  return null;
 }
 
 export function formatExportData(dataSource: unknown[], that: unknown): unknown[] {

@@ -277,10 +277,13 @@ bool CpuDetailParser::SchedSwitchEvent(const RawTraceEventInfo &event)
         event.msgPtr->timestamp(), schedSwitchMsg.next_pid(), schedSwitchMsg.next_comm());
     auto uprevtid = streamFilters_->processFilter_->UpdateOrCreateThreadWithName(
         event.msgPtr->timestamp(), schedSwitchMsg.prev_pid(), schedSwitchMsg.prev_comm());
-
+    DataIndex nextInfo = INVALID_DATAINDEX;
+    if(schedSwitchMsg.next_info()!=INVALID_UINT64){
+        nextInfo = traceDataCache_->GetDataIndex(std::to_string(schedSwitchMsg.next_info()));
+    }
     streamFilters_->cpuFilter_->InsertSwitchEvent(event.msgPtr->timestamp(), event.cpuId, uprevtid,
                                                   schedSwitchMsg.prev_prio(), schedSwitchPrevState, nextInternalTid,
-                                                  schedSwitchMsg.next_prio(), INVALID_DATAINDEX);
+                                                  schedSwitchMsg.next_prio(), nextInfo);
     return true;
 }
 bool CpuDetailParser::SchedBlockReasonEvent(const RawTraceEventInfo &event)

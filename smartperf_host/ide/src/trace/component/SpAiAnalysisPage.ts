@@ -71,6 +71,7 @@ export class SpAiAnalysisPage extends BaseElement {
     private getSugBtnList: Array<unknown> = [];
     static startTime: number = 0;
     static endTime: number = 0;
+    private showSuggestionPart: boolean = false; // 屏蔽优化建议功能
     activeTime: Element | undefined | null;
     // 监听选中时间范围变化
     static selectChangeListener(startTime: number, endTime: number): void {
@@ -112,7 +113,7 @@ export class SpAiAnalysisPage extends BaseElement {
             // @ts-ignore
             tokens[idx].attrPush(['rel', 'noopener noreferrer']); // 推荐添加 rel="noopener noreferrer" 以提高安全性
             // @ts-ignore
-            return `<a href="${tokens[idx].attrs[href][1]}" target="_blank" rel="noopener noreferrer">`;
+            return `<p><a href="${tokens[idx].attrs[href][1]}" target="_blank" rel="noopener noreferrer"></p>`;
         };
         let aiAssistant = document.querySelector('body > sp-application')!.shadowRoot!.querySelector('#sp-ai-analysis');
         this.chatBar = this.shadowRoot?.querySelector('.chatBar');
@@ -537,40 +538,44 @@ export class SpAiAnalysisPage extends BaseElement {
             itemDiv.appendChild(reasonDiv);
             this.timeClickHandler(timeDiv);
             // 生成优化建议
-            let suggestonDiv = document.createElement('div');
-            suggestonDiv.className = 'item two';
-            let suggestonTitle = document.createElement('span');
-            suggestonTitle.className = 'item-name';
-            suggestonTitle.textContent = '优化建议：';
-            suggestonDiv!.appendChild(suggestonTitle);
-            itemDiv!.appendChild(suggestonDiv);
-            let getButton = document.createElement('span');
-            getButton.className = 'getSgtBtn';
-            getButton.innerHTML = '获取';
-            getButton.addEventListener('click', (ev) => {
-                if (suggestonDiv.getElementsByClassName('msgdiv').length > 0) {
-                    suggestonDiv.removeChild(suggestonDiv.getElementsByClassName('msgdiv')[0]);
-                }
-                if (suggestonDiv.getElementsByClassName('likeDiv').length > 0) {
-                    suggestonDiv.removeChild(suggestonDiv.getElementsByClassName('likeDiv')[0]);
-                }
-                for (let i = 0; i < this.getSugBtnList.length; i++) {
+            if (this.showSuggestionPart) {
+                let suggestonDiv = document.createElement('div');
+                suggestonDiv.className = 'item two';
+                let suggestonTitle = document.createElement('span');
+                suggestonTitle.className = 'item-name';
+                suggestonTitle.textContent = '优化建议：';
+                suggestonDiv!.appendChild(suggestonTitle);
+                itemDiv!.appendChild(suggestonDiv);
+                let getButton = document.createElement('span');
+                getButton.className = 'getSgtBtn';
+                getButton.innerHTML = '获取';
+                getButton.addEventListener('click', (ev) => {
+                    if (suggestonDiv.getElementsByClassName('msgdiv').length > 0) {
+                        suggestonDiv.removeChild(suggestonDiv.getElementsByClassName('msgdiv')[0]);
+                    }
+                    if (suggestonDiv.getElementsByClassName('likeDiv').length > 0) {
+                        suggestonDiv.removeChild(suggestonDiv.getElementsByClassName('likeDiv')[0]);
+                    }
+                    for (let i = 0; i < this.getSugBtnList.length; i++) {
+                        // @ts-ignore
+                        this.getSugBtnList[i].style.display = 'none';
+                    }
+                    suggestonDiv!.appendChild(this.loading(''));
                     // @ts-ignore
-                    this.getSugBtnList[i].style.display = 'none';
-                }
-                suggestonDiv!.appendChild(this.loading(''));
-                // @ts-ignore
-                this.getSuggestion(dataList, i, suggestonDiv, timeList);
-            });
-            suggestonTitle.appendChild(getButton);
+                    this.getSuggestion(dataList, i, suggestonDiv, timeList);
+                });
+                suggestonTitle.appendChild(getButton);
+            }
             this.draftList!.insertBefore(itemDiv!, this.loadingItem!);
             itemDiv!.style.animation = 'opcityliner 3s';
             itemDiv!.style.paddingBottom = '20px';
         }
-        // @ts-ignore
-        this.getSugBtnList = this.draftList?.getElementsByClassName('getSgtBtn');
-        // @ts-ignore
-        this.getSugBtnList[0].click();
+        if (this.showSuggestionPart) {
+            // @ts-ignore
+            this.getSugBtnList = this.draftList?.getElementsByClassName('getSgtBtn');
+            // @ts-ignore
+            this.getSugBtnList[0].click();
+        }
         this.draftList?.removeChild(this.loadingItem!);
     }
 
