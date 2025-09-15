@@ -56,24 +56,14 @@ export class SpRecordSetting extends BaseElement {
   }
 
   get longOutPath(): string {
-    if (this.outputPath && this.outputPath.value !== '' && this.outputPath.value !== 'long_trace') {
-      return `/data/local/tmp/${this.outputPath.value}/`;
-    }
-    return '/data/local/tmp/long_trace/';
+    return '/data/local/tmp/';
   }
 
   get output(): string {
-    if (SpApplication.isLongTrace && !this.isRecordTemplate) {
-      if (this.outputPath && this.outputPath.value !== 'long_trace/' && this.outputPath.value !== '') {
-        return `/data/local/tmp/${this.outputPath.value}/hiprofiler_data.htrace`;
-      }
-      return '/data/local/tmp/long_trace/hiprofiler_data.htrace';
-    } else {
-      if (this.outputPath && this.outputPath.value !== '') {
-        return `/data/local/tmp/${this.outputPath.value}`;
-      }
-      return '/data/local/tmp/hiprofiler_data.htrace';
+    if (this.outputPath && this.outputPath.value !== '') {
+      return `/data/local/tmp/${this.outputPath.value}`;
     }
+    return '/data/local/tmp/hiprofiler_data.htrace';
   }
 
   get bufferSize(): number {
@@ -245,13 +235,15 @@ export class SpRecordSetting extends BaseElement {
     }
     this.outputPath!.value = 'hiprofiler_data.htrace';
     this.snapShotNumber!.style.display = 'grid';
+    this.outputPath!.readOnly = false;
   }
 
   private longTraceModelRadioHandler(rootEl: HTMLDivElement, longTraceMaxSlide: HTMLDivElement): void {
     SpApplication.isLongTrace = true;
     rootEl.appendChild(longTraceMaxSlide);
-    this.outputPath!.value = 'long_trace';
+    this.outputPath!.value = 'hiprofiler_data.htrace';
     this.snapShotNumber!.style.display = 'none';
+    this.outputPath!.readOnly = true;
   }
 
   private maxSizeInputHandler(maxSizeSliders: LitSlider, maxSizeParentElement: Element): void {
@@ -349,7 +341,7 @@ export class SpRecordSetting extends BaseElement {
     this.dispatchEvent(new CustomEvent('showTip', {
       detail: {
         value: 'snapshot',
-        isShow:!(Number(val) < 200)
+        isShow: !(Number(val) < 200)
       }
     }));
   }

@@ -33,6 +33,7 @@ NativeHookFilter::NativeHookFilter(TraceDataCache *dataCache, const TraceStreame
     invalidLibPathIndexs_.insert(traceDataCache_->dataDict_.GetStringIndex("/system/lib/ld-musl-aarch64.so.1"));
     invalidLibPathIndexs_.insert(traceDataCache_->dataDict_.GetStringIndex("/system/lib/ld-musl-arm.so.1"));
     invalidLibPathIndexs_.insert(traceDataCache_->dataDict_.GetStringIndex("/system/lib64/libdfmalloc.z.so"));
+    invalidLibPathIndexs_.insert(traceDataCache_->dataDict_.GetStringIndex("/system/lib64/chipset-sdk-sp/libc++.so"));
     hookPluginData_->set_name("nativehook");
     commHookData_.datas = std::make_unique<BatchNativeHookData>();
     addrToAllocEventRow_ = traceDataCache_->GetNativeHookData()->GetAddrToAllocEventRow();
@@ -796,7 +797,7 @@ void NativeHookFilter::ParseMapsEvent(std::unique_ptr<NativeHookMetaData> &nativ
     }
     // Get [start, end) of ips addr range which need to update
     std::tie(start, end) = GetNeedUpdateProcessMapsAddrRange(ipid, startAddr, endAddr);
-    if (start != INVALID_UINT64 && start != end) { // Conflicting
+    if (start != INVALID_UINT64 && start != end && (start != startAddr && end != endAddr)) { // Conflicting
         /* First parse the updated call stacks, then parse the main events, and finally update Maps or SymbolTable
         Note that when tsToMainEventsMap_.size() > MAX_CACHE_SIZE and main events need to be resolved, this logic
         should also be followed. */
@@ -878,7 +879,8 @@ void NativeHookFilter::ProcSymbolTable(uint32_t ipid,
                                        std::shared_ptr<ProtoReader::SymbolTable_Reader> reader)
 {
     auto symbolTablePtr = ipidTofilePathIdToSymbolTableMap_.Find(ipid, filePathId);
-    if (symbolTablePtr != nullptr) { // SymbolTable already exists.
+    if (symbolTablePtr != nullptr && reader != nullptr &&
+        !IsSameSymbolTable(reader, symbolTablePtr)) { // SymbolTable already exists.
         /* First parse the updated call stacks, then parse the main events, and finally update Maps or SymbolTable
         Note that when tsToMainEventsMap_.size() > MAX_CACHE_SIZE and main events need to be resolved, this logic
         should also be followed. */
@@ -1286,6 +1288,26 @@ void NativeHookFilter::SerializeHookCommDataToString()
     commHookData_.datas->Clear();
     commHookData_.size = 0;
     hookPluginData_->set_name("nativehook");
+}
+bool NativeHookFilter::IsSameSymbolTable(std::shared_ptr<ProtoReader::SymbolTable_Reader> reader1,
+                                         std::shared_ptr<ProtoReader::SymbolTable_Reader> reader2)
+{
+    return reader1->file_path_id() == reader2->file_path_id() &&
+           reader1->text_exec_vaddr() == reader2->text_exec_vaddr() &&
+           reader1->text_exec_vaddr_file_offset() == reader2->text_exec_vaddr_file_offset() &&
+           reader1->sym_entry_size() == reader2->sym_entry_size() &&
+           AreBytesViewsEqual(reader1->sym_table(), reader2->sym_table()) &&
+           AreBytesViewsEqual(reader1->str_table(), reader2->str_table()) && reader1->pid() == reader2->pid();
+}
+bool NativeHookFilter::AreBytesViewsEqual(const ProtoReader::BytesView &view1, const ProtoReader::BytesView &view2)
+{
+    if (view1.Size() != view2.Size()) {
+        return false;
+    }
+    if (view1.Data() == nullptr || view2.Data() == nullptr) {
+        return false;
+    }
+    return std::memcmp(view1.Data(), view2.Data(), view1.Size()) == 0;
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

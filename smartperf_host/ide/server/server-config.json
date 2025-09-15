@@ -1,4 +1,22 @@
 {
-    "ServeInfo": "127.0.0.1:9100/statistics",
-    "MsgPublishFile": ""
+    "reportConfig": {
+      "switch": false,
+      "url": ""
+    },
+    "traceInfoConfig": {
+      "switch": false,
+      "content": ""
+    },
+    "advertisingConfig": {
+      "switch": false,
+      "url": ""
+    },
+    "bulletinConfig": {
+      "switch": false,
+      "content": ""
+    },
+
+    "aiAssistantConfig": {
+      "switch": false
+    }
 }

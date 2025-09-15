@@ -1,34 +1,36 @@
 diff --git a/common/dfxutil/smart_fd.h b/common/dfxutil/smart_fd.h
-index f24d67f..4b7eb7a 100644
+index 6eb414a..ccc5a0d 100644
 --- a/common/dfxutil/smart_fd.h
 +++ b/common/dfxutil/smart_fd.h
-@@ -27,9 +27,11 @@ public:
+@@ -27,11 +27,11 @@ public:
      SmartFd() = default;
      explicit SmartFd(int fd, bool fdsan = true) : fd_(fd), fdsan_(fdsan)
      {
-+#if is_ohos
+-#ifndef is_host
++#ifdef is_ohos
          if (fd_ >= 0 && fdsan_) {
              fdsan_exchange_owner_tag(fd_, 0, fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, DFX_FDSAN_DOMAIN));
          }
-+#endif
+-#endif // is_host
++#endif // is_ohos
      }
  
      ~SmartFd()
-@@ -84,11 +86,14 @@ private:
+@@ -86,12 +86,12 @@ private:
          if (fd_ < 0) {
              return;
          }
-+#if is_ohos
+-#ifndef is_host
++#ifdef is_ohos
          if (fdsan_) {
              fdsan_close_with_tag(fd_, fdsan_create_owner_tag(FDSAN_OWNER_TYPE_FILE, DFX_FDSAN_DOMAIN));
              return;
          }
-+#else
+-#endif // is_host
++#endif // is_ohos
          close(fd_);
-+#endif
      }
  
-     static constexpr uint64_t DFX_FDSAN_DOMAIN = 0xD002D11;
 diff --git a/common/dfxutil/string_view_util.h b/common/dfxutil/string_view_util.h
 index b44a59e..7dbd356 100644
 --- a/common/dfxutil/string_view_util.h
@@ -175,6 +177,52 @@ index b4c8443..86a4bdd 100644
  #include "dfx_nonlinux_define.h"
  #else
  #include <elf.h>
+diff --git a/interfaces/innerkits/unwinder/include/dfx_hap.h b/interfaces/innerkits/unwinder/include/dfx_hap.h
+index 922ea92..9012661 100644
+--- a/interfaces/innerkits/unwinder/include/dfx_hap.h
++++ b/interfaces/innerkits/unwinder/include/dfx_hap.h
+@@ -18,7 +18,9 @@
+ #include <cstdint>
+ #include <memory>
+ #include <unistd.h>
++#if is_ohos && !is_mingw
+ #include <sys/mman.h>
++#endif
+ #include "dfx_ark.h"
+ #include "dfx_extractor_utils.h"
+ 
+@@ -52,7 +54,9 @@ private:
+     MAYBE_UNUSED size_t srcMapDataSize_ = 0;
+     MAYBE_UNUSED uintptr_t srcMapLoadOffset_ = 0;
+     MAYBE_UNUSED std::unique_ptr<DfxExtractor> extractor_ = nullptr;
++#if is_ohos && !is_mingw
+     MAYBE_UNUSED void *mmap_ = MAP_FAILED;
++#endif
+     MAYBE_UNUSED off_t hapSize_ = 0;
+ };
+ } // namespace HiviewDFX
+diff --git a/interfaces/innerkits/unwinder/src/ark/dfx_hap.cpp b/interfaces/innerkits/unwinder/src/ark/dfx_hap.cpp
+index 331c5ad..af5e8f3 100644
+--- a/interfaces/innerkits/unwinder/src/ark/dfx_hap.cpp
++++ b/interfaces/innerkits/unwinder/src/ark/dfx_hap.cpp
+@@ -84,6 +84,7 @@ bool DfxHap::ParseHapInfo(pid_t pid, uint64_t pc, std::shared_ptr<DfxMap> map, J
+ 
+ bool DfxHap::MmapForHap(const std::string& mapName)
+ {
++#if is_ohos && !is_mingw
+     if (mmap_ != MAP_FAILED && hapSize_ > 0) {
+         return true;
+     }
+@@ -106,6 +107,9 @@ bool DfxHap::MmapForHap(const std::string& mapName)
+         return false;
+     }
+     return true;
++#else
++    return false;
++#endif
+ }
+ 
+ bool DfxHap::ParseHapMemInfoForOffline(const std::string& mapName, uint64_t relPc, JsFunction *jsFunction)
 diff --git a/interfaces/innerkits/unwinder/src/elf/dfx_elf.cpp b/interfaces/innerkits/unwinder/src/elf/dfx_elf.cpp
 index 9398e59..79d230e 100644
 --- a/interfaces/innerkits/unwinder/src/elf/dfx_elf.cpp
