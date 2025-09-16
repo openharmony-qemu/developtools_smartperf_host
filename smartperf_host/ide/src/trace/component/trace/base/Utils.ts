@@ -754,8 +754,48 @@ export class Utils {
     });
   }
 
+  initGpuResponseTypeList(val: SelectionParam): void {
+    const isStatistic = val.gpuMemoryStatistic.length > 0;
+    const selection = isStatistic ? val.gpuMemoryStatistic : val.gpuMemory;
+    let types: Array<string | number> = [];
+
+    if (selection.indexOf('Graphic Memory') !== -1) {
+      if (isStatistic) {
+        types.push(6,7,8);
+      } else {
+      }
+    } else {
+      if (selection.indexOf('VulKan') !== -1) {
+        if (isStatistic) {
+          types.push(6);
+        } else {
+        }
+      }
+      if (selection.indexOf('OpenGLES') !== -1) {
+        if (isStatistic) {
+          types.push(7);
+        } else {
+        }
+      }
+      if (selection.indexOf('OpenCL') !== -1) {
+        if (isStatistic) {
+          types.push(8);
+        } else {
+        }
+      }
+    }
+
+    queryNativeHookResponseTypes(val.leftNs, val.rightNs, types, val.gpuMemoryCurrentIPid, isStatistic).then((res): void => {
+      procedurePool.submitWithName('logic0', 'gpu-memory-init-responseType', res, undefined, (): void => { });
+    });
+  }
+
   setCurrentSelectIPid(ipid: number): void {
     procedurePool.submitWithName('logic0', 'native-memory-set-current_ipid', ipid, undefined, (): void => { });
+  }
+
+  setGpuCurrentSelectIPid(ipid: number): void {
+    procedurePool.submitWithName('logic0', 'gpu-memory-set-current_ipid', ipid, undefined, (): void => { });
   }
 
   public static convertJSON(arr: ArrayBuffer | Array<unknown>): unknown {

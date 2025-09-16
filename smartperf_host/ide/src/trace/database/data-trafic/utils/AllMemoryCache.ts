@@ -12,6 +12,7 @@
 // limitations under the License.
 import { hiPerfCallChartClearCache } from '../hiperf/HiperfCallChartReceiver';
 import { nativeMemoryCacheClear } from '../NativeMemoryDataReceiver';
+import { gpuMemoryCacheClear } from '../GpuMemoryDataReceiver';
 import { resetVmTracker } from '../VmTrackerDataReceiver';
 import { resetVM } from '../VirtualMemoryDataReceiver';
 import { resetAbilityMonitor } from '../AbilityMonitorReceiver';
@@ -93,6 +94,7 @@ export function clearMemoryCache(data: unknown, proc: Function): void {
   xpowerAppDetailList.clear();
   hiPerfCallChartClearCache(true);
   nativeMemoryCacheClear();
+  gpuMemoryCacheClear();
   resetVmTracker();
   resetAbilityMonitor();
   resetAbility();
