@@ -22,13 +22,18 @@ import { FilterByAnalysis } from '../../../../bean/NativeHook';
 import { procedurePool } from '../../../../database/Procedure';
 import { InitAnalysis } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon';
 import { SpSystemTrace } from '../../../SpSystemTrace';
-import { SpGpuMemoryChart } from '../../../chart/SpGpuMemoryChart';
 import { Utils } from '../../base/Utils';
 import { initSort } from '../SheetUtils';
 import { TabPaneFilter } from '../TabPaneFilter';
 import { TabPaneGMStatisticAnalysisHtml } from './TabPaneGMStatisticAnalysis.html';
 import { TabpaneGMCalltree } from './TabpaneGMCalltree';
 
+const TYPE__VK_ALLOC = 0;
+const TYPE_GLES_ALLOC = 1;
+const TYPE_CL_ALLOC = 2;
+const TYPE_VK_FREE = 3;
+const TYPE_GLES_FREE = 4;
+const TYPE_CL_FREE = 5;
 const TYPE_VUL = 6;
 const TYPE_OG = 7;
 const TYPE_OC = 8;
@@ -179,7 +184,7 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
     this.hideThreadCheckBox?.addEventListener('change', () => {
       this.reset(this.typeUsageTbl!, false);
       this.showAssignLevel(this.typeUsageTbl!, this.functionUsageTbl!, 0, this.eventTypeData); // @ts-ignore
-      this.getNMTypeSize(this.currentSelection, this.processData);
+      this.getGMTypeSize(this.currentSelection, this.processData);
     });
     this.initGmTableArray();
     this.initTable();
@@ -230,7 +235,7 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
         treeTab?.initUI();
         treeTab?.filterByAnalysis();
       } else {
-        treeTab!.initFromAnalysis = true; 
+        treeTab!.initFromAnalysis = true;
         treeTab!.data = this.currentSelection!;
         InitAnalysis.getInstance().isInitGMAnalysis = false;
       }
@@ -520,6 +525,19 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
       }
       this.getDataFromWorker(val, typeFilter);
     } else {
+      for (let type of val.gpuMemory) {
+        if (type === 'Graphic Memory') {
+          typeFilter.push(...["'GPU_VK_Alloc_Event'", "'GPU_VK_Free_Event'", "'GPU_GLES_Alloc_Event'", "'GPU_GLES_Free_Event'", "'GPU_CL_Alloc_Event'", "'GPU_CL_Free_Event'"]);
+          break;
+        } else if (type === 'VulKan') {
+          typeFilter.push(...["'GPU_VK_Alloc_Event'", "'GPU_VK_Free_Event'"]);
+        } else if (type === 'OpenGLES') {
+          typeFilter.push(...["'GPU_GLES_Alloc_Event'", "'GPU_GLES_Free_Event'"]);
+        } else {
+          typeFilter.push(...["'GPU_CL_Alloc_Event'", "'GPU_CL_Free_Event'"]);
+        }
+      }
+      this.getDataFromWorker(val, typeFilter);
     }
   }
 
@@ -544,78 +562,154 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
     this.currentLevelExistSize = this.currentLevelApplySize - this.currentLevelReleaseSize;
     this.currentLevelExistCount = this.currentLevelApplyCount - this.currentLevelReleaseCount;
     this.eventTypeData = [];
-    if (this.typeMap.has(TYPE_VUL)) {
-      let vulType = this.setTypeMap(this.typeMap, TYPE_VUL, TYPE_VUL_STRING);
-      if (vulType) {
-        this.calPercent(vulType);
-        this.eventTypeData.push(vulType);
+    if (this.isStatistic) {
+      if (this.typeMap.has(TYPE_VUL)) {
+        let vulType = this.setTypeMap(this.typeMap, TYPE_VUL, TYPE_VUL_STRING);
+        if (vulType) {
+          this.calPercent(vulType);
+          this.eventTypeData.push(vulType);
+        }
       }
-    }
-    if (this.typeMap.has(TYPE_OG)) {
-      let subTypeMap = new Map<string, Array<number | string>>();
-      for (let item of this.typeMap.get(TYPE_OG)!) {
-        // @ts-ignore
-        if (item.subType) {
+      if (this.typeMap.has(TYPE_OG)) {
+        let subTypeMap = new Map<string, Array<number | string>>();
+        for (let item of this.typeMap.get(TYPE_OG)!) {
           // @ts-ignore
-          if (subTypeMap.has(item.subType)) {
+          if (item.subType) {
             // @ts-ignore
-            subTypeMap.get(item.subType)?.push(item);
+            if (subTypeMap.has(item.subType)) {
+              // @ts-ignore
+              subTypeMap.get(item.subType)?.push(item);
+            } else {
+              let dataArray: Array<number | string> = []; // @ts-ignore
+              dataArray.push(item); // @ts-ignore
+              subTypeMap.set(item.subType, dataArray);
+            }
           } else {
-            let dataArray: Array<number | string> = []; // @ts-ignore
-            dataArray.push(item); // @ts-ignore
-            subTypeMap.set(item.subType, dataArray);
-          }
-        } else {
-          if (subTypeMap.has(TYPE_OG_STRING)) {
-            // @ts-ignore
-            subTypeMap.get(TYPE_OG_STRING)?.push(item);
-          } else {
-            let dataArray: Array<number | string> = []; // @ts-ignore
-            dataArray.push(item);
-            subTypeMap.set(TYPE_OG_STRING, dataArray);
+            if (subTypeMap.has(TYPE_OG_STRING)) {
+              // @ts-ignore
+              subTypeMap.get(TYPE_OG_STRING)?.push(item);
+            } else {
+              let dataArray: Array<number | string> = []; // @ts-ignore
+              dataArray.push(item);
+              subTypeMap.set(TYPE_OG_STRING, dataArray);
+            }
           }
         }
+        subTypeMap.forEach((arr: Array<number | string>, subType: string) => {
+          let mapType = this.setTypeMap(this.typeMap, TYPE_OG, subType);
+          if (mapType) {
+            this.calPercent(mapType);
+            this.eventTypeData.push(mapType);
+          }
+        });
       }
-      subTypeMap.forEach((arr: Array<number | string>, subType: string) => {
-        let mapType = this.setTypeMap(this.typeMap, TYPE_OG, subType);
-        if (mapType) {
-          this.calPercent(mapType);
-          this.eventTypeData.push(mapType);
-        }
-      });
-    }
-    if (this.typeMap.has(TYPE_OC)) {
-      let subTypeMap = new Map<string, Array<number | string>>();
-      for (let item of this.typeMap.get(TYPE_OC)!) {
-        // @ts-ignore
-        if (item.subType) {
+      if (this.typeMap.has(TYPE_OC)) {
+        let subTypeMap = new Map<string, Array<number | string>>();
+        for (let item of this.typeMap.get(TYPE_OC)!) {
           // @ts-ignore
-          if (subTypeMap.has(item.subType)) {
+          if (item.subType) {
             // @ts-ignore
-            subTypeMap.get(item.subType)?.push(item);
+            if (subTypeMap.has(item.subType)) {
+              // @ts-ignore
+              subTypeMap.get(item.subType)?.push(item);
+            } else {
+              let dataArray: Array<number | string> = []; // @ts-ignore
+              dataArray.push(item); // @ts-ignore
+              subTypeMap.set(item.subType, dataArray);
+            }
           } else {
-            let dataArray: Array<number | string> = []; // @ts-ignore
-            dataArray.push(item); // @ts-ignore
-            subTypeMap.set(item.subType, dataArray);
+            if (subTypeMap.has(TYPE_OC_STRING)) {
+              // @ts-ignore
+              subTypeMap.get(TYPE_OC_STRING)?.push(item);
+            } else {
+              let dataArray: Array<number | string> = []; // @ts-ignore
+              dataArray.push(item);
+              subTypeMap.set(TYPE_OC_STRING, dataArray);
+            }
           }
-        } else {
-          if (subTypeMap.has(TYPE_OC_STRING)) {
-            // @ts-ignore
-            subTypeMap.get(TYPE_OC_STRING)?.push(item);
-          } else {
-            let dataArray: Array<number | string> = []; // @ts-ignore
-            dataArray.push(item);
-            subTypeMap.set(TYPE_OC_STRING, dataArray);
+        }
+        subTypeMap.forEach((arr: Array<number | string>, subType: string) => {
+          let mapType = this.setTypeMap(this.typeMap, TYPE_OC, subType);
+          if (mapType) {
+            this.calPercent(mapType);
+            this.eventTypeData.push(mapType);
           }
+        });
+      }
+    } else {
+      if (this.typeMap.has(TYPE__VK_ALLOC)) {
+        let vulType = this.setTypeMap(this.typeMap, TYPE__VK_ALLOC, TYPE_VUL_STRING);
+        if (vulType) {
+          this.calPercent(vulType);
+          this.eventTypeData.push(vulType);
         }
       }
-      subTypeMap.forEach((arr: Array<number | string>, subType: string) => {
-        let mapType = this.setTypeMap(this.typeMap, TYPE_OC, subType);
-        if (mapType) {
-          this.calPercent(mapType);
-          this.eventTypeData.push(mapType);
+      if (this.typeMap.has(TYPE_GLES_ALLOC)) {
+        let subTypeMap = new Map<string, Array<number | string>>();
+        for (let item of this.typeMap.get(TYPE_GLES_ALLOC)!) {
+          // @ts-ignore
+          if (item.subType) {
+            // @ts-ignore
+            if (subTypeMap.has(item.subType)) {
+              // @ts-ignore
+              subTypeMap.get(item.subType)?.push(item);
+            } else {
+              let dataArray: Array<number | string> = []; // @ts-ignore
+              dataArray.push(item); // @ts-ignore
+              subTypeMap.set(item.subType, dataArray);
+            }
+          } else {
+            if (subTypeMap.has(TYPE_OG_STRING)) {
+              // @ts-ignore
+              subTypeMap.get(TYPE_OG_STRING)?.push(item);
+            } else {
+              let dataArray: Array<number | string> = []; // @ts-ignore
+              dataArray.push(item);
+              subTypeMap.set(TYPE_OG_STRING, dataArray);
+            }
+          }
         }
-      });
+        subTypeMap.forEach((arr: Array<number | string>, subType: string) => {
+          let mapType = this.setTypeMap(this.typeMap, TYPE_GLES_ALLOC, subType);
+          if (mapType) {
+            this.calPercent(mapType);
+            this.eventTypeData.push(mapType);
+          }
+        });
+      }
+      if (this.typeMap.has(TYPE_CL_ALLOC)) {
+        let subTypeMap = new Map<string, Array<number | string>>();
+        for (let item of this.typeMap.get(TYPE_CL_ALLOC)!) {
+          // @ts-ignore
+          if (item.subType) {
+            // @ts-ignore
+            if (subTypeMap.has(item.subType)) {
+              // @ts-ignore
+              subTypeMap.get(item.subType)?.push(item);
+            } else {
+              let dataArray: Array<number | string> = []; // @ts-ignore
+              dataArray.push(item); // @ts-ignore
+              subTypeMap.set(item.subType, dataArray);
+            }
+          } else {
+            if (subTypeMap.has(TYPE_OC_STRING)) {
+              // @ts-ignore
+              subTypeMap.get(TYPE_OC_STRING)?.push(item);
+            } else {
+              let dataArray: Array<number | string> = []; // @ts-ignore
+              dataArray.push(item);
+              subTypeMap.set(TYPE_OC_STRING, dataArray);
+            }
+          }
+        }
+        subTypeMap.forEach((arr: Array<number | string>, subType: string) => {
+          let mapType = this.setTypeMap(this.typeMap, TYPE_CL_ALLOC, subType);
+          if (mapType) {
+            this.calPercent(mapType);
+            this.eventTypeData.push(mapType);
+          }
+        });
+      }
     }
     this.eventTypeData.sort((a, b) => b.existSize - a.existSize);
     this.typeStatisticsData = this.totalData(this.typeStatisticsData);
@@ -1099,6 +1193,15 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
     types.push(parent.typeId!);
     types.push(parent.typeName!);
     if (!this.isStatistic) {
+      let releaseType;
+      if (parent.typeId === TYPE_VUL || parent.typeId === TYPE__VK_ALLOC) {
+        releaseType = TYPE_VK_FREE;
+      } else if (parent.typeId === TYPE_OG || parent.typeId === TYPE_GLES_ALLOC) {
+        releaseType = TYPE_GLES_FREE;
+      } else {
+        releaseType = TYPE_CL_FREE;
+      }
+      types.push(releaseType);
     }
     return types;
   }
@@ -1265,9 +1368,10 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
     // @ts-ignore
     for (let applySample of typeMap.get(tyeId)!) {
       if (
-        tyeId === TYPE_VUL ||
+        (tyeId === TYPE_VUL || tyeId === TYPE__VK_ALLOC) ||
         (applySample.subType && applySample.subType === typeName) ||
-        (!applySample.subType && typeName === TYPE_VUL_STRING)
+        (!applySample.subType && typeName === TYPE_OG_STRING) ||
+        (!applySample.subType && typeName === TYPE_OC_STRING)
       ) {
         applySize += applySample.size;
         applyCount += applySample.count;
@@ -1372,6 +1476,36 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
             let itemArray: Array<number | string> = [];
             itemArray.push(itemData);
             typeMap.set(TYPE_OC, itemArray);
+          }
+          break;
+        case TYPE__VK_ALLOC:
+          setSize(itemData);
+          if (typeMap.has(TYPE__VK_ALLOC)) {
+            typeMap.get(TYPE__VK_ALLOC)?.push(itemData);
+          } else {
+            let itemArray: Array<number | string> = [];
+            itemArray.push(itemData);
+            typeMap.set(TYPE__VK_ALLOC, itemArray);
+          }
+          break;
+        case TYPE_GLES_ALLOC:
+          setSize(itemData);
+          if (typeMap.has(TYPE_GLES_ALLOC)) {
+            typeMap.get(TYPE_GLES_ALLOC)?.push(itemData);
+          } else {
+            let itemArray: Array<number | string> = [];
+            itemArray.push(itemData);
+            typeMap.set(TYPE_GLES_ALLOC, itemArray);
+          }
+          break;
+        case TYPE_CL_ALLOC:
+          setSize(itemData);
+          if (typeMap.has(TYPE_CL_ALLOC)) {
+            typeMap.get(TYPE_CL_ALLOC)?.push(itemData);
+          } else {
+            let itemArray: Array<number | string> = [];
+            itemArray.push(itemData);
+            typeMap.set(TYPE_CL_ALLOC, itemArray);
           }
           break;
       }

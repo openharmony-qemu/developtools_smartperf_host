@@ -45,6 +45,7 @@ import { SpArkTs } from './setting/SpArkTs';
 import { SpHilogRecord } from './setting/SpHilogRecord';
 import { SpFFRTConfig } from './setting/SpFFRTConfig';
 import { SpXPowerRecord } from './setting/SpXPowerRecord';
+import { resGpuClBuffer, resGpuClImage, resGpuGlesBuffer, resGpuGlesImage, resGpuVk } from './setting/utils/PluginConvertUtils';
 
 export const MEM_INFO = [
   'MEMINFO_ACTIVE',
@@ -532,9 +533,19 @@ export function createNativePluginConfig(
         }
       }
       nativeConfig.jsStackReport = spAllocations!.recordJsStack ? 1 : 0;
-      if (spAllocations!.recordJsStack) {
-        nativeConfig.maxJsStackDepth = spAllocations!.max_js_stack_depth;
-        nativeConfig.filterNapiName = spAllocations!.filter_napi_name;
+
+      if (spAllocations!.recordGpuMemory) {
+        let type = spAllocations.getGpuConfig();
+        let typeList: Array<string> = [];
+        typeList = type!.split(',');
+        if (type?.length === 0) { //没有默认值时
+          typeList = [resGpuVk, resGpuGlesImage, resGpuGlesBuffer, resGpuClImage, resGpuClBuffer];
+        }
+        if (!spAllocations!.recordCpuMemory) {
+          nativeConfig.malloc_disable = true;
+        }
+        nativeConfig.memtrace_enable = true;
+        nativeConfig.restrace_tag = typeList;
       }
     }
     if (spAllocations!.expandPids.length > 1) {

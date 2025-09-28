@@ -729,7 +729,7 @@ export class Utils {
     let types: Array<string | number> = [];
     if (selection.indexOf('All Heap & Anonymous VM') !== -1) {
       if (isStatistic) {
-        types.push(0, 1);
+        types.push(0, 1, 2, 3);
       } else {
         types.push("'AllocEvent'", "'MmapEvent'");
       }
@@ -743,7 +743,7 @@ export class Utils {
       }
       if (selection.indexOf('All Anonymous VM') !== -1) {
         if (isStatistic) {
-          types.push(1);
+          types.push(1, 2, 3);
         } else {
           types.push("'MmapEvent'");
         }
@@ -761,26 +761,30 @@ export class Utils {
 
     if (selection.indexOf('Graphic Memory') !== -1) {
       if (isStatistic) {
-        types.push(6,7,8);
+        types.push(6, 7, 8);
       } else {
+        types.push("'VulKan'", "'OpenGLES'", "'OpenCL'");
       }
     } else {
       if (selection.indexOf('VulKan') !== -1) {
         if (isStatistic) {
           types.push(6);
         } else {
+          types.push("'VulKan'");
         }
       }
       if (selection.indexOf('OpenGLES') !== -1) {
         if (isStatistic) {
           types.push(7);
         } else {
+          types.push("'OpenGLES'");
         }
       }
       if (selection.indexOf('OpenCL') !== -1) {
         if (isStatistic) {
           types.push(8);
         } else {
+          types.push("'OpenCL'");
         }
       }
     }

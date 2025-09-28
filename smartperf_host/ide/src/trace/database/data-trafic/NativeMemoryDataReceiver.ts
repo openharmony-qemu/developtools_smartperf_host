@@ -107,7 +107,8 @@ function nativeMemoryChartDataCacheSql(model: string, startNS: number, endNS: nu
                 ipid,
                 type               
             from native_hook_statistic
-            where ts between ${startNS} and ${endNS};
+            where type in ( 0, 1, 2 )
+            and ts between ${startNS} and ${endNS};
     `;
   }
 }

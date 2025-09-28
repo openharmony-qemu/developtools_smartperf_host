@@ -27,7 +27,7 @@ import {
   nativeMemoryChartDataCacheSender,
   nativeMemoryChartDataSender,
 } from '../../database/data-trafic/NativeMemoryDataSender';
-import { queryNativeHookProcess, queryNativeHookStatisticsCount } from '../../database/sql/NativeHook.sql';
+import { queryNativeHookProcess, queryNativeHookStatisticsCount, queryNativeType, queryStatisticType } from '../../database/sql/NativeHook.sql';
 import { queryHeapGroupByEvent } from '../../database/sql/SqlLite.sql';
 import { queryNativeMemoryRealTime } from '../../database/sql/Memory.sql';
 import { queryBootTime } from '../../database/sql/Clock.sql';
@@ -172,6 +172,19 @@ export class SpNativeMemoryChart {
 
   initChart = async (): Promise<void> => {
     let time = new Date().getTime();
+    let isShowNative = false;
+    let isShowStatic = false;
+    let result = await queryNativeType();
+    let result1 = await queryStatisticType();
+    if (result.length > 0) {
+      isShowNative = Object.values(result[0]).some(value => value === 1);
+    }
+    if (result1.length > 0) {
+      isShowStatic = Object.values(result1[0]).some(value => value === 1);
+    }
+    if (!isShowNative && !isShowStatic) {
+      return;
+    }
     let nativeMemoryType = 'native_hook';
     let nmsCount = await queryNativeHookStatisticsCount();
     if (nmsCount && nmsCount[0] && nmsCount[0].num > 0) {

@@ -401,7 +401,7 @@ export class SelectionParam {
         if (th.getAttribute('gpuMemory-type') === 'native_hook_statistic') {
           this.gpuMemoryStatistic.push(th.rowId!);
         } else {
-          this.gpuMemoryStatistic.push(th.rowId!);
+          this.gpuMemory.push(th.rowId!);
         }
       });
       info('load gpuMemory traceRow id is : ', it.rowId);

@@ -60,6 +60,7 @@ export class TraceRowConfig extends BaseElement {
     'ProcessMemory',
     'ArkTs',
     'NativeMemory',
+    'GpuMemory',
     'HiPerf',
     'HiEBpf',
   ];

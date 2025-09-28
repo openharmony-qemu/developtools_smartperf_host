@@ -15,7 +15,7 @@
 import { info } from '../../../log/Log';
 import { BaseStruct } from '../../bean/BaseStruct';
 import { procedurePool } from '../../database/Procedure';
-import { GpuMemoryEventHeap, queryBootTime, queryCount, queryGpuMemoryGroupByEvent, queryGpuMemoryRealTime, queryProcess } from '../../database/sql/gpuMemory.sql';
+import { GpuMemoryEventHeap, queryBootTime, queryCount, queryGpuMemoryGroupByEvent, queryGpuMemoryRealTime, queryGpuType, queryProcess, queryStatisticType } from '../../database/sql/gpuMemory.sql';
 import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { SpSystemTrace } from '../SpSystemTrace';
@@ -35,6 +35,19 @@ export class SpGpuMemoryChart {
   }
 
   initChart = async (): Promise<void> => {
+    let isShowGpu = false;
+    let isShowStatic = false;
+    let result = await queryGpuType();
+    let result1 = await queryStatisticType();
+    if (result.length > 0) {
+      isShowGpu = Object.values(result[0]).some(value => value === 1);
+    }
+    if (result1.length > 0) {
+      isShowStatic = Object.values(result1[0]).some(value => value === 1);
+    }
+    if (!isShowGpu && !isShowStatic) {
+      return;
+    }
     let gpuMemoryType = '';
     let count = await queryCount();
     if (count && count[0] && count[0].num > 0) {
@@ -97,6 +110,7 @@ export class SpGpuMemoryChart {
     gpuMemoryRow.style.height = '40px';
     gpuMemoryRow.rowParentId = '';
     gpuMemoryRow.folder = true;
+    gpuMemoryRow.addTemplateTypes('GpuMemory');
     gpuMemoryRow.name = `Gpu Memory (${process})`;
     gpuMemoryRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     gpuMemoryRow.selectChangeHandler = this.trace.selectChangeHandler;
