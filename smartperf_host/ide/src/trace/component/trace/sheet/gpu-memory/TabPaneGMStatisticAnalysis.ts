@@ -302,18 +302,18 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
 
   initGmTableArray(): void {
     this.gmTableArray = this.shadowRoot!.querySelectorAll('lit-table') as NodeListOf<LitTable>;
-    for (let nmTable of this.gmTableArray) {
-      nmTable!.addEventListener('contextmenu', function (event) {
+    for (let gmTable of this.gmTableArray) {
+      gmTable!.addEventListener('contextmenu', function (event) {
         event.preventDefault(); // 阻止默认的上下文菜单弹框
       });
-      nmTable!.addEventListener('column-click', (evt) => {
+      gmTable!.addEventListener('column-click', (evt) => {
         // @ts-ignore
-        this.nmSortColumn = evt.detail.key;
+        this.gmSortColumn = evt.detail.key;
         // @ts-ignore
-        this.nmSortType = evt.detail.sort;
+        this.gmSortType = evt.detail.sort;
         this.sortByColumn();
       });
-      nmTable!.addEventListener('row-hover', (evt) => {
+      gmTable!.addEventListener('row-hover', (evt) => {
         // @ts-ignore
         let detail = evt.detail;
         if (detail.data) {
