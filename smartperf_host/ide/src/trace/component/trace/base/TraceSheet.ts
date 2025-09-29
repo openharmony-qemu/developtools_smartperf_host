@@ -287,6 +287,10 @@ export class TraceSheet extends BaseElement {
       this.nativeStatsticsListener(e);
     });
     // @ts-ignore
+    this.getComponentByID<unknown>('box-gpu-statstics')?.addEventListener('row-click', (e: unknown) => {
+      this.gpuStatsticsListener(e);
+    });
+    // @ts-ignore
     this.getComponentByID<unknown>('box-virtual-memory-statistics')?.addEventListener('row-click', (e: unknown) => {
       this.virtualMemoryListener(e);
     });
@@ -385,6 +389,18 @@ export class TraceSheet extends BaseElement {
       // @ts-ignore
       this.selection!.statisticsSelectData = e.detail;
       let pane = this.getPaneByID('box-native-memory');
+      this.litTabs?.activeByKey(pane.key);
+      // @ts-ignore
+      (pane.children.item(0) as unknown)!.fromStastics(this.selection);
+    }
+  }
+
+  private gpuStatsticsListener(e: unknown): void {
+    // @ts-ignore
+    if (e.detail.button === 0) {
+      // @ts-ignore
+      this.selection!.statisticsSelectData = e.detail;
+      let pane = this.getPaneByID('box-gpu-memory');
       this.litTabs?.activeByKey(pane.key);
       // @ts-ignore
       (pane.children.item(0) as unknown)!.fromStastics(this.selection);
@@ -1373,7 +1389,7 @@ export class TraceSheet extends BaseElement {
           param.nativeMemoryCurrentIPid = ipid;
         }
       }
-      if (param.gpuMemory.length > 0 || param.gpuMemoryStatistic.length > 0 ) {
+      if (param.gpuMemory.length > 0 || param.gpuMemoryStatistic.length > 0) {
         Utils.getInstance().initGpuResponseTypeList(param);
         if (ipid) {
           Utils.getInstance().setGpuCurrentSelectIPid(ipid);
@@ -1393,6 +1409,8 @@ export class TraceSheet extends BaseElement {
       selection &&
       (selection.nativeMemory.length > 0 ||
         selection.nativeMemoryStatistic.length > 0 ||
+        selection.gpuMemory.length > 0 ||
+        selection.gpuMemoryStatistic.length > 0 ||
         selection.perfSampleIds.length > 0 ||
         selection.fileSystemType.length > 0 ||
         selection.fsCount > 0 ||

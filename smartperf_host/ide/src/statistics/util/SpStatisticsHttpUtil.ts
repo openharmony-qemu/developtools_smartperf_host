@@ -36,9 +36,7 @@ export class SpStatisticsHttpUtil {
       if (res) {
         InterfaceConfigManager.setConfig(res);
       }
-    } catch (e) {
-      console.error('Error fetching server config:', e);
-    }
+    } catch (e) {}
   }
 
   static initStatisticsServerConfig(): void {

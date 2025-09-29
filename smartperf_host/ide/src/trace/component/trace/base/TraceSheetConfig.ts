@@ -155,8 +155,11 @@ import { TabPaneDmaFence } from '../sheet/dma-fence/TabPaneDmaFenceSelect';
 import { TabPaneSliceChild } from '../sheet/process/TabPaneSliceChild';
 import { TabPaneSysCallChild } from '../sheet/process/TabPaneSysCallChild';
 import { TabPerfFuncAsm } from '../sheet/hiperf/TabPerfFuncAsm';
-import {TabPaneGMStatisticAnalysis} from '../sheet/gpu-memory/TabPaneGMStatisticAnalysis'
-import {TabpaneGMCalltree} from '../sheet/gpu-memory/TabpaneGMCalltree'
+import { TabPaneGMStatisticAnalysis } from '../sheet/gpu-memory/TabPaneGMStatisticAnalysis';
+import { TabpaneGMCalltree } from '../sheet/gpu-memory/TabpaneGMCalltree';
+import { TabPaneGMStatstics } from '../sheet/gpu-memory/TabPaneGMStatstics';
+import { TabPaneGMemory } from '../sheet/gpu-memory/TabPaneGMemory';
+import { TabPaneGMSampleList } from '../sheet/gpu-memory/TabPaneGMSampleList';
 
 export let tabConfig: {
   [key: string]: {
@@ -382,6 +385,11 @@ export let tabConfig: {
     type: TabPaneNMSampleList,
     require: (param: SelectionParam) => param.nativeMemory.length > 0,
   },
+  'box-gpu-statstics': {
+    title: 'Gpu Statistics',
+    type: TabPaneGMStatstics,
+    require: (param: SelectionParam) => param.gpuMemory.length > 0,
+  },
   'box-gpu-statistic-analysis': {
     title: 'Gpu Analysis',
     type: TabPaneGMStatisticAnalysis,
@@ -391,6 +399,16 @@ export let tabConfig: {
     title: 'Gpu Calltree',
     type: TabpaneGMCalltree,
     require: (param: SelectionParam) => param.gpuMemory.length > 0 || param.gpuMemoryStatistic.length > 0,
+  },
+  'box-gpu-memory': {
+    title: 'Gpu Memory',
+    type: TabPaneGMemory,
+    require: (param: SelectionParam) => param.gpuMemory.length > 0,
+  },
+  'box-gpu-sample': {
+    title: 'Gpu SnapshotList',
+    type: TabPaneGMSampleList,
+    require: (param: SelectionParam) => param.gpuMemory.length > 0,
   },
   'box-live-processes-child': {
     title: 'Live Processes',

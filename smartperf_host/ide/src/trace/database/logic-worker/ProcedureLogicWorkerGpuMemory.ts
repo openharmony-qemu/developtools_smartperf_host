@@ -14,7 +14,7 @@
  */
 
 import { FilterByAnalysis, NativeMemoryExpression } from "../../bean/NativeHook";
-import { convertJSON, DataCache, getByteWithUnit, HeapTreeDataBean, LogicHandler, MerageBean, merageBeanDataSplit, setFileName } from "./ProcedureLogicWorkerCommon";
+import { convertJSON, DataCache, getByteWithUnit, HeapTreeDataBean, LogicHandler, MerageBean, merageBeanDataSplit, setFileName, postMessage } from "./ProcedureLogicWorkerCommon";
 
 export class NativeMemory {
   index: number = 0;
@@ -32,6 +32,18 @@ export class NativeMemory {
   lastSymbolId: number = 0;
   isSelected: boolean = false;
   threadId: number = 0;
+}
+
+export class HeapStruct {
+  startTime: number | undefined;
+  endTime: number | undefined;
+  dur: number | undefined;
+  density: number | undefined;
+  heapsize: number | undefined;
+  maxHeapSize: number = 0;
+  maxDensity: number = 0;
+  minHeapSize: number = 0;
+  minDensity: number = 0;
 }
 
 export class NativeHookStatistics {
@@ -125,6 +137,9 @@ export class ProcedureLogicWorkerGpuMemory extends LogicHandler {
   currentSamples: NativeHookStatistics[] = [];
   splitMapData: CallInfoMap = {};
   realTimeDif: number = 0;
+  boxRangeNativeHook: Array<NativeMemory> = [];
+  gmArgs?: Map<string, unknown>;
+  clearBoxSelectionData: boolean = false;
 
   clearAll(): void {
     this.dataCache.clearGM();
@@ -136,6 +151,8 @@ export class ProcedureLogicWorkerGpuMemory extends LogicHandler {
     this.currentTreeMapData = {};
     this.currentTreeList.length = 0;
     this.responseTypes.length = 0;
+    this.boxRangeNativeHook = [];
+    this.gmArgs?.clear();
     this.isHideThread = false;
     this.useFreedSize = false;
   }
@@ -164,12 +181,19 @@ export class ProcedureLogicWorkerGpuMemory extends LogicHandler {
           this.gmGetResponseType(data);
           break;
         case 'gpu-memory-queryCallchainsSamples':
+          this.gmQueryCallchainsSamples(data);
           break;
         case 'gpu-memory-queryStatisticCallchainsSamples':
           this.gmQueryStatisticCallchainsSamples(data);
           break;
         case 'gpu-memory-calltree-action':
           this.gmCalltreeAction(data);
+          break;
+        case 'gpu-memory-queryNativeHookEvent':
+          this.gmQueryNativeHookEvent(data);
+          break;
+        case 'gpu-memory-action':
+          this.gmAction(data);
           break;
         case 'gpu-memory-init-responseType':
           this.gmInitResponseType(data);
@@ -291,6 +315,15 @@ export class ProcedureLogicWorkerGpuMemory extends LogicHandler {
         );
       } else {
         this.isStatisticMode = false;
+        this.queryCallchainsSamples(
+          'gpu-memory-queryAnalysis',
+          //@ts-ignore
+          data.params.leftNs,
+          //@ts-ignore
+          data.params.rightNs,
+          //@ts-ignore
+          data.params.types
+        );
       }
     }
   }
@@ -320,7 +353,7 @@ export class ProcedureLogicWorkerGpuMemory extends LogicHandler {
     let sql = `select A.id,
                 0 as tid,
                 callchain_id as eventId,
-                (case when type = 6 then 'VulKan' when type = 7 then 'OpenGLES' else 'OpenCL' end) as eventType,
+                (case when type = 6 then 'GPU_VK' when type = 7 then 'GPU_GLES' else 'GPU_CL' end) as eventType,
                 (case when sub_type_id not null then sub_type_id else type end) as subTypeId,
                 max(apply_size) as heapSize,
                 max(release_size) as freeSize,
@@ -337,7 +370,7 @@ export class ProcedureLogicWorkerGpuMemory extends LogicHandler {
                 between ${leftNs} and ${rightNs}
                 ${condition}
                 and A.ipid = ${this.currentSelectIPid}
-            group by callchain_id;`;
+            group by callchain_id,type;`;
     this.queryData(this.currentEventId, action, sql, {});
   }
 
@@ -352,11 +385,51 @@ export class ProcedureLogicWorkerGpuMemory extends LogicHandler {
       const analysisSample = new AnalysisSample(sample.id, sample.heapSize, count, sample.eventType, sample.startTs);
       if (this.isStatisticMode) {
         this.setStatisticSubType(analysisSample, sample);
+      } else {
+        let subType: string | undefined;
+        if (sample.subTypeId) {
+          subType = this.dataCache.dataDict.get(sample.subTypeId);
+        }
+        analysisSample.endTs = sample.endTs;
+        analysisSample.addr = sample.addr;
+        analysisSample.tid = sample.tid;
+        analysisSample.threadName = sample.threadName;
+        analysisSample.subType = subType;
+      }
+      if (['GPU_VK_Free_Event', 'GPU_GLES_Free_Event', 'GPU_CL_Free_Event'].includes(sample.eventType)) {
+        if (sample.eventType === 'GPU_VK_Free_Event') {
+          this.setApplyIsRelease(analysisSample, applyVkSamples);
+        } else if (sample.eventType === 'GPU_GLES_Free_Event') {
+          this.setApplyIsRelease(analysisSample, applyOgSamples);
+        } else {
+          this.setApplyIsRelease(analysisSample, applyOcSamples);
+        }
+        continue;
+      } else {
+        if (sample.eventType === 'GPU_VK_Alloc_Event') {
+          applyVkSamples.push(analysisSample);
+        } else if (sample.eventType === 'GPU_GLES_Alloc_Event') {
+          applyOgSamples.push(analysisSample);
+        } else {
+          applyOcSamples.push(analysisSample);
+        }
       }
       let s = this.setAnalysisSampleArgs(analysisSample, sample);
       analysisSampleList.push(s);
     }
     return analysisSampleList;
+  }
+
+  setApplyIsRelease(sample: AnalysisSample, arr: Array<AnalysisSample>): void {
+    let idx = arr.length - 1;
+    for (idx; idx >= 0; idx--) {
+      let item = arr[idx];
+      if (item.endTs === sample.startTs && item.addr === sample.addr) {
+        arr.splice(idx, 1);
+        item.isRelease = true;
+        return;
+      }
+    }
   }
 
   private setStatisticSubType(analysisSample: AnalysisSample, sample: NativeHookStatistics): void {
@@ -398,6 +471,36 @@ export class ProcedureLogicWorkerGpuMemory extends LogicHandler {
       action: data.action,
       results: this.responseTypes,
     });
+  }
+
+  private gmQueryCallchainsSamples(data: unknown): void {
+    this.searchValue = '';
+    //@ts-ignore
+    if (data.params.list) {
+      //@ts-ignore
+      let callchainsSamples = convertJSON(data.params.list) || [];
+      //@ts-ignore
+      this.queryAllCallchainsSamples = callchainsSamples;
+      this.freshCurrentCallchains(this.queryAllCallchainsSamples, true);
+      // @ts-ignore
+      self.postMessage({
+        //@ts-ignore
+        id: data.id,
+        //@ts-ignore
+        action: data.action,
+        results: this.allThreads,
+      });
+    } else {
+      this.queryCallchainsSamples(
+        'gpu-memory-queryCallchainsSamples',
+        //@ts-ignore
+        data.params.leftNs,
+        //@ts-ignore
+        data.params.rightNs,
+        //@ts-ignore
+        data.params.types
+      );
+    }
   }
 
   private freshCurrentCallchains(samples: NativeHookStatistics[], isTopDown: boolean): void {
@@ -644,6 +747,38 @@ export class ProcedureLogicWorkerGpuMemory extends LogicHandler {
     return name === '' ? '-' : name;
   }
 
+  queryCallchainsSamples(action: string, leftNs: number, rightNs: number, types: Array<string>): void {
+    this.queryData(
+      this.currentEventId,
+      action,
+      `select A.id,
+                callchain_id as eventId,
+                event_type as eventType,
+                heap_size as heapSize,
+                (A.start_ts - B.start_ts) as startTs,
+                (A.end_ts - B.start_ts) as endTs,
+                tid,
+                ifnull(last_lib_id,0) as lastLibId,
+                ifnull(last_symbol_id,0) as lastSymbolId,
+                t.name as threadName,
+                A.addr,
+                ifnull(A.sub_type_id, -1) as subTypeId
+            from
+                native_hook A,
+                trace_range B
+                left join
+                thread t
+                on
+                A.itid = t.id
+            where
+                A.start_ts - B.start_ts
+                between ${leftNs} and ${rightNs} and A.event_type in (${types.join(',')})
+                and A.ipid = ${this.currentSelectIPid}
+        `,
+      {}
+    );
+  }
+
   private gmQueryStatisticCallchainsSamples(data: unknown): void {
     this.searchValue = '';
     //@ts-ignore
@@ -800,6 +935,7 @@ export class ProcedureLogicWorkerGpuMemory extends LogicHandler {
     return this.queryAllCallchainsSamples.filter((item: NativeHookStatistics): boolean => {
       let filterAllocation = true;
       if (nativeHookType === 'native-hook') {
+        filterAllocation = this.setFilterAllocation(item, filterAllocType, filterAllocation, leftNs, rightNs);
       } else {
         if (filterAllocType === '1') {
           filterAllocation = item.heapSize > item.freeSize;
@@ -907,15 +1043,27 @@ export class ProcedureLogicWorkerGpuMemory extends LogicHandler {
     if (indexOf === -1) {
       return false;
     }
-    if (indexOf < 4) {//看一下
+    if (indexOf < 4) {
       if (indexOf === 0) {
         return true;
       } else if (indexOf === 1) {
-        return item.eventType === 'VulKan';
+        return item.eventType.indexOf('GPU_VK') === 0;
       } else if (indexOf === 2) {
-        return item.eventType === 'OpenGLES';
+        return item.eventType.indexOf('GPU_GLES') === 0;
       } else if (indexOf === 3) {
-        return item.eventType === 'OpenCL';
+        return item.eventType.indexOf('GPU_CL') === 0;
+      }
+    }
+    else if (indexOf - 4 < statisticsSelection.length) {
+      let selectionElement = statisticsSelection[indexOf - 4];
+      if (selectionElement.memoryTap !== undefined && selectionElement.max !== undefined) {
+        if (selectionElement.memoryTap.indexOf('VulKan') !== -1) {
+          return item.eventType.indexOf('GPU_VK') === 0 && item.heapSize === selectionElement.max;
+        } else if (selectionElement.memoryTap.indexOf('OpenGLES') !== -1) {
+          return item.eventType.indexOf('GPU_GLES') === 0 && item.heapSize === selectionElement.max && item.subTypeId === null;
+        } else if (selectionElement.memoryTap.indexOf('OpenCL') !== -1) {
+          return item.eventType.indexOf('GPU_CL') === 0 && item.heapSize === selectionElement.max && item.subTypeId === null;
+        }
       }
     }
     return false;
@@ -957,6 +1105,248 @@ export class ProcedureLogicWorkerGpuMemory extends LogicHandler {
     }
   }
 
+  private gmQueryNativeHookEvent(data: unknown): void {
+    //@ts-ignore
+    const params = data.params;
+    if (params) {
+      if (params.list) {
+        //@ts-ignore
+        this.boxRangeNativeHook = convertJSON(params.list);
+        if (this.gmArgs?.get('refresh')) {
+          this.clearBoxSelectionData = this.boxRangeNativeHook.length > 100_0000;
+        }
+        this.supplementNativeHoodData();
+        //@ts-ignore
+        postMessage(data.id, data.action, this.resolvingActionGpuMemory(this.gmArgs!), 50_0000);
+        if (this.clearBoxSelectionData) {
+          this.boxRangeNativeHook = [];
+        }
+      } else if (params.get('refresh') || this.boxRangeNativeHook.length === 0) {
+        this.gmArgs = params;
+        let leftNs = params.get('leftNs');
+        let rightNs = params.get('rightNs');
+        let types = params.get('types');
+        this.boxRangeNativeHook = [];
+        this.queryNativeHookEvent(leftNs, rightNs, types);
+      } else {
+        this.gmArgs = params;
+        //@ts-ignore
+        postMessage(data.id, data.action, this.resolvingActionGpuMemory(this.gmArgs!), 50_0000);
+        if (this.clearBoxSelectionData) {
+          this.boxRangeNativeHook = [];
+        }
+      }
+    }
+  }
+
+  queryNativeHookEvent(leftNs: number, rightNs: number, types: Array<string>): void {
+    let condition = '';
+
+    if (types && types.length > 0) {
+      condition = `and A.event_type in (${types.join(',')})`;
+    }
+    let libId = this.gmArgs?.get('filterResponseType');
+    let allocType = this.gmArgs?.get('filterAllocType');
+    let eventType = this.gmArgs?.get('filterEventType');
+    if (libId !== undefined && libId !== -1) {
+      condition = `${condition} and last_lib_id = ${libId}`; // filter lib
+    }
+    if (eventType === '1') {
+      condition = `${condition} and event_type = 'AllocEvent'`;
+    }
+    if (eventType === '2') {
+      condition = `${condition} and event_type = 'MmapEvent'`;
+    }
+    if (allocType === '1') {
+      condition = `${condition} and ((A.end_ts - B.start_ts) > ${rightNs} or A.end_ts is null)`;
+    }
+    if (allocType === '2') {
+      condition = `${condition} and (A.end_ts - B.start_ts) <= ${rightNs}`;
+    }
+    let sql = `
+    select
+      callchain_id as eventId,
+      event_type as eventType,
+      heap_size as heapSize,
+      ('0x' || addr) as addr,
+      (A.start_ts - B.start_ts) as startTs,
+      (A.end_ts - B.start_ts) as endTs,
+      tid as threadId,
+      sub_type_id as subTypeId,
+      ifnull(last_lib_id,0) as lastLibId,
+      ifnull(last_symbol_id,0) as lastSymbolId
+    from
+      native_hook A,
+      trace_range B
+    left join
+      thread t
+    on
+      A.itid = t.id
+    where
+    A.start_ts - B.start_ts between ${leftNs} and ${rightNs} ${condition}
+    and A.ipid = ${this.currentSelectIPid}
+    `;
+    this.queryData(this.currentEventId, 'gpu-memory-queryNativeHookEvent', sql, {});
+  }
+
+  private gmAction(data: { params?: unknown; id?: string; action?: string }): void {
+    if (data.params) {
+      self.postMessage({
+        id: data.id,
+        action: data.action,
+        //@ts-ignore
+        results: this.resolvingAction(data.params),
+      });
+    }
+  }
+
+  resolvingAction(paramMap: Map<string, unknown>): Array<NativeHookCallInfo | NativeMemory | HeapStruct> {
+    let actionType = paramMap.get('actionType');
+    if (actionType === 'memory-stack') {
+      return this.resolvingActionGpuMemoryStack(paramMap);
+    } else if (actionType === 'gpu-memory-state-change') {
+      let startTs = paramMap.get('startTs');
+      let currentSelection = this.boxRangeNativeHook.filter((item) => {
+        return item.startTs === startTs;
+      });
+      if (currentSelection.length > 0) {
+        currentSelection[0].isSelected = true;
+      }
+      return [];
+    } else {
+      return [];
+    }
+  }
+
+  resolvingActionGpuMemoryStack(paramMap: Map<string, unknown>): NativeHookCallInfo[] {
+    let eventId = paramMap.get('eventId');
+    //@ts-ignore
+    let frameArr = this.dataCache.gmHeapFrameMap.get(eventId) || [];
+    let arr: Array<NativeHookCallInfo> = [];
+    frameArr.map((frame: HeapTreeDataBean): void => {
+      let target = new NativeHookCallInfo();
+      target.eventId = frame.eventId;
+      target.depth = frame.depth;
+      target.addr = frame.addr;
+      target.symbol = this.groupCutFilePath(frame.symbolId, this.dataCache.dataDict.get(frame.symbolId) || '') ?? '';
+      target.lib = this.groupCutFilePath(frame.fileId, this.dataCache.dataDict.get(frame.fileId) || '') ?? '';
+      target.type = target.lib.endsWith('.so.1') || target.lib.endsWith('.dll') || target.lib.endsWith('.so') ? 0 : 1;
+      arr.push(target);
+    });
+    return arr;
+  }
+
+  supplementNativeHoodData(): void {
+    let len = this.boxRangeNativeHook.length;
+    for (let i = 0, j = len - 1; i <= j; i++, j--) {
+      this.fillNativeHook(this.boxRangeNativeHook[i], i);
+      if (i !== j) {
+        this.fillNativeHook(this.boxRangeNativeHook[j], j);
+      }
+    }
+  }
+
+  fillNativeHook(memory: NativeMemory, index: number): void {
+    if (memory.subTypeId !== null && memory.subType === undefined) {
+      memory.subType = this.dataCache.dataDict.get(memory.subTypeId) || '-';
+    }
+    memory.index = index;
+    let arr = this.dataCache.gmHeapFrameMap.get(memory.eventId) || [];
+    let frame = Array.from(arr)
+      .reverse()
+      .find((item: HeapTreeDataBean): boolean => {
+        let fileName = this.dataCache.dataDict.get(item.fileId);
+        return !((fileName ?? '').includes('libc++') || (fileName ?? '').includes('musl'));
+      });
+    if (frame === null || frame === undefined) {
+      if (arr.length > 0) {
+        frame = arr[0];
+      }
+    }
+    if (frame !== null && frame !== undefined) {
+      memory.symbol = this.groupCutFilePath(frame.symbolId, this.dataCache.dataDict.get(frame.symbolId) || '');
+      memory.library = this.groupCutFilePath(frame.fileId, this.dataCache.dataDict.get(frame.fileId) || 'Unknown Path');
+    } else {
+      memory.symbol = '-';
+      memory.library = '-';
+    }
+  }
+
+  resolvingActionGpuMemory(paramMap: Map<string, unknown>): Array<NativeMemory> {
+    let filterAllocType = paramMap.get('filterAllocType');
+    let filterEventType = paramMap.get('filterEventType');
+    let filterResponseType = paramMap.get('filterResponseType');
+    let leftNs = paramMap.get('leftNs');
+    let rightNs = paramMap.get('rightNs');
+    let sortColumn = paramMap.get('sortColumn');
+    let sortType = paramMap.get('sortType');
+    let statisticsSelection = paramMap.get('statisticsSelection');
+    let filter = this.boxRangeNativeHook;
+    if (
+      (filterAllocType !== undefined && filterAllocType !== 0) ||
+      (filterEventType !== undefined && filterEventType !== 0) ||
+      (filterResponseType !== undefined && filterResponseType !== -1)
+    ) {
+      filter = this.boxRangeNativeHook.filter((item: NativeMemory): boolean => {
+        let filterAllocation = true;
+        //@ts-ignore
+        let freed = item.endTs > leftNs && item.endTs <= rightNs && item.endTs !== 0 && item.endTs !== null;
+        if (filterAllocType === '1') {
+          filterAllocation = !freed;
+        } else if (filterAllocType === '2') {
+          filterAllocation = freed;
+        }
+        //@ts-ignore
+        let filterNative = this.getTypeFromIndex(parseInt(filterEventType), item, statisticsSelection);
+        let filterLastLib = filterResponseType === -1 ? true : filterResponseType === item.lastLibId;
+        return filterAllocation && filterNative && filterLastLib;
+      });
+    }
+    if (sortColumn !== undefined && sortType !== undefined && sortColumn !== '' && sortType !== 0) {
+      //@ts-ignore
+      return this.sortByGpuMemoryColumn(sortColumn, sortType, filter);
+    } else {
+      return filter;
+    }
+  }
+
+  sortByGpuMemoryColumn(gmMemoryColumn: string, gmMemorySort: number, list: Array<NativeMemory>): NativeMemory[] {
+    if (gmMemorySort === 0) {
+      return list;
+    } else {
+      return list.sort((memoryLeftData: unknown, memoryRightData: unknown): number => {
+        if (gmMemoryColumn === 'index' || gmMemoryColumn === 'startTs' || gmMemoryColumn === 'heapSize') {
+          return gmMemorySort === 1
+            ? //@ts-ignore
+            memoryLeftData[gmMemoryColumn] - memoryRightData[gmMemoryColumn]
+            : //@ts-ignore
+            memoryRightData[gmMemoryColumn] - memoryLeftData[gmMemoryColumn];
+        } else {
+          if (gmMemorySort === 1) {
+            //@ts-ignore
+            if (memoryLeftData[gmMemoryColumn] > memoryRightData[gmMemoryColumn]) {
+              return 1;
+              //@ts-ignore
+            } else if (memoryLeftData[gmMemoryColumn] === memoryRightData[gmMemoryColumn]) {
+              return 0;
+            } else {
+              return -1;
+            }
+          } else {
+            //@ts-ignore
+            if (memoryRightData[gmMemoryColumn] > memoryLeftData[gmMemoryColumn]) {
+              return 1;
+              //@ts-ignore
+            } else if (memoryLeftData[gmMemoryColumn] === memoryRightData[gmMemoryColumn]) {
+              return 0;
+            } else {
+              return -1;
+            }
+          }
+        }
+      });
+    }
+  }
 }
 
 class AnalysisSample {
@@ -987,17 +1377,39 @@ class AnalysisSample {
     this.count = count;
     this.startTs = startTs;
     switch (type) {
-      case 'VulKan':
-      case '6':
+      case 'GPU_VK_Alloc_Event':
+        this.isRelease = false;
+        this.type = 0;
+        break;
+      case 'GPU_GLES_Alloc_Event':
+        this.isRelease = false;
+        this.type = 1;
+        break;
+      case 'GPU_CL_Alloc_Event':
+        this.isRelease = false;
+        this.type = 2;
+        break;
+      case 'GPU_VK_Free_Event':
+        this.isRelease = true;
+        this.type = 3;
+        break;
+      case 'GPU_GLES_Free_Event':
+        this.isRelease = true;
+        this.type = 4;
+        break;
+      case 'GPU_CL_Free_Event':
+        this.isRelease = true;
+        this.type = 5;
+        break;
+      case 'GPU_VK':
         this.type = 6;
         this.isRelease = false;
         break;
-      case 'OpenGLES':
-      case '7':
+      case 'GPU_GLES':
         this.isRelease = false;
         this.type = 7;
         break;
-      case 'OpenCL':
+      case 'GPU_CL':
         this.isRelease = false;
         this.type = 8;
         break;

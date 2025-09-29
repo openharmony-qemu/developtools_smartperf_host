@@ -37,11 +37,12 @@ export const SpAllocationHtml = `
   padding-left: 54px;
   display: grid;
   grid-template-columns: 1fr;
-  grid-template-rows: min-content 1fr min-content;
+  grid-auto-rows: min-content;
   width: 81%;
   border-radius: 0 16px 16px 0;
   margin-bottom: 30px;
   margin-right: 30px;
+  gap: 20px;
 }
 .allocation-inner-font-style {
   font-family: Helvetica,serif;
@@ -261,11 +262,71 @@ input:disabled {
   cursor: no-drop;
 }
 
+.allocation-application,
+.allocation-switchstyle,
+.gpu-type-div {
+    grid-column: 1 / 3;
+    grid-row: auto !important; /* 强制使用自动行定位 */
+}
+
+.record-statistics-result {
+    grid-row: auto !important;
+}
+
+.gpu-type-div {
+   display: none;
+   flex-direction: column;
+   margin-top: 5vh;
+   gap: 25px;
+}
+
+.gpu-type-title{
+  margin-bottom: 15px;
+}
+
+.config-title {
+  line-height: 40px;
+  font-weight: 700;
+  margin-right: 10px;
+  opacity: 0.9;
+  font-family: Helvetica-Bold;
+  font-size: 18px;
+  text-align: center;
+}
+
+.config-title-des {
+  line-height: 35px;
+  font-weight: 400;
+  opacity: 0.6;
+  font-family: Helvetica;
+  font-size: 14px;
+  text-align: center;
+}
+
+.record-type-select {
+  border-radius: 15px;
+  width: 92%;
+}
+
 </style>
 <div class="root">
   <div class = "title" style="width: 92%;">
     <span class="allocation-title">Start Native Memory Record</span>
     <lit-switch id="switch-disabled"></lit-switch>
+  </div>
+  <div class="allocation-switchstyle" id="cpuMemory_div" style="align-items: center;grid-column: 1 / 3;">
+    <span class="allocation-inner-font-style" id="cpuMemory">Record Cpu Memory</span>
+    <lit-switch class="lts" id="cpuMemory_switch" title="cpuMemory" checked="true"></lit-switch>
+  </div>
+   <div class="allocation-switchstyle" id="gpuMemory_div" style="align-items: center;grid-column: 1 / 3;">
+    <span class="allocation-inner-font-style" id="gpuMemory">Record Gpu Memory</span>
+    <lit-switch class="lts" id="gpuMemory_switch" title="gpuMemory"></lit-switch>
+  </div>
+  <div class="gpu-type-div">
+      <div class="gpu-type-title">
+          <span class="config-title">Gpu Type</span>
+          <span class="config-title-des">Record GpuType</span>
+      </div>
   </div>
   <!-- ProcessId or ProcessName(default) -->
   <div class="allocation-application" style="grid-column: 1 / 3;">

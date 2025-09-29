@@ -174,13 +174,12 @@ export class TabpaneNMCalltree extends BaseElement {
       this.nmCallTreeFilter!.isStatisticsMemory = true;
       if (nmCallTreeParam.nativeMemoryStatistic.indexOf(this.nativeType[0]) !== -1) {
         types.push(0);
-        types.push(1);
       } else {
         if (nmCallTreeParam.nativeMemoryStatistic.indexOf(this.nativeType[1]) !== -1) {
-          types.push(0);
+          types.push(1);
         }
         if (nmCallTreeParam.nativeMemoryStatistic.indexOf(this.nativeType[2]) !== -1) {
-          types.push(1);
+          types.push(2);
         }
       }
     }
@@ -206,7 +205,7 @@ export class TabpaneNMCalltree extends BaseElement {
             (data.type === 'FILE_PAGE_MSG' && memory === 2) ||
             (data.type === 'MEMORY_USING_MSG' && memory === 3)
           ) {
-            data.type = `${selections.length + 2}`;
+            data.type = `${memory + 1}`;
           }
         }
       });
@@ -344,7 +343,7 @@ export class TabpaneNMCalltree extends BaseElement {
 
   async initFilterTypes(): Promise<void> {
     this.currentNMCallTreeFilter = this.shadowRoot?.querySelector<TabPaneFilter>('#nm-call-tree-filter');
-    let secondFilterList = ['All Heap & Anonymous VM', 'All Heap', 'All Anonymous VM'];
+    let secondFilterList = ['All Heap & Anonymous VM', 'AllocEvent'];
     const addSubType = (subTypeList: unknown): void => {
       if (!subTypeList) {
         return;

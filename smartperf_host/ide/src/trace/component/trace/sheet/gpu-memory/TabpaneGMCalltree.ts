@@ -23,7 +23,7 @@ import { ChartMode } from '../../../../bean/FrameChartStruct';
 import { FilterByAnalysis, NativeMemoryExpression } from '../../../../bean/NativeHook';
 import { FileMerageBean } from '../../../../database/logic-worker/ProcedureLogicWorkerFileSystem';
 import { procedurePool } from '../../../../database/Procedure';
-import { queryNativeHookStatisticSubType } from '../../../../database/sql/gpuMemory.sql';
+import { queryNativeHookStatisticSubType, queryNativeHookSubType } from '../../../../database/sql/gpuMemory.sql';
 import { FrameChart } from '../../../chart/FrameChart';
 import { ParseExpression } from '../SheetUtils';
 import { FilterData, TabPaneFilter } from '../TabPaneFilter';
@@ -556,6 +556,12 @@ export class TabpaneGMCalltree extends BaseElement {
             }
         };
         if (this.currentSelection!.gpuMemory!.length > 0) {
+            let subTypeList = await queryNativeHookSubType(
+                this.currentSelection!.leftNs,
+                this.currentSelection!.rightNs,
+                this.currentSelectIPid
+            );
+            addSubType(subTypeList);
         } else {
             let subTypeList = await queryNativeHookStatisticSubType(
                 this.currentSelection!.leftNs,
@@ -605,7 +611,17 @@ export class TabpaneGMCalltree extends BaseElement {
     initTypes(gmCallTreeParam: SelectionParam, types: Array<string | number>): void {
         if (gmCallTreeParam.gpuMemory.length > 0) {
             this.gmCallTreeFilter!.isStatisticsMemory = false;
-            //   }
+            if (gmCallTreeParam.gpuMemory.indexOf(this.gpuType[0]) !== -1) {
+                types.push("'GPU_VK_Alloc_Event'");
+                types.push("'GPU_GLES_Alloc_Event'");
+                types.push("'GPU_CL_Alloc_Event'");
+            } else if (gmCallTreeParam.gpuMemory.indexOf(this.gpuType[1]) !== -1) {
+                types.push("'GPU_VK_Alloc_Event'");
+            } else if (gmCallTreeParam.gpuMemory.indexOf(this.gpuType[2]) !== -1) {
+                types.push("'GPU_GLES_Alloc_Event'");
+            } else if (gmCallTreeParam.gpuMemory.indexOf(this.gpuType[3]) !== -1) {
+                types.push("'GPU_CL_Alloc_Event'");
+            }
         } else {
             this.gmCallTreeFilter!.isStatisticsMemory = true;
             if (gmCallTreeParam.gpuMemoryStatistic.indexOf(this.gpuType[0]) !== -1) {
@@ -726,22 +742,12 @@ export class TabpaneGMCalltree extends BaseElement {
     }
 
     setFilterType(selections: Array<unknown>, data: FilterByAnalysis): void {
-        if (this.subTypeArr.length > 0) {
-            this.subTypeArr.map((memory): void => {
-                selections.push({
-                    memoryTap: memory,
-                });
-                if (this.currentSelection?.gpuMemory && this.currentSelection.gpuMemory.length > 0) {
-                } else {
-                    if (
-                        (data.type === 'VulKan' && memory === 6) ||
-                        (data.type === 'OpenGLES' && memory === 7) ||
-                        (data.type === 'OpenCL' && memory === 8)
-                    ) {
-                        data.type = `${memory - 5}`;
-                    }
-                }
-            });
+        if (data.type === 'VulKan') {
+            data.type = '1';
+        } else if (data.type === 'OpenGLES') {
+            data.type = '2';
+        } else {
+            data.type = '3';
         }
     }
 

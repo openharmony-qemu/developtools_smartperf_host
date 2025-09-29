@@ -462,6 +462,9 @@ export interface NativeHookConfig {
   jsStackReport?: number;
   maxJsStackDepth?: number;
   filterNapiName?: string;
+  restrace_tag?: string[];
+  memtrace_enable?: boolean;
+  malloc_disable?: boolean;
 }
 
 export interface FpsConfig {

@@ -88,7 +88,28 @@ class GpuMemoryDataSource {
 
 function gpuMemoryCacheSql(model: string, startNS: number, endNS: number): string {
   if (model === 'native_hook') {
-    return '';
+    return `select * from (
+                select 
+                    h.start_ts - ${startNS} as startTime,
+                    h.heap_size as heapSize,
+                    (case when h.event_type = 'GPU_VK_Alloc_Event' then 0 when h.event_type = 'GPU_GLES_Alloc_Event' then 1 when h.event_type = 'GPU_CL_Alloc_Event' then 2 end) as eventType,
+                    ipid
+                from native_hook h
+                where h.start_ts between ${startNS} and ${endNS}
+                    and (h.event_type = 'GPU_VK_Alloc_Event' or h.event_type = 'GPU_GLES_Alloc_Event' or h.event_type = 'GPU_CL_Alloc_Event')
+                union all
+                select 
+                    h.end_ts - ${startNS} as startTime,
+                    h.heap_size as heapSize,
+                    (case when h.event_type = 'GPU_VK_Alloc_Event' then 3 when h.event_type = 'GPU_GLES_Alloc_Event' then 4 when h.event_type = 'GPU_CL_Alloc_Event' then 5 end) as eventType,
+                    ipid
+                from native_hook h
+                where 
+                  h.start_ts between ${startNS} and ${endNS}
+                  and h.end_ts between ${startNS} and ${endNS}
+                  and (h.event_type = 'GPU_VK_Alloc_Event' or h.event_type = 'GPU_GLES_Alloc_Event' or h.event_type = 'GPU_CL_Alloc_Event')
+            )
+            order by startTime;`;
   } else {
     return `select callchain_id    as callchainId,
                 ts - ${startNS}    as startTs,
@@ -155,6 +176,22 @@ function cacheGpuMemoryChartData(model: string, totalNS: number, processes: numb
   processes.forEach((ipid) => {
     let processData = data.filter((ne) => ne.ipid === ipid);
     if (model === 'native_hook') {
+      normalChartDataHandler(processData, `${ipid}-0`, totalNS);
+      normalChartDataHandler(
+        processData.filter((ne) => ne.eventType === 0 || ne.eventType === 3),
+        `${ipid}-1`,
+        totalNS
+      );
+      normalChartDataHandler(
+        processData.filter((ne) => ne.eventType === 1 || ne.eventType === 4),
+        `${ipid}-2`,
+        totalNS
+      );
+      normalChartDataHandler(
+        processData.filter((ne) => ne.eventType === 2 || ne.eventType === 5),
+        `${ipid}-3`,
+        totalNS
+      );
     } else {
       let timeSet: Set<number> = new Set<number>();
       let vlData: GMData[] = [];
@@ -180,6 +217,20 @@ function cacheGpuMemoryChartData(model: string, totalNS: number, processes: numb
     }
     processData.length = 0;
   });
+}
+
+function normalChartDataHandler(data: Array<GMData>, key: string, totalNS: number): void {
+  let gmFilterLen = data.length;
+  let gmFilterLevel = getFilterLevel(gmFilterLen);
+  tempSize = 0;
+  tempDensity = 0;
+  data.map((ne: GMData, index: number): void =>
+    mergeNormalChartData(ne, gmFilterLevel, index === gmFilterLen - 1, key)
+  );
+  let cache = dataCache.normalCache.get(key);
+  if (cache && cache.dataList.length > 0) {
+    cache.dataList[cache.dataList.length - 1].dur = totalNS - cache.dataList[cache.dataList.length - 1].startTime!;
+  }
 }
 
 function getFilterLevel(len: number): number {
@@ -281,7 +332,7 @@ function mergeNormalChartData(ne: GMData, filterLevel: number, finish: boolean, 
     dur: 0,
   };
   if (!dataCache.normalCache.has(key)) {
-    if (ne.eventType === 0 || ne.eventType === 1) {
+    if (ne.eventType === 0 || ne.eventType === 1 || ne.eventType === 2) {
       item.density = 1;
       item.heapSize = ne.heapSize;
     } else {
@@ -312,7 +363,7 @@ function mergeData(
     let last = data.dataList[data.dataList.length - 1];
     last.dur = item.startTime! - last.startTime!;
     if (last.dur > filterLevel || finish) {
-      if (ne.eventType === 0 || ne.eventType === 1) {
+      if (ne.eventType === 0 || ne.eventType === 1 || ne.eventType === 2) {
         item.density = last.density! + tempDensity + 1;
         item.heapSize = last.heapSize! + tempSize + ne.heapSize;
       } else {
@@ -327,7 +378,7 @@ function mergeData(
       data.minSize = Math.min(item.heapSize, data.minSize);
       data.dataList.push(item);
     } else {
-      if (ne.eventType === 0 || ne.eventType === 1) {
+      if (ne.eventType === 0 || ne.eventType === 1 || ne.eventType === 2) {
         tempDensity += 1;
         tempSize += ne.heapSize;
       } else {

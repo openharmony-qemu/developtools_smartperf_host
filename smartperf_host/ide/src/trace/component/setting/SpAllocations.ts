@@ -23,10 +23,12 @@ import { LitSelectV } from '../../../base-ui/select/LitSelectV';
 import { SpAllocationHtml } from './SpAllocation.html';
 import { NUM_16384, NUM_1800, NUM_30, NUM_300, NUM_3600, NUM_450, NUM_60, NUM_600 } from '../../bean/NumBean';
 import { LitSelect } from '../../../base-ui/select/LitSelect';
+import { gpuTypeAll, resGpuVk, resGpuGlesImage, resGpuGlesBuffer, resGpuClImage, resGpuClBuffer } from './utils/PluginConvertUtils';
 
 @element('sp-allocations')
 export class SpAllocations extends BaseElement {
   // normal option
+  private nativeStartSwitch: LitSwitch | undefined | null;
   private processId: LitSelectV | null | undefined;
   private packageName: LitSelect | null | undefined;
   private unwindEL: HTMLInputElement | null | undefined;
@@ -61,6 +63,11 @@ export class SpAllocations extends BaseElement {
   private statisticsIntervalInput: HTMLInputElement | null | undefined;
   private statisticsIntervalName: HTMLSpanElement | null | undefined;
   private statisticsIntervalRange: HTMLSpanElement | null | undefined;
+  private gpuMemorySwitch: LitSwitch | undefined | null;
+  private cpuMemorySwitch: LitSwitch | undefined | null;
+  private configType: HTMLDivElement | undefined | null;
+  private typeSelect: LitSelectV | undefined | null;
+  private typeInput: HTMLInputElement | undefined;
 
   set startSamp(allocationStart: boolean) {
     if (allocationStart) {
@@ -72,6 +79,14 @@ export class SpAllocations extends BaseElement {
 
   get startSamp(): boolean {
     return this.hasAttribute('startSamp');
+  }
+
+  get recordCpuMemory(): boolean {
+    return this.cpuMemorySwitch!.checked;
+  }
+
+  get recordGpuMemory(): boolean {
+    return this.gpuMemorySwitch!.checked;
   }
 
   get appProcess(): string {
@@ -217,7 +232,9 @@ export class SpAllocations extends BaseElement {
   }
 
   initElements(): void {
+    this.initRecordGpuConfig();
     // normal option
+    this.nativeStartSwitch = this.shadowRoot?.querySelector('#switch-disabled') as LitSwitch;
     this.processId = this.shadowRoot?.getElementById('pid') as LitSelectV;
     this.packageName = this.shadowRoot?.getElementById('packageName') as LitSelect;
     this.unwindEL = this.shadowRoot?.getElementById('unwind') as HTMLInputElement;
@@ -252,6 +269,36 @@ export class SpAllocations extends BaseElement {
     this.jsStackDepth = this.shadowRoot?.getElementById('jsStackDepth') as HTMLInputElement;
     this.statisticsIntervalName = this.shadowRoot?.getElementById('statistics-interval-name') as HTMLSpanElement;
     this.statisticsIntervalRange = this.shadowRoot?.getElementById('statistics-interval-range') as HTMLSpanElement;
+    let gpuConfigList = this.shadowRoot?.querySelectorAll<HTMLDivElement>('.gpu-type-div');
+    this.cpuMemorySwitch = this.shadowRoot?.querySelector('#cpuMemory_switch') as LitSwitch;
+    this.gpuMemorySwitch = this.shadowRoot?.querySelector('#gpuMemory_switch') as LitSwitch;
+    this.typeSelect = this.shadowRoot?.querySelector<LitSelectV>("lit-select-v[title='Gpu Type']");
+    this.typeSelect!.showItems = [resGpuVk, resGpuGlesImage, resGpuGlesBuffer, resGpuClImage, resGpuClBuffer];
+    this.typeInput = this.typeSelect!.shadowRoot?.querySelector('input') as HTMLInputElement;
+
+    this.gpuMemorySwitch.addEventListener('change', () => {
+      let configVisibility = 'none';
+      if (this.gpuMemorySwitch?.checked) {
+        configVisibility = 'block';
+      } else {
+        if (!this.cpuMemorySwitch?.checked) {
+          this.nativeStartSwitch!.checked = false;
+          this.disable();
+        }
+      }
+      if (gpuConfigList) {
+        gpuConfigList!.forEach((configEl) => {
+          configEl.style.display = configVisibility;
+        });
+      }
+    });
+
+    this.cpuMemorySwitch.addEventListener('change', () => {
+      if (!this.cpuMemorySwitch?.checked && !this.gpuMemorySwitch?.checked) {
+        this.nativeStartSwitch!.checked = false;
+        this.disable();
+      }
+    });
     this.initNativeSwitchOption();
   }
 
@@ -278,6 +325,8 @@ export class SpAllocations extends BaseElement {
     this.useStatisticsEl?.addEventListener('change', this.useStatisticsChangeEvent);
     this.statisticsIntervalInput?.addEventListener('input', this.statisticsIntervalInputEvent);
     this.statisticsIntervalInput?.addEventListener('keyup', this.statisticsIntervalKeyUpEvent);
+    this.typeInput?.addEventListener('mousedown', this.typeSelectMousedownHandler);
+    this.typeInput?.addEventListener('click', this.typeSelectClickHandler);
   }
 
   disconnectedCallback(): void {
@@ -299,6 +348,8 @@ export class SpAllocations extends BaseElement {
     this.useStatisticsEl?.removeEventListener('change', this.useStatisticsChangeEvent);
     this.statisticsIntervalInput?.removeEventListener('input', this.statisticsIntervalInputEvent);
     this.statisticsIntervalInput?.removeEventListener('keyup', this.statisticsIntervalKeyUpEvent);
+    this.typeInput?.removeEventListener('mousedown', this.typeSelectMousedownHandler);
+    this.typeInput?.removeEventListener('click', this.typeSelectClickHandler);
   }
 
   handleInputChangeEvent = (ev: KeyboardEvent): void => {
@@ -356,6 +407,90 @@ export class SpAllocations extends BaseElement {
 
   fpUnWindChangeEvent = (): void => {
     this.napiName!.disabled = !(!this.fp_unwind && this.recordJsStack);
+  };
+
+  private initRecordGpuConfig(): void {
+    this.configType = this.shadowRoot?.querySelector<HTMLDivElement>('.gpu-type-div');
+    gpuConfigList.forEach((config) => {
+      switch (config.type) {
+        case 'select-multiple':
+          this.configTypeBySelectMultiple(config, this.configType!);
+          break;
+        default:
+          break;
+      }
+    });
+  }
+
+  private configTypeBySelectMultiple(config: unknown, recordGpuDiv: HTMLDivElement): void {
+    let html = '';
+    //@ts-ignore
+    let placeholder = config.selectArray[0];
+    //@ts-ignore
+    if (config.title === 'Gpu Type') {
+      placeholder = 'please select gpu type';
+    }
+    html += `<lit-select-v default-value="" rounded="" class="record-type-select config"
+      mode="multiple" canInsert="" title="${
+      //@ts-ignore
+      config.title
+      }" rounded placement = "bottom" placeholder="${placeholder}">`;
+    //@ts-ignore
+    config.selectArray.forEach((value: string) => {
+      html += `<lit-select-option value="${value}">${value}</lit-select-option>`;
+    });
+    html += '</lit-select-v>';
+    recordGpuDiv.innerHTML = recordGpuDiv.innerHTML + html;
+  }
+
+  getGpuConfig(): string | undefined {
+    let gpuConfigVal = this.shadowRoot?.querySelectorAll<HTMLElement>('.config');
+    let gpuConfig: string = '';
+    gpuConfigVal!.forEach((value) => {
+      gpuConfig = this.getGpuConfigData(value, gpuConfig);
+    });
+    return gpuConfig;
+  }
+
+  private getGpuConfigData(value: HTMLElement, gpuConfig: string): string {
+    switch (value.title) {
+      case 'Gpu Type':
+        gpuConfig = this.gpuConfigByTypeList(gpuConfig, value as LitSelectV);
+        break;
+    }
+    return gpuConfig;
+  }
+
+  private gpuConfigByTypeList(gpuConfig: string, selectValue: LitSelectV): string {
+    gpuConfig = selectValue.value;
+    return gpuConfig;
+  }
+
+  typeSelectClickHandler = (): void => {
+    let messageType = [];
+    messageType = gpuTypeAll;
+    this.typeSelect?.dataSource(messageType, '');
+    this.typeInput!.value = this.typeSelect!.showItems.join(',');
+    this.typeSelect?.shadowRoot?.querySelectorAll('lit-select-option').forEach((option) => {
+      if (this.typeInput!.value.includes(option.getAttribute('value') || '')) {
+        option.setAttribute('selected', '');
+      } else {
+        option.removeAttribute('selected');
+        let number = this.typeSelect!.showItems.indexOf(option.getAttribute('value') || '');
+        if (number > -1) {
+          this.typeSelect!.showItems!.splice(number, 1);
+        }
+      }
+      option.addEventListener('onSelected', (e: unknown) => {
+        if (this.typeSelect!.showItems.length === 0) {
+          this.typeInput!.placeholder = 'NONE';
+        }
+      });
+    });
+  };
+
+  typeSelectMousedownHandler = (): void => {
+    this.typeSelect!.dataSource([], '');
   };
 
   advanceOptionClickEvent = (): void => {
@@ -505,6 +640,7 @@ export class SpAllocations extends BaseElement {
       // @ts-ignore
       let detail = event.detail;
       if (detail.checked) {
+        this.cpuMemorySwitch!.checked = true;
         this.unDisable();
       } else {
         this.disable();
@@ -636,6 +772,12 @@ export class SpAllocations extends BaseElement {
     if (this.useStatisticsEl) {
       this.useStatisticsEl.disabled = false;
     }
+    if (this.cpuMemorySwitch) {
+      this.cpuMemorySwitch.disabled = false;
+    }
+    if (this.gpuMemorySwitch) {
+      this.gpuMemorySwitch.disabled = false;
+    }
     this.processId!.removeAttribute('disabled');
     let inputBoxes = this.shadowRoot?.querySelectorAll<HTMLInputElement>('.inputBoxes');
     inputBoxes!.forEach((item: HTMLInputElement): void => {
@@ -676,6 +818,12 @@ export class SpAllocations extends BaseElement {
     if (this.useStatisticsEl) {
       this.useStatisticsEl.disabled = true;
     }
+    if (this.cpuMemorySwitch) {
+      this.cpuMemorySwitch.disabled = true;
+    }
+    if (this.gpuMemorySwitch) {
+      this.gpuMemorySwitch.disabled = true;
+    }
     this.processId!.setAttribute('disabled', '');
     let inputBoxes = this.shadowRoot?.querySelectorAll<HTMLInputElement>('.inputBoxes');
     inputBoxes!.forEach((item: HTMLInputElement): void => {
@@ -691,3 +839,13 @@ export class SpAllocations extends BaseElement {
 }
 
 const stepValue: number[] = [0, 1, 10, NUM_30, NUM_60, NUM_300, NUM_600, NUM_1800, NUM_3600];
+
+const gpuConfigList = [
+  {
+    title: 'Gpu Type',
+    des: 'Record GpuType',
+    hidden: true,
+    type: 'select-multiple',
+    selectArray: [''],
+  },
+];

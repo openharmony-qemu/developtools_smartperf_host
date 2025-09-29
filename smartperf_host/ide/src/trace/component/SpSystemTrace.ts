@@ -1450,7 +1450,8 @@ export class SpSystemTrace extends BaseElement {
     XpowerWifiStruct.selectPacketsXpowerStruct = undefined;
     XpowerThreadInfoStruct.selectXpowerStruct = undefined;
     XpowerGpuFreqStruct.selectXpowerStruct = undefined;
-    SnapShotStruct.hoverSnapShotStruct = undefined;
+    SnapShotStruct.selectSnapShotStruct = undefined;
+    GpuMemoryStruct.selectGpuMemoryStruct = undefined;
     return this;
   }
 
