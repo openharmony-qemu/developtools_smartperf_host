@@ -106,7 +106,7 @@ bool TaskPoolFilter::UpdateAssignData(const std::unordered_map<std::string, std:
     auto priority = base::StrToInt<uint32_t>(args.at("priority"));
     auto executeStateStr = args.at("executeState");
     auto pos = executeStateStr.find("|");
-    if(pos != std::string::npos) {
+    if (pos != std::string::npos) {
         executeStateStr = executeStateStr.substr(0, pos);
     }
     auto executeState = base::StrToInt<uint32_t>(executeStateStr);

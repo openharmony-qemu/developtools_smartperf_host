@@ -566,7 +566,7 @@ void NativeHookFilter::ParseTraceFreeEvent(uint64_t timeStamp, const ProtoReader
     auto callChainId = traceFreeEventReader.stack_id();
     uint64_t threadId = traceFreeEventReader.thread_name_id();
     auto itid = streamFilters_->processFilter_->GetOrCreateThreadWithPid(traceFreeEventReader.tid(),
-                                                                                  traceFreeEventReader.pid());
+                                                                         traceFreeEventReader.pid());
     auto ipid = traceDataCache_->GetConstThreadData(itid).internalPid_;
     if (threadId) {
         UpdateMap(itidToThreadNameId_, itid, threadId);
@@ -578,7 +578,7 @@ void NativeHookFilter::ParseTraceFreeEvent(uint64_t timeStamp, const ProtoReader
     std::string gpuFreeType;
     NativeType nativeType;
     switch (traceFreeType) {
-        case ProtoReader::TraceType::GPU_VK: 
+        case ProtoReader::TraceType::GPU_VK:
             gpuFreeType = "GPU_VK_Free_Event";
             nativeType = NativeType::GPU_VK;
             break;
@@ -684,7 +684,7 @@ void NativeHookFilter::FilterNativeHookMainEvent(size_t num)
         } else if (nativeHookDataReader->has_trace_free_event()) {
             ParseTraceFreeEvent(timeStamp, nativeHookDataReader->trace_free_event());
         }
-    } 
+    }
     tsToMainEventsMap_.erase(tsToMainEventsMap_.begin(), itor);
 }
 

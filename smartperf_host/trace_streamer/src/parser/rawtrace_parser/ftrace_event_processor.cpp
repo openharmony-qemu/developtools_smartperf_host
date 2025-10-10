@@ -267,9 +267,9 @@ bool FtraceEventProcessor::SchedSwitch(FtraceEvent &ftraceEvent, uint8_t data[],
         schedSwitchMsg->set_next_prio(
             FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
     }
-    if(format.fields.size() == DO_NOT_HAVE_NEXT_INFO_SIZE){
+    if (format.fields.size() == DO_NOT_HAVE_NEXT_INFO_SIZE) {
         schedSwitchMsg->set_next_info(INVALID_UINT64);
-    }else{
+    } else {
         schedSwitchMsg->set_next_info(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields,index++,data,size));
     }
     return true;
