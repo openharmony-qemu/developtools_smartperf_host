@@ -74,6 +74,7 @@ export const TraceRowHtml = `
             margin-left: 10px;
             font-size: .9rem;
             font-weight: normal;
+            font-family: Roboto,verdana,sans-serif;
             flex: 1;
             max-height: 100%;
             text-align: left;

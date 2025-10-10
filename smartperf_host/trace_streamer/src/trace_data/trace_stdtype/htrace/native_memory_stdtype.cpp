@@ -91,6 +91,24 @@ size_t NativeHook::AppendNewNativeHookData(const NativeHookRow &context)
     } else if (context.eventType == MUNMAP_EVENT) {
         countMmapSizes_ -= context.memSize;
         allMemSizes_.emplace_back(countMmapSizes_);
+    } else if (context.eventType == GPU_VK_ALLOC_EVENT) {
+        countGpuVkSizes_ += context.memSize;
+        allMemSizes_.emplace_back(countGpuVkSizes_);
+    } else if (context.eventType == GPU_VK_FREE_EVENT) {
+        countGpuVkSizes_ -= context.memSize;
+        allMemSizes_.emplace_back(countGpuVkSizes_);
+    } else if (context.eventType == GPU_GLES_ALLOC_EVENT) {
+        countGpuGlesSizes_ += context.memSize;
+        allMemSizes_.emplace_back(countGpuGlesSizes_);
+    } else if (context.eventType == GPU_GLES_FREE_EVENT) {
+        countGpuGlesSizes_ -= context.memSize;
+        allMemSizes_.emplace_back(countGpuGlesSizes_);
+    } else if (context.eventType == GPU_CL_ALLOC_EVENT) {
+        countGpuClSizes_ += context.memSize;
+        allMemSizes_.emplace_back(countGpuClSizes_);
+    } else if (context.eventType == GPU_CL_FREE_EVENT) {
+        countGpuClSizes_ -= context.memSize;
+        allMemSizes_.emplace_back(countGpuClSizes_);
     }
     currentSizeDurs_.emplace_back(0);
     return Size() - 1;

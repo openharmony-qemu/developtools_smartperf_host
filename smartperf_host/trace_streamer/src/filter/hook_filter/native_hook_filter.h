@@ -28,6 +28,18 @@ namespace SysTuning {
 namespace TraceStreamer {
 constexpr uint64_t IP_BIT_OPERATION = 0xFFFFFFFFFF;
 using namespace OHOS::Developtools::HiPerf;
+
+enum class NativeType {
+    MALLOC = 0,
+    MMAP,
+    FD,
+    THREAD,
+    GPU_VK,
+    GPU_GLES,
+    GPU_CL,
+    OTHER
+};
+
 class NativeHookFrameInfo {
 public:
     NativeHookFrameInfo()
@@ -118,8 +130,9 @@ private:
                                    uint32_t ipid,
                                    uint32_t itid,
                                    const ProtoReader::MunmapEvent_Reader &mUnmapEventReader);
-
-    void MaybeUpdateCurrentSizeDur(uint64_t row, uint64_t timeStamp, bool isMalloc);
+    void ParseTraceAllocEvent(uint64_t timeStamp, const ProtoReader::BytesView &bytesView);
+    void ParseTraceFreeEvent(uint64_t timeStamp, const ProtoReader::BytesView &bytesView);                               
+    void MaybeUpdateCurrentSizeDur(uint64_t row, uint64_t timeStamp, NativeType type);
     void UpdateThreadNameWithNativeHookData() const;
     void GetCallIdToLastLibId();
     void GetNativeHookFrameVaddrs();
@@ -150,6 +163,9 @@ private:
     void UpdateAnonMmapDataDbIndex(uint64_t addr, uint64_t size, uint64_t row);
     void UpdateLastCallerPathAndSymbolIndexs();
     void UpdateFilePathIndexToCallStackRowMap(size_t row, DataIndex filePathIndex);
+    bool IsSameSymbolTable(std::shared_ptr<ProtoReader::SymbolTable_Reader> reader1,
+                           std::shared_ptr<ProtoReader::SymbolTable_Reader> reader2);
+    bool AreBytesViewsEqual(const ProtoReader::BytesView &view1, const ProtoReader::BytesView &view2);
 
 private:
     // first key is addr, second key is size, value is set<row> in db
@@ -175,6 +191,7 @@ private:
     std::unordered_map<uint32_t, uint32_t> stackIdToCallChainIdMap_ = {};
     std::unordered_map<uint64_t, uint64_t> *addrToAllocEventRow_ = nullptr;
     std::unordered_map<uint64_t, uint64_t> *addrToMmapEventRow_ = nullptr;
+    std::unordered_map<uint64_t, uint64_t> *addrToTraceAllocEventRow_ = nullptr;
     std::set<DataIndex> invalidLibPathIndexs_ = {};
     std::deque<std::string> vaddrs_ = {};
     // munmap update anonymous or named memory tag always use the last addrToMmapTag_ value

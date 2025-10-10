@@ -211,6 +211,7 @@ export class SpHelp extends BaseElement {
       this.createSubMenuItem('扩展程序安装指导', 'extensions', 'quickstart_extensions', that, '27'),
       this.createSubMenuItem('FFRT抓取和展示说明', 'ffrt', 'quickstart_ffrt', that, '28'),
       this.createSubMenuItem('约束与限制', 'limit', 'quickstart_limit', that, '29'),
+      this.createSubMenuItem('SysCall函数解析和展示说明', 'syscall', 'quickstart_hisyscall', that, '30'),
     ];
   }
 

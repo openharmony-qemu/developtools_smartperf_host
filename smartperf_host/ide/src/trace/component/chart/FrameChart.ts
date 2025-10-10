@@ -920,12 +920,13 @@ export class FrameChart extends BaseElement {
         case ChartMode.Byte:
           const size = Utils.getByteWithUnit(this.getNodeValue(hoverNode));
           const countPercent = ((this.getNodeValue(hoverNode) / this.total) * 100).toFixed(2);
+          const counters = hoverNode.drawCount || hoverNode.count;
           this.hintContent = `
                     <span class="bold">Symbol: </span> <span class="text">${name} </span> <br>
                     <span class="bold">Lib: </span> <span class="text">${hoverNode?.lib}</span> <br>
                     <span class="bold">Addr: </span> <span>${hoverNode?.addr}</span> <br>
                     <span class="bold">Size: </span> <span>${size} (${percent}%) </span> <br>
-                    <span class="bold">Count: </span> <span>${hoverNode?.count} (${countPercent}%)</span>`;
+                    <span class="bold">Count: </span> <span>${counters} (${countPercent}%)</span>`;
           break;
         case ChartMode.Duration:
           const duration = Utils.getProbablyTime(this.getNodeValue(hoverNode));

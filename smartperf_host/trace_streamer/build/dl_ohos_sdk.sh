@@ -27,8 +27,8 @@ function dl_ohos_sdk() {
             tar zxvf gcc-linaro-7.5.0-arm-linux-gnueabi.tar.gz --directory=tools/
         fi
         if [ ! -d "tools/ohos-sdk" ];then
-            curl http://download.ci.openharmony.cn/version/Daily_Version/ohos-sdk-full-linux/20250623_041115/version-Daily_Version-ohos-sdk-full-linux-20250623_041115-ohos-sdk-full-linux.tar.gz --output ohos-sdk.tar.gz
-            tar -xvf ohos-sdk.tar.gz --directory=tools/
+            curl https://cidownload.openharmony.cn/Artifacts/ohos-sdk/20250906-1-00213/version/Artifacts-ohos-sdk-20250906-1-00213-version-ohos-sdk.zip --output ohos-sdk.zip
+            unzip ohos-sdk.zip -d tools/ohos-sdk/
             cd tools/ohos-sdk/linux
             for zipfile in *.zip; do
                 echo "unzip:$zipfile"

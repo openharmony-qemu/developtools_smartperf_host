@@ -169,6 +169,7 @@ message SchedSwitchFormat {
     string next_comm = 5;
     int32 next_pid = 6;
     int32 next_prio = 7;
+    uint64 next_info = 8;
 }
 
 // /sys/kernel/debug/tracing/events/sched/sched_wait_task/format

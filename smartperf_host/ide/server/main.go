@@ -52,9 +52,7 @@ import (
 const HttpPort = 9000
 
 var exPath string
-var serveInfo string
-var aiInfo string
-var msgPublishData MsgPublishData
+var serverConfig ServerConfig
 var hdcPublicKey string
 var hdcPrivateKey *rsa.PrivateKey
 
@@ -169,7 +167,7 @@ func main() {
 		} else {
 			version = string(readVersion)
 		}
-		readReqServerConfig()
+		readServerConfig()
 		mux := http.NewServeMux()
 		mime.TypeByExtension(".js")
 		mime.AddExtensionType(".js", "application/javascript")
@@ -177,12 +175,10 @@ func main() {
 		mux.HandleFunc("/application/logger", consoleHandler)
 		mux.Handle("/application/upload/", http.StripPrefix("/application/upload/", http.FileServer(http.Dir(filepath.FromSlash(exPath+"/upload")))))
 		mux.HandleFunc("/application/download-file", downloadHandler)
-		mux.HandleFunc("/application/serverInfo", serverInfo)
-		mux.HandleFunc("/application/getAiInfo", getAiInfo)
 		mux.HandleFunc("/application/hdcPublicKey", getHdcPublicKey)
 		mux.HandleFunc("/application/encryptHdcMsg", encryptHdcMsg)
 		mux.HandleFunc("/application/signatureHdcMsg", signatureHdcMsg)
-		mux.HandleFunc("/application/messagePublish", getMsgPublish)
+		mux.HandleFunc("/application/serverconfig", getServerConfig)
 		fs := http.FileServer(http.Dir(exPath + "/"))
 		mux.Handle("/application/", http.StripPrefix("/application/", cors(fs, version)))
 		go func() {
@@ -253,17 +249,6 @@ func consoleHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func serverInfo(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("request_info", serveInfo)
-	w.WriteHeader(200)
-}
-
-func getAiInfo(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("ai_info", aiInfo)
-	w.WriteHeader(200)
-}
 
 func getHdcPublicKey(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -310,81 +295,103 @@ func signatureHdcMsg(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func parseMsgPublishFile() {
+func parseServerConfigFile() {
 	defer func() {
 		if r := recover(); r != nil {
-			fmt.Printf("parseMsgPublishFile happen panic, content is %+v\n", r)
+			fmt.Printf("parseServerConfigFile happen panic, content is %+v\n", r)
 		}
 	}()
-	msgPublishData.Mux.Lock()
-	defer msgPublishData.Mux.Unlock()
-	exist, err := PathExists(msgPublishData.FilePath)
-	if err != nil || !exist {
-		return
-	}
-	buf, err := os.ReadFile(msgPublishData.FilePath)
+
+	fmt.Println("parseServerConfigFile")
+	serverConfigBuffer, err := os.ReadFile(exPath + "/server-config.json")
 	if err != nil {
-		fmt.Println("read fail", err)
+		fmt.Printf("read server config failed, error: %v\n", err)
 		return
 	}
-	msgPublishData.Msg = string(buf)
+
+	serverConfig.Mux.Lock()
+	defer serverConfig.Mux.Unlock()
+	err = json.Unmarshal(serverConfigBuffer, &serverConfig)
+	if err != nil {
+		fmt.Printf("unmarshal server config failed, error: %v\n", err)
+		return
+	}
 }
 
-func getMsgPublish(w http.ResponseWriter, r *http.Request) {
+func getServerConfig(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Content-Type", "text/json")
-	msgPublishData.Mux.RLock()
-	data := msgPublishData.Msg
-	msgPublishData.Mux.RUnlock()
-	if len(data) == 0 {
-		resp(&w)(false, -1, "msg failed", nil)
-	} else {
-		resp(&w)(true, 0, "success", map[string]interface{}{
-			"data": data,
-		})
+	w.Header().Set("Content-Type", "application/json")
+	serverConfig.Mux.RLock()
+	defer serverConfig.Mux.RUnlock()
+	data, err := json.Marshal(serverConfig)
+	if err != nil {
+		http.Error(w, "failed to marshal config: "+err.Error(), http.StatusInternalServerError)
+		return
 	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(data)
 }
 
 type ServerConfig struct {
-	ServeInfo      string `json:"ServeInfo"`
-	MsgPublishFile string `json:"MsgPublishFile"`
-	AiInfo         string
+	ReportConfig      ReportConfig      `json:"reportConfig"`
+	TraceInfoConfig   TraceInfoConfig   `json:"traceInfoConfig"`
+	AdvertisingConfig AdvertisingConfig `json:"advertisingConfig"`
+	BulletinConfig    BulletinConfig    `json:"bulletinConfig"`
+	AiAssistantConfig AiAssistantConfig `json:"aiAssistantConfig"`
+	Mux               sync.RWMutex      `json:"-"`
 }
 
-type MsgPublishData struct {
-	FilePath string
-	Msg      string
-	Mux      sync.RWMutex
+type ReportConfig struct {
+	Switch bool   `json:"switch"`
+	URL    string `json:"url"`
 }
 
-func loopUpdateMsgPublishData() {
+type TraceInfoConfig struct {
+	Switch  bool   `json:"switch"`
+	Content string `json:"content"`
+}
+
+type AdvertisingConfig struct {
+	Switch bool   `json:"switch"`
+	URL    string `json:"url"`
+}
+
+type BulletinConfig struct {
+	Switch  bool   `json:"switch"`
+	Content string `json:"content"`
+}
+
+type AiAssistantConfig struct {
+	Switch bool `json:"switch"`
+}
+
+func loopUpdateServerConfig() {
 	loopTime := 5 * time.Minute
-	timer := time.NewTimer(5 * time.Second)
+	timer := time.NewTimer(loopTime)
 	for {
 		select {
 		case <-timer.C:
-			parseMsgPublishFile()
+			parseServerConfigFile()
 		}
 		timer.Reset(loopTime)
 	}
 }
 
-func readReqServerConfig() {
+func readServerConfig() {
 	serverConfigBuffer, err := os.ReadFile(exPath + "/server-config.json")
 	if err != nil {
+		fmt.Printf("read server config failed, error: %v\n", err)
 		return
 	}
-	var sc ServerConfig
-	err = json.Unmarshal(serverConfigBuffer, &sc)
+
+	err = json.Unmarshal(serverConfigBuffer, &serverConfig)
 	if err != nil {
+		fmt.Printf("unmarshal server config failed, error: %v\n", err)
 		return
 	}
-	serveInfo = sc.ServeInfo
-	aiInfo = sc.AiInfo
-	msgPublishData.Mux.Lock()
-	msgPublishData.FilePath = sc.MsgPublishFile
-	msgPublishData.Mux.Unlock()
-	go loopUpdateMsgPublishData()
+
+	go loopUpdateServerConfig()
 }
 
 func mapToJson(m map[string]interface{}) (string, error) {

@@ -33,8 +33,16 @@ export class SpWelcomePage extends BaseElement {
         .lit-icon{
             content: var(--dark-img,url('img/pic.png'));
         }
+        .adjust{
+            margin-top:50px;
+            margin-left:400px;
+        }
+        .home-page {
+            margin-top:-100px;
+        }
         </style>
         <div>
+            <div class="home-page"></div>
             <img class="lit-icon" >
         </div>
         `;

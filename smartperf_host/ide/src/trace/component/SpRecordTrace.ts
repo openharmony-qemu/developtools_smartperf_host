@@ -319,11 +319,14 @@ export class SpRecordTrace extends BaseElement {
   }
 
   private getDeviceVersion(version: string): string {
+    let versionNum = parseInt((version.split(" ")[1])[0]);
     if (version.indexOf('3.2') !== -1) {
       return '3.2';
     } else if (version.indexOf('4.') !== -1) {
       return '4.0+';
     } else if (version.indexOf('5.') !== -1) {
+      return '5.0+';
+    } else if (versionNum > 5) {
       return '5.0+';
     }
     return '3.2';
@@ -1453,22 +1456,7 @@ export class SpRecordTrace extends BaseElement {
               this.freshMenuDisable(true);
               this.freshConfigMenuDisable(true);
               if (SpApplication.isLongTrace) {
-                HdcDeviceManager.shellResultAsString(
-                  `${CmdConstant.CMD_CLEAR_LONG_FOLD + this.recordSetting!.longOutPath}*`,
-                  false
-                ).then(() => {
-                  HdcDeviceManager.shellResultAsString(
-                    CmdConstant.CMD_MKDIR_LONG_FOLD + this.recordSetting!.longOutPath,
-                    false
-                  ).then(() => {
-                    HdcDeviceManager.shellResultAsString(
-                      CmdConstant.CMD_SET_FOLD_AUTHORITY + this.recordSetting!.longOutPath,
-                      false
-                    ).then(() => {
-                      this.recordLongTraceCmd(traceCommandStr);
-                    });
-                  });
-                });
+                this.recordLongTraceCmd(traceCommandStr);
               } else {
                 this.recordTraceCmd(traceCommandStr);
               }
@@ -1603,33 +1591,37 @@ export class SpRecordTrace extends BaseElement {
   }
 
   private recordLongTraceCmd(traceCommandStr: string): void {
-    HdcDeviceManager.shellResultAsString(CmdConstant.CMD_SHELL + traceCommandStr, false).then((traceResult) => {
-      let re = this.isSuccess(traceResult);
-      if (re === 0) {
-        this.litSearch!.setPercent('tracing htrace down', -1);
-        HdcDeviceManager.shellResultAsString(
-          CmdConstant.CMD_TRACE_FILE_SIZE + this.recordSetting!.longOutPath,
-          false
-        ).then((traceFileSize) => {
-          this.litSearch!.setPercent(`traceFileSize is ${traceFileSize}`, -1);
-          if (traceFileSize.indexOf('No such') !== -1) {
-            this.litSearch!.setPercent('No such file or directory', -2);
-            this.buttonDisable(false);
-            this.freshConfigMenuDisable(false);
-            this.freshMenuDisable(false);
-          } else {
-            this.recordLongTrace();
-          }
-        });
-      } else if (re === 2) {
-        this.refreshDisableStyle(false, true, 'stop tracing htrace ', -1);
-      } else if (re === -1) {
-        this.refreshDisableStyle(false, true, 'The device is abnormal', -2);
-        this.progressEL!.loading = false;
-      } else {
-        this.refreshDisableStyle(false, true, 'tracing htrace failed, please check your config ', -2);
-      }
-    });
+    HdcDeviceManager.shellResultAsString(CmdConstant.CMD_CLEAR_LONG_FILE, false).then((res) => {
+      HdcDeviceManager.shellResultAsString(CmdConstant.CMD_SHELL + traceCommandStr, false).then((traceResult) => {
+        let re = this.isSuccess(traceResult);
+        if (re === 0) {
+          this.litSearch!.setPercent('tracing htrace down', -1);
+          HdcDeviceManager.shellResultAsString(
+            CmdConstant.CMD_TRACE_FILE_SIZE + this.recordSetting!.longOutPath + 'hiprofiler_data_*',
+            false
+          ).then((traceFileSize) => {
+            this.litSearch!.setPercent(`traceFileSize is ${traceFileSize}`, -1);
+            if (traceFileSize.indexOf('No such') !== -1) {
+              this.litSearch!.setPercent('No such file or directory', -2);
+              this.buttonDisable(false);
+              this.freshConfigMenuDisable(false);
+              this.freshMenuDisable(false);
+            } else {
+              this.recordLongTrace();
+            }
+          });
+        } else if (re === 2) {
+          this.refreshDisableStyle(false, true, 'stop tracing htrace ', -1);
+        } else if (re === -1) {
+          this.refreshDisableStyle(false, true, 'The device is abnormal', -2);
+          this.progressEL!.loading = false;
+        } else {
+          this.refreshDisableStyle(false, true, 'tracing htrace failed, please check your config ', -2);
+        }
+      });
+    }).catch((error) => {
+      console.error(error);
+    })
   }
 
   private refreshDisableStyle(
@@ -1685,7 +1677,7 @@ export class SpRecordTrace extends BaseElement {
             pageNumber = traceTypePage.lastIndexOf(searchNumber);
           }
           let pullRes = await HdcDeviceManager.fileRecv(
-            this.recordSetting!.longOutPath + this.longTraceList[fileIndex],
+            this.longTraceList[fileIndex],
             (perNumber: number) => {
               this.litSearch!.setPercent(`downloading ${fileType} file `, perNumber);
             }
@@ -1775,7 +1767,7 @@ export class SpRecordTrace extends BaseElement {
     if (querySelector) {
       querySelector.style.display = 'none';
     }
-    HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_LONG_FILES + this.recordSetting!.longOutPath, false).then(
+    HdcDeviceManager.shellResultAsString(CmdConstant.CMD_GET_LONG_FILES + this.recordSetting!.longOutPath + 'hiprofiler_data_*', false).then(
       (result) => {
         this.longTraceList = result.split('\n').filter((fileName) => Boolean(fileName));
         if (this.longTraceList.length > 0) {

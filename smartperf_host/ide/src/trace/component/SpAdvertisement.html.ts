@@ -87,7 +87,6 @@ export const SpAdvertisementHtml = `<style>
         <div class="sp-advertisement" id="sp-advertisement">
             <lit-icon name="close" size="18px" id = "close"></lit-icon>
             <div id="notice">
-              <img src="img/logo.png" alt="Description" class="image" id="Image">
               <div class="text"></div>
             </div>
         </div>

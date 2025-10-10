@@ -1276,5 +1276,918 @@ HWTEST_F(EventParserTest, ParseSysEnterEventAndSysEnterEvent, TestSize.Level1)
     eventCount = stream_.traceDataCache_->GetConstSysCallData().Size();
     EXPECT_EQ(eventCount, 1);
 }
+
+/**
+ * @tc.name: ParseGEvent
+ * @tc.desc: Parse GEvent
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, ParseGEvent, TestSize.Level1)
+{
+    TS_LOGI("test5-59");
+    PrintEventParser printEventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    uint64_t ts = 10;
+    uint32_t pid;
+    TracePoint point;
+    printEventParser.ParseGEvent(ts, pid, point);
+    uint64_t num = printEventParser.streamFilters_->sliceFilter_->gEventSize_;
+    EXPECT_EQ(num, 1u);
+}
+
+/**
+ * @tc.name: ParseHEvent
+ * @tc.desc: Parse HEvent
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, ParseHEvent, TestSize.Level1)
+{
+    TS_LOGI("test5-60");
+    PrintEventParser printEventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    uint64_t ts = 10;
+    TracePoint point;
+    printEventParser.ParseHEvent(ts, point);
+    bool result = printEventParser.streamFilters_->sliceFilter_->gEventFilterMap_.empty();
+    EXPECT_EQ(result, true);
+}
+
+/**
+ * @tc.name: ReciveVsync
+ * @tc.desc: Deal a reciveVsync event
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, ReciveVsync, TestSize.Level1)
+{
+    TS_LOGI("test5-61");
+    PrintEventParser printEventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    size_t row = 5;
+    std::string args = "comm";
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 1616439852302;
+    bytraceLine.pid = 1;
+    bytraceLine.cpu = 0;
+    bytraceLine.task = "ACCS0-2716";
+    bytraceLine.eventName = "sched_switch";
+    bytraceLine.argsStr =
+        "prev_comm=ACCS0 prev_pid=2716 prev_prio=120 \
+        prev_state=R ==> next_comm=kworker/0:0 next_pid=8326 next_prio=120";
+    bool result = printEventParser.ReciveVsync(row, args, bytraceLine);
+    EXPECT_EQ(result, true);
+}
+
+/**
+ * @tc.name: ReciveVsync001
+ * @tc.desc: Standard format parameters
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, ReciveVsync001, TestSize.Level1)
+{
+    TS_LOGI("test5-62");
+    PrintEventParser printEventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    BytraceLine line;
+    line.pid = 1234;
+    std::string args = "dataCount:24bytes now:211306766162 expectedEnd:211323423844 vsyncId:3179";
+    bool result = printEventParser.ReciveVsync(1, args, line);
+    EXPECT_EQ(result, true);
+}
+
+/**
+ * @tc.name: ReciveVsync002
+ * @tc.desc: All standard format parameters are set to 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, ReciveVsync002, TestSize.Level1)
+{
+    TS_LOGI("test5-63");
+    PrintEventParser printEventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    BytraceLine line;
+    line.pid = 1234;
+    std::string args = "dataCount:24bytes now:0 expectedEnd:0 vsyncId:0";
+    bool result = printEventParser.ReciveVsync(1, args, line);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: ReciveVsync003
+ * @tc.desc: Multiple requests
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, ReciveVsync003, TestSize.Level1)
+{
+    TS_LOGI("test5-64");
+    PrintEventParser printEventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    BytraceLine line;
+    line.pid = 1234;
+    std::string args = "dataCount:24bytes now:0 expectedEnd:0 vsyncId:0";
+    bool result = printEventParser.ReciveVsync(1, args, line);
+    EXPECT_EQ(result, false);
+    result = printEventParser.ReciveVsync(2, args, line);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: DealUIVsyncTaskEvent
+ * @tc.desc: Deal a UIVsyncTask event
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, DealUIVsyncTaskEvent, TestSize.Level1)
+{
+    TS_LOGI("test5-65");
+    PrintEventParser printEventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    DataIndex index = 10;
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 1616439852302;
+    bytraceLine.pid = 1;
+    bytraceLine.cpu = 0;
+    bytraceLine.task = "ACCS0-2716";
+    bytraceLine.eventName = "sched_switch";
+    bytraceLine.argsStr =
+        "prev_comm=ACCS0 prev_pid=2716 prev_prio=120 \
+        prev_state=R ==> next_comm=kworker/0:0 next_pid=8326 next_prio=120";
+    bool result = printEventParser.DealUIVsyncTaskEvent(index, bytraceLine);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: HandleFrameQueueEndEvent
+ * @tc.desc: Deal a handleFrameQueueEnd event
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, HandleFrameQueueEndEvent, TestSize.Level1)
+{
+    TS_LOGI("test5-66");
+    PrintEventParser printEventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    uint64_t ts = 123456789;
+    uint64_t pid = 1001;
+    uint64_t tid = 2002;
+    size_t callStackRow = 5;
+    printEventParser.frameCallIds_.push_back(callStackRow);
+    printEventParser.HandleFrameQueueEndEvent(ts, pid, tid, callStackRow);
+    auto result = printEventParser.frameCallIds_.empty();
+    EXPECT_EQ(result, true);
+}
+
+/**
+ * @tc.name: HandlerGH
+ * @tc.desc: Deal a handlerGH event
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, HandlerGH, TestSize.Level1)
+{
+    TS_LOGI("test5-67");
+    PrintEventParser printEventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    std::string pointStr = "prefix1234567890name:value12345";
+    TracePoint outPoint;
+    size_t tGidlength = 10;
+    auto result = printEventParser.HandlerGH(pointStr, outPoint, tGidlength);
+    EXPECT_EQ(result, 0);
+}
+
+/**
+ * @tc.name: OnRwTransaction
+ * @tc.desc: Deal a onRwTransaction event
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, OnRwTransaction, TestSize.Level1)
+{
+    TS_LOGI("test5-68");
+    PrintEventParser printEventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    size_t row = 5;
+    std::string args = "comm";
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 1616439852302;
+    bytraceLine.pid = 1;
+    bytraceLine.cpu = 0;
+    bytraceLine.task = "ACCS0-2716";
+    bytraceLine.eventName = "sched_switch";
+    bytraceLine.argsStr =
+        "prev_comm=ACCS0 prev_pid=2716 prev_prio=120 \
+        prev_state=R ==> next_comm=kworker/0:0 next_pid=8326 next_prio=120";
+    bool result = printEventParser.OnRwTransaction(row, args, bytraceLine);
+    EXPECT_EQ(result, true);
+}
+
+/**
+ * @tc.name: OnRwTransaction001
+ * @tc.desc: Deal a onRwTransaction event
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, OnRwTransaction001, TestSize.Level1)
+{
+    TS_LOGI("test5-69");
+    PrintEventParser printEventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    size_t callStackRow = 0;
+    std::string args = "transactionFlag:[3799,8], tid:5678, timestamp:987654321";
+    BytraceLine line;
+    line.pid = 1234;
+    bool result = printEventParser.OnRwTransaction(callStackRow, args, line);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: OnRwTransaction002
+ * @tc.desc: Deal a onRwTransaction evevnt
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, OnRwTransaction002, TestSize.Level1)
+{
+    TS_LOGI("test5-70");
+    PrintEventParser printEventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    size_t callStackRow = 0;
+    std::string args = "transactionFlag:[3799,8]";
+    BytraceLine line;
+    line.pid = 1234;
+    bool result = printEventParser.OnRwTransaction(callStackRow, args, line);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: OnMainThreadProcessCmd
+ * @tc.desc: Deal a onMainThreadProcessCmd event
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, OnMainThreadProcessCmd, TestSize.Level1)
+{
+    TS_LOGI("test5-71");
+    PrintEventParser printEventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    size_t row = 0;
+    std::string args = "[123,456]";
+    BytraceLine line;
+    line.pid = 1234;
+    bool result = printEventParser.OnMainThreadProcessCmd(row, args, line);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: HandleAnimationBeginEvent
+ * @tc.desc: Deal a handleAnimationBegin event
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, HandleAnimationBeginEvent, TestSize.Level1)
+{
+    TS_LOGI("test5-72");
+    PrintEventParser printEventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    TracePoint point;
+    size_t row = 5;
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 1616439852302;
+    bytraceLine.pid = 1;
+    bytraceLine.cpu = 0;
+    bytraceLine.task = "ACCS0-2716";
+    bytraceLine.eventName = "sched_switch";
+    bytraceLine.argsStr =
+        "prev_comm=ACCS0 prev_pid=2716 prev_prio=120 \
+        prev_state=R ==> next_comm=kworker/0:0 next_pid=8326 next_prio=120";
+    bool result = printEventParser.HandleAnimationBeginEvent(point, row, bytraceLine);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: OnFrameQueueStart
+ * @tc.desc: Deal a onFrameQueueStart event
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, OnFrameQueueStart, TestSize.Level1)
+{
+    TS_LOGI("test5-73");
+    PrintEventParser printEventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    uint64_t ts = 10;
+    size_t row = 5;
+    uint32_t pid;
+    bool result = printEventParser.OnFrameQueueStart(ts, row, pid);
+    EXPECT_EQ(result, true);
+}
+
+/**
+ * @tc.name: BlockedReason
+ * @tc.desc: Deal a blockedReason event
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, BlockedReason, TestSize.Level1)
+{
+    TS_LOGI("test5-74");
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    ArgsMap args{{"cpu_id", "3"}, {"state", ""}};
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 1616439852302;
+    bytraceLine.pid = 1;
+    bytraceLine.cpu = 0;
+    bytraceLine.task = "ACCS0-2716";
+    bytraceLine.eventName = "sched_switch";
+    bytraceLine.argsStr =
+        "prev_comm=ACCS0 prev_pid=2716 prev_prio=120 \
+        prev_state=R ==> next_comm=kworker/0:0 next_pid=8326 next_prio=120";
+    bool result = eventParser.BlockedReason(args, bytraceLine);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: BlockedReason001
+ * @tc.desc: Deal a blockedReason event
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, BlockedReason001, TestSize.Level1)
+{
+    TS_LOGI("test5-75");
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    ArgsMap args = {{"pid", "1234"}, {"iowait", "1"}, {"caller", "test_caller"}};
+    BytraceLine line;
+    line.ts = 123456789;
+    line.cpu = 0;
+    bool result = eventParser.BlockedReason(args, line);
+    EXPECT_EQ(result, true);
+}
+
+/**
+ * @tc.name: CpuFrequencyLimitsEvent
+ * @tc.desc: Deal a cpuFrequencyLimits event
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, CpuFrequencyLimitsEvent, TestSize.Level1)
+{
+    TS_LOGI("test5-76");
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    ArgsMap args = {{"cpu_id", "0"}, {"min", "1000000"}, {"max", "2000000"}};
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 123456789;
+    bool result = eventParser.CpuFrequencyLimitsEvent(args, bytraceLine);
+    EXPECT_EQ(result, true);
+}
+
+/**
+ * @tc.name: CpuFrequencyLimitsEvent001
+ * @tc.desc: Deal a cpuFrequencyLimits event with empty args
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, CpuFrequencyLimitsEvent001, TestSize.Level1)
+{
+    TS_LOGI("test5-77");
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    ArgsMap args;
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 123456789;
+    bool result = eventParser.CpuFrequencyLimitsEvent(args, bytraceLine);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: ParseTaskRenameEventByInitParam001
+ * @tc.desc: Parse a TaskRename event with empty args
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, ParseTaskRenameEventByInitParam001, TestSize.Level1)
+{
+    TS_LOGI("test5-78");
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 123456;
+    ArgsMap args;
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool result = eventParser.TaskRenameEvent(args, bytraceLine);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: ParseSchedWakingByInitParam001
+ * @tc.desc: Parse a SchedWaking event with empty args
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, ParseSchedWakingByInitParam001, TestSize.Level1)
+{
+    TS_LOGI("test5-79");
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 1616439852302;
+    bytraceLine.pid = 1;
+    ArgsMap args;
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool result = eventParser.SchedWakingEvent(args, bytraceLine);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: ParseCpuIdleByInitParam
+ * @tc.desc: Parse a CpuIdle event with empty args
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, ParseCpuIdleByInitParam01, TestSize.Level1)
+{
+    TS_LOGI("test5-80");
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 1616439852302;
+    bytraceLine.eventName = "POSIX";
+    ArgsMap args;
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool result = eventParser.CpuIdleEvent(args, bytraceLine);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: ParseCpuFrequencyNormal001
+ * @tc.desc: Parse a CpuFrequency event normally with empty args
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, ParseCpuFrequencyNormal001, TestSize.Level1)
+{
+    TS_LOGI("test5-81");
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 1616439852302;
+    bytraceLine.eventName = "POSIX";
+    ArgsMap args;
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool result = eventParser.CpuFrequencyEvent(args, bytraceLine);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: ProcessExitEvent
+ * @tc.desc: Deal a process exit event
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, ProcessExitEvent, TestSize.Level1)
+{
+    TS_LOGI("test5-82");
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    ArgsMap args = {{"comm", "test_process"}, {"pid", "1234"}};
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 123456789;
+    bytraceLine.cpu = 1;
+    bool result = eventParser.ProcessExitEvent(args, bytraceLine);
+    EXPECT_EQ(result, true);
+}
+
+/**
+ * @tc.name: ProcessExitEvent001
+ * @tc.desc: Deal a process exit event with empty args
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, ProcessExitEvent001, TestSize.Level1)
+{
+    TS_LOGI("test5-83");
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    ArgsMap args;
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 123456789;
+    bytraceLine.cpu = 1;
+    bool result = eventParser.ProcessExitEvent(args, bytraceLine);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: IrqHandlerEntryEvent
+ * @tc.desc: Deal a irq handler entry event with empty args
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, IrqHandlerEntryEvent, TestSize.Level1)
+{
+    TS_LOGI("test5-84");
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    ArgsMap args;
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 123456789;
+    bytraceLine.cpu = 1;
+    bool result = eventParser.IrqHandlerEntryEvent(args, bytraceLine);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: IrqHandlerExitEvent
+ * @tc.desc: Deal a irq handler exit event with empty args
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, IrqHandlerExitEvent, TestSize.Level1)
+{
+    TS_LOGI("test5-85");
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    ArgsMap args;
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 123456789;
+    bytraceLine.cpu = 1;
+    bool result = eventParser.IrqHandlerExitEvent(args, bytraceLine);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: SoftIrqEntryEvent
+ * @tc.desc: Deal a soft irq entry event with empty args
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, SoftIrqEntryEvent, TestSize.Level1)
+{
+    TS_LOGI("test5-86");
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    ArgsMap args;
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 123456789;
+    bytraceLine.cpu = 1;
+    bool result = eventParser.SoftIrqEntryEvent(args, bytraceLine);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: SoftIrqExitEvent
+ * @tc.desc: Deal a soft irq exit event with empty args
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, SoftIrqExitEvent, TestSize.Level1)
+{
+    TS_LOGI("test5-87");
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    ArgsMap args;
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 123456789;
+    bytraceLine.cpu = 1;
+    bool result = eventParser.SoftIrqExitEvent(args, bytraceLine);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: BinderTransaction
+ * @tc.desc: Deal a binder transaction event with empty args
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, BinderTransaction, TestSize.Level1)
+{
+    TS_LOGI("test5-88");
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    ArgsMap args;
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 123456789;
+    bytraceLine.cpu = 1;
+    bool result = eventParser.BinderTransaction(args, bytraceLine);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: BinderTransactionReceived
+ * @tc.desc: Deal a binder transaction received event
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, BinderTransactionReceived, TestSize.Level1)
+{
+    TS_LOGI("test5-89");
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    ArgsMap args;
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 123456789;
+    bytraceLine.cpu = 1;
+    bool result = eventParser.BinderTransactionReceived(args, bytraceLine);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: BinderTransactionAllocBufEvent
+ * @tc.desc: Deal a binder transaction allocBuf event
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, BinderTransactionAllocBufEvent, TestSize.Level1)
+{
+    TS_LOGI("test5-90");
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    ArgsMap args;
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 123456789;
+    bytraceLine.cpu = 1;
+    bool result = eventParser.BinderTransactionAllocBufEvent(args, bytraceLine);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: SetRateEvent
+ * @tc.desc: Deal a set rate event
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, SetRateEvent, TestSize.Level1)
+{
+    TS_LOGI("test5-91");
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    ArgsMap args{{"cpu_id", "3"}, {"state", ""}};
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 1616439852302;
+    bytraceLine.pid = 1;
+    bytraceLine.cpu = 0;
+    bytraceLine.task = "ACCS0-2716";
+    bytraceLine.eventName = "sched_switch";
+    bytraceLine.argsStr =
+        "prev_comm=ACCS0 prev_pid=2716 prev_prio=120 \
+        prev_state=R ==> next_comm=kworker/0:0 next_pid=8326 next_prio=120";
+    bool result = eventParser.SetRateEvent(args, bytraceLine);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: ClockEnableEvent
+ * @tc.desc: Deal a clock enable event
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, ClockEnableEvent, TestSize.Level1)
+{
+    TS_LOGI("test5-92");
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    ArgsMap args{{"cpu_id", "3"}, {"state", ""}};
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 1616439852302;
+    bytraceLine.pid = 1;
+    bytraceLine.cpu = 0;
+    bytraceLine.task = "ACCS0-2716";
+    bytraceLine.eventName = "sched_switch";
+    bytraceLine.argsStr =
+        "prev_comm=ACCS0 prev_pid=2716 prev_prio=120 \
+        prev_state=R ==> next_comm=kworker/0:0 next_pid=8326 next_prio=120";
+    bool result = eventParser.ClockEnableEvent(args, bytraceLine);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: ClockDisableEvent
+ * @tc.desc: Deal a clock disable event
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, ClockDisableEvent, TestSize.Level1)
+{
+    TS_LOGI("test5-93");
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    ArgsMap args{{"cpu_id", "3"}, {"state", ""}};
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 1616439852302;
+    bytraceLine.pid = 1;
+    bytraceLine.cpu = 0;
+    bytraceLine.task = "ACCS0-2716";
+    bytraceLine.eventName = "sched_switch";
+    bytraceLine.argsStr =
+        "prev_comm=ACCS0 prev_pid=2716 prev_prio=120 \
+        prev_state=R ==> next_comm=kworker/0:0 next_pid=8326 next_prio=120";
+    bool result = eventParser.ClockDisableEvent(args, bytraceLine);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: RegulatorSetVoltageEvent
+ * @tc.desc: Deal a regulator set voltage event
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, RegulatorSetVoltageEvent, TestSize.Level1)
+{
+    TS_LOGI("test5-94");
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    ArgsMap args{{"cpu_id", "3"}, {"state", ""}};
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 1616439852302;
+    bytraceLine.pid = 1;
+    bytraceLine.cpu = 0;
+    bytraceLine.task = "ACCS0-2716";
+    bytraceLine.eventName = "sched_switch";
+    bytraceLine.argsStr =
+        "prev_comm=ACCS0 prev_pid=2716 prev_prio=120 \
+        prev_state=R ==> next_comm=kworker/0:0 next_pid=8326 next_prio=120";
+    bool result = eventParser.RegulatorSetVoltageEvent(args, bytraceLine);
+    EXPECT_EQ(result, true);
+}
+
+/**
+ * @tc.name: RegulatorSetVoltageCompleteEvent
+ * @tc.desc: Deal a regulator set voltage complete event
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, RegulatorSetVoltageCompleteEvent, TestSize.Level1)
+{
+    TS_LOGI("test5-95");
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    ArgsMap args{{"cpu_id", "3"}, {"state", ""}};
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 1616439852302;
+    bytraceLine.pid = 1;
+    bytraceLine.cpu = 0;
+    bytraceLine.task = "ACCS0-2716";
+    bytraceLine.eventName = "sched_switch";
+    bytraceLine.argsStr =
+        "prev_comm=ACCS0 prev_pid=2716 prev_prio=120 \
+        prev_state=R ==> next_comm=kworker/0:0 next_pid=8326 next_prio=120";
+    bool result = eventParser.RegulatorSetVoltageCompleteEvent(args, bytraceLine);
+    EXPECT_EQ(result, true);
+}
+
+/**
+ * @tc.name: RegulatorDisableEvent
+ * @tc.desc: Deal a regulator disable event
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, RegulatorDisableEvent, TestSize.Level1)
+{
+    TS_LOGI("test5-96");
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    ArgsMap args{{"cpu_id", "3"}, {"state", ""}};
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 1616439852302;
+    bytraceLine.pid = 1;
+    bytraceLine.cpu = 0;
+    bytraceLine.task = "ACCS0-2716";
+    bytraceLine.eventName = "sched_switch";
+    bytraceLine.argsStr =
+        "prev_comm=ACCS0 prev_pid=2716 prev_prio=120 \
+        prev_state=R ==> next_comm=kworker/0:0 next_pid=8326 next_prio=120";
+    bool result = eventParser.RegulatorDisableEvent(args, bytraceLine);
+    EXPECT_EQ(result, true);
+}
+
+/**
+ * @tc.name: RegulatorDisableCompleteEvent
+ * @tc.desc: Deal a regulator disable complete event
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, RegulatorDisableCompleteEvent, TestSize.Level1)
+{
+    TS_LOGI("test5-97");
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    ArgsMap args{{"cpu_id", "3"}, {"state", ""}};
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 1616439852302;
+    bytraceLine.pid = 1;
+    bytraceLine.cpu = 0;
+    bytraceLine.task = "ACCS0-2716";
+    bytraceLine.eventName = "sched_switch";
+    bytraceLine.argsStr =
+        "prev_comm=ACCS0 prev_pid=2716 prev_prio=120 \
+        prev_state=R ==> next_comm=kworker/0:0 next_pid=8326 next_prio=120";
+    bool result = eventParser.RegulatorDisableCompleteEvent(args, bytraceLine);
+    EXPECT_EQ(result, true);
+}
+
+/**
+ * @tc.name: DmaFenceEvent
+ * @tc.desc: Deal a dma fence event
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, DmaFenceEvent, TestSize.Level1)
+{
+    TS_LOGI("test5-98");
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    ArgsMap args{{"cpu_id", "3"}, {"state", ""}};
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 1616439852302;
+    bytraceLine.pid = 1;
+    bytraceLine.cpu = 0;
+    bytraceLine.task = "ACCS0-2716";
+    bytraceLine.eventName = "sched_switch";
+    bytraceLine.argsStr =
+        "prev_comm=ACCS0 prev_pid=2716 prev_prio=120 \
+        prev_state=R ==> next_comm=kworker/0:0 next_pid=8326 next_prio=120";
+    bool result = eventParser.DmaFenceEvent(args, bytraceLine);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: CpuFrequencyLimitsEvent001
+ * @tc.desc: Deal a cpuFrequencyLimits event with normal args
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, CpuFrequencyLimitsEvent004, TestSize.Level1)
+{
+    TS_LOGI("test5-99");
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    ArgsMap args = {{"cpu_id", "invalid"}, {"min_freq", "1000000"}, {"max_freq", "2000000"}};
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 123456789;
+    bool result = eventParser.CpuFrequencyLimitsEvent(args, bytraceLine);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: CpuFrequencyLimitsEvent002
+ * @tc.desc: Deal a cpuFrequencyLimits event with empty min_freq
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, CpuFrequencyLimitsEvent002, TestSize.Level1)
+{
+    TS_LOGI("test5-100");
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    ArgsMap args = {{"cpu_id", "0"}, {"min_freq", ""}, {"max_freq", "2000000"}};
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 123456789;
+    bool result = eventParser.CpuFrequencyLimitsEvent(args, bytraceLine);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: CpuFrequencyLimitsEvent003
+ * @tc.desc: Deal a cpuFrequencyLimits event with empty max_freq
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, CpuFrequencyLimitsEvent003, TestSize.Level1)
+{
+    TS_LOGI("test5-101");
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    ArgsMap args = {{"cpu_id", "0"}, {"min_freq", "1000000"}, {"max_freq", ""}};
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 123456789;
+    bool result = eventParser.CpuFrequencyLimitsEvent(args, bytraceLine);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: BlockedReason002
+ * @tc.desc: Deal a blockedReason event with io_wait
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, BlockedReason002, TestSize.Level1)
+{
+    TS_LOGI("test5-102");
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    ArgsMap args = {{"pid", "invalid"}, {"io_wait", "0"}, {"caller", "another_caller"}};
+    BytraceLine line;
+    line.ts = 123456789;
+    line.cpu = 0;
+    bool result = eventParser.BlockedReason(args, line);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: BlockedReason003
+ * @tc.desc: Deal a blockedReason event with delay
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, BlockedReason003, TestSize.Level1)
+{
+    TS_LOGI("test5-103");
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    ArgsMap args = {{"pid", "1234"}, {"iowait", "invalid"}, {"caller", "another_caller"}, {"delay", "50"}};
+    BytraceLine line;
+    line.ts = 123456789;
+    line.cpu = 3;
+    line.pid = 1111;
+    bool result = eventParser.BlockedReason(args, line);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.name: SetRateEvent001
+ * @tc.desc: Deal a set rate event
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, SetRateEvent001, TestSize.Level1)
+{
+    TS_LOGI("test5-104");
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    ArgsMap args{{"name", "gpu_clk"}, {"state", "800000"}, {"extra1", "value1"}, {"extra2", "value2"}};
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 1616439852302;
+    bool result = eventParser.SetRateEvent(args, bytraceLine);
+    EXPECT_EQ(result, true);
+}
+
+/**
+ * @tc.name: ClockEnableEvent001
+ * @tc.desc: Deal a clock enable event
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, ClockEnableEvent001, TestSize.Level1)
+{
+    TS_LOGI("test5-105");
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    ArgsMap args{{"name", "cpu_clk"}, {"state", "1000000"}, {"cpu_id", "3"}};
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 1616439852302;
+    bool result = eventParser.ClockEnableEvent(args, bytraceLine);
+    EXPECT_EQ(result, true);
+}
+
+/**
+ * @tc.name: ClockDisableEvent001
+ * @tc.desc: Deal a clock enable event
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, ClockDisableEvent001, TestSize.Level1)
+{
+    TS_LOGI("test5-106");
+    BytraceEventParser eventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    ArgsMap args{{"name", "cpu_clk"}, {"state", "1000000"}, {"cpu_id", "3"}};
+    BytraceLine bytraceLine;
+    bytraceLine.ts = 1616439852302;
+    bool result = eventParser.ClockDisableEvent(args, bytraceLine);
+    EXPECT_EQ(result, true);
+}
+
+/**
+ * @tc.name: ParseStartEvent
+ * @tc.desc: Parse startevent
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventParserTest, ParseStartEvent, TestSize.Level1)
+{
+    TS_LOGI("test5-107");
+    PrintEventParser printEventParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    std::string comm = "test_comm";
+    uint64_t ts = 123456789;
+    uint32_t pid = 1234;
+    TracePoint point;
+    point.value_ = 5678;
+    point.tgid_ = 91011;
+    point.name_ = "H:M: Frame queued";
+    point.traceLevel_ = 1;
+    point.traceTagId_ = 2;
+    point.customArgsId_ = 3;
+    point.customCategoryId_ = 4;
+    BytraceLine line;
+    printEventParser.ParseStartEvent(comm, ts, pid, point, line);
+    auto slices = stream_.traceDataCache_->GetInternalSlicesData();
+    ASSERT_NE(slices, nullptr);
+}
 } // namespace TraceStreamer
 } // namespace SysTuning

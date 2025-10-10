@@ -72,6 +72,9 @@ fi
 
 if [ ! -f "hiperf/BUILD.gn" ];then
     git clone --depth=1 git@gitee.com:openharmony/developtools_hiperf.git hiperf
+    cd hiperf
+    $patch -p1  < ../../prebuilts/patch_hiperf/hiperf.patch
+    cd ..
 fi
 
 if [ ! -f "bounds_checking_function/BUILD.gn" ];then
