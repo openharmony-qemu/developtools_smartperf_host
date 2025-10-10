@@ -286,6 +286,7 @@ private createNativeConfig(): ProfilerPluginConfig<NativePluginConfig> {
     filter_napi_name: 'info',
     memtrace_enable: true,
     malloc_disable: true,
+    mmap_disable: true,
   };
   if (this.isNum === true) {
     native.pid = Number(newVal); 

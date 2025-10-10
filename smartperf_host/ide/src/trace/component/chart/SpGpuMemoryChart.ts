@@ -48,7 +48,7 @@ export class SpGpuMemoryChart {
     if (!isShowGpu && !isShowStatic) {
       return;
     }
-    let gpuMemoryType = '';
+    let gpuMemoryType = 'native_hook';
     let count = await queryCount();
     if (count && count[0] && count[0].num > 0) {
       gpuMemoryType = 'native_hook_statistic';

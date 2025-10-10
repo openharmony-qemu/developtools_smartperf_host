@@ -799,7 +799,7 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
         // @ts-ignore
         if (it.tid !== 'other') {
           // @ts-ignore
-          this.nativeThreadLevelClickEvent(it);
+          this.gpuThreadLevelClickEvent(it);
         }
       },
       hoverHandler: (data): void => {

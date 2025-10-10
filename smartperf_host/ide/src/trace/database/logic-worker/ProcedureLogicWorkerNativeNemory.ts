@@ -307,12 +307,6 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     if (libId !== undefined && libId !== -1) {
       condition = `${condition} and last_lib_id = ${libId}`; // filter lib
     }
-    if (eventType === '1') {
-      condition = `${condition} and event_type = 'AllocEvent'`;
-    }
-    if (eventType === '2') {
-      condition = `${condition} and event_type = 'MmapEvent'`;
-    }
     if (allocType === '1') {
       condition = `${condition} and ((A.end_ts - B.start_ts) > ${rightNs} or A.end_ts is null)`;
     }
