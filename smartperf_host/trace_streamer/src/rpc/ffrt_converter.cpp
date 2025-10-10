@@ -674,6 +674,9 @@ void FfrtConverter::FindFfrtProcClassifyLogs(LogInfo logInfo,
 
 static bool IsNumeric(ConStr &str)
 {
+    if (str.empty()) { 
+        return false;
+    }
     bool result = true;
     std::for_each(str.begin(), str.end(), [&](char c) {
         if (!std::isdigit(c)) {

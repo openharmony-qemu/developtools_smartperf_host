@@ -662,7 +662,9 @@ export class DataCache {
   public dataDict = new Map<number, string>();
   public eBpfCallChainsMap = new Map<number, Array<FileCallChain>>();
   public nmFileDict = new Map<number, string>();
+  public gmFileDict = new Map<number, string>();
   public nmHeapFrameMap = new Map<number, Array<HeapTreeDataBean>>();
+  public gmHeapFrameMap = new Map<number, Array<HeapTreeDataBean>>();
   public perfCountToMs = 1; // 1000 / freq
   public perfCallChainMap: Map<number, PerfCall> = new Map<number, PerfCall>();
   public jsCallChain: Array<JsProfilerSymbol> | undefined;
@@ -690,6 +692,11 @@ export class DataCache {
     this.nmHeapFrameMap.clear();
   }
 
+  public clearGM(): void {
+    this.gmFileDict.clear();
+    this.gmHeapFrameMap.clear();
+  }
+
   public clearEBpf(): void {
     this.eBpfCallChainsMap.clear();
   }
@@ -709,6 +716,7 @@ export class DataCache {
 export class InitAnalysis {
   public static instance: InitAnalysis | undefined;
   public isInitAnalysis: boolean = true;
+  public isInitGMAnalysis: boolean = true;
   public static getInstance(): InitAnalysis {
     if (!this.instance) {
       this.instance = new InitAnalysis();

@@ -213,7 +213,7 @@ enum DataSourceType {
     DATA_SOURCE_TYPE_XPOWER,
     DATA_SOURCE_TYPE_STREAM
 };
-enum HookMemoryType { MALLOC = 0, MMAP = 1, FILE_PAGE_MSG = 2, MEMORY_USING_MSG = 3 };
+enum class HookMemoryType { MALLOC = 0, MMAP = 1, FILE_PAGE_MSG = 2, MEMORY_USING_MSG = 3 };
 enum EBPF_DATA_TYPE {
     ITEM_EVENT_MAPS = 0,
     ITEM_SYMBOL_INFO,

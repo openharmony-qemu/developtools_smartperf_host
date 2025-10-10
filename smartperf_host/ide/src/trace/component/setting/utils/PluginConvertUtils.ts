@@ -302,3 +302,10 @@ export const componentTop = 'COMPONENT_TOP';
 export const appStatistic = 'APP_STATISTIC';
 export const appDetail = 'APP_DETAIL';
 export const messageTypeAll = [realBattery, thermalReport, componentTop, appStatistic, appDetail];
+
+export const resGpuVk = 'RES_GPU_VK';
+export const resGpuGlesImage = 'RES_GPU_GLES_IMAGE';
+export const resGpuGlesBuffer = 'RES_GPU_GLES_BUFFER';
+export const resGpuClImage = 'RES_GPU_CL_IMAGE';
+export const resGpuClBuffer = 'RES_GPU_CL_BUFFER';
+export const gpuTypeAll = [resGpuVk, resGpuGlesImage, resGpuGlesBuffer, resGpuClImage, resGpuClBuffer];

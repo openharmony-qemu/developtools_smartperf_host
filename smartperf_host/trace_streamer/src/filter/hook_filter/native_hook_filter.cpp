@@ -33,10 +33,12 @@ NativeHookFilter::NativeHookFilter(TraceDataCache *dataCache, const TraceStreame
     invalidLibPathIndexs_.insert(traceDataCache_->dataDict_.GetStringIndex("/system/lib/ld-musl-aarch64.so.1"));
     invalidLibPathIndexs_.insert(traceDataCache_->dataDict_.GetStringIndex("/system/lib/ld-musl-arm.so.1"));
     invalidLibPathIndexs_.insert(traceDataCache_->dataDict_.GetStringIndex("/system/lib64/libdfmalloc.z.so"));
+    invalidLibPathIndexs_.insert(traceDataCache_->dataDict_.GetStringIndex("/system/lib64/chipset-sdk-sp/libc++.so"));
     hookPluginData_->set_name("nativehook");
     commHookData_.datas = std::make_unique<BatchNativeHookData>();
     addrToAllocEventRow_ = traceDataCache_->GetNativeHookData()->GetAddrToAllocEventRow();
     addrToMmapEventRow_ = traceDataCache_->GetNativeHookData()->GetAddrToMmapEventRow();
+    addrToTraceAllocEventRow_ = traceDataCache_->GetNativeHookData()->GetAddrToTraceAllocEventRow();
 }
 
 void NativeHookFilter::ParseConfigInfo(ProtoReader::BytesView &protoData, uint64_t &statisticsInterval)
@@ -294,7 +296,7 @@ void NativeHookFilter::ParseAllocEvent(uint64_t timeStamp, const ProtoReader::By
     auto row = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(nativeHookRow);
     addrToAllocEventRow_->insert(std::make_pair(allocEventReader.addr(), static_cast<uint64_t>(row)));
     if (allocEventReader.size() != 0) {
-        MaybeUpdateCurrentSizeDur(row, timeStamp, true);
+        MaybeUpdateCurrentSizeDur(row, timeStamp, NativeType::MALLOC);
     }
     // Uncompressed call stack
     if (allocEventReader.has_frame_info()) {
@@ -361,7 +363,7 @@ void NativeHookFilter::ParseFreeEvent(uint64_t timeStamp, const ProtoReader::Byt
         callChainId, ipid, itid, "FreeEvent", INVALID_UINT64, timeStamp, 0, 0, freeEventReader.addr(), freeHeapSize};
     row = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(nativeHookRow);
     if (freeHeapSize != 0) {
-        MaybeUpdateCurrentSizeDur(row, timeStamp, true);
+        MaybeUpdateCurrentSizeDur(row, timeStamp, NativeType::MALLOC);
     }
     // Uncompressed call stack
     if (freeEventReader.has_frame_info()) {
@@ -427,7 +429,7 @@ void NativeHookFilter::ParseMmapEvent(uint64_t timeStamp, const ProtoReader::Byt
     addrToMmapEventRow_->insert(std::make_pair(mMapAddr, static_cast<uint64_t>(row)));
     // update currentSizeDur.
     if (mMapSize) {
-        MaybeUpdateCurrentSizeDur(row, timeStamp, false);
+        MaybeUpdateCurrentSizeDur(row, timeStamp, NativeType::MMAP);
     }
     // Uncompressed call stack
     if (mMapEventReader.has_frame_info()) {
@@ -502,13 +504,114 @@ void NativeHookFilter::ParseMunmapEvent(uint64_t timeStamp, const ProtoReader::B
     row = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(nativeHookRow);
     addrToMmapTag_.erase(mUnmapEventReader.addr()); // earse MemMapSubType with addr
     if (mUnmapEventReader.size() != 0) {
-        MaybeUpdateCurrentSizeDur(row, timeStamp, false);
+        MaybeUpdateCurrentSizeDur(row, timeStamp, NativeType::MMAP);
     }
     // Uncompressed call stack
     if (mUnmapEventReader.has_frame_info()) {
         CompressStackAndFrames(row, mUnmapEventReader.frame_info());
     }
 }
+
+void NativeHookFilter::ParseTraceAllocEvent(uint64_t timeStamp, const ProtoReader::BytesView &bytesView)
+{
+    ProtoReader::TraceAllocEvent_Reader traceAllocEventReader(bytesView);
+    auto callChainId = traceAllocEventReader.stack_id();
+    uint64_t threadId = traceAllocEventReader.thread_name_id();
+    auto itid = streamFilters_->processFilter_->GetOrCreateThreadWithPid(traceAllocEventReader.tid(),
+                                                                         traceAllocEventReader.pid());
+    auto ipid = traceDataCache_->GetConstThreadData(itid).internalPid_;
+    if (threadId) {
+        UpdateMap(itidToThreadNameId_, itid, threadId);
+    }
+    auto traceAllocAddr = traceAllocEventReader.addr();
+    auto traceAllocSize = traceAllocEventReader.size();
+    auto traceAllocType = traceAllocEventReader.trace_type();
+    std::string gpuAllocType;
+    NativeType nativeType;
+    switch (traceAllocType) {
+        case ProtoReader::TraceType::GPU_VK:
+            gpuAllocType = "GPU_VK_Alloc_Event";
+            nativeType = NativeType::GPU_VK;
+            break;
+        case ProtoReader::TraceType::GPU_GLES:
+            gpuAllocType = "GPU_GLES_Alloc_Event";
+            nativeType = NativeType::GPU_GLES;
+            break;
+        case ProtoReader::TraceType::GPU_CL:
+            gpuAllocType = "GPU_CL_Alloc_Event";
+            nativeType = NativeType::GPU_CL;
+            break;
+        default:
+            return;
+    }
+    NativeHookRow nativeHookRow = {callChainId,
+                                   ipid,
+                                   itid,
+                                   gpuAllocType,
+                                   INVALID_UINT64,
+                                   timeStamp,
+                                   0,
+                                   0,
+                                   traceAllocAddr,
+                                   static_cast<int64_t>(traceAllocSize)};
+    auto row = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(nativeHookRow);
+    addrToTraceAllocEventRow_->insert(std::make_pair(traceAllocAddr, static_cast<uint64_t>(row)));
+    if (traceAllocSize != 0) {
+        MaybeUpdateCurrentSizeDur(row, timeStamp, nativeType);
+    }
+}
+void NativeHookFilter::ParseTraceFreeEvent(uint64_t timeStamp, const ProtoReader::BytesView &bytesView)
+{
+    ProtoReader::TraceFreeEvent_Reader traceFreeEventReader(bytesView);
+    auto callChainId = traceFreeEventReader.stack_id();
+    uint64_t threadId = traceFreeEventReader.thread_name_id();
+    auto itid = streamFilters_->processFilter_->GetOrCreateThreadWithPid(traceFreeEventReader.tid(),
+                                                                         traceFreeEventReader.pid());
+    auto ipid = traceDataCache_->GetConstThreadData(itid).internalPid_;
+    if (threadId) {
+        UpdateMap(itidToThreadNameId_, itid, threadId);
+    }
+    uint64_t row = INVALID_UINT64;
+    int64_t traceFreeSize = 0;
+    auto traceFreeAddr = traceFreeEventReader.addr();
+    auto traceFreeType = traceFreeEventReader.trace_type();
+    std::string gpuFreeType;
+    NativeType nativeType;
+    switch (traceFreeType) {
+        case ProtoReader::TraceType::GPU_VK:
+            gpuFreeType = "GPU_VK_Free_Event";
+            nativeType = NativeType::GPU_VK;
+            break;
+        case ProtoReader::TraceType::GPU_GLES:
+            gpuFreeType = "GPU_GLES_Free_Event";
+            nativeType = NativeType::GPU_GLES;
+            break;
+        case ProtoReader::TraceType::GPU_CL:
+            gpuFreeType = "GPU_CL_Free_Event";
+            nativeType = NativeType::GPU_CL;
+            break;
+        default:
+            return;
+    }
+    if (addrToTraceAllocEventRow_->count(traceFreeAddr)) {
+        row = addrToTraceAllocEventRow_->at(traceFreeAddr);
+    }
+    if (row != INVALID_UINT64 && timeStamp >= traceDataCache_->GetNativeHookData()->TimeStampData()[row]) {
+        addrToTraceAllocEventRow_->erase(traceFreeAddr);
+        traceDataCache_->GetNativeHookData()->UpdateEndTimeStampAndDuration(row, timeStamp);
+        traceFreeSize = traceDataCache_->GetNativeHookData()->MemSizes()[row];
+    } else {
+        TS_LOGD("func addr:%" PRIu64 " is empty", traceFreeAddr);
+        return;
+    }
+    NativeHookRow nativeHookRow = {callChainId, ipid, itid, gpuFreeType, INVALID_UINT64, timeStamp, 0, 0,
+                                   traceFreeAddr, traceFreeSize};
+    row = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(nativeHookRow);
+    if (traceFreeSize != 0) {
+        MaybeUpdateCurrentSizeDur(row, timeStamp, nativeType);
+    }
+}
+
 void NativeHookFilter::ParseTagEvent(const ProtoReader::BytesView &bytesView)
 {
     ProtoReader::MemTagEvent_Reader memTagEventReader(bytesView);
@@ -576,6 +679,10 @@ void NativeHookFilter::FilterNativeHookMainEvent(size_t num)
         } else if (nativeHookDataReader->has_tag_event()) {
             streamFilters_->statFilter_->IncreaseStat(TRACE_NATIVE_HOOK_MEMTAG, STAT_EVENT_RECEIVED);
             ParseTagEvent(nativeHookDataReader->tag_event());
+        } else if (nativeHookDataReader->has_trace_alloc_event()) {
+            ParseTraceAllocEvent(timeStamp, nativeHookDataReader->trace_alloc_event());
+        } else if (nativeHookDataReader->has_trace_free_event()) {
+            ParseTraceFreeEvent(timeStamp, nativeHookDataReader->trace_free_event());
         }
     }
     tsToMainEventsMap_.erase(tsToMainEventsMap_.begin(), itor);
@@ -796,7 +903,7 @@ void NativeHookFilter::ParseMapsEvent(std::unique_ptr<NativeHookMetaData> &nativ
     }
     // Get [start, end) of ips addr range which need to update
     std::tie(start, end) = GetNeedUpdateProcessMapsAddrRange(ipid, startAddr, endAddr);
-    if (start != INVALID_UINT64 && start != end) { // Conflicting
+    if (start != INVALID_UINT64 && start != end && (start != startAddr && end != endAddr)) { // Conflicting
         /* First parse the updated call stacks, then parse the main events, and finally update Maps or SymbolTable
         Note that when tsToMainEventsMap_.size() > MAX_CACHE_SIZE and main events need to be resolved, this logic
         should also be followed. */
@@ -878,7 +985,8 @@ void NativeHookFilter::ProcSymbolTable(uint32_t ipid,
                                        std::shared_ptr<ProtoReader::SymbolTable_Reader> reader)
 {
     auto symbolTablePtr = ipidTofilePathIdToSymbolTableMap_.Find(ipid, filePathId);
-    if (symbolTablePtr != nullptr) { // SymbolTable already exists.
+    if (symbolTablePtr != nullptr && reader != nullptr &&
+        !IsSameSymbolTable(reader, symbolTablePtr)) { // SymbolTable already exists.
         /* First parse the updated call stacks, then parse the main events, and finally update Maps or SymbolTable
         Note that when tsToMainEventsMap_.size() > MAX_CACHE_SIZE and main events need to be resolved, this logic
         should also be followed. */
@@ -929,14 +1037,33 @@ void NativeHookFilter::ParseSymbolTableEvent(std::unique_ptr<NativeHookMetaData>
     }
 }
 
-void NativeHookFilter::MaybeUpdateCurrentSizeDur(uint64_t row, uint64_t timeStamp, bool isMalloc)
+void NativeHookFilter::MaybeUpdateCurrentSizeDur(uint64_t row, uint64_t timeStamp, NativeType type)
 {
-    auto &lastAnyEventRaw = isMalloc ? traceDataCache_->GetNativeHookData()->GetLastMallocEventRaw()
-                                     : traceDataCache_->GetNativeHookData()->GetLastMmapEventRaw();
-    if (lastAnyEventRaw != INVALID_UINT64) {
-        traceDataCache_->GetNativeHookData()->UpdateCurrentSizeDur(lastAnyEventRaw, timeStamp);
+    uint64_t *lastAnyEventRaw = nullptr;
+    switch (type) {
+        case NativeType::MALLOC:
+            lastAnyEventRaw = &traceDataCache_->GetNativeHookData()->GetLastMallocEventRaw();
+            break;
+        case NativeType::MMAP:
+            lastAnyEventRaw = &traceDataCache_->GetNativeHookData()->GetLastMmapEventRaw();
+            break;
+        case NativeType::GPU_VK:
+            lastAnyEventRaw = &traceDataCache_->GetNativeHookData()->GetLastGpuVkEventRaw();
+            break;
+        case NativeType::GPU_GLES:
+            lastAnyEventRaw = &traceDataCache_->GetNativeHookData()->GetLastGpuGlesEventRaw();
+            break;
+        case NativeType::GPU_CL:
+            lastAnyEventRaw = &traceDataCache_->GetNativeHookData()->GetLastGpuClEventRaw();
+            break;
+        default:
+            TS_LOGE("Unknown type: %d", type);
+            return;
     }
-    lastAnyEventRaw = row;
+    if (*lastAnyEventRaw != INVALID_UINT64) {
+        traceDataCache_->GetNativeHookData()->UpdateCurrentSizeDur(*lastAnyEventRaw, timeStamp);
+    }
+    *lastAnyEventRaw = row;
 }
 
 // when symbolization failed, use filePath + vaddr as symbol name
@@ -1286,6 +1413,26 @@ void NativeHookFilter::SerializeHookCommDataToString()
     commHookData_.datas->Clear();
     commHookData_.size = 0;
     hookPluginData_->set_name("nativehook");
+}
+bool NativeHookFilter::IsSameSymbolTable(std::shared_ptr<ProtoReader::SymbolTable_Reader> reader1,
+                                         std::shared_ptr<ProtoReader::SymbolTable_Reader> reader2)
+{
+    return reader1->file_path_id() == reader2->file_path_id() &&
+           reader1->text_exec_vaddr() == reader2->text_exec_vaddr() &&
+           reader1->text_exec_vaddr_file_offset() == reader2->text_exec_vaddr_file_offset() &&
+           reader1->sym_entry_size() == reader2->sym_entry_size() &&
+           AreBytesViewsEqual(reader1->sym_table(), reader2->sym_table()) &&
+           AreBytesViewsEqual(reader1->str_table(), reader2->str_table()) && reader1->pid() == reader2->pid();
+}
+bool NativeHookFilter::AreBytesViewsEqual(const ProtoReader::BytesView &view1, const ProtoReader::BytesView &view2)
+{
+    if (view1.Size() != view2.Size()) {
+        return false;
+    }
+    if (view1.Data() == nullptr || view2.Data() == nullptr) {
+        return false;
+    }
+    return std::memcmp(view1.Data(), view2.Data(), view1.Size()) == 0;
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

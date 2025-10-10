@@ -21,6 +21,7 @@ import { ProcedureLogicWorkerCpuState } from './ProcedureLogicWorkerCpuState';
 import { ProcedureLogicWorkerSchedulingAnalysis } from './ProcedureLogicWorkerSchedulingAnalysis';
 import { DataCache } from './ProcedureLogicWorkerCommon';
 import { ProcedureLogicWorkerJsCpuProfiler } from './ProcedureLogicWorkerJsCpuProfiler';
+import {ProcedureLogicWorkerGpuMemory} from './ProcedureLogicWorkerGpuMemory';
 
 let logicWorker = {
   perf: new ProcedureLogicWorkerPerf(),
@@ -30,6 +31,7 @@ let logicWorker = {
   spt: new ProcedureLogicWorkerSPT(),
   scheduling: new ProcedureLogicWorkerSchedulingAnalysis(),
   jsCpuProfile: new ProcedureLogicWorkerJsCpuProfiler(),
+  'gpu-memory': new ProcedureLogicWorkerGpuMemory(),
 };
 
 function match(req: { id: string; type: string; params: { dataDict: Map<number, string> } }): void {

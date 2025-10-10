@@ -20,6 +20,7 @@ import { SpFreqChart } from './SpFreqChart';
 import { SpFpsChart } from './SpFpsChart';
 import { info } from '../../../log/Log';
 import { SpNativeMemoryChart } from './SpNativeMemoryChart';
+import { SpGpuMemoryChart } from './SpGpuMemoryChart';
 import { SpAbilityMonitorChart } from './SpAbilityMonitorChart';
 import { SpProcessChart } from './SpProcessChart';
 import { perfDataQuery } from './PerfDataQuery';
@@ -75,6 +76,7 @@ export class SpChartManager {
   private virtualMemChart: SpVirtualMemChart;
   private fps: SpFpsChart;
   private nativeMemory: SpNativeMemoryChart;
+  private gpuMemory: SpGpuMemoryChart;
   private abilityMonitor: SpAbilityMonitorChart;
   private process: SpProcessChart;
   private process2?: SpProcessChart;
@@ -109,6 +111,7 @@ export class SpChartManager {
     this.virtualMemChart = new SpVirtualMemChart(trace);
     this.fps = new SpFpsChart(trace);
     this.nativeMemory = new SpNativeMemoryChart(trace);
+    this.gpuMemory = new SpGpuMemoryChart(trace);
     this.abilityMonitor = new SpAbilityMonitorChart(trace);
     this.process = new SpProcessChart(trace);
     this.sdkChart = new SpSdkChart(trace);
@@ -219,6 +222,8 @@ export class SpChartManager {
     await this.fps.init();
     progress('native memory', 87);
     await this.nativeMemory.initChart();
+    progress('gpu memory', 87.5);
+    await this.gpuMemory.initChart();
     progress('ability monitor', 88);
     await this.abilityMonitor.init();
     progress('hiSysevent', 88.2);

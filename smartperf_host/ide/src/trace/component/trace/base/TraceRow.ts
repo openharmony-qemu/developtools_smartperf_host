@@ -65,6 +65,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_CPU_FREQ_LIMITALL = 'cpu-frequency-limit';
   static ROW_TYPE_FPS = 'fps';
   static ROW_TYPE_NATIVE_MEMORY = 'native-memory';
+  static ROW_TYPE_GPU_MEMORY = 'gpu-memory';
   static ROW_TYPE_HIPERF = 'hiperf';
   static ROW_TYPE_HIPERF_THREADTYPE: Array<number> = [-2];
   static ROW_TYPE_DELIVER_INPUT_EVENT = 'DeliverInputEvent';
@@ -87,6 +88,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_FILE_SYSTEM_GROUP = 'file-system-group';
   static ROW_TYPE_FILE_SYSTEM = 'file-system-cell';
   static ROW_TYPE_HEAP = 'heap';
+  static ROW_TYPE_GPU_HEAP = 'gpu_heap';
   static ROW_TYPE_ARK_TS = 'ark-ts';
   static ROW_TYPE_HEAP_SNAPSHOT = 'heap-snapshot';
   static ROW_TYPE_HEAP_TIMELINE = 'heap-timeline';

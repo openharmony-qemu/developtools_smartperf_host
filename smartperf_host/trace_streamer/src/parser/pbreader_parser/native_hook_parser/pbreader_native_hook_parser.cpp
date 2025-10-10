@@ -170,7 +170,9 @@ void PbreaderNativeHookParser::Parse(PbreaderDataSegment &dataSeg, bool &haveSpl
         isCommData_ =
             !(nativeHookMetaData->reader_->has_alloc_event() || nativeHookMetaData->reader_->has_free_event() ||
               nativeHookMetaData->reader_->has_mmap_event() || nativeHookMetaData->reader_->has_munmap_event() ||
-              nativeHookMetaData->reader_->has_statistics_event());
+              nativeHookMetaData->reader_->has_statistics_event() ||
+              nativeHookMetaData->reader_->has_trace_alloc_event() ||
+              nativeHookMetaData->reader_->has_trace_free_event());
         hookBootTime_ = 0;
         if (!isCommData_ && (nativeHookMetaData->reader_->has_tv_sec() || nativeHookMetaData->reader_->has_tv_nsec())) {
             auto timeStamp = nativeHookMetaData->reader_->tv_nsec() + nativeHookMetaData->reader_->tv_sec() * SEC_TO_NS;

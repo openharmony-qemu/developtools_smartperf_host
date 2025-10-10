@@ -48,7 +48,6 @@ const CONFIG_STATE: unknown = {
 @element('sp-flags')
 export class SpFlags extends BaseElement {
   private bodyEl: HTMLElement | undefined | null;
-  private xiaoLubanEl: Element | null | undefined;
   private systemCallSelect: LitSelectV | undefined | null;
   private systemCallInput: HTMLInputElement | undefined | null;
   private systemCallEventId: number[] = [];
@@ -146,26 +145,8 @@ export class SpFlags extends BaseElement {
       }
       configSelect.appendChild(configOption);
     });
-    // 页面刷新时，选项并未改变，小鲁班也应当展示
-    this.xiaoLubanEl = document.querySelector('sp-application')?.shadowRoot?.querySelector('#sp-bubbles')
-      ?.shadowRoot?.querySelector('#xiao-luban-help');
-    if (configSelect.title === 'AI' && configSelect.selectedOptions[0].value === 'Enabled') {
-      this.xiaoLubanEl?.setAttribute('enabled', '');
-    }
     configSelect.addEventListener('change', () => {
       this.flagSelectListener(configSelect);
-      if (configSelect.title === 'AI') {
-        let userIdInput: HTMLInputElement | null | undefined = this.shadowRoot?.querySelector('#user_id_input');
-        if (configSelect.selectedOptions[0].value === 'Enabled') {
-          if (userIdInput?.value === '') {
-            userIdInput.style.border = '1px solid red';
-          }
-          this.xiaoLubanEl?.setAttribute('enabled', '');
-        } else {
-          userIdInput!.style.border = '1px solid #ccc';
-          this.xiaoLubanEl?.removeAttribute('enabled');
-        }
-      }
       if (configSelect.title === 'System Calls') {
         if (configSelect.selectedOptions[0].value === 'Enabled') {
           this.systemCallSelect?.removeAttribute('disabled');
@@ -177,10 +158,6 @@ export class SpFlags extends BaseElement {
         }
       }
     });
-    let userIdInput: HTMLInputElement | null | undefined = this.shadowRoot?.querySelector('#user_id_input');
-    if (configSelect.title === 'AI' && configSelect.selectedOptions[0].value === 'Enabled' && userIdInput?.value === '') {
-      userIdInput.style.border = '1px solid red';
-    }
     let description = document.createElement('div');
     description.className = 'flag-des-div';
     description.textContent = config.describeContent;
@@ -276,28 +253,6 @@ export class SpFlags extends BaseElement {
 
       if (config.title === 'Hangs Detection') {//初始化Hangs Detection
         let configFooterDiv = this.createPersonOption(HANG_CONTENT, configKey, config);
-        configDiv.appendChild(configFooterDiv);
-      }
-      if (config.title === 'AI') {
-        let configFooterDiv = document.createElement('div');
-        configFooterDiv.className = 'config_footer';
-        let userIdLabelEl = document.createElement('label');
-        userIdLabelEl.className = 'device_label';
-        userIdLabelEl.textContent = 'User Id: ';
-        let userIdInputEl = document.createElement('input');
-        userIdInputEl.value = <string>config.addInfo!.userId;
-        userIdInputEl.addEventListener('blur', () => {
-          if (userIdInputEl.value !== '') {
-            userIdInputEl.style.border = '1px solid #ccc';
-            FlagsConfig.updateFlagsConfig('userId', userIdInputEl.value);
-          } else {
-            userIdInputEl.style.border = '1px solid red';
-          }
-        });
-        userIdInputEl.className = 'device_input';
-        userIdInputEl.id = 'user_id_input';
-        configFooterDiv.appendChild(userIdLabelEl);
-        configFooterDiv.appendChild(userIdInputEl);
         configDiv.appendChild(configFooterDiv);
       }
       if (config.title === 'System Calls') {
@@ -469,12 +424,6 @@ export class FlagsConfig {
       title: 'RawTraceCutStartTs',
       switchOptions: [{ option: 'Enabled', selected: true }, { option: 'Disabled' }],
       describeContent: 'Raw Trace Cut By StartTs, StartTs = Max(Cpu1 StartTs, Cpu2 StartTs, ..., CpuN StartTs)',
-    },
-    {
-      title: 'AI',
-      switchOptions: [{ option: 'Enabled' }, { option: 'Disabled', selected: true }],
-      describeContent: 'Start AI',
-      addInfo: { userId: '' },
     },
     {
       title: 'System Calls',

@@ -97,6 +97,7 @@ private:
     TraceStreamerConfig config_;
     const uint32_t SCHED_BLOCKED_REASON_FIELD_SIZE_EIGHT = 8;
     const uint32_t NEW_SCHED_PRIO_SIZE = 2;
+    const uint32_t DO_NOT_HAVE_NEXT_INFO_SIZE = 7;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

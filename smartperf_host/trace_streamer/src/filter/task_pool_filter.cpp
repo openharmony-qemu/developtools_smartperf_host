@@ -104,7 +104,12 @@ bool TaskPoolFilter::UpdateAssignData(const std::unordered_map<std::string, std:
     }
     auto allocItid = traceDataCache_->GetConstInternalSlicesData().CallIds()[index];
     auto priority = base::StrToInt<uint32_t>(args.at("priority"));
-    auto executeState = base::StrToInt<uint32_t>(args.at("executeState"));
+    auto executeStateStr = args.at("executeState");
+    auto pos = executeStateStr.find("|");
+    if (pos != std::string::npos) {
+        executeStateStr = executeStateStr.substr(0, pos);
+    }
+    auto executeState = base::StrToInt<uint32_t>(executeStateStr);
     auto id = GetExecuteIdOrTaskId(args);
     uint32_t returnValue = CheckTheSameTask(id.value(), index);
     if (returnValue == INVALID_INT32) {

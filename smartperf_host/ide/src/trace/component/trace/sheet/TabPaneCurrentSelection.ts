@@ -72,6 +72,7 @@ import { XpowerWifiStruct } from '../../../database/ui-worker/ProcedureWorkerXpo
 import { XpowerThreadCountStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerThreadCount';
 import { XpowerGpuFreqCountStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerGpuFreqCount';
 import { ThreadSysCallStruct } from '../../../database/ui-worker/ProcedureWorkerThreadSysCall';
+import { InterfaceConfigManager } from '../../../../utils/interfaceConfiguration';
 
 const INPUT_WORD =
   'This is the interval from when the task became eligible to run \n(e.g.because of notifying a wait queue it was a suspended on) to\n when it started running.';
@@ -231,6 +232,52 @@ export class TabPaneCurrentSelection extends BaseElement {
     });
   }
 
+  // 处理next_info的展示
+  parseSchedSwitchHmNew(num: number): string {
+    let numBig = BigInt(num);
+    // 将数字拆分为高32位和低32位
+    // @ts-ignore
+    const low = Number(numBig & 0xFFFFFFFFn);
+    // @ts-ignore
+    const high = Number((numBig >> 32n) & 0xFFFFFFFFn);
+
+    // 创建一个8字节的Uint8Array
+    const buffer = new Uint8Array(8);
+    const view = new DataView(buffer.buffer);
+
+    // 写入低32位（小端序）
+    view.setUint32(0, low, true);
+    // 写入高32位（小端序）
+    view.setUint32(4, high, true);
+
+    // 读取前4个字节作为tmpAffinity（小端序）
+    const tmpAffinity = view.getUint32(0, true);
+    let affinity = tmpAffinity.toString(16);
+    affinity = affinity.replace(/^0+/, '');
+    affinity = affinity === '' ? '0' : affinity;
+
+    // 读取后4个字节作为remaining（小端序）
+    const remaining = view.getUint32(4, true);
+
+    // 定义位域掩码
+    const loadMask = (1 << 10) - 1;
+    const groupMask = (1 << 2) - 1;
+    const restrictedMask = 1;
+    const expelMask = (1 << 3) - 1;
+    const cgidMask = (1 << 5) - 1;
+
+    // 按位域偏移量解析
+    const load = ((remaining >> 0) & loadMask) << 1;
+    const group = (remaining >> 10) & groupMask;
+    const restricted = (remaining >> 12) & restrictedMask;
+    const expel = (remaining >> 13) & expelMask;
+    const cgid = (remaining >> 16) & cgidMask;
+
+    // 拼接结果字符串
+    const result = `${affinity},${load},${group},${restricted},${expel},${cgid}`;
+    return result;
+  }
+
   async setCpuData(
     data: CpuStruct,
     callback: ((data: WakeupBean | null) => void) | undefined = undefined,
@@ -255,7 +302,11 @@ export class TabPaneCurrentSelection extends BaseElement {
       }
       if (args.length > 0) {
         args.forEach((arg) => {
-          list.push({ name: arg.keyName, value: arg.strValue });
+          if (arg.keyName === 'next_info') {
+            list.push({ name: arg.keyName, value: arg.strValue?.indexOf(',') === -1 ? this.parseSchedSwitchHmNew(Number(arg.strValue)) : arg.strValue });
+          } else {
+            list.push({ name: arg.keyName, value: arg.strValue })
+          }
         });
       }
       this.currentSelectionTbl!.dataSource = list;
@@ -429,9 +480,11 @@ export class TabPaneCurrentSelection extends BaseElement {
       let informationList: Array<FunDetail> = FunDetailList.filter((v: FunDetail) => {
         return v.slice.indexOf(name) > -1 || name.indexOf(v.slice) > -1;
       });
+      const currentConfig = InterfaceConfigManager.getConfig()?.traceInfoConfig;
       information = informationList && informationList.length > 0 ? informationList[0].CN :
         `<div style="white-space: nowrap;display: flex;align-items: center">
            <div style="white-space:pre-wrap">无相关描述，如您知道具体含义可点击反馈</div>
+               ${currentConfig!.content || ''}
                <lit-icon style="cursor:pointer;margin-left: 5px; margin-top:5px" id="informationJump" name="select" color="#7fa1e7" size="20">
                </lit-icon>
            </a>
@@ -694,14 +747,14 @@ export class TabPaneCurrentSelection extends BaseElement {
 
   private addTabSliceDetail(data: FuncStruct, list: unknown[]) {
     const properties = [
-      {key: 'trace_level', name: 'TraceLevel'},
-      {key: 'trace_tag', name: 'TraceTag'},
-      {key: 'category', name: 'Category'},
-      {key: 'custom_args', name: 'CustomArgs'},
+      { key: 'trace_level', name: 'TraceLevel' },
+      { key: 'trace_tag', name: 'TraceTag' },
+      { key: 'category', name: 'Category' },
+      { key: 'custom_args', name: 'CustomArgs' },
     ];
     properties.forEach(prop => {
       if (data[prop.key] && list !== undefined) {
-        list!.push({name: prop.name, value: data[prop.key]});
+        list!.push({ name: prop.name, value: data[prop.key] });
       }
     });
     return list;
@@ -896,7 +949,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     this.currentSelectionTbl!.dataSource = list;
   }
 
-  async setXpowerData(data: XpowerStruct): Promise<void> {  
+  async setXpowerData(data: XpowerStruct): Promise<void> {
     if (SpApplication.traceType.indexOf('SQLite') === -1) {
       await this.setRealTime();
     }
@@ -918,8 +971,8 @@ export class TabPaneCurrentSelection extends BaseElement {
     this.addClickToTransfBtn(startTimeAbsolute, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
   }
 
-  
-  async setXpowerTreadCountData(data: XpowerThreadCountStruct): Promise<void> {  
+
+  async setXpowerTreadCountData(data: XpowerThreadCountStruct): Promise<void> {
     if (SpApplication.traceType.indexOf('SQLite') === -1) {
       await this.setRealTime();
     }
@@ -941,7 +994,7 @@ export class TabPaneCurrentSelection extends BaseElement {
     this.addClickToTransfBtn(startTimeAbsolute, CLOCK_TRANSF_BTN_ID, CLOCK_STARTTIME_ABSALUTED_ID);
   }
 
-  async setXpowerGpuFreqCountData(data: XpowerGpuFreqCountStruct): Promise<void> {  
+  async setXpowerGpuFreqCountData(data: XpowerGpuFreqCountStruct): Promise<void> {
     if (SpApplication.traceType.indexOf('SQLite') === -1) {
       await this.setRealTime();
     }
@@ -1372,7 +1425,13 @@ export class TabPaneCurrentSelection extends BaseElement {
       if (args.length > 0) {
         args.forEach((arg: unknown) => {
           // @ts-ignore
-          list.push({ name: arg.keyName, value: arg.strValue });
+          if (arg.keyName === 'next_info') {
+            // @ts-ignore
+            list.push({ name: arg.keyName, value: arg.strValue?.indexOf(',') === -1 ? this.parseSchedSwitchHmNew(Number(arg.strValue)) : arg.strValue });
+          } else {
+            // @ts-ignore
+            list.push({ name: arg.keyName, value: arg.strValue })
+          }
         });
       }
       this.currentSelectionTbl!.dataSource = list;

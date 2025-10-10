@@ -44,4 +44,5 @@ export class CmdConstant {
   static CMD_GET_LONG_FILES = 'hdc_std shell ls ';
   static CMD_SET_FOLD_AUTHORITY = 'hdc_std shell chmod -R 777 ';
   static CMD_UNAME = 'hdc shell uname -a';
+  static CMD_CLEAR_LONG_FILE = 'hdc_std shell rm -r /data/local/tmp/hiprofiler_data_* ';
 }

@@ -16,13 +16,14 @@
 import { BaseElement, element } from '../../base-ui/BaseElement';
 import { SpAdvertisementHtml } from './SpAdvertisement.html';
 import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil';
+import { InterfaceConfigManager } from '../../utils/interfaceConfiguration';
 
 @element('sp-advertisement')
 export class SpAdvertisement extends BaseElement {
     private advertisementEL: HTMLElement | undefined | null;
     private closeEL: HTMLElement | undefined | null;
     private noticeEl: HTMLElement | undefined | null;
-    private message: string = '';
+    private publishUrl: string = '';
 
     initElements(): void {
         // 整个广告
@@ -38,41 +39,40 @@ export class SpAdvertisement extends BaseElement {
             this.advertisementEL!.style!.display = 'none';
             localStorage.setItem('isdisplay', 'false');
         });
+        this.getMessage();
+        setInterval(() => {
+            this.getMessage();
+        }, 300000);
     };
 
-    private getMessage(): void {
-        SpStatisticsHttpUtil.getNotice().then(res => {
-            if (res.status === 200) {
-                res.text().then((it) => {
-                    let resp = JSON.parse(it);
-                    let publish = localStorage.getItem('message');
-                    if (resp && resp.data && resp.data.data && resp.data.data !== '') {
-                        this.message = resp.data.data;
-                        localStorage.setItem('message', this.message);
-                        let parts = this.message.split(';');
-                        let registrationLinkInfo = (parts[2].match(/版本特性链接:([^\s]+)/) || [])[1] || '';
-                        let registrationLink = `<a href="${registrationLinkInfo}" target="_blank">版本特性链接</a>`;
-                        let finalString = `${parts[0]}<br>${parts[1]}<br>${registrationLink}`;
-                        this.noticeEl!.innerHTML = `<p>${finalString}</p>`;
-                        if (publish) {
-                            if (resp.data.data !== publish) {
-                                localStorage.setItem('isdisplay', 'true');
-                            }
-                        } else {
+    private async getMessage(): Promise<void> {
+        try {
+            await SpStatisticsHttpUtil.getServerInfo();
+            let publish = localStorage.getItem('publishUrl');
+            const advertisingConfig = InterfaceConfigManager.getConfig()?.advertisingConfig;
+            if (advertisingConfig) {
+                if (advertisingConfig.switch && advertisingConfig!.url !== '') {
+                    this.publishUrl = advertisingConfig!.url;
+                    localStorage.setItem('publishUrl', this.publishUrl);
+                    this.noticeEl!.innerHTML = `<iframe src=${this.publishUrl} width="100%" height="100%" frameborder="0"></iframe>`;
+                    if (publish) {
+                        if (this.publishUrl !== publish) {
                             localStorage.setItem('isdisplay', 'true');
                         }
                     } else {
-                        localStorage.setItem('isdisplay', 'false');
+                        localStorage.setItem('isdisplay', 'true');
                     }
-                    let isdisplay = localStorage.getItem('isdisplay');
-                    this.advertisementEL!.style!.display = isdisplay === 'true' ? 'block' : 'none';
-                });
+                } else {
+                    localStorage.setItem('isdisplay', 'false');
+                }
+                let isdisplay = localStorage.getItem('isdisplay');
+                this.advertisementEL!.style!.display = isdisplay === 'true' ? 'block' : 'none';
             } else {
                 this.advertisementEL!.style!.display = 'none';
             }
-        }).catch(err => {
-            this.advertisementEL!.style!.display = 'none';
-        });
+        } catch (e) {
+            console.error(e);
+        }
     }
 
 

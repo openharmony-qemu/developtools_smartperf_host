@@ -145,6 +145,7 @@ import { XpowerGpuFreqStruct } from '../database/ui-worker/ProcedureWorkerXpower
 import { LitProgressBar } from '../../base-ui/progress-bar/LitProgressBar';
 import { SnapShotStruct } from '../database/ui-worker/ProcedureWorkerSnaps';
 import { ThreadSysCallStruct } from '../database/ui-worker/ProcedureWorkerThreadSysCall';
+import { GpuMemoryStruct } from '../database/ui-worker/ProcedureWorkerGpuMemory';
 
 function dpr(): number {
   return window.devicePixelRatio || 1;
@@ -611,7 +612,9 @@ export class SpSystemTrace extends BaseElement {
       GpuCounterStruct.selectGpuCounterStruct ||
       DmaFenceStruct.selectDmaFenceStruct ||
       XpowerThreadInfoStruct.selectXpowerStruct ||
-      XpowerGpuFreqStruct.selectXpowerStruct;
+      XpowerGpuFreqStruct.selectXpowerStruct ||
+      SnapShotStruct.selectSnapShotStruct ||
+      GpuMemoryStruct.selectGpuMemoryStruct;
   }
   top: number = 0;
   handler: number = -1;
@@ -1404,6 +1407,7 @@ export class SpSystemTrace extends BaseElement {
     GpuCounterStruct.hoverGpuCounterStruct = undefined;
     DmaFenceStruct.hoverDmaFenceStruct = undefined;
     SnapShotStruct.hoverSnapShotStruct = undefined;
+    GpuMemoryStruct.hoverGpuMemoryStruct = undefined;
     this.tipEL!.style.display = 'none';
     return this;
   }
@@ -1446,7 +1450,8 @@ export class SpSystemTrace extends BaseElement {
     XpowerWifiStruct.selectPacketsXpowerStruct = undefined;
     XpowerThreadInfoStruct.selectXpowerStruct = undefined;
     XpowerGpuFreqStruct.selectXpowerStruct = undefined;
-    SnapShotStruct.hoverSnapShotStruct = undefined;
+    SnapShotStruct.selectSnapShotStruct = undefined;
+    GpuMemoryStruct.selectGpuMemoryStruct = undefined;
     return this;
   }
 
@@ -2733,6 +2738,7 @@ export class SpSystemTrace extends BaseElement {
     procedurePool.clearCache();
     Utils.clearData();
     InitAnalysis.getInstance().isInitAnalysis = true;
+    InitAnalysis.getInstance().isInitGMAnalysis = true;
     procedurePool.submitWithName('logic0', 'clear', {}, undefined, (res: unknown) => { });
     if (threadPool) {
       threadPool.submitProto(QueryEnum.ClearMemoryCache, {}, (res: unknown, len: number): void => { });

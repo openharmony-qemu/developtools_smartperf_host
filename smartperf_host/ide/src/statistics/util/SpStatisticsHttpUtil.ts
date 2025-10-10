@@ -15,6 +15,7 @@
 
 import { warn } from '../../log/Log';
 import { BurialPointRequestBody, GeneralRecordRequest, pluginUsage } from './SpStatisticsHttpBean';
+import {InterfaceConfigManager} from '../../utils/interfaceConfiguration';
 
 export class SpStatisticsHttpUtil {
   static requestServerInfo: string = '';
@@ -26,6 +27,17 @@ export class SpStatisticsHttpUtil {
   static recordPlugin: Array<string> = [];
   static controllersMap: Map<number, AbortController> = new Map<number, AbortController>();
   static isInterrupt: boolean = false;
+
+  static async getServerInfo(): Promise<void> {
+    try {
+      const resp = await fetch(`https://${window.location.host}${window.location.pathname}serverconfig`);
+      if (!resp.ok) throw new Error(`Error fetching server config ${resp}`);
+      const res = await resp.json();
+      if (res) {
+        InterfaceConfigManager.setConfig(res);
+      }
+    } catch (e) {}
+  }
 
   static initStatisticsServerConfig(): void {
     if (SpStatisticsHttpUtil.requestServerInfo === '') {
@@ -153,10 +165,6 @@ export class SpStatisticsHttpUtil {
     }).catch(err => {
     });
     SpStatisticsHttpUtil.recordPlugin = [];
-  }
-
-  static getNotice(): Promise<Response> {
-    return fetch(`https://${window.location.host}${window.location.pathname}messagePublish`);
   }
 
   static getCorrectRequestTime(): number {

@@ -94,6 +94,11 @@ public:
     {
         return &addrToMmapEventRow_;
     }
+    std::unordered_map<uint64_t, uint64_t> *GetAddrToTraceAllocEventRow()
+    {
+        return &addrToTraceAllocEventRow_;
+    }
+
     uint64_t &GetLastMallocEventRaw()
     {
         return lastMallocEventRaw_;
@@ -101,6 +106,21 @@ public:
     uint64_t &GetLastMmapEventRaw()
     {
         return lastMmapEventRaw_;
+    }
+
+    uint64_t &GetLastGpuVkEventRaw()
+    {
+        return lastGpuVkEventRaw_;
+    }
+
+    uint64_t &GetLastGpuGlesEventRaw()
+    {
+        return lastGpuGlesEventRaw_;
+    }
+    
+    uint64_t &GetLastGpuClEventRaw()
+    {
+        return lastGpuClEventRaw_;
     }
 
 private:
@@ -114,14 +134,27 @@ private:
     std::deque<uint64_t> currentSizeDurs_ = {};
     int64_t countHeapSizes_ = 0;
     int64_t countMmapSizes_ = 0;
+    int64_t countGpuVkSizes_ = 0;
+    int64_t countGpuGlesSizes_ = 0;
+    int64_t countGpuClSizes_ = 0;
     const std::string ALLOC_EVET = "AllocEvent";
     const std::string FREE_EVENT = "FreeEvent";
     const std::string MMAP_EVENT = "MmapEvent";
     const std::string MUNMAP_EVENT = "MunmapEvent";
+    const std::string GPU_VK_ALLOC_EVENT = "GPU_VK_Alloc_Event";
+    const std::string GPU_VK_FREE_EVENT = "GPU_VK_Free_Event";
+    const std::string GPU_GLES_ALLOC_EVENT = "GPU_GLES_Alloc_Event";
+    const std::string GPU_GLES_FREE_EVENT = "GPU_GLES_Free_Event";
+    const std::string GPU_CL_ALLOC_EVENT = "GPU_CL_Alloc_Event";
+    const std::string GPU_CL_FREE_EVENT = "GPU_CL_Free_Event";
     std::unordered_map<uint64_t, uint64_t> addrToAllocEventRow_ = {};
     std::unordered_map<uint64_t, uint64_t> addrToMmapEventRow_ = {};
+    std::unordered_map<uint64_t, uint64_t> addrToTraceAllocEventRow_ = {};
     uint64_t lastMallocEventRaw_ = INVALID_UINT64;
     uint64_t lastMmapEventRaw_ = INVALID_UINT64;
+    uint64_t lastGpuVkEventRaw_ = INVALID_UINT64;
+    uint64_t lastGpuGlesEventRaw_ = INVALID_UINT64;
+    uint64_t lastGpuClEventRaw_ = INVALID_UINT64;
 };
 
 struct NativeHookFrameRow {
