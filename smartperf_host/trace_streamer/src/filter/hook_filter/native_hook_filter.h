@@ -131,7 +131,7 @@ private:
                                    uint32_t itid,
                                    const ProtoReader::MunmapEvent_Reader &mUnmapEventReader);
     void ParseTraceAllocEvent(uint64_t timeStamp, const ProtoReader::BytesView &bytesView);
-    void ParseTraceFreeEvent(uint64_t timeStamp, const ProtoReader::BytesView &bytesView);                               
+    void ParseTraceFreeEvent(uint64_t timeStamp, const ProtoReader::BytesView &bytesView);
     void MaybeUpdateCurrentSizeDur(uint64_t row, uint64_t timeStamp, NativeType type);
     void UpdateThreadNameWithNativeHookData() const;
     void GetCallIdToLastLibId();

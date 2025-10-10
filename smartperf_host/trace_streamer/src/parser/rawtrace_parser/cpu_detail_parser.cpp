@@ -278,7 +278,7 @@ bool CpuDetailParser::SchedSwitchEvent(const RawTraceEventInfo &event)
     auto uprevtid = streamFilters_->processFilter_->UpdateOrCreateThreadWithName(
         event.msgPtr->timestamp(), schedSwitchMsg.prev_pid(), schedSwitchMsg.prev_comm());
     DataIndex nextInfo = INVALID_DATAINDEX;
-    if(schedSwitchMsg.next_info()!=INVALID_UINT64){
+    if (schedSwitchMsg.next_info()!=INVALID_UINT64) {
         nextInfo = traceDataCache_->GetDataIndex(std::to_string(schedSwitchMsg.next_info()));
     }
     streamFilters_->cpuFilter_->InsertSwitchEvent(event.msgPtr->timestamp(), event.cpuId, uprevtid,
