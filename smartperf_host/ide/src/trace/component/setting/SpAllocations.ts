@@ -280,11 +280,15 @@ export class SpAllocations extends BaseElement {
       let configVisibility = 'none';
       if (this.gpuMemorySwitch?.checked) {
         configVisibility = 'block';
+        this.offlineSymbol!.checked = false;
+        this.offlineSymbol!.disabled = true;
       } else {
         if (!this.cpuMemorySwitch?.checked) {
           this.nativeStartSwitch!.checked = false;
           this.disable();
         }
+        this.offlineSymbol!.checked = true;
+        this.offlineSymbol!.disabled = false;
       }
       if (gpuConfigList) {
         gpuConfigList!.forEach((configEl) => {
@@ -467,6 +471,9 @@ export class SpAllocations extends BaseElement {
   }
 
   typeSelectClickHandler = (): void => {
+    if (!this.startSamp) {
+      return;
+    }
     let messageType = [];
     messageType = gpuTypeAll;
     this.typeSelect?.dataSource(messageType, '');
@@ -778,6 +785,9 @@ export class SpAllocations extends BaseElement {
     if (this.gpuMemorySwitch) {
       this.gpuMemorySwitch.disabled = false;
     }
+    if (this.typeSelect) {
+      this.typeSelect.removeAttribute('disabled');
+    }
     this.processId!.removeAttribute('disabled');
     let inputBoxes = this.shadowRoot?.querySelectorAll<HTMLInputElement>('.inputBoxes');
     inputBoxes!.forEach((item: HTMLInputElement): void => {
@@ -823,6 +833,9 @@ export class SpAllocations extends BaseElement {
     }
     if (this.gpuMemorySwitch) {
       this.gpuMemorySwitch.disabled = true;
+    }
+    if (this.typeSelect) {
+      this.typeSelect.setAttribute('disabled', '');
     }
     this.processId!.setAttribute('disabled', '');
     let inputBoxes = this.shadowRoot?.querySelectorAll<HTMLInputElement>('.inputBoxes');

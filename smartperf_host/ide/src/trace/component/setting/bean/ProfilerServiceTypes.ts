@@ -465,6 +465,7 @@ export interface NativeHookConfig {
   restrace_tag?: string[];
   memtrace_enable?: boolean;
   malloc_disable?: boolean;
+  mmap_disable?: boolean;
 }
 
 export interface FpsConfig {
@@ -519,6 +520,7 @@ export interface NativePluginConfig {
   filter_napi_name: string;
   memtrace_enable: boolean;
   malloc_disable: boolean;
+  mmap_disable: boolean;
   pid?:number;
 }
 

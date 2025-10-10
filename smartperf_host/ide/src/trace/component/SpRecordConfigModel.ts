@@ -543,6 +543,7 @@ export function createNativePluginConfig(
         }
         if (!spAllocations!.recordCpuMemory) {
           nativeConfig.malloc_disable = true;
+          nativeConfig.mmap_disable = true;
         }
         nativeConfig.memtrace_enable = true;
         nativeConfig.restrace_tag = typeList;
