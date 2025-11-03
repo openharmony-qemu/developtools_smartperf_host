@@ -794,12 +794,39 @@ export class Utils {
     });
   }
 
+  initOtherSourceResponseTypeList(val: SelectionParam): void {
+    const isStatistic = val.otherSourceStatistic.length > 0;
+    const selection = isStatistic ? val.otherSourceStatistic : val.otherSource;
+    let types: Array<string | number> = [];
+
+      if (selection.indexOf('FD') !== -1) {
+        if (isStatistic) {
+          types.push(4);
+        } else {
+        }
+      }
+      if (selection.indexOf('THREAD') !== -1) {
+        if (isStatistic) {
+          types.push(5);
+        } else {
+        }
+      }
+    
+    queryNativeHookResponseTypes(val.leftNs, val.rightNs, types, val.otherSourceCurrentIPid, isStatistic).then((res): void => {
+      procedurePool.submitWithName('logic0', 'other-source-init-responseType', res, undefined, (): void => { });
+    });
+  }
+
   setCurrentSelectIPid(ipid: number): void {
     procedurePool.submitWithName('logic0', 'native-memory-set-current_ipid', ipid, undefined, (): void => { });
   }
 
   setGpuCurrentSelectIPid(ipid: number): void {
     procedurePool.submitWithName('logic0', 'gpu-memory-set-current_ipid', ipid, undefined, (): void => { });
+  }
+
+  setOherSourceCurrentSelectIPid(ipid: number): void {
+    procedurePool.submitWithName('logic0', 'other-source-set-current_ipid', ipid, undefined, (): void => { });
   }
 
   public static convertJSON(arr: ArrayBuffer | Array<unknown>): unknown {

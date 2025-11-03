@@ -2739,6 +2739,7 @@ export class SpSystemTrace extends BaseElement {
     Utils.clearData();
     InitAnalysis.getInstance().isInitAnalysis = true;
     InitAnalysis.getInstance().isInitGMAnalysis = true;
+    InitAnalysis.getInstance().isInitOSAnalysis = true;
     procedurePool.submitWithName('logic0', 'clear', {}, undefined, (res: unknown) => { });
     if (threadPool) {
       threadPool.submitProto(QueryEnum.ClearMemoryCache, {}, (res: unknown, len: number): void => { });
