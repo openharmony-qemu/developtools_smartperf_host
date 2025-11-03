@@ -98,7 +98,7 @@ export class SpGpuMemoryChart {
       );
     });
     let durTime = new Date().getTime() - time;
-    info('The time to init the native memory data is: ', durTime);
+    info('The time to init the gpu memory data is: ', durTime);
   };
 
   initGpuMemoryFolder(process: number, ipid: number): TraceRow<BaseStruct> {
@@ -131,7 +131,7 @@ export class SpGpuMemoryChart {
     gpuMemoryRow.onRowSettingChangeHandler = (value): void => {
       gpuMemoryRow.childrenList.forEach((row) => (row.drawType = parseInt(value[0])));
       this.trace
-        .getCollectRows((row) => row.rowType === 'heap')
+        .getCollectRows((row) => row.rowType === 'gpu_heap')
         .forEach((it) => {
           it.drawType = parseInt(value[0]);
         });
@@ -196,8 +196,8 @@ export class SpGpuMemoryChart {
       allGpuRow.findHoverStruct = (): void => {
         GpuMemoryStruct.hoverGpuMemoryStruct = allGpuRow.getHoverStruct();
       }; //@ts-ignore
-      allGpuRow.supplierFrame = (): Promise<unknown> => 
-         GpuMemorySender(allGpuRow, {
+      allGpuRow.supplierFrame = (): Promise<unknown> =>
+        GpuMemorySender(allGpuRow, {
           eventType: i,
           ipid: process.ipid,
           model: type,

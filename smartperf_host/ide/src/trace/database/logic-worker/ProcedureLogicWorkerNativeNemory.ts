@@ -686,7 +686,6 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
         condition = 'and type in (0,1,2,3)';
       } else {
         const typeValues: number[] = [];
-
         if (sortedTypes.includes(1)) typeValues.push(0);
         if (sortedTypes.includes(2)) typeValues.push(1, 2, 3);
         if (typeValues.length > 0) {
