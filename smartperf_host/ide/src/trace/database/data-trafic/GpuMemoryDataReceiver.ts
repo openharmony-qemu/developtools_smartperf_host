@@ -1,15 +1,17 @@
-// Copyright (c) 2025 Huawei Device Co., Ltd.
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * Copyright (C) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 import { TraficEnum } from "./utils/QueryEnum";
 
@@ -133,25 +135,25 @@ export function gpuMemoryDataHandler(data: SenderParam, proc: Function): void {
     let arr: GMData[] = [];
     let res: Array<
       | {
-        nativeMemoryNormal: GMData;
-        nativeMemoryStatistic: GMData;
+        gpuMemoryNormal: GMData;
+        gpuMemoryStatistic: GMData;
       }
       | GMData
     > = proc(gpuMemoryCacheSql(data.params.model, data.params.recordStartNS, data.params.recordEndNS));
     if (data.params.trafic === TraficEnum.ProtoBuffer) {
       arr = (
         res as Array<{
-          nativeMemoryNormal: GMData;
-          nativeMemoryStatistic: GMData;
+          gpuMemoryNormal: GMData;
+          gpuMemoryStatistic: GMData;
         }>
       ).map((item) => {
-        let nm = new GMData();
+        let gm = new GMData();
         if (data.params.model === 'native_hook') {
-          Object.assign(nm, item.nativeMemoryNormal);
+          Object.assign(gm, item.gpuMemoryNormal);
         } else {
-          Object.assign(nm, item.nativeMemoryStatistic);
+          Object.assign(gm, item.gpuMemoryStatistic);
         }
-        return nm;
+        return gm;
       });
     } else {
       arr = res as Array<GMData>;
@@ -436,7 +438,7 @@ function cacheSumRowData(ipid: number, key: string, timeArr: number[]): void {
 
 function arrayBufferCallback(data: SenderParam, transfer: boolean): void {
   let cacheKey = `${data.params.ipid}-${data.params.eventType}`;
-  let dataFilter = filterNativeMemoryChartData(
+  let dataFilter = filterGpuMemoryChartData(
     data.params.model,
     data.params.startNS,
     data.params.endNS,
@@ -480,7 +482,7 @@ function arrayBufferCallback(data: SenderParam, transfer: boolean): void {
   );
 }
 
-export function filterNativeMemoryChartData(
+export function filterGpuMemoryChartData(
   model: string,
   startNS: number,
   endNS: number,

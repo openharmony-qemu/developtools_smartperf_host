@@ -161,7 +161,7 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
     if (this.isStatistic) {
       this.threadName = '';
     }
-    this.getNMEventTypeSize(statisticAnalysisParam);
+    this.getGMEventTypeSize(statisticAnalysisParam);
     this.showAssignLevel(this.typeUsageTbl!, this.functionUsageTbl!, 0, this.eventTypeData);
   }
   initElements(): void {
@@ -507,7 +507,7 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
     return gmCurrentTable;
   }
 
-  private getNMEventTypeSize(val: SelectionParam): void {
+  private getGMEventTypeSize(val: SelectionParam): void {
     this.progressEL!.loading = true;
     let typeFilter = [];
     if (this.isStatistic) {
@@ -747,9 +747,9 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
           this.gpuProcessLevelClickEvent(it);
         }
       },
-      hoverHandler: (nmData): void => {
-        if (nmData) {
-          this.typeUsageTbl!.setCurrentHover(nmData);
+      hoverHandler: (gmData): void => {
+        if (gmData) {
+          this.typeUsageTbl!.setCurrentHover(gmData);
         } else {
           this.typeUsageTbl!.mouseOut();
         }
@@ -950,7 +950,6 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
     this.reset(this.functionUsageTbl!, true);
     this.showAssignLevel(this.functionUsageTbl!, this.soUsageTbl!, 3, this.eventTypeData);
     this.getGMFunctionSize(it);
-    // const typeName = this.type === TYPE_MAP_STRING ? TYPE_OTHER_MMAP : this.type;
     const typeName = this.type;
     // @ts-ignore
     let title = typeName || '';

@@ -330,21 +330,15 @@ export class ProcedureLogicWorkerGpuMemory extends LogicHandler {
 
   queryStatisticCallchainsSamples(action: string, leftNs: number, rightNs: number, types: Array<number>): void {
     let condition = '';
-
     if (types && types.length > 0) {
       const sortedTypes: number[] = [...new Set(types)].sort((a, b) => a - b);
-
-      // 如果包含0，则直接返回6,7,8
       if (sortedTypes.includes(0)) {
         condition = 'and type in (6,7,8)';
       } else {
-        // 根据数组中的值构建对应的type条件
         const typeValues: number[] = [];
-
         if (sortedTypes.includes(1)) typeValues.push(6);
         if (sortedTypes.includes(2)) typeValues.push(7);
         if (sortedTypes.includes(3)) typeValues.push(8);
-
         if (typeValues.length > 0) {
           condition = `and type in (${typeValues.join(',')})`;
         }

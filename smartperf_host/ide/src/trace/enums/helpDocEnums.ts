@@ -43,6 +43,7 @@ const events = {
   FFRT_EVENT: 'ffrt',
   LIMIT_EVENT: 'limit',
   TRACE_STREAMER_EXPLAIN_EVENT: 'trace_streamer_explain',
+  GPU_EVENT:'gpu',
 };
 
 export interface EventDefinition {
@@ -201,5 +202,10 @@ export const eventDefinitions: { [key: string]: EventDefinition } = {
     event: events.TRACE_STREAMER_EXPLAIN_EVENT,
     name: 'des_tables',
     index: 30,
+  },
+  quickstart_gpu_memory: {
+    event: events.GPU_EVENT,
+    name: 'quickstart_gpu_memory',
+    index: 31,
   },
 };
