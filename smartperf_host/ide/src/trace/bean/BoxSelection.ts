@@ -115,6 +115,10 @@ export class SelectionParam {
   gpuMemoryStatistic: string[] = [];
   gpuMemoryAllProcess: Array<{ pid: number; ipid: number }> = [];
   gpuMemoryCurrentIPid: number = -1;
+  otherSource: Array<String> = [];
+  otherSourceStatistic: string[] = [];
+  otherSourceAllProcess: Array<{ pid: number; ipid: number }> = [];
+  otherSourceCurrentIPid: number = -1;
   cpuAbilityIds: Array<string> = [];
   memoryAbilityIds: Array<string> = [];
   diskAbilityIds: Array<string> = [];
@@ -407,6 +411,41 @@ export class SelectionParam {
       info('load gpuMemory traceRow id is : ', it.rowId);
     }
   }
+
+  // @ts-ignore
+  pushOtherSource(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_OTHER_SOURCE) {
+      // @ts-ignore
+      let otherSourceRows: Array<TraceRow<unknown>> = [
+        // @ts-ignore
+        ...sp.shadowRoot!.querySelectorAll<TraceRow<unknown>>(`trace-row[row-parent-id='${it.rowId}']`),
+      ];
+      if (!it.expansion) {
+        otherSourceRows = [...it.childrenList];
+      }
+      const rowKey = it.rowId!.split(' ');
+      const process = {
+        ipid: Number(rowKey[rowKey.length - 1]),
+        pid: Number(rowKey[rowKey.length - 2]),
+      };
+      if (!isExistPidInArray(this.otherSourceAllProcess, process.pid)) {
+        this.otherSourceAllProcess.push(process);
+      }
+      if (this.otherSourceCurrentIPid === -1) {
+        this.otherSourceCurrentIPid = process.ipid;
+      }
+      otherSourceRows.forEach((th) => {
+        th.rangeSelect = true;
+        th.checkType = '2';
+        if (th.getAttribute('otherSource-type') === 'native_hook_statistic') {
+          this.otherSourceStatistic.push(th.rowId!);
+        } else {
+          this.otherSource.push(th.rowId!);
+        }
+      });
+      info('load otherSource traceRow id is : ', it.rowId);
+    }
+  }
   
   // @ts-ignore
   pushFunc(it: TraceRow<unknown>, sp: SpSystemTrace): void {
@@ -524,6 +563,33 @@ export class SelectionParam {
         }
       }
       info('load gpuMemory traceRow id is : ', it.rowId);
+    }
+  }
+
+  // @ts-ignore
+  pushOtherSourceHeap(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_OTHER_SOURCE_HEAP) {
+      const key = it.rowParentId!.split(' ');
+      const process = {
+        ipid: Number(key[key.length - 1]),
+        pid: Number(key[key.length - 2]),
+      };
+
+      if (!isExistPidInArray(this.otherSourceAllProcess, process.pid)) {
+        this.otherSourceAllProcess.push(process);
+      }
+      if (this.otherSourceCurrentIPid === -1) {
+        this.otherSourceCurrentIPid = process.ipid;
+        Utils.getInstance().setGpuCurrentSelectIPid(this.otherSourceCurrentIPid);
+      }
+      if (this.otherSourceAllProcess) {
+        if (it.getAttribute('otherSource-type') === 'native_hook_statistic') {
+          this.otherSourceStatistic.push(it.rowId!);
+        } else {
+          this.otherSource.push(it.rowId!);
+        }
+      }
+      info('load otherSource traceRow id is : ', it.rowId);
     }
   }
 
@@ -1414,9 +1480,11 @@ export class SelectionParam {
     this.pushProcess(it, sp);
     this.pushNativeMemory(it, sp);
     this.pushGpuMemory(it, sp);
+    this.pushOtherSource(it, sp);
     this.pushFunc(it, sp);
     this.pushHeap(it, sp);
     this.pushGpuHeap(it, sp);
+    this.pushOtherSourceHeap(it, sp);
     this.pushMonitor(it, sp);
     this.pushHiperf(it, sp);
     this.pushFileSystem(it, sp);

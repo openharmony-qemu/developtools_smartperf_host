@@ -72,6 +72,7 @@ import { frameActualReceiver, frameExpectedReceiver } from '../FrameJanksReceive
 import { diskIoReceiver, eBPFVmReceiver, fileSystemDataReceiver } from '../EBPFReceiver';
 import { nativeMemoryDataHandler } from '../NativeMemoryDataReceiver';
 import { gpuMemoryDataHandler } from '../GpuMemoryDataReceiver';
+import { otherSourceDataHandler } from '../OtherSourceDataReceiver';
 import { frameAnimationReceiver, frameDynamicReceiver, frameSpacingReceiver } from '../FrameDynamicEffectReceiver';
 import {
   energySysEventReceiver,
@@ -115,6 +116,9 @@ traficHandlers.set(QueryEnum.NativeMemoryChartData, nativeMemoryDataHandler);
 traficHandlers.set(QueryEnum.GpuMemoryCacheNormal, gpuMemoryDataHandler);
 traficHandlers.set(QueryEnum.GpuMemoryCacheStatistic, gpuMemoryDataHandler);
 traficHandlers.set(QueryEnum.GpuMemoryData, gpuMemoryDataHandler);
+traficHandlers.set(QueryEnum.otherSourceCacheNormal, otherSourceDataHandler);
+traficHandlers.set(QueryEnum.otherSourceCacheStatistic, otherSourceDataHandler);
+traficHandlers.set(QueryEnum.otherSourceData, otherSourceDataHandler);
 traficHandlers.set(QueryEnum.HangData, hangDataReceiver);
 traficHandlers.set(QueryEnum.ClockData, clockDataReceiver);
 traficHandlers.set(QueryEnum.IrqData, irqDataReceiver);

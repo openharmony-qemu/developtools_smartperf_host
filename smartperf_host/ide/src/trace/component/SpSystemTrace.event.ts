@@ -65,6 +65,7 @@ import { XpowerThreadCountStruct, XpowerThreadCountStructOnClick } from '../data
 import { XpowerGpuFreqCountStruct, XpowerGpuFreqCountStructOnClick } from '../database/ui-worker/ProcedureWorkerXpowerGpuFreqCount';
 import { SnapShotOnClick, SnapShotStruct } from '../database/ui-worker/ProcedureWorkerSnaps';
 import { ThreadSysCallStruct, ThreadSysCallStructOnClick } from '../database/ui-worker/ProcedureWorkerThreadSysCall';
+import { OtherSourceStruct, OtherSourceStructOnClick } from '../database/ui-worker/ProcedureWorkerOtherSource';
 
 function timeoutJudge(sp: SpSystemTrace): number {
   let timeoutJudge = window.setTimeout((): void => {
@@ -408,6 +409,7 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
     .then(() => IrqStructOnClick(clickRowType, sp, entry as IrqStruct))
     .then(() => HeapStructOnClick(clickRowType, sp, row as TraceRow<HeapStruct>, entry as HeapStruct))
     .then(() => GMStructOnClick(clickRowType, sp, row as TraceRow<GpuMemoryStruct>, entry as GpuMemoryStruct))
+    .then(() => OtherSourceStructOnClick(clickRowType, sp, row as TraceRow<OtherSourceStruct>, entry as OtherSourceStruct))
     .then(() => JankStructOnClick(clickRowType, sp, row as TraceRow<JankStruct>,
       jankClickHandlerFunc(sp), entry as JankStruct))
     .then(() => HeapSnapshotStructOnClick(clickRowType, sp, row as TraceRow<HeapSnapshotStruct>,

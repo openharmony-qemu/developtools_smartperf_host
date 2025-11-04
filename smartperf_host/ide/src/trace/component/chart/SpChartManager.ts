@@ -21,6 +21,7 @@ import { SpFpsChart } from './SpFpsChart';
 import { info } from '../../../log/Log';
 import { SpNativeMemoryChart } from './SpNativeMemoryChart';
 import { SpGpuMemoryChart } from './SpGpuMemoryChart';
+import { SpOtherSourceChart } from './SpOtherSourceChart';
 import { SpAbilityMonitorChart } from './SpAbilityMonitorChart';
 import { SpProcessChart } from './SpProcessChart';
 import { perfDataQuery } from './PerfDataQuery';
@@ -77,6 +78,7 @@ export class SpChartManager {
   private fps: SpFpsChart;
   private nativeMemory: SpNativeMemoryChart;
   private gpuMemory: SpGpuMemoryChart;
+  private otherSource: SpOtherSourceChart;
   private abilityMonitor: SpAbilityMonitorChart;
   private process: SpProcessChart;
   private process2?: SpProcessChart;
@@ -112,6 +114,7 @@ export class SpChartManager {
     this.fps = new SpFpsChart(trace);
     this.nativeMemory = new SpNativeMemoryChart(trace);
     this.gpuMemory = new SpGpuMemoryChart(trace);
+    this.otherSource = new SpOtherSourceChart(trace);
     this.abilityMonitor = new SpAbilityMonitorChart(trace);
     this.process = new SpProcessChart(trace);
     this.sdkChart = new SpSdkChart(trace);
@@ -238,6 +241,8 @@ export class SpChartManager {
     progress('file system', 89);
     await this.fileSystem!.init();
     progress('ark ts', 90);
+    progress('other source', 91);
+    await this.otherSource.initChart();
     await this.arkTsChart.initFolder();
     await this.spAllAppStartupsChart.init();
     await this.SpLtpoChart.init();
@@ -346,6 +351,7 @@ export class SpChartManager {
     await perfDataQuery.initPerfCache();
     await this.nativeMemory.initNativeMemory();
     await this.gpuMemory.initGpuMemory();
+    await this.otherSource.initOtherSource();
     await this.fileSystem.initFileCallchain();
     this.perf.resetAllChartData();
   }
