@@ -19,11 +19,21 @@ import { OtherSupport, TestMode } from '../../entity/LocalConfigEntity';
 import SPLogger from '../../utils/SPLogger'
 import batteryinfo from '@ohos.batteryInfo';
 import promptAction from '@ohos.promptAction';
+import WorkerHandler from '../../profiler/WorkerHandler';
+import worker from '@ohos.worker';
+import BundleManager from '../../utils/BundleMangerUtils';
 
 const TAG = 'Home'
 /*
   home页
  */
+
+let MainWorker = new worker.Worker('workers/worker.js');
+globalThis.MainWorker = MainWorker;
+
+MainWorker.onmessage = function (result): void {
+  WorkerHandler.socketHandler(result);
+};
 
 @Component
 export struct Home {
@@ -37,7 +47,7 @@ export struct Home {
   @State state: string = '电池状态'
 
   aboutToAppear() {
-
+    MainWorker.postMessage({ testConnection: true });
     globalThis.collectIntervalPower = setInterval(() => {
       let nowCurrent = batteryinfo.nowCurrent
       let remainingEnergy = batteryinfo.remainingEnergy
@@ -48,7 +58,9 @@ export struct Home {
       nowCurrent.toString() + 'mA     \n瞬时电压：' + voltage.toString() + 'mV       电池温度：' + (temperature / 10).toFixed(1).toString() + '℃'
     }, 1000)
 
-
+    BundleManager.getAppList().then((appList) => {
+      globalThis.appList = appList;
+    });
   }
 
   build() {
