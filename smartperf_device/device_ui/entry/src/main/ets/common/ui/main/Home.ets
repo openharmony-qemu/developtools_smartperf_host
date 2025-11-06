@@ -28,7 +28,7 @@ const TAG = 'Home'
   home页
  */
 
-let MainWorker = new worker.Worker('workers/worker.js');
+let MainWorker = new worker.Worker('../../../workers/worker.js');
 globalThis.MainWorker = MainWorker;
 
 MainWorker.onmessage = function (result): void {
