@@ -16,7 +16,15 @@
 import Ability from '@ohos.app.ability.UIAbility';
 import { NetWork } from '../common/profiler/item/NetWork';
 import display from '@ohos.display'; // 导入模块
+import WorkerHandler from '../common/profiler/WorkerHandler';
 import worker from '@ohos.worker';
+
+let MainWorker = new worker.Worker('entry/ets/workers/worker.js');
+globalThis.MainWorker = MainWorker;
+
+MainWorker.onmessage = function (result): void {
+  WorkerHandler.socketHandler(result);
+};
 
 let abilityWindowStage;
 export default class MainAbility extends Ability {
@@ -25,7 +33,6 @@ export default class MainAbility extends Ability {
     globalThis.showFloatingWindow = false;
   }
   onDestroy(): void {
-    let MainWorker = new worker.Worker('entry/ets/workers/worker.js');
     MainWorker.terminate();
     console.log('cm-MainAbility-onDestroy');
   }
@@ -68,6 +75,7 @@ export default class MainAbility extends Ability {
   }
   onWindowStageDestroy(): void {}
   onForeground(): void {
+    MainWorker.postMessage({ testConnection: true });
     console.log('cm-MainAbility-onForeground');
     //NetWork.getInstance().init()
   }
