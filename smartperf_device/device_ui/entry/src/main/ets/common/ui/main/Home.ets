@@ -20,6 +20,8 @@ import SPLogger from '../../utils/SPLogger'
 import batteryinfo from '@ohos.batteryInfo';
 import promptAction from '@ohos.promptAction';
 import BundleManager from '../../utils/BundleMangerUtils';
+import { initDb } from '../../database/LocalRepository';
+import { FloatWindowFun } from '../floatwindow/FloatWindowFun';
 
 const TAG = 'Home'
 /*
@@ -38,6 +40,7 @@ export struct Home {
   @State state: string = '电池状态'
 
   aboutToAppear() {
+    console.log(TAG, 'aboutToAppear');
     globalThis.collectIntervalPower = setInterval(() => {
       let nowCurrent = batteryinfo.nowCurrent
       let remainingEnergy = batteryinfo.remainingEnergy
@@ -52,6 +55,9 @@ export struct Home {
       console.log(TAG, 'appList: ' + JSON.stringify(appList));
       globalThis.appList = appList;
     });
+
+    initDb();
+    FloatWindowFun.initAllFun();
   }
 
   build() {
