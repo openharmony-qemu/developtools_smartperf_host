@@ -21,7 +21,6 @@ import { ProfilerTask } from '../common/profiler/ProfilerTask';
 import { CollectorType } from '../common/profiler/base/ProfilerConstant';
 import promptAction from '@ohos.promptAction';
 
-
 const TAG = 'StartTestPage'
 /*
  * 测试配置页
@@ -76,7 +75,6 @@ struct StartTestPage {
         new CollectItem(key, val, val)
       )
     }
-
   }
 
   build() {
