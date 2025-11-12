@@ -691,7 +691,7 @@ export class ProcedureLogicWorkerGpuMemory extends LogicHandler {
   }
 
   setMerageName(currentNode: NativeHookCallInfo): void {
-    currentNode.lib = this.dataCache.dataDict.get(currentNode.fileId) || 'unknown';//看一下
+    currentNode.lib = this.dataCache.dataDict.get(currentNode.fileId) || 'unknown';
     if (this.isHap(currentNode.lib)) {
       const fullName = this.dataCache.dataDict.get(currentNode.symbolId);
       this.extractSymbolAndPath(currentNode, fullName);

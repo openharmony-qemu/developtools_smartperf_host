@@ -69,6 +69,7 @@ export class FrameChart extends BaseElement {
   _totalRootData: Array<ChartStruct> = []; //初始化顶部root的数据
   private totalRootNode!: ChartStruct;
   private tabPaneFilter: TabPaneFilter | undefined;
+  private _isShow: boolean = true;
 
   /**
    * set chart mode
@@ -887,6 +888,7 @@ export class FrameChart extends BaseElement {
               time: ChartStruct.selectFuncStruct.tsArray,
               counts: ChartStruct.selectFuncStruct.countArray,
               durations: ChartStruct.selectFuncStruct.durArray,
+              isShow:this._isShow
             },
           })
         );
@@ -1103,6 +1105,10 @@ export class FrameChart extends BaseElement {
       }
     });
     this.listenerResize();
+    this.addEventListener('show-calibration', (e: Event) => {
+      const customEvent = e as CustomEvent<{ isShow: boolean }>;
+      this._isShow = customEvent.detail.isShow;
+    });
   }
 
   public initHtml(): string {

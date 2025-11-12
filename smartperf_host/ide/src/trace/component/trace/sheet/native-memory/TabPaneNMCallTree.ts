@@ -92,6 +92,15 @@ export class TabpaneNMCalltree extends BaseElement {
   }
 
   set data(nmCallTreeParam: SelectionParam) {
+    const isShow = nmCallTreeParam.nativeMemory.length > 0;
+    this.nmCallTreeFrameChart!.dispatchEvent(
+      new CustomEvent('show-calibration', {
+        detail: {
+          isShow: isShow
+        },
+        bubbles: false
+      })
+    );
     if (nmCallTreeParam === this.currentSelection) {
       return;
     }

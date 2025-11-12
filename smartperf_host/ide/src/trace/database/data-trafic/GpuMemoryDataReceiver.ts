@@ -364,7 +364,7 @@ function mergeData(
   if (data) {
     let last = data.dataList[data.dataList.length - 1];
     last.dur = item.startTime! - last.startTime!;
-    if (last.dur > filterLevel || finish) {
+    if (last.dur >= filterLevel || finish) {
       if (ne.eventType === 0 || ne.eventType === 1 || ne.eventType === 2) {
         item.density = last.density! + tempDensity + 1;
         item.heapSize = last.heapSize! + tempSize + ne.heapSize;

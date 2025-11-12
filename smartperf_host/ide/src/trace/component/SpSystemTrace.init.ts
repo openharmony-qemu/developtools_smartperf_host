@@ -305,6 +305,8 @@ function numberCalibrationHandler(sp: SpSystemTrace): (event: unknown) => void {
     sp.timerShaftEL!.sportRuler!.counts = event.detail.counts;
     // @ts-ignore
     sp.timerShaftEL!.sportRuler!.durations = event.detail.durations;
+    // @ts-ignore
+    sp.timerShaftEL!.sportRuler!.showRuler = event.detail.isShow;
     sp.timerShaftEL!.sportRuler?.draw();
   };
 }

@@ -46,7 +46,7 @@ export class TabpaneOSCalltree extends BaseElement {
     private filterOthersourceType: string = '0';
     private filterResponseType: number = -1;
     private filterResponseSelect: string = '0';
-    private otherSourceType: Array<string> = ['FD','THREAD'];
+    private otherSourceType: Array<string> = ['FD', 'THREAD'];
     private _analysisTabWidth: number = 0;
     private loadingList: number[] = [];
     private sortKey: string = 'heapSizeStr';
@@ -91,6 +91,15 @@ export class TabpaneOSCalltree extends BaseElement {
     }
 
     set data(osCallTreeParam: SelectionParam) {
+        const isShow = osCallTreeParam.otherSource.length > 0;
+        this.osCallTreeFrameChart!.dispatchEvent(
+            new CustomEvent('show-calibration', {
+                detail: {
+                    isShow: isShow
+                },
+                bubbles: false
+            })
+        );
         if (osCallTreeParam === this.currentSelection) {
             return;
         }
@@ -153,7 +162,7 @@ export class TabpaneOSCalltree extends BaseElement {
         this.osCallTreeProgressEL!.loading = true; // @ts-ignore
         this.osCallTreeLoadingPage.style.visibility = 'visible';
     }
-    
+
     initElements(): void {
         this.headLine = this.shadowRoot?.querySelector<LitHeadLine>('.titleBox');
         this.osCallTreeTbl = this.shadowRoot?.querySelector<LitTable>('#tb-otherSource-calltree');
@@ -279,7 +288,7 @@ export class TabpaneOSCalltree extends BaseElement {
         }
     }
 
-    private initGetFilterByOSCallTreeFilter(osCallTreeData: FilterData): void {//看一下
+    private initGetFilterByOSCallTreeFilter(osCallTreeData: FilterData): void {
         if (
             this.filterLifespanType !== osCallTreeData.firstSelect ||
             this.filterOthersourceType !== osCallTreeData.secondSelect ||
@@ -563,10 +572,10 @@ export class TabpaneOSCalltree extends BaseElement {
             );
             addSubType(subTypeList);
         }// @ts-ignore
-        this.oSCallTreeFilterExtend(secondFilterList,osCallTreeParam);
+        this.oSCallTreeFilterExtend(secondFilterList, osCallTreeParam);
     }
 
-    private oSCallTreeFilterExtend(secondFilterList: string[],osCallTreeParam: SelectionParam): void {
+    private oSCallTreeFilterExtend(secondFilterList: string[], osCallTreeParam: SelectionParam): void {
         procedurePool.submitWithName('logic0', 'other-source-get-responseType', {}, undefined, (res: unknown) => {
             // @ts-ignore
             this.responseTypes = res;
@@ -965,5 +974,5 @@ export class TabpaneOSCalltree extends BaseElement {
     initHtml(): string {
         return TabPaneOSCallTreeHtml;
     }
-    
+
 }
