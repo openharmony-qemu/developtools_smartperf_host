@@ -107,7 +107,7 @@ function nativeMemoryChartDataCacheSql(model: string, startNS: number, endNS: nu
                 ipid,
                 type               
             from native_hook_statistic
-            where type in ( 0, 1, 2 )
+            where type in ( 0, 1, 2, 3 )
             and ts between ${startNS} and ${endNS};
     `;
   }
@@ -165,7 +165,7 @@ function mergeData(
   if (data) {
     let last = data.dataList[data.dataList.length - 1];
     last.dur = item.startTime! - last.startTime!;
-    if (last.dur > filterLevel || finish) {
+    if (last.dur >= filterLevel || finish) {
       if (ne.eventType === 0 || ne.eventType === 1) {
         item.density = last.density! + tempDensity + 1;
         item.heapSize = last.heapSize! + tempSize + ne.heapSize;

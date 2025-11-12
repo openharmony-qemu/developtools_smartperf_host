@@ -91,6 +91,14 @@ export class TabpanePerfProfile extends BaseElement {
   }
 
   set data(perfProfilerSelection: SelectionParam | unknown) {
+    this.perfProfileFrameChart!.dispatchEvent(
+      new CustomEvent('show-calibration', {
+        detail: {
+          isShow: false
+        },
+        bubbles: false
+      })
+    );
     if (perfProfilerSelection !== this.currentSelection && this._rowClickData === this.currentRowClickData) {
       this._rowClickData = undefined;
     }
