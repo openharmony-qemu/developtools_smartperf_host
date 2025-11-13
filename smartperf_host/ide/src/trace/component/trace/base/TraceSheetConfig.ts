@@ -160,6 +160,8 @@ import { TabpaneGMCalltree } from '../sheet/gpu-memory/TabpaneGMCalltree';
 import { TabPaneGMStatstics } from '../sheet/gpu-memory/TabPaneGMStatstics';
 import { TabPaneGMemory } from '../sheet/gpu-memory/TabPaneGMemory';
 import { TabPaneGMSampleList } from '../sheet/gpu-memory/TabPaneGMSampleList';
+import { TabPaneOSAnalysis } from '../sheet/otherSource/TabPaneOSAnalysis';
+import { TabpaneOSCalltree } from '../sheet/otherSource/TabpaneOSCalltree';
 
 export let tabConfig: {
   [key: string]: {
@@ -409,6 +411,16 @@ export let tabConfig: {
     title: 'Gpu SnapshotList',
     type: TabPaneGMSampleList,
     require: (param: SelectionParam) => param.gpuMemory.length > 0,
+  },
+  'box-other-source-analysis': {
+    title: 'Othersource Analysis',
+    type: TabPaneOSAnalysis,
+    require: (param: SelectionParam) => param.otherSource.length > 0 || param.otherSourceStatistic.length > 0,
+  },
+  'box-os-calltree': {
+    title: 'Othersource Calltree',
+    type: TabpaneOSCalltree,
+    require: (param: SelectionParam) => param.otherSource.length > 0 || param.otherSourceStatistic.length > 0,
   },
   'box-live-processes-child': {
     title: 'Live Processes',

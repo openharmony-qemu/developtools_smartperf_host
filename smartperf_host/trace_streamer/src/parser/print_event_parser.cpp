@@ -552,7 +552,11 @@ ParseResult PrintEventParser::HandlerCSF(std::string_view pointStr, TracePoint &
         return PARSE_ERROR;
     }
     outPoint.name_ = std::string_view(pointStr.data() + nameIndex, namelength);
-
+    std::smatch matchLine;
+    bool matched = std::regex_match(outPoint.name_, matchLine, newDistributeMatcher_);
+    if (matched) {
+        outPoint.name_ = "H:" + matchLine[namePosition].str();
+    }
     // point value
     size_t valueIndex = nameIndex + namelength + POINT_LENGTH;
     size_t valueLen = GetValueLength(pointStr, valueIndex);

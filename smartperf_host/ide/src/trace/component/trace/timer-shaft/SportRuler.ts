@@ -98,6 +98,7 @@ export class SportRuler extends Graph {
   private timeArray: Array<number> = [];
   private countArray: Array<number> = [];
   private durArray: Array<number> = [];
+  private _isShow: boolean = true;
   private mouseIn: boolean = false;
   constructor(
     timerShaftEL: TimerShaftElement,
@@ -132,6 +133,10 @@ export class SportRuler extends Graph {
 
   set durations(durArray: Array<number>) {
     this.durArray = durArray;
+  }
+
+  set showRuler(isShow: boolean) {
+    this._isShow = isShow;
   }
 
   modifyFlagList(flag: Flag | null | undefined): void {
@@ -260,6 +265,9 @@ export class SportRuler extends Graph {
   }
 
   drawRangeSelect(): void {
+    if (!this._isShow) {
+      return;
+    }
     this.initRangeSelect();
     if (this.timeArray.length > 0 && TraceRow.rangeSelectObject) {
       // 页面可视框选区域的宽度

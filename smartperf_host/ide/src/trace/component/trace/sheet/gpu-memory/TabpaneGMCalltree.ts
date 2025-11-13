@@ -92,6 +92,15 @@ export class TabpaneGMCalltree extends BaseElement {
     }
 
     set data(gmCallTreeParam: SelectionParam) {
+        const isShow = gmCallTreeParam.gpuMemory.length > 0;
+        this.gmCallTreeFrameChart!.dispatchEvent(
+            new CustomEvent('show-calibration', {
+                detail: {
+                    isShow: isShow
+                },
+                bubbles: false
+            })
+        );
         if (gmCallTreeParam === this.currentSelection) {
             return;
         }

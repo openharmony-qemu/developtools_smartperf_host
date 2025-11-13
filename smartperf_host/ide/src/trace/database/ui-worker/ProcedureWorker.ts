@@ -80,6 +80,7 @@ import { XpowerGpuFreqRender } from './ProcedureWorkerXpowerGpuFreq';
 import { SnapShotRender } from './ProcedureWorkerSnaps';
 import { ThreadSysCallRender } from './ProcedureWorkerThreadSysCall';
 import { GpuMemoryRender } from './ProcedureWorkerGpuMemory';
+import { OtherSourceRender } from './ProcedureWorkerOtherSource';
 
 let dataList: unknown = {};
 let dataList2: unknown = {};
@@ -105,6 +106,7 @@ export let renders = {
   'app-so-init': new SoRender(),
   heap: new HeapRender(),
   gpuMemory: new GpuMemoryRender(),
+  otherSource: new OtherSourceRender(),
   'heap-timeline': new HeapTimelineRender(),
   'heap-snapshot': new HeapSnapshotRender(),
   mem: new MemRender(),

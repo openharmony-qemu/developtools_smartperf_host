@@ -89,6 +89,14 @@ export class TabpaneFilesystemCalltree extends BaseElement {
   }
 
   set data(fsCallTreeSelection: SelectionParam | unknown) {
+    this.frameChart!.dispatchEvent(
+      new CustomEvent('show-calibration', {
+        detail: {
+          isShow: false
+        },
+        bubbles: false
+      })
+    );
     if (fsCallTreeSelection !== this.currentSelection && this._fsRowClickData === this.currentRowClickData) {
       this._fsRowClickData = undefined;
     }
