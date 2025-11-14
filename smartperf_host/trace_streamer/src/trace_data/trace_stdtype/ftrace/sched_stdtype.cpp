@@ -14,6 +14,8 @@
  */
 
 #include "sched_stdtype.h"
+#include "version.h"
+
 namespace SysTuning {
 namespace TraceStdtype {
 TableRowId ThreadStateData::AppendThreadState(InternalTime ts,
@@ -130,6 +132,10 @@ size_t SchedSlice::AppendSchedSlice(const SchedSliceRow &schedSliceRow)
     priority_.emplace_back(schedSliceRow.priority);
     argSets_.emplace_back(INVALID_UINT32);
     internalPids_.emplace_back(INVALID_UINT32);
+    if (SysTuning::TraceStreamer::g_extendField) {
+        prevStates_.emplace_back(schedSliceRow.prevState);
+        prevInternalPids_.emplace_back(schedSliceRow.prevInternalTid);
+    }
     return Size() - 1;
 }
 
