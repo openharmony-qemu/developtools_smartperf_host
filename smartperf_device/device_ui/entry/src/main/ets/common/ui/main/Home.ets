@@ -64,7 +64,7 @@ export struct Home {
     Flex({ direction: FlexDirection.Column, alignItems: ItemAlign.Start, justifyContent: FlexAlign.Start }) {
       Column() {
         Column() {
-          TopComponent({ title: 'SmartPerf ' })
+          TopComponent({ title: 'HiSmartPerf ' })
 
           Text('性能/功耗测试')
             .fontSize('18fp')
@@ -72,7 +72,7 @@ export struct Home {
             .textAlign(TextAlign.Start)
             .margin({ top: '20vp' })
 
-          Stack() {
+          Stack() {i
             Circle()
               .width('180vp')
               .height('180vp')
