@@ -72,7 +72,7 @@ export struct Home {
             .textAlign(TextAlign.Start)
             .margin({ top: '20vp' })
 
-          Stack() {i
+          Stack() {
             Circle()
               .width('180vp')
               .height('180vp')
