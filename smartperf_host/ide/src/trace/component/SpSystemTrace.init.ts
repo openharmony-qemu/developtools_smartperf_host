@@ -1407,8 +1407,12 @@ function queryRowsData(sp: SpSystemTrace, rowList: Array<TraceRow<unknown>>): vo
         saveFrameRateData(sp, row, 'H:RSMainThread::DoComposition');
       } else if (row.getAttribute('name')?.startsWith('RSHardwareThrea')) {
         saveFrameRateData(sp, row, 'H:Repaint');
-      } else if (row.getAttribute('name')?.startsWith('Present')) {
+      }else if(row.getAttribute('name')?.startsWith('PresentFence_')){
+        savePresentData(sp, row, 'H:Waiting for PresentFence_');
+      }else if (row.getAttribute('name')?.startsWith('Present')) {
         savePresentData(sp, row, 'H:Waiting for Present Fence');
+      }else if(row.getAttribute('name')?.startsWith('CompThread_')){
+        saveFrameRateData(sp, row, 'H:Repaint');
       }
     }
   });
@@ -1429,7 +1433,7 @@ function saveFrameRateData(sp: SpSystemTrace, row: TraceRow<unknown>, funcName: 
         sp.docomList = dataList;
       } else {
         // @ts-ignore
-        sp.repaintList = dataList;
+        sp.repaintMap.set(row.getAttribute('name'),dataList);
       }
     }
   });
@@ -1444,7 +1448,7 @@ function savePresentData(sp: SpSystemTrace, row: TraceRow<unknown>, funcName: st
         // @ts-ignore
         dataList?.push({ endTime: item.endTime!, tid: item.tid });
       }); // @ts-ignore
-      sp.presentList = dataList;
+      sp.presentMap.set(row.getAttribute('name'),dataList);
     }
   });
 }
