@@ -102,10 +102,12 @@ export class RangeSelect {
         row.frameRateList = [];
         if (row.getAttribute('name')?.startsWith('render_service')) {
           this.filterRateData(row, this.trace?.docomList);
-        } else if (row.getAttribute('name')?.startsWith('RSHardwareThrea')) {
-          this.filterRateData(row, this.trace?.repaintList);
+        } else if (row.getAttribute('name')?.startsWith('RSHardwareThrea') || row.getAttribute('name')?.startsWith('CompThread_')) {
+          // @ts-ignore
+          this.filterRateData(row, this.trace?.repaintMap.get(row.getAttribute('name')));
         } else if (row.getAttribute('name')?.startsWith('Present')) {
-          this.filterPresentData(row, this.trace?.presentList);
+          // @ts-ignore
+          this.filterPresentData(row, this.trace?.presentMap.get(row.getAttribute('name')));
         }
       } else if (
         row.getAttribute('row-type') === 'process' &&
