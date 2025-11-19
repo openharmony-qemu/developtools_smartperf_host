@@ -14,10 +14,7 @@
  */
 
 import Ability from '@ohos.app.ability.UIAbility';
-import { initDb } from '../common/database/LocalRepository';
-import { FloatWindowFun } from '../common/ui/floatwindow/FloatWindowFun';
 import { NetWork } from '../common/profiler/item/NetWork';
-import BundleManager from '../common/utils/BundleMangerUtils';
 import display from '@ohos.display'; // 导入模块
 import WorkerHandler from '../common/profiler/WorkerHandler';
 import worker from '@ohos.worker';
@@ -34,15 +31,13 @@ export default class MainAbility extends Ability {
   onCreate(): void {
     console.log('cm-MainAbility-onCreate');
     globalThis.showFloatingWindow = false;
-    BundleManager.getAppList().then((appList) => {
-      globalThis.appList = appList;
-    });
   }
   onDestroy(): void {
-    console.log('cm-MainAbility-onDestroy');
     MainWorker.terminate();
+    console.log('cm-MainAbility-onDestroy');
   }
   onWindowStageCreate(windowStage): void {
+    console.log('cm-MainAbility-onWindowStageCreate');
     globalThis.abilityContext = this.context;
     abilityWindowStage = windowStage;
     abilityWindowStage.setUIContent(this.context, 'pages/LoginPage', null);
@@ -80,11 +75,9 @@ export default class MainAbility extends Ability {
   }
   onWindowStageDestroy(): void {}
   onForeground(): void {
-    console.log('cm-MainAbility-onForeground');
-    initDb();
-    FloatWindowFun.initAllFun();
-    //NetWork.getInstance().init()
     MainWorker.postMessage({ testConnection: true });
+    console.log('cm-MainAbility-onForeground');
+    //NetWork.getInstance().init()
   }
   onBackground(): void {}
 }
