@@ -21,6 +21,7 @@ namespace SysTuning {
 namespace TraceStreamer {
 extern size_t g_loadSize;
 extern size_t g_fileSize;
+extern bool g_extendField;
 extern const std::string TRACE_STREAMER_VERSION;         // version
 extern const std::string TRACE_STREAMER_PUBLISH_VERSION; // publish datetime
 } // namespace TraceStreamer

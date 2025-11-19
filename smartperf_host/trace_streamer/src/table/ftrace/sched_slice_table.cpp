@@ -14,12 +14,25 @@
  */
 
 #include "sched_slice_table.h"
-
+#include "version.h"
 #include <cmath>
 
 namespace SysTuning {
 namespace TraceStreamer {
-enum class Index : int32_t { ID = 0, TS, DUR, TS_END, CPU, INTERNAL_TID, INTERNAL_PID, END_STATE, PRIORITY, ARGSETID };
+enum class Index : int32_t {
+    ID = 0,
+    TS,
+    DUR,
+    TS_END,
+    CPU,
+    INTERNAL_TID,
+    INTERNAL_PID,
+    END_STATE,
+    PRIORITY,
+    ARGSETID,
+    PREV_ITID,
+    PREV_STATE
+};
 SchedSliceTable::SchedSliceTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
@@ -32,6 +45,10 @@ SchedSliceTable::SchedSliceTable(const TraceDataCache *dataCache) : TableBase(da
     tableColumn_.push_back(TableBase::ColumnInfo("end_state", "TEXT"));
     tableColumn_.push_back(TableBase::ColumnInfo("priority", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("arg_setid", "INTEGER"));
+    if (g_extendField) {
+        tableColumn_.push_back(TableBase::ColumnInfo("prev_itid", "INTEGER"));
+        tableColumn_.push_back(TableBase::ColumnInfo("prev_state", "TEXT"));
+    }
     tablePriKey_.push_back("id");
 }
 
@@ -181,10 +198,32 @@ int32_t SchedSliceTable::Cursor::Column(int32_t col) const
             break;
         }
         default:
-            TS_LOGF("Unregistered column : %d", col);
+            if (g_extendField) {
+                HandleExtendedColumn(col);
+            } else {
+                TS_LOGF("Unregistered column : %d", col);
+            }
             break;
     }
     return SQLITE_OK;
+}
+
+void SchedSliceTable::Cursor::HandleExtendedColumn(int32_t col) const
+{
+    switch (static_cast<Index>(col)) {
+        case Index::PREV_ITID:
+            sqlite3_result_int64(context_,
+                                 static_cast<sqlite3_int64>(schedSliceObj_.PrevInternalPidsData()[CurrentRow()]));
+            break;
+        case Index::PREV_STATE: {
+            const std::string &str = dataCache_->GetConstSchedStateData(schedSliceObj_.PrevStatesData()[CurrentRow()]);
+            sqlite3_result_text(context_, str.c_str(), STR_DEFAULT_LEN, nullptr);
+            break;
+        }
+        default:
+            TS_LOGF("Unregistered extended column : %d", col);
+            break;
+    }
 }
 
 void SchedSliceTable::GetOrbyes(FilterConstraints &schedfc, EstimatedIndexInfo &schedei)

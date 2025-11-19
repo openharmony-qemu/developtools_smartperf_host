@@ -94,6 +94,8 @@ struct SchedSliceRow {
     uint32_t internalTid = INVALID_UINT32;
     uint64_t endState = INVALID_UINT64;
     int32_t priority = INVALID_INT32;
+    uint32_t prevInternalTid = INVALID_UINT32;
+    uint64_t prevState = INVALID_UINT64;
 };
 class SchedSlice : public CacheBase, public CpuCacheBase, public BatchCacheBase {
 public:
@@ -106,6 +108,16 @@ public:
     const std::deque<uint64_t> &EndStatesData() const
     {
         return endStates_;
+    }
+
+    const std::deque<uint64_t> &PrevStatesData() const
+    {
+        return prevStates_;
+    }
+
+    const std::deque<InternalPid> &PrevInternalPidsData() const
+    {
+        return prevInternalPids_;
     }
 
     const std::deque<int32_t> &PriorityData() const
@@ -152,6 +164,8 @@ private:
     std::deque<uint64_t> endStates_ = {};
     std::deque<int32_t> priority_ = {};
     std::deque<uint32_t> argSets_ = {};
+    std::deque<InternalPid> prevInternalPids_ = {};
+    std::deque<uint64_t> prevStates_ = {};
 };
 class Raw : public CacheBase, public BatchCacheBase {
 public:
