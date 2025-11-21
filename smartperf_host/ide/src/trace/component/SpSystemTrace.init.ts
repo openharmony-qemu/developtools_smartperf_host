@@ -15,6 +15,7 @@
 
 import { SpSystemTrace } from './SpSystemTrace';
 import { TabPaneFrequencySample } from './trace/sheet/cpu/TabPaneFrequencySample';
+import { TabPaneFreqByCpu } from './trace/sheet/cpu/TanpaneFreqByCpu';
 import { TabPaneCounterSample } from './trace/sheet/cpu/TabPaneCounterSample';
 import { RangeSelect } from './trace/base/RangeSelect';
 import { TraceRow } from './trace/base/TraceRow';
@@ -893,6 +894,7 @@ export function spSystemTraceInitElement(sp: SpSystemTrace): void {
     return;
   }
   sp.tabCpuFreq = sp.traceSheetEL.shadowRoot.querySelector<TabPaneFrequencySample>('tabpane-frequency-sample');
+  sp.tabCpuState = sp.traceSheetEL.shadowRoot.querySelector<TabPaneCounterSample>('tabpane-counter-sample');
   sp.tabCpuState = sp.traceSheetEL.shadowRoot.querySelector<TabPaneCounterSample>('tabpane-counter-sample');
   sp.wakeupListTbl = sp.traceSheetEL.shadowRoot?.querySelector('#current-selection > tabpane-current-selection')?.
     shadowRoot?.querySelector('#wakeupListTbl');

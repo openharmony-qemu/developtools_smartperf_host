@@ -223,6 +223,56 @@ export const getTabCpuByThread = (cpus: Array<number>, leftNS: number, rightNS: 
     { traceId: traceId }
   );
 
+   export const queryRunningCpuData = (cpus: Array<number>, leftNS: number, rightNS: number): Promise<unknown[]> =>
+query<unknown>(
+  'getSelectCpuData',
+  `SELECT
+  B.pid,
+  B.cpu,
+  B.tid,
+  B.itid as id,
+  B.dur,
+  B.ts - TR.start_ts AS ts,
+  B.arg_setid as argSetID,
+	p.name as p_name,
+	t.name as t_name
+from thread_state AS B
+  left join trace_range AS TR
+  left join process AS p on B.pid = p.pid
+	left join thread AS t on B.tid = t.tid
+where B.itid is not null
+  and
+    B.cpu in (${cpus.join(',')})
+  and
+    not ((B.ts - TR.start_ts + ifnull(B.dur,0) < ${leftNS}) or (B.ts - TR.start_ts > ${rightNS}))
+  and
+  B.state = 'Running'`,
+    { $rightNS: rightNS, $leftNS: leftNS },
+);
+
+export const querySelectCpuFreqFilterId = (cpus: Array<number>): Promise<
+  Array<{
+    id: number;
+    cpu: number;
+  }>
+> =>
+  query(
+    'querySelectCpuFreqFilterId',
+    `
+        select
+          id,
+          cpu
+        from
+          cpu_measure_filter 
+        where
+          (name='cpufreq' or name='cpu_frequency')
+        and
+        cpu in (${cpus.join(',')})
+     `,
+    {},
+    { traceId: Utils.currentSelectTrace }
+  );
+
 export const queryCpuData = (cpu: number, startNS: number, endNS: number): Promise<Array<CpuStruct>> =>
   query(
     'queryCpuData',
