@@ -104,10 +104,10 @@ export class RangeSelect {
           this.filterRateData(row, this.trace?.docomList);
         } else if (row.getAttribute('name')?.startsWith('RSHardwareThrea') || row.getAttribute('name')?.startsWith('CompThread_')) {
           // @ts-ignore
-          this.filterRateData(row, this.trace?.repaintMap.get(row.getAttribute('name')));
+          this.filterRateData(row, this.trace?.repaintMap.get(row.getAttribute('name-prefix')));
         } else if (row.getAttribute('name')?.startsWith('Present')) {
           // @ts-ignore
-          this.filterPresentData(row, this.trace?.presentMap.get(row.getAttribute('name')));
+          this.filterPresentData(row, this.trace?.presentMap.get(row.getAttribute('name-prefix')));
         }
       } else if (
         row.getAttribute('row-type') === 'process' &&

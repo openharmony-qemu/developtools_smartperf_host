@@ -1435,7 +1435,7 @@ function saveFrameRateData(sp: SpSystemTrace, row: TraceRow<unknown>, funcName: 
         sp.docomList = dataList;
       } else {
         // @ts-ignore
-        sp.repaintMap.set(row.getAttribute('name'),dataList);
+        sp.repaintMap.set(row.getAttribute('name-prefix'),dataList);
       }
     }
   });
@@ -1450,7 +1450,7 @@ function savePresentData(sp: SpSystemTrace, row: TraceRow<unknown>, funcName: st
         // @ts-ignore
         dataList?.push({ endTime: item.endTime!, tid: item.tid });
       }); // @ts-ignore
-      sp.presentMap.set(row.getAttribute('name'),dataList);
+      sp.presentMap.set(row.getAttribute('name-prefix'),dataList);
     }
   });
 }
