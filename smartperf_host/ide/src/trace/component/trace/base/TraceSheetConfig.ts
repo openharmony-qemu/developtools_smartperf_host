@@ -162,6 +162,7 @@ import { TabPaneGMemory } from '../sheet/gpu-memory/TabPaneGMemory';
 import { TabPaneGMSampleList } from '../sheet/gpu-memory/TabPaneGMSampleList';
 import { TabPaneOSAnalysis } from '../sheet/otherSource/TabPaneOSAnalysis';
 import { TabpaneOSCalltree } from '../sheet/otherSource/TabpaneOSCalltree';
+import { TabPaneFreqByCpu } from '../sheet/cpu/TanpaneFreqByCpu';
 
 export let tabConfig: {
   [key: string]: {
@@ -204,6 +205,11 @@ export let tabConfig: {
   'box-cpu-usage': {
     title: 'CPU Usage',
     type: TabPaneCpuUsage,
+    require: (param: SelectionParam) => param.cpus.length > 0,
+  },
+  'box-frpq-by-cpu': {
+    title: 'CPU Freq Usage',
+    type: TabPaneFreqByCpu,
     require: (param: SelectionParam) => param.cpus.length > 0,
   },
   'box-spt': {

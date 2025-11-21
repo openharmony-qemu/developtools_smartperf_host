@@ -15,6 +15,7 @@
 
 import { SpSystemTrace } from './SpSystemTrace';
 import { TabPaneFrequencySample } from './trace/sheet/cpu/TabPaneFrequencySample';
+import { TabPaneFreqByCpu } from './trace/sheet/cpu/TanpaneFreqByCpu';
 import { TabPaneCounterSample } from './trace/sheet/cpu/TabPaneCounterSample';
 import { RangeSelect } from './trace/base/RangeSelect';
 import { TraceRow } from './trace/base/TraceRow';
@@ -894,6 +895,7 @@ export function spSystemTraceInitElement(sp: SpSystemTrace): void {
   }
   sp.tabCpuFreq = sp.traceSheetEL.shadowRoot.querySelector<TabPaneFrequencySample>('tabpane-frequency-sample');
   sp.tabCpuState = sp.traceSheetEL.shadowRoot.querySelector<TabPaneCounterSample>('tabpane-counter-sample');
+  sp.tabCpuState = sp.traceSheetEL.shadowRoot.querySelector<TabPaneCounterSample>('tabpane-counter-sample');
   sp.wakeupListTbl = sp.traceSheetEL.shadowRoot?.querySelector('#current-selection > tabpane-current-selection')?.
     shadowRoot?.querySelector('#wakeupListTbl');
   sp.rangeSelect = new RangeSelect(sp);
@@ -1433,7 +1435,7 @@ function saveFrameRateData(sp: SpSystemTrace, row: TraceRow<unknown>, funcName: 
         sp.docomList = dataList;
       } else {
         // @ts-ignore
-        sp.repaintMap.set(row.getAttribute('name'),dataList);
+        sp.repaintMap.set(row.getAttribute('name-prefix'),dataList);
       }
     }
   });
@@ -1448,7 +1450,7 @@ function savePresentData(sp: SpSystemTrace, row: TraceRow<unknown>, funcName: st
         // @ts-ignore
         dataList?.push({ endTime: item.endTime!, tid: item.tid });
       }); // @ts-ignore
-      sp.presentMap.set(row.getAttribute('name'),dataList);
+      sp.presentMap.set(row.getAttribute('name-prefix'),dataList);
     }
   });
 }
