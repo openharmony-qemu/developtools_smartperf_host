@@ -105,6 +105,7 @@ export interface CpuFreqData {
 }
 
 export interface RunningFreqData {
+  process?: string;
   thread?: string;
   cpu: number;
   dur: number;
@@ -115,6 +116,9 @@ export interface RunningFreqData {
   cpuload: number;
   children?: Array<RunningFreqData>;
   ts?:number;
+  pid?: number;
+  tid?: number;
+  cpuThreadName?: string;
 }
 
 export interface CpuFreqTd {

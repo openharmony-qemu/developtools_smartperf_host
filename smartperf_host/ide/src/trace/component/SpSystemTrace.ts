@@ -146,6 +146,7 @@ import { LitProgressBar } from '../../base-ui/progress-bar/LitProgressBar';
 import { SnapShotStruct } from '../database/ui-worker/ProcedureWorkerSnaps';
 import { ThreadSysCallStruct } from '../database/ui-worker/ProcedureWorkerThreadSysCall';
 import { GpuMemoryStruct } from '../database/ui-worker/ProcedureWorkerGpuMemory';
+import { TabPaneFreqByCpu } from './trace/sheet/cpu/TanpaneFreqByCpu';
 
 function dpr(): number {
   return window.devicePixelRatio || 1;
@@ -226,6 +227,7 @@ export class SpSystemTrace extends BaseElement {
   selectionParam: SelectionParam | undefined;
   snapshotFiles: FileInfo | null | undefined;
   tabCpuFreq: TabPaneFrequencySample | undefined | null;
+  tabFreqByCpu: TabPaneFreqByCpu | undefined | null;
   tabCpuState: TabPaneCounterSample | undefined | null;
   collapseAll: boolean = false;
   currentCollectGroup: string = '1';
@@ -240,8 +242,8 @@ export class SpSystemTrace extends BaseElement {
   wakeupListTbl: LitTable | undefined | null;
   _checkclick: boolean = false; //判断点击getWakeupList按钮
   docomList: Array<number> = [];
-  repaintList: Array<number> = [];
-  presentList: Array<number> = [];
+  repaintMap: Map<string,unknown> = new Map<string,unknown>();
+  presentMap: Map<string,unknown> = new Map<string,unknown>();
   static isAiAsk: boolean = false;
   collectEl1: HTMLDivElement | undefined | null;
   collectEl2: HTMLDivElement | undefined | null;

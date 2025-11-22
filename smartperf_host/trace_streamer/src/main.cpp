@@ -476,6 +476,10 @@ bool ParseOtherArgs(int argc, char **argv, TraceExportOption &traceExportOption,
     if (!strcmp(argv[i], "-i") || !strcmp(argv[i], "--info")) {
         PrintInformation();
         i++;
+    } else if (!strcmp(argv[i], "--ext")) {
+        g_extendField = true;
+        i++;
+        return true;
     } else if (!strcmp(argv[i], "-lnc")) {
         traceExportOption.needClearLongTraceCache = false;
         i++;

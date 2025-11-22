@@ -52,7 +52,6 @@ export default struct LineChart {
   lineChartModel: LineChartModel = new LineChartModel();
 
 
-
   build() {
     Column() {
       Stack({ alignContent: Alignment.TopStart }) {
@@ -83,11 +82,14 @@ export default struct LineChart {
   }
 
   public aboutToAppear() {
-
+    console.log('LineChart aboutToAppear')
+    console.log('LineChart this.lineChartModel.isShowLegend: ' + this.lineChartModel.isShowLegend)
     this.initPathViewModel();
 
     // 数据设置 setLegend
     let entries : JArrayList<LegendEntry> = new JArrayList<LegendEntry>();
+    console.log('LineChart entries: ' + JSON.stringify(entries));
+    console.log('LineChart lineChartModel.lineData: ' + JSON.stringify(this.lineChartModel.lineData.getDataSets()));
     for (let i = 0; i < this.lineChartModel.lineData.getDataSets().size(); i++) {
       let dataSet = this.lineChartModel.lineData.getDataSetByIndex(i)
       let entry = new LegendEntry(
@@ -108,6 +110,8 @@ export default struct LineChart {
   }
 
   private initPathViewModel() {
+    console.log('LineChart initPathViewModel')
+    console.log('LineChart this.pathViewModel: ' + JSON.stringify(this.pathViewModel))
     this.pathViewModel.lineChartModel = this.lineChartModel
     this.pathViewModel.width = this.lineChartModel.width;
     this.pathViewModel.height = this.lineChartModel.height;
@@ -136,6 +140,7 @@ export default struct LineChart {
     this.pathViewModel.xAixsMode.minOffset = this.lineChartModel.minOffset;
     this.pathViewModel.xAixsMode.clipPath = this.pathViewModel.xAixsMode.clipPath;
     this.lineChartModel.setPathViewModel(this.pathViewModel);
+    console.log('LineChart this.lineChartModel: ' + JSON.stringify(this.lineChartModel))
   }
 
 }

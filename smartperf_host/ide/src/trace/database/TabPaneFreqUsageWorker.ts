@@ -19,6 +19,7 @@ let comPower = new Map<number, Map<number, unknown>>();
 let resultArray: Array<RunningFreqData> = [];
 let timeZones: number = 0;
 let maxCommpuPower: number = 0;
+let tempIndex: number = 0;
 
 /**
  *
@@ -188,6 +189,25 @@ function dealCpuFreqData(
   return dealTree(runningFreqData);
 }
 
+function insertSortedArray(arr: any[], newArr: any[]) {
+  const newValue = newArr[0];
+  let left = 0;
+  let right = arr.length - 1;
+  let index = arr.length; // 默认插入到最后
+  while (left <= right) {
+    const mid = Math.floor((left + right) / 2);
+    if(arr[mid][0] < newValue) {
+      left = mid +1;
+    }else{
+      right = mid - 1;
+    }
+  }
+  index = left;
+  tempIndex = index;
+  arr.splice(index,0,newArr);
+  return arr;
+}
+
 /**
  *
  * @param item running数据
@@ -207,9 +227,42 @@ function returnObj(
 ): RunningFreqData | undefined {
   const PERCENT: number = 100;
   const FREQ_MUTIPLE: number = 1000;
+  let computorPower: number = 0;
   //@ts-ignore
-  const computorPower: number = comPower ? comPower.get(item.cpu)?.mapData.get(cpuFreqData.value)! : 0;
-  let result;
+  if (comPower && !comPower.get(item.cpu)?.mapData.has(cpuFreqData.value)) {
+    //@ts-ignore
+    const mapDataArr = Array.from(comPower.get(item.cpu)?.mapData.entries()).sort((a, b) => a[0] - b[0]);
+    // 当遗漏的算力频点小于原始数据中最小的key
+    // @ts-ignore
+    if (Number(cpuFreqData.value) < Number(mapDataArr[0][0])) {
+      // @ts-ignore
+      computorPower = mapDataArr[0][1] - ((mapDataArr[1][1] - mapDataArr[0][1]) * (mapDataArr[0][0] - cpuFreqData.value) / (mapDataArr[1][0] - mapDataArr[0][0]));
+      // @ts-ignore
+      // 当遗漏的算力频点大于原始数据中最大的key
+    } else if (Number(cpuFreqData.value) > Number(mapDataArr[mapDataArr.length - 1][0])) {
+      // @ts-ignore
+      // 最后一个频点
+      let lastKey = mapDataArr[mapDataArr.length - 1][0];
+      // @ts-ignore
+      // 最后一个频点对应的算力
+      let lastValue = mapDataArr[mapDataArr.length - 1][1];
+      // @ts-ignore
+      // 倒数第二频点
+      let lastTwoKey = mapDataArr[mapDataArr.length - 2][0];
+      // @ts-ignore
+      // 倒数第二频点对应的算力
+      let lastTwoValue = mapDataArr[mapDataArr.length - 2][1];
+      computorPower = ((lastValue - lastTwoValue) * (cpuFreqData.value - lastKey) / (lastKey - lastTwoKey)) + lastValue;
+    } else {
+      // @ts-ignore
+      let tempArr = insertSortedArray(mapDataArr, [cpuFreqData.value, null]);
+      computorPower = ((tempArr[tempIndex + 1][1] - tempArr[tempIndex - 1][1]) * (cpuFreqData.value - tempArr[tempIndex - 1][0]) / (tempArr[tempIndex + 1][0] - tempArr[tempIndex - 1][0])) + tempArr[tempIndex - 1][1];
+    }
+  } else {
+    // @ts-ignore
+    computorPower = comPower ? comPower.get(item.cpu)?.mapData.get(cpuFreqData.value)! : 0;
+  }
+  let result: RunningFreqData | undefined;
   switch (flag) {
     case 1:
       result = {
@@ -286,7 +339,7 @@ function returnObj(
   if (comPower && comPower!.get(item.cpu) && (comPower!.get(item.cpu).broId || comPower!.get(item.cpu).broId === 0) && comPower!.get(item.cpu).smtRate) {
     // @ts-ignore
     let broCpuDataList = broCpuData.filter((e) => (e.cpu === comPower!.get(item.cpu).broId) && // @ts-ignore
-    !(e.startTime >= result!.ts + result!.dur || e.endTime <= result!.ts));
+      !(e.startTime >= result!.ts + result!.dur || e.endTime <= result!.ts));
     let parallelDur = 0;
     broCpuDataList.forEach((e) => {
       // @ts-ignore
