@@ -250,6 +250,10 @@ export class TraceSheet extends BaseElement {
       this.gpuAnalysisListener(e);
     });
     // @ts-ignore
+    this.getComponentByID<unknown>('box-other-source-analysis')?.addEventListener('row-click', (e: MouseEvent) => {
+      this.osAnalysisListener(e);
+    });
+    // @ts-ignore
     this.getComponentByID<unknown>('box-io-tier-statistics-analysis')?.addEventListener(
       'row-click',
       (evt: MouseEvent) => {
@@ -378,6 +382,15 @@ export class TraceSheet extends BaseElement {
     //@ts-ignore
     if (e.detail.button === 2 && e.detail.tableName) {
       let pane = this.getPaneByID('box-gpu-calltree');
+      pane.hidden = false;
+      this.litTabs!.activeByKey(pane.key);
+    }
+  }
+
+  private osAnalysisListener(e: MouseEvent): void {
+    //@ts-ignore
+    if (e.detail.button === 2 && e.detail.tableName) {
+      let pane = this.getPaneByID('box-os-calltree');
       pane.hidden = false;
       this.litTabs!.activeByKey(pane.key);
     }
@@ -1063,6 +1076,19 @@ export class TraceSheet extends BaseElement {
     this.showSwitchProcessBt(val);
   };
 
+  displayOSHookData = (data: HeapStruct, rowType: string, ipid: number): void => {
+    let val = new SelectionParam();
+    val.otherSourceStatistic.push(rowType);
+    val.otherSourceCurrentIPid = ipid;
+    val.otherSource = [];
+    val.leftNs = data.startTime! + data.dur!;
+    val.rightNs = data.startTime! + data.dur! + 1;
+    this.selection = val;
+    this.displayTab<TabPaneGMStatisticAnalysis>('box-other-source-analysis', 'box-os-calltree').data = val;
+    this.showUploadSoBt(val);
+    this.showSwitchProcessBt(val);
+  };
+
   displayGpuSelectedData = (type: string, startTs: number, dataList: Array<SnapshotStruct>): void => {
     this.displayTab<TabPaneGpuClickSelectComparison>('gpu-click-select-comparison').getGpuClickDataByDB(
       type,
@@ -1372,6 +1398,8 @@ export class TraceSheet extends BaseElement {
         this.selection.nativeMemoryStatistic.length > 0 ||
         this.selection.gpuMemory.length > 0 ||
         this.selection.gpuMemoryStatistic.length > 0 ||
+        this.selection.otherSource.length > 0 ||
+        this.selection.otherSourceStatistic.length > 0 ||
         this.selection.perfSampleIds.length > 0 ||
         this.selection.fileSystemType.length > 0 ||
         this.selection.fsCount > 0 ||
@@ -1396,6 +1424,13 @@ export class TraceSheet extends BaseElement {
           param.gpuMemoryCurrentIPid = ipid;
         }
       }
+      if (param.otherSource.length > 0 || param.otherSourceStatistic.length > 0) {
+        Utils.getInstance().initOtherSourceResponseTypeList(param);
+        if (ipid) {
+          Utils.getInstance().setOherSourceCurrentSelectIPid(ipid);
+          param.otherSourceCurrentIPid = ipid;
+        }
+      }
       param.isImportSo = true;
       this.rangeSelect(param, true);
       return true;
@@ -1411,6 +1446,8 @@ export class TraceSheet extends BaseElement {
         selection.nativeMemoryStatistic.length > 0 ||
         selection.gpuMemory.length > 0 ||
         selection.gpuMemoryStatistic.length > 0 ||
+        selection.otherSource.length > 0 ||
+        selection.otherSourceStatistic.length > 0 ||
         selection.perfSampleIds.length > 0 ||
         selection.fileSystemType.length > 0 ||
         selection.fsCount > 0 ||

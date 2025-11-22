@@ -248,6 +248,13 @@ export class SpHelp extends BaseElement {
           },
         },
         {
+          title: 'Gpu Memory抓取和展示说明',
+          icon: '',
+          clickHandler: function (item: MenuItem): void {
+            that.handleMemoryMenuItemClick(that, 'native', 'quickstart_gpu_memory', '31');
+          },
+        },
+        {
           title: '页内存抓取和展示说明',
           icon: '',
           clickHandler: function (item: MenuItem): void {

@@ -144,7 +144,7 @@ export const queryNativeHookSubType = (
     `select distinct(
   case when sub_type_id is null  then -1 else sub_type_id end
 ) as subTypeId,
-(case when sub_type_id is null then 'MmapEvent' else DD.data end) as subType
+(case when sub_type_id is null then 'Other MmapEvent' else DD.data end) as subType
       from
         native_hook NH,
         trace_range TR
@@ -165,32 +165,24 @@ export const queryNativeHookStatisticSubType = (
   query(
     'queryNativeHookStatisticSubType',
     `SELECT DISTINCT
-      CASE	
-      	WHEN
-      		NHS.type = 3 
-      		AND NHS.sub_type_id IS NOT NULL THEN
-      		NHS.sub_type_id ELSE COALESCE( NHS.type, TT.type ) 
-      		END AS subTypeId,
       CASE
-      	WHEN 
-          NHS.type = 2 THEN
-      		'FILE_PAGE_MSG' 
-      	WHEN 
-          NHS.type = 3 
-      		AND NHS.sub_type_id IS NOT NULL THEN
-      		D.data 
-      	WHEN 
-          NHS.type = 3 THEN
-      		'MEMORY_USING_MSG' ELSE TT.default_name 
-      		END AS subType 
+        WHEN type = 3 AND sub_type_id NOT NULL THEN sub_type_id
+        ELSE type
+      END AS subTypeId,
+      CASE
+        WHEN type = 2 THEN 'FILE_PAGE_MSG'
+        WHEN type = 3 AND sub_type_id NOT NULL THEN D.data
+        WHEN type = 3 THEN 'MEMORY_USING_MSG'
+        ELSE 'Other MmapEvent'
+      END AS subType
       FROM
-      			( SELECT 1 AS type, 'MmapEvent' AS default_name UNION ALL SELECT 2, 'FILE_PAGE_MSG' UNION ALL SELECT 3, 'MEMORY_USING_MSG' ) TT
-      			LEFT JOIN native_hook_statistic NHS ON TT.type = NHS.type 
-      			AND NHS.type IN ( 1, 2, 3 ) 
-      			AND EXISTS ( SELECT 1 FROM trace_range TR WHERE ( NHS.ts - TR.start_ts ) BETWEEN ${leftNs} AND ${rightNs} ) 
-      			AND NHS.ipid = ${ipid}
-      			LEFT JOIN data_dict D ON NHS.sub_type_id = D.id 
-      	ORDER BY subTypeId;
+        native_hook_statistic NHS
+        LEFT JOIN data_dict D ON NHS.sub_type_id = D.id,
+        trace_range TR
+      WHERE
+        NHS.type >= 1 AND
+        (NHS.ts - TR.start_ts) between ${leftNs} and ${rightNs}
+        AND ipid = ${ipid}
       `,
     { $leftNs: leftNs, $rightNs: rightNs }
   );

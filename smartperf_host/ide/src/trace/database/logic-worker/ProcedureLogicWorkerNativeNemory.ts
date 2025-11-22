@@ -57,7 +57,6 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
   isHideThread: boolean = false;
   private currentSelectIPid: number = 1;
   useFreedSize: boolean = false;
-  static secondList: string[] = [];
 
   handle(data: unknown): void {
     //@ts-ignore
@@ -306,6 +305,12 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     let eventType = this.nmArgs?.get('filterEventType');
     if (libId !== undefined && libId !== -1) {
       condition = `${condition} and last_lib_id = ${libId}`; // filter lib
+    }
+    if (eventType === '1') {
+      condition = `${condition} and event_type = 'AllocEvent'`;
+    }
+    if (eventType === '2') {
+      condition = `${condition} and event_type = 'MmapEvent'`;
     }
     if (allocType === '1') {
       condition = `${condition} and ((A.end_ts - B.start_ts) > ${rightNs} or A.end_ts is null)`;
@@ -585,48 +590,27 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     if (indexOf === -1) {
       return false;
     }
-    if (this.isStatisticMode) {
-      if (indexOf < 2) {
-        if (indexOf === 0) {
-          return true;
-        } else if (indexOf === 1) {
-          return item.eventType === 'AllocEvent';
-        }
-      } else if (indexOf - 2 < statisticsSelection.length) {
-        let selectionElement = statisticsSelection[indexOf - 2];
-        if (selectionElement.memoryTap !== undefined) {
-          if (selectionElement.memoryTap == '1') {
-            return item.eventType === 'MmapEvent';
-          } else if (selectionElement.memoryTap == '2') {
-            return item.eventType === 'FILE_PAGE_MSG';
-          } else if (selectionElement.memoryTap == '3') {
-            return item.eventType === 'MEMORY_USING_MSG';
-          }
+    if (indexOf < 3) {
+      if (indexOf === 0) {
+        return true;
+      } else if (indexOf === 1) {
+        return item.eventType === 'AllocEvent';
+      } else if (indexOf === 2) {
+        return item.eventType === 'MmapEvent';
+      }
+    } else if (indexOf - 3 < statisticsSelection.length) {
+      let selectionElement = statisticsSelection[indexOf - 3];
+      if (selectionElement.memoryTap !== undefined && selectionElement.max !== undefined) {
+        if (selectionElement.memoryTap.indexOf('Malloc') !== -1) {
+          return item.eventType === 'AllocEvent' && item.heapSize === selectionElement.max;
+        } else if (selectionElement.memoryTap.indexOf('Mmap') !== -1) {
+          return item.eventType === 'MmapEvent' && item.heapSize === selectionElement.max && item.subTypeId === null;
+        } else {
+          return item.subType === selectionElement.memoryTap;
         }
       }
-    } else {
-      if (indexOf < 3) {
-        if (indexOf === 0) {
-          return true;
-        } else if (indexOf === 1) {
-          return item.eventType === 'AllocEvent';
-        } else if (indexOf === 2) {
-          return item.eventType === 'MmapEvent';
-        }
-      } else if (indexOf - 3 < statisticsSelection.length) {
-        let selectionElement = statisticsSelection[indexOf - 3];
-        if (selectionElement.memoryTap !== undefined && selectionElement.max !== undefined) {
-          if (selectionElement.memoryTap.indexOf('Malloc') !== -1) {
-            return item.eventType === 'AllocEvent' && item.heapSize === selectionElement.max;
-          } else if (selectionElement.memoryTap.indexOf('Mmap') !== -1) {
-            return item.eventType === 'MmapEvent' && item.heapSize === selectionElement.max && item.subTypeId === null;
-          } else {
-            return item.subType === selectionElement.memoryTap;
-          }
-        }
-        if (selectionElement.max === undefined && typeof selectionElement.memoryTap === 'number') {
-          return item.subTypeId === selectionElement.memoryTap && item.eventType === 'MmapEvent';
-        }
+      if (selectionElement.max === undefined && typeof selectionElement.memoryTap === 'number') {
+        return item.subTypeId === selectionElement.memoryTap && item.eventType === 'MmapEvent';
       }
     }
     return false;
@@ -686,7 +670,6 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
         condition = 'and type in (0,1,2,3)';
       } else {
         const typeValues: number[] = [];
-
         if (sortedTypes.includes(1)) typeValues.push(0);
         if (sortedTypes.includes(2)) typeValues.push(1, 2, 3);
         if (typeValues.length > 0) {
@@ -697,7 +680,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     let sql = `select A.id,
                 0 as tid,
                 callchain_id as eventId,
-                (case when type = 0 then 'AllocEvent' when type = 1 then 'MmapEvent' when type = 2 then 'FILE_PAGE_MSG' when type = 3 then 'MEMORY_USING_MSG' end) as eventType,
+                (case when type = 0 then 'AllocEvent' else 'MmapEvent' end) as eventType,
                 (case when sub_type_id not null then sub_type_id else type end) as subTypeId,
                 max(apply_size) as heapSize,
                 max(release_size) as freeSize,
@@ -1408,16 +1391,6 @@ class AnalysisSample {
       case '1':
         this.isRelease = false;
         this.type = 1;
-        break;
-      case 'FILE_PAGE_MSG':
-      case '2':
-        this.isRelease = false;
-        this.type = 2;
-        break;
-      case 'MEMORY_USING_MSG':
-      case '3':
-        this.isRelease = false;
-        this.type = 3;
         break;
       case 'FreeEvent':
         this.isRelease = true;

@@ -90,6 +90,14 @@ export class TabPaneCallTree extends BaseElement {
   }
 
   set data(callTreeSelection: SelectionParam | unknown) {
+    this.frameChart!.dispatchEvent(
+      new CustomEvent('show-calibration', {
+        detail: {
+          isShow: false
+        },
+        bubbles: false
+      })
+    );
     if (callTreeSelection !== this.currentSelection && this._rowClickData === this.currentRowClickData) {
       this._rowClickData = undefined;
     }

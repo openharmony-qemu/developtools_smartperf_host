@@ -588,7 +588,7 @@ export class SpProcessChart {
         }
       }
       this.renderRow = null;
-      if (it.processName === 'render_service') {
+      if (it.processName === 'render_service' || it.processName === 'render_process') {
         //@ts-ignore
         this.addThreadList(it, processRow, expectedRow, actualRow, soRow, startupRow, traceId); //@ts-ignore
         this.addProcessMemInfo(it, processRow); //@ts-ignore

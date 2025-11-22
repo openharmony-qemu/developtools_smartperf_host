@@ -92,6 +92,15 @@ export class TabpaneNMCalltree extends BaseElement {
   }
 
   set data(nmCallTreeParam: SelectionParam) {
+    const isShow = nmCallTreeParam.nativeMemory.length > 0;
+    this.nmCallTreeFrameChart!.dispatchEvent(
+      new CustomEvent('show-calibration', {
+        detail: {
+          isShow: isShow
+        },
+        bubbles: false
+      })
+    );
     if (nmCallTreeParam === this.currentSelection) {
       return;
     }
@@ -205,7 +214,7 @@ export class TabpaneNMCalltree extends BaseElement {
             (data.type === 'FILE_PAGE_MSG' && memory === 2) ||
             (data.type === 'MEMORY_USING_MSG' && memory === 3)
           ) {
-            data.type = `${memory + 1}`;
+            data.type = `${memory + 2}`;
           }
         }
       });
@@ -343,7 +352,7 @@ export class TabpaneNMCalltree extends BaseElement {
 
   async initFilterTypes(): Promise<void> {
     this.currentNMCallTreeFilter = this.shadowRoot?.querySelector<TabPaneFilter>('#nm-call-tree-filter');
-    let secondFilterList = ['All Heap & Anonymous VM', 'AllocEvent'];
+    let secondFilterList = ['All Heap & Anonymous VM', 'AllocEvent', 'All Anonymous VM'];
     const addSubType = (subTypeList: unknown): void => {
       if (!subTypeList) {
         return;

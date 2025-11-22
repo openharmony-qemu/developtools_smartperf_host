@@ -360,29 +360,26 @@ export class TabPaneNMSampleList extends BaseElement {
         });
         nmRootSample.growth = Utils.getByteWithUnit(nmRootSample.heapSize);
         nmRootSample.totalGrowth = Utils.getByteWithUnit(nmRootSample.total);
-      } else {
-        let targetSnapshot = '';
-        switch (TabPaneNMSampleList.filterSelect) {
-          case '1':
-            targetSnapshot = 'AllocEvent';
-            break;
-          case '2':
-            targetSnapshot = 'MmapEvent';
-            break;
-          default:
-            targetSnapshot = '';
-        }
-        const filteredSamples = nmRootSample.tempList.filter(item =>
-          item.snapshot === targetSnapshot
-        );
-        if (filteredSamples.length > 0) {
-          nmRootSample.children = filteredSamples;
-          filteredSamples.forEach((sample) => {
-            nmRootSample.heapSize += sample.heapSize;
-            nmRootSample.existing += sample.existing;
-            nmRootSample.total += sample.total;
-          });
+      } else if (TabPaneNMSampleList.filterSelect === '2') {
+        if (nmRootSample.tempList.length > 1) {
+          nmRootSample.children = [nmRootSample.tempList[1]];
+          nmRootSample.heapSize += nmRootSample.tempList[1].heapSize;
+          nmRootSample.existing += nmRootSample.tempList[1].existing;
           nmRootSample.growth = Utils.getByteWithUnit(nmRootSample.heapSize);
+          nmRootSample.total += nmRootSample.tempList[1].total;
+          nmRootSample.totalGrowth = Utils.getByteWithUnit(nmRootSample.total);
+        } else {
+          nmRootSample.children = [];
+          nmRootSample.growth = '';
+          nmRootSample.totalGrowth = '';
+        }
+      } else {
+        if (nmRootSample.tempList.length > 0) {
+          nmRootSample.children = [nmRootSample.tempList[0]];
+          nmRootSample.heapSize += nmRootSample.tempList[0].heapSize;
+          nmRootSample.existing += nmRootSample.tempList[0].existing;
+          nmRootSample.growth = Utils.getByteWithUnit(nmRootSample.heapSize);
+          nmRootSample.total += nmRootSample.tempList[0].total;
           nmRootSample.totalGrowth = Utils.getByteWithUnit(nmRootSample.total);
         } else {
           nmRootSample.children = [];

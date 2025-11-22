@@ -102,6 +102,7 @@
     
 ## 项目部署
 直接运行 ./main 可执行程序，完成项目的部署。
+
 ![](./src/figures/deploy/run_main.png)
  ## 访问项目     
 在浏览器上打开 https://[部署机器ip地址]:9000/application/ 

@@ -31,14 +31,10 @@ import { TabPaneNMStatisticAnalysisHtml } from './TabPaneNMStatisticAnalysis.htm
 
 const TYPE_ALLOC_STRING = 'AllocEvent';
 const TYPE_MAP_STRING = 'MmapEvent';
-const TYPE_FILE_STRING = 'FILE_PAGE_MSG';
-const TYPE_MEMORY_STRING = 'MEMORY_USING_MSG';
 const TYPE_OTHER_MMAP = 'Other MmapEvent';
 
 const TYPE_ALLOC = 0;
 const TYPE_MAP = 1;
-const TYPE_FILE = 2;
-const TYPE_MEMORY = 3;
 const TYPE_FREE = 2;
 const TYPE_UN_MAP = 3;
 const PIE_CHART_LIMIT = 20;
@@ -228,7 +224,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
           this.nativeProcessLevelClickEvent(data);
         }
       } else if (button === 2) {
-        const typeName = data.typeName;
+        const typeName = data.typeName === TYPE_MAP_STRING ? TYPE_OTHER_MMAP : data.typeName;
         this.clickRight(evt, typeName);
       }
     });
@@ -515,7 +511,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
         },
       ],
     };
-    const typeName = this.type;
+    const typeName = this.type === TYPE_MAP_STRING ? TYPE_OTHER_MMAP : this.type;
     this.titleEl!.textContent = typeName + '';
     this.tabName!.textContent = 'Statistic By Thread Existing';
     // @ts-ignore
@@ -579,7 +575,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
         },
       ],
     };
-    const typeName = this.type;
+    const typeName = this.type === TYPE_MAP_STRING ? TYPE_OTHER_MMAP : this.type;
     let title = typeName;
     if (!this.hideThreadCheckBox?.checked && this.threadName.length > 0) {
       title += ' / ' + this.threadName;
@@ -655,8 +651,8 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       this.reset(this.threadUsageTbl!, true);
       this.showAssignLevel(this.threadUsageTbl!, this.typeUsageTbl!, 1, this.eventTypeData);
       this.getNMThreadSize(it);
-    }// @ts-ignore
-    const typeName = it.typeName;
+    } // @ts-ignore
+    const typeName = it.typeName === TYPE_MAP_STRING ? TYPE_OTHER_MMAP : it.typeName;
     this.titleEl!.textContent = typeName;
     // @ts-ignore
     this.type = it.typeName;
@@ -667,7 +663,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     this.reset(this.soUsageTbl!, true);
     this.showAssignLevel(this.soUsageTbl!, this.threadUsageTbl!, 2, this.eventTypeData);
     this.getNMLibSize(it);
-    const typeName = this.type;
+    const typeName = this.type === TYPE_MAP_STRING ? TYPE_OTHER_MMAP : this.type;
 
     // @ts-ignore
     let title = typeName;
@@ -683,7 +679,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     this.reset(this.functionUsageTbl!, true);
     this.showAssignLevel(this.functionUsageTbl!, this.soUsageTbl!, 3, this.eventTypeData);
     this.getNMFunctionSize(it);
-    const typeName = this.type;
+    const typeName = this.type === TYPE_MAP_STRING ? TYPE_OTHER_MMAP : this.type;
     // @ts-ignore
     let title = typeName || '';
     if (!this.hideThreadCheckBox?.checked && this.threadName.length > 0) {
@@ -768,72 +764,6 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
       }
       subTypeMap.forEach((arr: Array<number | string>, subType: string) => {
         let mapType = this.setTypeMap(this.typeMap, TYPE_MAP, subType);
-        if (mapType) {
-          this.calPercent(mapType);
-          this.eventTypeData.push(mapType);
-        }
-      });
-    }
-    if (this.typeMap.has(TYPE_FILE)) {
-      let subTypeMap = new Map<string, Array<number | string>>();
-      for (let item of this.typeMap.get(TYPE_FILE)!) {
-        // @ts-ignore
-        if (item.subType) {
-          // @ts-ignore
-          if (subTypeMap.has(item.subType)) {
-            // @ts-ignore
-            subTypeMap.get(item.subType)?.push(item);
-          } else {
-            let dataArray: Array<number | string> = []; // @ts-ignore
-            dataArray.push(item); // @ts-ignore
-            subTypeMap.set(item.subType, dataArray);
-          }
-        } else {
-          if (subTypeMap.has(TYPE_FILE_STRING)) {
-            // @ts-ignore
-            subTypeMap.get(TYPE_FILE_STRING)?.push(item);
-          } else {
-            let dataArray: Array<number | string> = []; // @ts-ignore
-            dataArray.push(item);
-            subTypeMap.set(TYPE_FILE_STRING, dataArray);
-          }
-        }
-      }
-      subTypeMap.forEach((arr: Array<number | string>, subType: string) => {
-        let mapType = this.setTypeMap(this.typeMap, TYPE_FILE, subType);
-        if (mapType) {
-          this.calPercent(mapType);
-          this.eventTypeData.push(mapType);
-        }
-      });
-    }
-    if (this.typeMap.has(TYPE_MEMORY)) {
-      let subTypeMap = new Map<string, Array<number | string>>();
-      for (let item of this.typeMap.get(TYPE_MEMORY)!) {
-        // @ts-ignore
-        if (item.subType) {
-          // @ts-ignore
-          if (subTypeMap.has(item.subType)) {
-            // @ts-ignore
-            subTypeMap.get(item.subType)?.push(item);
-          } else {
-            let dataArray: Array<number | string> = []; // @ts-ignore
-            dataArray.push(item); // @ts-ignore
-            subTypeMap.set(item.subType, dataArray);
-          }
-        } else {
-          if (subTypeMap.has(TYPE_MEMORY_STRING)) {
-            // @ts-ignore
-            subTypeMap.get(TYPE_MEMORY_STRING)?.push(item);
-          } else {
-            let dataArray: Array<number | string> = []; // @ts-ignore
-            dataArray.push(item);
-            subTypeMap.set(TYPE_MEMORY_STRING, dataArray);
-          }
-        }
-      }
-      subTypeMap.forEach((arr: Array<number | string>, subType: string) => {
-        let mapType = this.setTypeMap(this.typeMap, TYPE_MEMORY, subType);
         if (mapType) {
           this.calPercent(mapType);
           this.eventTypeData.push(mapType);
@@ -1175,7 +1105,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
     let typeItem = new AnalysisObj(applySize, applyCount, releaseSize, releaseCount);
     typeItem.typeId = tyeId;
     typeItem.typeName = typeName;
-    typeItem.tableName = typeName;
+    typeItem.tableName = typeName === TYPE_MAP_STRING ? TYPE_OTHER_MMAP : typeName;
     return typeItem;
   }
 
@@ -1252,26 +1182,6 @@ export class TabPaneNMStatisticAnalysis extends BaseElement {
             let itemArray: Array<number | string> = [];
             itemArray.push(itemData);
             typeMap.set(TYPE_MAP, itemArray);
-          }
-          break;
-        case TYPE_FILE:
-          setSize(itemData);
-          if (typeMap.has(TYPE_FILE)) {
-            typeMap.get(TYPE_FILE)?.push(itemData);
-          } else {
-            let itemArray: Array<number | string> = [];
-            itemArray.push(itemData);
-            typeMap.set(TYPE_FILE, itemArray);
-          }
-          break;
-        case TYPE_MEMORY:
-          setSize(itemData);
-          if (typeMap.has(TYPE_MEMORY)) {
-            typeMap.get(TYPE_MEMORY)?.push(itemData);
-          } else {
-            let itemArray: Array<number | string> = [];
-            itemArray.push(itemData);
-            typeMap.set(TYPE_MEMORY, itemArray);
           }
           break;
       }
