@@ -400,21 +400,6 @@ function takeCpuFreqToMap(cpuFreqData: Array<CpuFreqData>, leftNs: number, right
         if (!map.has(cpuFreqData[i].cpu)) {
             map.set(cpuFreqData[i].cpu, new Array());
         }
-        // 整理左右边界数据问题, 因为涉及多线程，所以必须放在循环里
-        // if (
-        //     cpuFreqData[i].ts < leftNs &&
-        //     cpuFreqData[i].ts + cpuFreqData[i].dur > leftNs
-        // ) {
-        //     cpuFreqData[i].dur = cpuFreqData[i].ts + cpuFreqData[i].dur - leftNs;
-        //     cpuFreqData[i].ts = leftNs;
-        // }
-        // if (cpuFreqData[i].ts + cpuFreqData[i].dur > rightNs) {
-        //     cpuFreqData[i].dur = rightNs - cpuFreqData[i].ts;
-        // }
-        // // 特殊处理数据表中dur为负值的情况
-        // if (cpuFreqData[i].dur < 0) {
-        //     cpuFreqData[i].dur = 0;
-        // }
         // 分组整理数据
         map.get(cpuFreqData[i].cpu)?.push({
             ts: cpuFreqData[i].ts,
@@ -454,9 +439,9 @@ function dealTree(
             let top10Arr = item.slice(0, 10);
             top10Arr.forEach(e => cpuData.children?.push(e));
         }
-        result.sort((a,b) => a.cpu - b.cpu);
         result.push(cpuData);
     })
+    result.sort((a, b) => a.cpu - b.cpu);
     return result;
 }
 
@@ -493,7 +478,6 @@ self.onmessage = (e: MessageEvent): void => {
             maxCommpuPower += commpuPower * item.smtRate;
         });
     }
-    console.log(e.data);
     let result = orgnazitionMap(e.data);
     self.postMessage(result);
 }
