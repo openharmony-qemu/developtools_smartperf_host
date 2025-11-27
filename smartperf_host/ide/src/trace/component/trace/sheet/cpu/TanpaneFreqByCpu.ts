@@ -27,6 +27,7 @@ import { SpSegmentationChart } from '../../../chart/SpSegmentationChart';
 import { getCpuData } from '../../../../database/sql/CpuAndIrq.sql';
 import { TabPaneFreqUsage } from '../frequsage/TabPaneFreqUsage';
 import { Utils } from '../../base/Utils';
+import { resizeObserver } from '../SheetUtils';
 
 @element('tabpane-frequency-cpu')
 export class TabPaneFreqByCpu extends BaseElement {
@@ -46,6 +47,8 @@ export class TabPaneFreqByCpu extends BaseElement {
         }
         // @ts-ignore
         this.selectionParam = frequencySampleValue;
+        this.threadStatesTbl!.loading = true;
+        this.threadStatesTbl!.recycleDataSource = [];
         this.handleAsyncRequest(frequencySampleValue);
     }
 
@@ -100,6 +103,7 @@ export class TabPaneFreqByCpu extends BaseElement {
             this.threadClick(resultArr);
             // @ts-ignore
             this.threadStatesTbl!.recycleDataSource = resultArr;
+            this.threadStatesTbl!.loading = false;
         }
     }
 
@@ -107,9 +111,13 @@ export class TabPaneFreqByCpu extends BaseElement {
         this.threadStatesTbl = this.shadowRoot?.querySelector<LitTable>(
             '#tb-running-percent'
         );
-        //开启一个线程计算busyTime
+        //开启一个线程
         this.worker = new Worker(new URL('../../../../database/TabPaneCpuUsageWorker', import.meta.url));
     }
+    connectedCallback(): void {
+        super.connectedCallback();
+        resizeObserver(this.parentElement!, this.threadStatesTbl!, 20);
+      }
     initHtml(): string {
         return `<style>
         :host{
