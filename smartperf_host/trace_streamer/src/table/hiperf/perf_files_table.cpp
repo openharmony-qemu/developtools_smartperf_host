@@ -131,7 +131,12 @@ int32_t PerfFilesTable::Cursor::Column(int32_t column) const
         case Index::PATH:
             if (perfFilesObj_.FilePaths()[CurrentRow()] != INVALID_UINT64) {
                 auto pathIndex = static_cast<size_t>(perfFilesObj_.FilePaths()[CurrentRow()]);
-                sqlite3_result_text(context_, dataCache_->GetDataFromDict(pathIndex).c_str(), STR_DEFAULT_LEN, nullptr);
+                if (perfFilesObj_.SoNames()[CurrentRow()] != INVALID_UINT64) {
+                    auto soNameIndex = static_cast<size_t>(perfFilesObj_.SoNames()[CurrentRow()]);
+                    sqlite3_result_text(context_, dataCache_->GetDataFromDict(soNameIndex).c_str(), STR_DEFAULT_LEN, nullptr);
+                } else {
+                    sqlite3_result_text(context_, dataCache_->GetDataFromDict(pathIndex).c_str(), STR_DEFAULT_LEN, nullptr);
+                }
             }
             break;
         default:
