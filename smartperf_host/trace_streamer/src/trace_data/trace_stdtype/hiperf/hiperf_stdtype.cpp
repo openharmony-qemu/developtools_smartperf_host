@@ -158,7 +158,7 @@ bool PerfFiles::EraseFileIdSameData(uint64_t fileId)
         }
     }
     end++;
-    if (start <= end && end < Size()) {
+    if (start != INVALID_UINT64 && end <= Size()) {
         ids_.erase(ids_.begin() + start, ids_.begin() + end);
         fileIds_.erase(fileIds_.begin() + start, fileIds_.begin() + end);
         serials_.erase(serials_.begin() + start, serials_.begin() + end);
