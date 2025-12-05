@@ -29,16 +29,7 @@ namespace TraceStreamer {
 constexpr uint64_t IP_BIT_OPERATION = 0xFFFFFFFFFF;
 using namespace OHOS::Developtools::HiPerf;
 
-enum class NativeType {
-    MALLOC = 0,
-    MMAP,
-    FD,
-    THREAD,
-    GPU_VK,
-    GPU_GLES,
-    GPU_CL,
-    OTHER
-};
+enum class NativeType { MALLOC = 0, MMAP, FD, THREAD, GPU_VK, GPU_GLES, GPU_CL, OTHER };
 
 class NativeHookFrameInfo {
 public:
@@ -160,6 +151,7 @@ private:
     template <class T>
     void UpdateFilePathIdAndStValueToSymAddrMap(T *firstSymbolAddr, const int size, uint32_t filePathId);
     uint64_t GetMemMapSubTypeWithAddr(uint64_t addr);
+    uint64_t GetTraceAllocSubTypeWithAddr(uint64_t addr);
     void UpdateAnonMmapDataDbIndex(uint64_t addr, uint64_t size, uint64_t row);
     void UpdateLastCallerPathAndSymbolIndexs();
     void UpdateFilePathIndexToCallStackRowMap(size_t row, DataIndex filePathIndex);
@@ -196,6 +188,7 @@ private:
     std::deque<std::string> vaddrs_ = {};
     // munmap update anonymous or named memory tag always use the last addrToMmapTag_ value
     std::unordered_map<uint64_t, uint64_t> addrToMmapTag_ = {};
+    std::unordered_map<uint64_t, uint64_t> addrToTraceAllocTag_ = {};
     std::hash<std::string_view> hashFun_;
     bool isOfflineSymbolizationMode_ = false;
     bool isCallStackCompressedMode_ = false;

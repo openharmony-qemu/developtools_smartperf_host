@@ -234,7 +234,7 @@ void NativeHookFilter::ParseStatisticEvent(uint64_t timeStamp, const ProtoReader
     }
 #endif
     DataIndex memSubType = INVALID_UINT64;
-    if (reader.has_tag_name()) {
+    if (reader.has_tag_name() && !reader.tag_name().ToStdString().empty()) {
         memSubType = traceDataCache_->GetDataIndex(reader.tag_name().ToStdString());
     }
     NativeHookStatisticRow nativeHookStatisticRow = {ipid,
@@ -528,6 +528,11 @@ void NativeHookFilter::ParseTraceAllocEvent(uint64_t timeStamp, const ProtoReade
     auto traceAllocType = traceAllocEventReader.trace_type();
     std::string gpuAllocType;
     NativeType nativeType;
+    DataIndex subType = INVALID_UINT64;
+    if (traceAllocEventReader.has_tag_name() && !traceAllocEventReader.tag_name().ToStdString().empty()) {
+        subType = traceDataCache_->GetDataIndex(traceAllocEventReader.tag_name().ToStdString());
+        addrToTraceAllocTag_[traceAllocAddr] = subType;
+    }
     switch (traceAllocType) {
         case ProtoReader::TraceType::GPU_VK:
             gpuAllocType = "GPU_VK_Alloc_Event";
@@ -544,16 +549,8 @@ void NativeHookFilter::ParseTraceAllocEvent(uint64_t timeStamp, const ProtoReade
         default:
             return;
     }
-    NativeHookRow nativeHookRow = {callChainId,
-                                   ipid,
-                                   itid,
-                                   gpuAllocType,
-                                   INVALID_UINT64,
-                                   timeStamp,
-                                   0,
-                                   0,
-                                   traceAllocAddr,
-                                   static_cast<int64_t>(traceAllocSize)};
+    NativeHookRow nativeHookRow = {callChainId, ipid, itid, gpuAllocType,   subType,
+                                   timeStamp,   0,    0,    traceAllocAddr, static_cast<int64_t>(traceAllocSize)};
     auto row = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(nativeHookRow);
     addrToTraceAllocEventRow_->insert(std::make_pair(traceAllocAddr, static_cast<uint64_t>(row)));
     if (traceAllocSize != 0) {
@@ -604,9 +601,10 @@ void NativeHookFilter::ParseTraceFreeEvent(uint64_t timeStamp, const ProtoReader
         TS_LOGD("func addr:%" PRIu64 " is empty", traceFreeAddr);
         return;
     }
-    NativeHookRow nativeHookRow = {callChainId, ipid, itid, gpuFreeType, INVALID_UINT64, timeStamp, 0, 0,
-                                   traceFreeAddr, traceFreeSize};
+    NativeHookRow nativeHookRow = {callChainId, ipid, itid, gpuFreeType,   GetTraceAllocSubTypeWithAddr(traceFreeAddr),
+                                   timeStamp,   0,    0,    traceFreeAddr, traceFreeSize};
     row = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(nativeHookRow);
+    addrToTraceAllocTag_.erase(traceFreeAddr);
     if (traceFreeSize != 0) {
         MaybeUpdateCurrentSizeDur(row, timeStamp, nativeType);
     }
@@ -644,6 +642,17 @@ inline uint64_t NativeHookFilter::GetMemMapSubTypeWithAddr(uint64_t addr)
         return INVALID_UINT64;
     }
 }
+
+inline uint64_t NativeHookFilter::GetTraceAllocSubTypeWithAddr(uint64_t addr)
+{
+    auto iter = addrToTraceAllocTag_.find(addr);
+    if (iter != addrToTraceAllocTag_.end()) {
+        return iter->second; // subType
+    } else {
+        return INVALID_UINT64;
+    }
+}
+
 inline void NativeHookFilter::UpdateAnonMmapDataDbIndex(uint64_t addr, uint64_t size, uint64_t row)
 {
     auto indexPtr = anonMmapData_.Find(addr, size);
