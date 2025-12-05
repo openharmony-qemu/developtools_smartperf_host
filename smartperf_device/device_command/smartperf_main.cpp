@@ -29,6 +29,8 @@
 #include "include/startup_delay.h"
 
 constexpr const char *VERSION_TYPE = "const.logsystem.versiontype";
+constexpr const int RK_CAPACITYRM = 11;
+constexpr const int MAX_BAT = 60;
 static std::string GetOptions(const std::vector<std::string> &argv)
 {
     std::string str = "";
@@ -147,7 +149,6 @@ static void SocketStartCommand(int argc, char *argv[])
 static void RecordCapacity()
 {
     const std::string capacityRmPath = "/sys/class/power_supply/Battery/capacity_rm";
-    const std::string rkCapacityRmPath = "/data/service/el0/battery/battery/capacity";
     const std::string capacitySavePath = "/data/local/tmp/powerLeftRecord.csv";
     std::string capacityString;
     std::ifstream infile(capacitySavePath.c_str());
@@ -179,10 +180,7 @@ static void RecordCapacity()
     auto recordTime = std::to_string(std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));
     OHOS::SmartPerf::SPUtils::LoadFile(capacityRmPath, recordPower);
     if (recordPower.empty()) {
-        std::string rkRecordPower;
-        int maxBat = 60;
-        OHOS::SmartPerf::SPUtils::LoadFile(rkCapacityRmPath, rkRecordPower);
-        recordPower = std::to_string(OHOS::SmartPerf::SPUtilesTye::StringToSometype<int>(rkRecordPower) * maxBat);
+        recordPower = std::to_string(RK_CAPACITYRM * MAX_BAT);
     }
     std::cout << "recordTime: " << recordTime << std::endl << "recordPower: " << recordPower << std::endl;
     capacityString += recordTime + "," + recordPower;
