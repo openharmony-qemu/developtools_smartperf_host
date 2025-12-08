@@ -34,7 +34,7 @@ export class TabPaneGMemory extends BaseElement {
     private tblData: LitTable | null | undefined;
     private currentSelection: SelectionParam | undefined;
     private eventTypes: string[] = [];
-    private defaultGpuTypes = ['Graphic Memory', 'VulKan', 'OpenGLES', 'OpenCL'];
+    private defaultGpuTypes = ['Graphic Memory', 'All VulKan', 'All OpenGLES', 'All OpenCL'];
     private memorySource: Array<unknown> = [];
     private gpuType: Array<string> = [...this.defaultGpuTypes];
     private filter: TabPaneFilter | null | undefined;

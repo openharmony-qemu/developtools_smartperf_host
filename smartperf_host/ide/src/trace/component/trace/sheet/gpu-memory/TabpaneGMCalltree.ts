@@ -47,7 +47,7 @@ export class TabpaneGMCalltree extends BaseElement {
     private searchValue: string = '';
     private gmCallTreeLoadingPage: unknown;
     private currentGMCallTreeFilter: TabPaneFilter | undefined | null;
-    private subTypeArr: number[] = [];
+    private subTypeResult: Array<{ subTypeId: number; subType: string | null; }> = [];
     private responseTypes: unknown[] = [];
     private filterLifespanType: string = '0';
     private filterGpuType: string = '0';
@@ -69,6 +69,7 @@ export class TabpaneGMCalltree extends BaseElement {
     private lastIsExpression = false;
     private currentSelectedData: unknown = undefined;
     private eventList: string[] | null | undefined;
+    private types: Array<string | number> = [];
 
     set analysisTabWidth(width: number) {
         this._analysisTabWidth = width;
@@ -92,6 +93,7 @@ export class TabpaneGMCalltree extends BaseElement {
     }
 
     set data(gmCallTreeParam: SelectionParam) {
+        // this.types = [];
         const isShow = gmCallTreeParam.gpuMemory.length > 0;
         this.gmCallTreeFrameChart!.dispatchEvent(
             new CustomEvent('show-calibration', {
@@ -101,9 +103,10 @@ export class TabpaneGMCalltree extends BaseElement {
                 bubbles: false
             })
         );
-        if (gmCallTreeParam === this.currentSelection) {
+        if (gmCallTreeParam === this.currentSelection && !this._initFromAnalysis) {
             return;
         }
+        this.types = [];
         // 火焰图数据
         this.gmCallTreeSource = [];
         // 框选内容赋值
@@ -116,17 +119,16 @@ export class TabpaneGMCalltree extends BaseElement {
     private async init(gmCallTreeParam: SelectionParam): Promise<void> {
         // 初始化样式
         this.initUI();
+        this.initTypes(gmCallTreeParam);
         // 初始化选择框内容
-        await this.initFilterTypes();
-        let types: Array<string | number> = [];
-        this.initTypes(gmCallTreeParam, types);
+        await this.initFilterTypes(this.types);
         const initWidth = this._analysisTabWidth > 0 ? this._analysisTabWidth : this.clientWidth;
         // 获取tab页数据
         this.getDataByWorkerQuery(
             {
                 leftNs: gmCallTreeParam.leftNs,
                 rightNs: gmCallTreeParam.rightNs,
-                types,
+                types: this.types,
             },
             (results: unknown[]): void => {
                 this.setLTableData(results);
@@ -321,7 +323,7 @@ export class TabpaneGMCalltree extends BaseElement {
             this.currentGMCallTreeFilter!.thirdSelect = '0';
             this.filterLifespanType = '0';
             this.refreshAllNode(this.gmCallTreeFilter!.getFilterTreeData(), true);
-            this.initFilterTypes();
+            this.initFilterTypes(this.types);
             this.gmCallTreeFrameChart?.resizeChange();
         };
     }
@@ -504,10 +506,11 @@ export class TabpaneGMCalltree extends BaseElement {
         groupArgs.set('leftNs', this.currentSelection?.leftNs || 0);
         groupArgs.set('rightNs', this.currentSelection?.rightNs || 0);
         let selections: Array<unknown> = [];
-        if (this.subTypeArr.length > 0) {
-            this.subTypeArr.map((memory): void => {
+        if (this.subTypeResult.length > 0) {
+            this.subTypeResult.map((memory): void => {
                 selections.push({
-                    memoryTap: memory,
+                    memoryTap: memory.subTypeId,
+                    subType: memory.subType,
                 });
             });
         }
@@ -551,32 +554,37 @@ export class TabpaneGMCalltree extends BaseElement {
         return gmCallTreeFuncArgs;
     }
 
-    async initFilterTypes(): Promise<void> {
+    async initFilterTypes(types: Array<string | number>): Promise<void> {
         this.currentGMCallTreeFilter = this.shadowRoot?.querySelector<TabPaneFilter>('#gm-call-tree-filter');
-        let secondFilterList = ['Graphic Memory'];
+        let secondFilterList = ['Graphic Memory', 'All VulKan', 'All OpenGLES', 'All OpenCL'];
         const addSubType = (subTypeList: unknown): void => {
             if (!subTypeList) {
                 return;
             }
-            this.subTypeArr = []; // @ts-ignore
+            // @ts-ignore
             for (let data of subTypeList) {
                 secondFilterList.push(data.subType);
-                this.subTypeArr.push(data.subTypeId);
             }
         };
         if (this.currentSelection!.gpuMemory!.length > 0) {
             let subTypeList = await queryNativeHookSubType(
                 this.currentSelection!.leftNs,
                 this.currentSelection!.rightNs,
-                this.currentSelectIPid
+                this.currentSelectIPid,
+                types
             );
+            // @ts-ignore
+            this.subTypeResult = subTypeList;
             addSubType(subTypeList);
         } else {
             let subTypeList = await queryNativeHookStatisticSubType(
                 this.currentSelection!.leftNs,
                 this.currentSelection!.rightNs,
-                this.currentSelectIPid
+                this.currentSelectIPid,
+                types
             );
+            // @ts-ignore
+            this.subTypeResult = subTypeList;
             addSubType(subTypeList);
         }
         this.gMCallTreeFilterExtend(secondFilterList);
@@ -617,33 +625,34 @@ export class TabpaneGMCalltree extends BaseElement {
         });
     }
 
-    initTypes(gmCallTreeParam: SelectionParam, types: Array<string | number>): void {
+    initTypes(gmCallTreeParam: SelectionParam): void {
         if (gmCallTreeParam.gpuMemory.length > 0) {
             this.gmCallTreeFilter!.isStatisticsMemory = false;
             if (gmCallTreeParam.gpuMemory.indexOf(this.gpuType[0]) !== -1) {
-                types.push("'GPU_VK_Alloc_Event'");
-                types.push("'GPU_GLES_Alloc_Event'");
-                types.push("'GPU_CL_Alloc_Event'");
-            } else if (gmCallTreeParam.gpuMemory.indexOf(this.gpuType[1]) !== -1) {
-                types.push("'GPU_VK_Alloc_Event'");
-            } else if (gmCallTreeParam.gpuMemory.indexOf(this.gpuType[2]) !== -1) {
-                types.push("'GPU_GLES_Alloc_Event'");
-            } else if (gmCallTreeParam.gpuMemory.indexOf(this.gpuType[3]) !== -1) {
-                types.push("'GPU_CL_Alloc_Event'");
+                this.types.push(0);
+            }
+            if (gmCallTreeParam.gpuMemory.indexOf(this.gpuType[1]) !== -1) {
+                this.types.push(1);
+            }
+            if (gmCallTreeParam.gpuMemory.indexOf(this.gpuType[2]) !== -1) {
+                this.types.push(2);
+            }
+            if (gmCallTreeParam.gpuMemory.indexOf(this.gpuType[3]) !== -1) {
+                this.types.push(3);
             }
         } else {
             this.gmCallTreeFilter!.isStatisticsMemory = true;
             if (gmCallTreeParam.gpuMemoryStatistic.indexOf(this.gpuType[0]) !== -1) {
-                types.push(0);
+                this.types.push(0);
             }
             if (gmCallTreeParam.gpuMemoryStatistic.indexOf(this.gpuType[1]) !== -1) {
-                types.push(1);
+                this.types.push(1);
             }
             if (gmCallTreeParam.gpuMemoryStatistic.indexOf(this.gpuType[2]) !== -1) {
-                types.push(2);
+                this.types.push(2);
             }
             if (gmCallTreeParam.gpuMemoryStatistic.indexOf(this.gpuType[3]) !== -1) {
-                types.push(3);
+                this.types.push(3);
             }
         }
     }
@@ -720,10 +729,23 @@ export class TabpaneGMCalltree extends BaseElement {
         return gmCallTreeSortArr;
     }
 
-    filterByAnalysis(): void {
+    async filterByAnalysis(params?: SelectionParam): Promise<void> {
         let filterContent: unknown[] = [];
         let param = new Map<string, unknown>();
         let selections: Array<unknown> = [];
+        if (params) {
+            this.types = [];
+            this.initTypes(params!);
+            await this.initFilterTypes(this.types);
+        }
+        if (this.subTypeResult.length > 0) {
+            this.subTypeResult.map((memory): void => {
+                selections.push({
+                    memoryTap: memory.subTypeId,
+                    subType: memory.subType,
+                });
+            });
+        }
         this.setFilterType(selections, this._filterData!);
         param.set('filterByTitleArr', this._filterData);
         param.set('filterAllocType', '0');
@@ -744,6 +766,7 @@ export class TabpaneGMCalltree extends BaseElement {
             this.setLTableData(result); // @ts-ignore
             this.gmCallTreeFrameChart!.data = this.gmCallTreeSource;
             this.switchFlameChart();
+            this.banTypeAndLidSelect();
             this.gmCallTreeFilter!.icon = 'block';
             this.initFromAnalysis = false;
         });
@@ -751,12 +774,17 @@ export class TabpaneGMCalltree extends BaseElement {
     }
 
     setFilterType(selections: Array<unknown>, data: FilterByAnalysis): void {
-        if (data.type === 'VulKan') {
+        if (data.type === 'All VulKan') {
             data.type = '1';
-        } else if (data.type === 'OpenGLES') {
+        } else if (data.type === 'All OpenGLES') {
             data.type = '2';
-        } else {
+        } else if (data.type === 'All OpenCL') {
             data.type = '3';
+        } else {
+            const index = this.subTypeResult.findIndex(item => item.subType === data.type);
+            if (index !== -1) {
+                data.type = (index + 4).toString();
+            }
         }
     }
 
