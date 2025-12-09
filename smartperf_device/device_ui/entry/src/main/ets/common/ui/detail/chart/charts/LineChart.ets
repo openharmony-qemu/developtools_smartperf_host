@@ -64,8 +64,12 @@ export default struct LineChart {
         .visibility(this.lineChartModel.isShowXAxis ? Visibility.Visible : Visibility.Hidden)
 
         Stack({ alignContent: Alignment.TopStart }) {
-          YAxisView({ model:this.lineChartModel.pathViewModel.leftAxisModel })
-          YAxisView({ model: this.lineChartModel.pathViewModel.rightAxisModel })
+          if (this.lineChartModel.pathViewModel.leftAxisModel) {
+            YAxisView({ model:this.lineChartModel.pathViewModel.leftAxisModel })
+          }
+          if (this.lineChartModel.pathViewModel.rightAxisModel) {
+            YAxisView({ model: this.lineChartModel.pathViewModel.rightAxisModel })
+          }
         }
         .visibility(this.lineChartModel.isShowXAxis ? Visibility.Visible : Visibility.Hidden)
 
@@ -119,19 +123,12 @@ export default struct LineChart {
 
   private initPathViewModel() {
     console.log('LineChart initPathViewModel')
-    if (!this.pathViewModel) {
-      console.error('initPathViewModel::this.pathViewModel is undefined');
-      return;
+    console.log('LineChart initPathViewModel this.pathViewModel: ' + JSON.stringify(this.pathViewModel))
+    if (this.pathViewModel.lineChartModel) {
+      this.pathViewModel.lineChartModel = this.lineChartModel
+    } else {
+      console.log('this.pathViewModel.lineChartModel is undefined')
     }
-    if (!this.lineChartModel) {
-      console.error('initPathViewModel::this.lineChartModel is undefined');
-      return;
-    }
-    if (!this.pathViewModel.lineChartModel) {
-      console.error('initPathViewModel::this.pathViewModel.lineChartModel is undefined');
-      return;
-    }
-    this.pathViewModel.lineChartModel = this.lineChartModel
     this.pathViewModel.width = this.lineChartModel.width;
     this.pathViewModel.height = this.lineChartModel.height;
     this.pathViewModel.setIsInverted(this.lineChartModel.isInverted);
@@ -143,37 +140,34 @@ export default struct LineChart {
     this.pathViewModel.setIsShowClickValue(this.lineChartModel.isShowValue);
     this.pathViewModel.setPathViewData(this.lineChartModel.lineData);
 
-    if (!this.pathViewModel.leftAxisModel) {
-      console.error('this.pathViewModel.leftAxisModel is undefined');
-      return;
+    if (this.pathViewModel.leftAxisModel) {
+      this.pathViewModel.leftAxisModel.setWidth(this.lineChartModel.width);
+      this.pathViewModel.leftAxisModel.setHeight(this.lineChartModel.height);
+      this.pathViewModel.leftAxisModel.setMinOffset(this.lineChartModel.minOffset);
+      this.pathViewModel.leftAxisModel.setYAxis(this.lineChartModel.leftAxis);
+    } else {
+      console.log('this.pathViewModel.leftAxisModel is undefined')
+    }
+    
+    if (this.pathViewModel.rightAxisModel) {
+      this.pathViewModel.rightAxisModel.setWidth(this.lineChartModel.width);
+      this.pathViewModel.rightAxisModel.setHeight(this.lineChartModel.height);
+      this.pathViewModel.rightAxisModel.setMinOffset(this.lineChartModel.minOffset);
+      this.pathViewModel.rightAxisModel.setYAxis(this.lineChartModel.rightAxis);
+    } else {
+      console.log('this.pathViewModel.rightAxisModel is undefined')
     }
 
-    this.pathViewModel.leftAxisModel.setWidth(this.lineChartModel.width);
-    this.pathViewModel.leftAxisModel.setHeight(this.lineChartModel.height);
-    this.pathViewModel.leftAxisModel.setMinOffset(this.lineChartModel.minOffset);
-    this.pathViewModel.leftAxisModel.setYAxis(this.lineChartModel.leftAxis);
-
-    if (!this.pathViewModel.rightAxisModel) {
-      console.error('this.pathViewModel.rightAxisModel is undefined');
-      return;
+    if (this.pathViewModel.xAixsMode) {
+      this.pathViewModel.xAixsMode.width = this.lineChartModel.width;s
+      this.pathViewModel.xAixsMode.height = this.lineChartModel.height;
+      this.pathViewModel.xAixsMode.topAxis = this.lineChartModel.topAxis;
+      this.pathViewModel.xAixsMode.bottomAxis = this.lineChartModel.bottomAxis;
+      this.pathViewModel.xAixsMode.minOffset = this.lineChartModel.minOffset;
+      this.pathViewModel.xAixsMode.clipPath = this.pathViewModel.xAixsMode.clipPath;
+    } else {
+      console.log('this.pathViewModel.xAixsMode is undefined')
     }
-
-    this.pathViewModel.rightAxisModel.setWidth(this.lineChartModel.width);
-    this.pathViewModel.rightAxisModel.setHeight(this.lineChartModel.height);
-    this.pathViewModel.rightAxisModel.setMinOffset(this.lineChartModel.minOffset);
-    this.pathViewModel.rightAxisModel.setYAxis(this.lineChartModel.rightAxis);
-
-    if (!this.pathViewModel.xAixsMode) {
-      console.error('this.pathViewModel.xAixsMode is undefined');
-      return;
-    }
-
-    this.pathViewModel.xAixsMode.width = this.lineChartModel.width;
-    this.pathViewModel.xAixsMode.height = this.lineChartModel.height;
-    this.pathViewModel.xAixsMode.topAxis = this.lineChartModel.topAxis;
-    this.pathViewModel.xAixsMode.bottomAxis = this.lineChartModel.bottomAxis;
-    this.pathViewModel.xAixsMode.minOffset = this.lineChartModel.minOffset;
-    this.pathViewModel.xAixsMode.clipPath = this.pathViewModel.xAixsMode.clipPath;
     this.lineChartModel.setPathViewModel(this.pathViewModel);
     console.log('LineChart this.lineChartModel end: ' + JSON.stringify(this.lineChartModel))
   }
