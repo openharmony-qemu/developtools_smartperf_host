@@ -84,6 +84,14 @@ export default struct LineChart {
   public aboutToAppear() {
     console.log('LineChart aboutToAppear')
     console.log('LineChart this.lineChartModel.isShowLegend: ' + this.lineChartModel.isShowLegend)
+    if (!this.lineChartModel) {
+      console.error('aboutToAppear::this.lineChartModel is undefined');
+      return;
+    }
+    if (!this.pathViewModel) {
+      console.error('aboutToAppear::this.pathViewModel is undefined');
+      return;
+    }
     this.initPathViewModel();
 
     // 数据设置 setLegend
@@ -112,6 +120,15 @@ export default struct LineChart {
   private initPathViewModel() {
     console.log('LineChart initPathViewModel')
     console.log('LineChart this.pathViewModel: ' + JSON.stringify(this.pathViewModel))
+    console.log('LineChart this.lineChartModel: ' + JSON.stringify(this.lineChartModel))
+    if (!this.pathViewModel) {
+      console.error('initPathViewModel::this.pathViewModel is undefined');
+      return;
+    }
+    if (!this.lineChartModel) {
+      console.error('initPathViewModel::this.lineChartModel is undefined');
+      return;
+    }
     this.pathViewModel.lineChartModel = this.lineChartModel
     this.pathViewModel.width = this.lineChartModel.width;
     this.pathViewModel.height = this.lineChartModel.height;
@@ -124,14 +141,30 @@ export default struct LineChart {
     this.pathViewModel.setIsShowClickValue(this.lineChartModel.isShowValue);
     this.pathViewModel.setPathViewData(this.lineChartModel.lineData);
 
+    if (!this.pathViewModel.leftAxisModel) {
+      console.error('this.pathViewModel.leftAxisModel is undefined');
+      return;
+    }
+
     this.pathViewModel.leftAxisModel.setWidth(this.lineChartModel.width);
     this.pathViewModel.leftAxisModel.setHeight(this.lineChartModel.height);
     this.pathViewModel.leftAxisModel.setMinOffset(this.lineChartModel.minOffset);
     this.pathViewModel.leftAxisModel.setYAxis(this.lineChartModel.leftAxis);
+
+    if (!this.pathViewModel.rightAxisModel) {
+      console.error('this.pathViewModel.rightAxisModel is undefined');
+      return;
+    }
+
     this.pathViewModel.rightAxisModel.setWidth(this.lineChartModel.width);
     this.pathViewModel.rightAxisModel.setHeight(this.lineChartModel.height);
     this.pathViewModel.rightAxisModel.setMinOffset(this.lineChartModel.minOffset);
     this.pathViewModel.rightAxisModel.setYAxis(this.lineChartModel.rightAxis);
+
+    if (!this.pathViewModel.xAixsMode) {
+      console.error('this.pathViewModel.xAixsMode is undefined');
+      return;
+    }
 
     this.pathViewModel.xAixsMode.width = this.lineChartModel.width;
     this.pathViewModel.xAixsMode.height = this.lineChartModel.height;
@@ -140,7 +173,7 @@ export default struct LineChart {
     this.pathViewModel.xAixsMode.minOffset = this.lineChartModel.minOffset;
     this.pathViewModel.xAixsMode.clipPath = this.pathViewModel.xAixsMode.clipPath;
     this.lineChartModel.setPathViewModel(this.pathViewModel);
-    console.log('LineChart this.lineChartModel: ' + JSON.stringify(this.lineChartModel))
+    console.log('LineChart this.lineChartModel end: ' + JSON.stringify(this.lineChartModel))
   }
 
 }
