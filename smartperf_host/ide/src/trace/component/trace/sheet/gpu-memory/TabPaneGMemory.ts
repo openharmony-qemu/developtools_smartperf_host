@@ -67,13 +67,13 @@ export class TabPaneGMemory extends BaseElement {
             this.eventTypes.push("'GPU_GLES_Alloc_Event'");
             this.eventTypes.push("'GPU_CL_Alloc_Event'");
         } else {
-            if (memoryParam.gpuMemory.indexOf(this.defaultGpuTypes[1]) !== -1) {
+            if (memoryParam.gpuMemory.indexOf(this.defaultGpuTypes[1].replace('All ', '')) !== -1) {
                 this.eventTypes.push("'GPU_VK_Alloc_Event'");
             }
-            if (memoryParam.gpuMemory.indexOf(this.defaultGpuTypes[2]) !== -1) {
+            if (memoryParam.gpuMemory.indexOf(this.defaultGpuTypes[2].replace('All ', '')) !== -1) {
                 this.eventTypes.push("'GPU_GLES_Alloc_Event'");
             }
-            if (memoryParam.gpuMemory.indexOf(this.defaultGpuTypes[3]) !== -1) {
+            if (memoryParam.gpuMemory.indexOf(this.defaultGpuTypes[3].replace('All ', '')) !== -1) {
                 this.eventTypes.push("'GPU_CL_Alloc_Event'");
             }
         }//@ts-ignore
