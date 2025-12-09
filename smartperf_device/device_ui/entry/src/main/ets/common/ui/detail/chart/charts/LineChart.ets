@@ -119,8 +119,6 @@ export default struct LineChart {
 
   private initPathViewModel() {
     console.log('LineChart initPathViewModel')
-    console.log('LineChart this.pathViewModel: ' + JSON.stringify(this.pathViewModel))
-    console.log('LineChart this.lineChartModel: ' + JSON.stringify(this.lineChartModel))
     if (!this.pathViewModel) {
       console.error('initPathViewModel::this.pathViewModel is undefined');
       return;
