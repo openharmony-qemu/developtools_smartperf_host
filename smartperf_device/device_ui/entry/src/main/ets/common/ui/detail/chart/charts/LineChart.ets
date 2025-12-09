@@ -129,7 +129,6 @@ export default struct LineChart {
       console.error('initPathViewModel::this.lineChartModel is undefined');
       return;
     }
-    this.pathViewModel.lineChartModel = this.lineChartModel
     this.pathViewModel.width = this.lineChartModel.width;
     this.pathViewModel.height = this.lineChartModel.height;
     this.pathViewModel.setIsInverted(this.lineChartModel.isInverted);
