@@ -39,9 +39,9 @@ const TYPE_OG = 7;
 const TYPE_OC = 8;
 const PIE_CHART_LIMIT = 20;
 
-const TYPE_VUL_STRING = 'VulKan';
-const TYPE_OG_STRING = 'OpenGLES';
-const TYPE_OC_STRING = 'OpenCL';
+const TYPE_VUL_STRING = 'GPU_VK';
+const TYPE_OG_STRING = 'GPU_GLES';
+const TYPE_OC_STRING = 'GPU_CL';
 
 class AnalysisObj {
   tName?: string;
@@ -92,6 +92,15 @@ class SizeObj {
   releaseCount = 0;
 }
 
+class ApplySample {
+  size: number = 0;
+  count: number = 0;
+  releaseSize?: number;
+  releaseCount?: number;
+  isRelease?: boolean;
+  subType?: string;
+}
+
 @element('tabpane-gm-statistic-analysis')
 export class TabPaneGMStatisticAnalysis extends BaseElement {
   private currentSelection: SelectionParam | undefined;
@@ -132,8 +141,10 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
   private currentLevelData!: Array<unknown>;
   private type: string = '';
   private gmTableBox: HTMLDivElement | undefined | null;
+  private param: SelectionParam | undefined | null;
 
   set data(statisticAnalysisParam: SelectionParam) {
+    this.param = statisticAnalysisParam;
     if (this.currentSelection === statisticAnalysisParam) {
       if (this.eventTypeData) {
         // @ts-ignore
@@ -233,7 +244,7 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
       // 首次打开初始化数据 非首次初始化UI
       if (!InitAnalysis.getInstance().isInitGMAnalysis) {
         treeTab?.initUI();
-        treeTab?.filterByAnalysis();
+        treeTab?.filterByAnalysis(this.param!);
       } else {
         treeTab!.initFromAnalysis = true;
         treeTab!.data = this.currentSelection!;
@@ -527,14 +538,14 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
     } else {
       for (let type of val.gpuMemory) {
         if (type === 'Graphic Memory') {
-          typeFilter.push(...["'GPU_VK_Alloc_Event'", "'GPU_VK_Free_Event'", "'GPU_GLES_Alloc_Event'", "'GPU_GLES_Free_Event'", "'GPU_CL_Alloc_Event'", "'GPU_CL_Free_Event'"]);
+          typeFilter = [0, 1, 2, 3];
           break;
         } else if (type === 'VulKan') {
-          typeFilter.push(...["'GPU_VK_Alloc_Event'", "'GPU_VK_Free_Event'"]);
+          typeFilter.push(1);
         } else if (type === 'OpenGLES') {
-          typeFilter.push(...["'GPU_GLES_Alloc_Event'", "'GPU_GLES_Free_Event'"]);
+          typeFilter.push(2);
         } else {
-          typeFilter.push(...["'GPU_CL_Alloc_Event'", "'GPU_CL_Free_Event'"]);
+          typeFilter.push(3);
         }
       }
       this.getDataFromWorker(val, typeFilter);
@@ -564,11 +575,37 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
     this.eventTypeData = [];
     if (this.isStatistic) {
       if (this.typeMap.has(TYPE_VUL)) {
-        let vulType = this.setTypeMap(this.typeMap, TYPE_VUL, TYPE_VUL_STRING);
-        if (vulType) {
-          this.calPercent(vulType);
-          this.eventTypeData.push(vulType);
+        let subTypeMap = new Map<string, Array<number | string>>();
+        for (let item of this.typeMap.get(TYPE_VUL)!) {
+          // @ts-ignore
+          if (item.subType) {
+            // @ts-ignore
+            if (subTypeMap.has(item.subType)) {
+              // @ts-ignore
+              subTypeMap.get(item.subType)?.push(item);
+            } else {
+              let dataArray: Array<number | string> = []; // @ts-ignore
+              dataArray.push(item); // @ts-ignore
+              subTypeMap.set(item.subType, dataArray);
+            }
+          } else {
+            if (subTypeMap.has(TYPE_VUL_STRING)) {
+              // @ts-ignore
+              subTypeMap.get(TYPE_VUL_STRING)?.push(item);
+            } else {
+              let dataArray: Array<number | string> = []; // @ts-ignore
+              dataArray.push(item);
+              subTypeMap.set(TYPE_VUL_STRING, dataArray);
+            }
+          }
         }
+        subTypeMap.forEach((arr: Array<number | string>, subType: string) => {
+          let mapType = this.setTypeMap(arr, TYPE_VUL, subType);
+          if (mapType) {
+            this.calPercent(mapType);
+            this.eventTypeData.push(mapType);
+          }
+        });
       }
       if (this.typeMap.has(TYPE_OG)) {
         let subTypeMap = new Map<string, Array<number | string>>();
@@ -596,7 +633,7 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
           }
         }
         subTypeMap.forEach((arr: Array<number | string>, subType: string) => {
-          let mapType = this.setTypeMap(this.typeMap, TYPE_OG, subType);
+          let mapType = this.setTypeMap(arr, TYPE_OG, subType);
           if (mapType) {
             this.calPercent(mapType);
             this.eventTypeData.push(mapType);
@@ -629,7 +666,7 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
           }
         }
         subTypeMap.forEach((arr: Array<number | string>, subType: string) => {
-          let mapType = this.setTypeMap(this.typeMap, TYPE_OC, subType);
+          let mapType = this.setTypeMap(arr, TYPE_OC, subType);
           if (mapType) {
             this.calPercent(mapType);
             this.eventTypeData.push(mapType);
@@ -638,11 +675,37 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
       }
     } else {
       if (this.typeMap.has(TYPE__VK_ALLOC)) {
-        let vulType = this.setTypeMap(this.typeMap, TYPE__VK_ALLOC, TYPE_VUL_STRING);
-        if (vulType) {
-          this.calPercent(vulType);
-          this.eventTypeData.push(vulType);
+        let subTypeMap = new Map<string, Array<number | string>>();
+        for (let item of this.typeMap.get(TYPE__VK_ALLOC)!) {
+          // @ts-ignore
+          if (item.subType) {
+            // @ts-ignore
+            if (subTypeMap.has(item.subType)) {
+              // @ts-ignore
+              subTypeMap.get(item.subType)?.push(item);
+            } else {
+              let dataArray: Array<number | string> = []; // @ts-ignore
+              dataArray.push(item); // @ts-ignore
+              subTypeMap.set(item.subType, dataArray);
+            }
+          } else {
+            if (subTypeMap.has(TYPE_VUL_STRING)) {
+              // @ts-ignore
+              subTypeMap.get(TYPE_VUL_STRING)?.push(item);
+            } else {
+              let dataArray: Array<number | string> = []; // @ts-ignore
+              dataArray.push(item);
+              subTypeMap.set(TYPE_VUL_STRING, dataArray);
+            }
+          }
         }
+        subTypeMap.forEach((arr: Array<number | string>, subType: string) => {
+          let mapType = this.setTypeMap(arr, TYPE__VK_ALLOC, subType);
+          if (mapType) {
+            this.calPercent(mapType);
+            this.eventTypeData.push(mapType);
+          }
+        });
       }
       if (this.typeMap.has(TYPE_GLES_ALLOC)) {
         let subTypeMap = new Map<string, Array<number | string>>();
@@ -670,7 +733,7 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
           }
         }
         subTypeMap.forEach((arr: Array<number | string>, subType: string) => {
-          let mapType = this.setTypeMap(this.typeMap, TYPE_GLES_ALLOC, subType);
+          let mapType = this.setTypeMap(arr, TYPE_GLES_ALLOC, subType);
           if (mapType) {
             this.calPercent(mapType);
             this.eventTypeData.push(mapType);
@@ -703,7 +766,7 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
           }
         }
         subTypeMap.forEach((arr: Array<number | string>, subType: string) => {
-          let mapType = this.setTypeMap(this.typeMap, TYPE_CL_ALLOC, subType);
+          let mapType = this.setTypeMap(arr, TYPE_CL_ALLOC, subType);
           if (mapType) {
             this.calPercent(mapType);
             this.eventTypeData.push(mapType);
@@ -712,6 +775,7 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
       }
     }
     this.eventTypeData.sort((a, b) => b.existSize - a.existSize);
+    this.eventTypeData = this.sumHandler(this.eventTypeData)
     this.typeStatisticsData = this.totalData(this.typeStatisticsData);
     this.progressEL!.loading = false;
     this.currentLevel = 0;
@@ -1017,41 +1081,15 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
   }
 
   private skipItemByType(typeName: string, types: Array<string | number>, data: unknown, libId: number): boolean {
-    if (typeName === TYPE_VUL_STRING) {
-      // @ts-ignore
-      if (!types.includes(data.type) || data.libId !== libId) {
+    // @ts-ignore
+    if (data.subType) {
+       // @ts-ignore
+       if (!types.includes(data.subType) || data.libId !== libId) {
         return true;
       }
-    } else if (typeName === TYPE_OG_STRING) {
-      if (this.isStatistic) {
-        // @ts-ignore
-        if (data.subType) {
-          // @ts-ignore
-          if (!types.includes(data.subType) || !types.includes(data.type) || data.libId !== libId) {
-            return true;
-          }
-        } else {
-          return true;
-        }
-      } else {
-        // @ts-ignore
-        if (!data.subType) {
-          // @ts-ignore
-          if (!types.includes(data.type) || data.libId !== libId) {
-            return true;
-          }
-        } else {
-          return true;
-        }
-      }
     } else {
-      // @ts-ignore
-      if (data.subType) {
-        // @ts-ignore
-        if (!types.includes(data.subType) || !types.includes(data.type) || data.libId !== libId) {
-          return true;
-        }
-      } else {
+       // @ts-ignore
+       if (!types.includes(data.type) || data.libId !== libId) {
         return true;
       }
     }
@@ -1229,35 +1267,13 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
   }
 
   private shouldSkipItem(typeName: string, types: Array<number | string>, itemData: unknown): boolean {
-    if (typeName === TYPE_VUL_STRING) {
+    // @ts-ignore
+    if (itemData.subType) {
       // @ts-ignore
-      return !types.includes(itemData.type);
-    } else if (typeName === TYPE_OG_STRING) {
-      if (this.isStatistic) {
-        // @ts-ignore
-        if (itemData.subType) {
-          // @ts-ignore
-          return !types.includes(itemData.subType) || !types.includes(itemData.type);
-        } else {
-          return true;
-        }
-      } else {
-        // @ts-ignore
-        if (!itemData.subType) {
-          // @ts-ignore
-          return !types.includes(itemData.type);
-        } else {
-          return true;
-        }
-      }
+      return !types.includes(itemData.subType);
     } else {
       // @ts-ignore
-      if (itemData.subType) {
-        // @ts-ignore
-        return !types.includes(itemData.subType) || !types.includes(itemData.type);
-      } else {
-        return true;
-      }
+      return !types.includes(itemData.type);
     }
   }
 
@@ -1354,33 +1370,30 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
     return total;
   }
 
-  private setTypeMap(typeMap: Map<number, unknown>, tyeId: number, typeName: string): AnalysisObj | null {
+  private setTypeMap(typeMap: Array<ApplySample | number | string>, tyeId: number, typeName: string): AnalysisObj | null {
     let applySize = 0;
     let releaseSize = 0;
     let applyCount = 0;
     let releaseCount = 0;
-    let currentType = typeMap.get(tyeId);
-    if (!currentType) {
-      return null;
-    }
-
-    // @ts-ignore
-    for (let applySample of typeMap.get(tyeId)!) {
-      if (
-        (tyeId === TYPE_VUL || tyeId === TYPE__VK_ALLOC) ||
-        (applySample.subType && applySample.subType === typeName) ||
-        (!applySample.subType && typeName === TYPE_OG_STRING) ||
-        (!applySample.subType && typeName === TYPE_OC_STRING)
-      ) {
-        applySize += applySample.size;
-        applyCount += applySample.count;
-        if (this.isStatistic) {
-          releaseSize += applySample.releaseSize;
-          releaseCount += applySample.releaseCount;
-        } else {
-          if (applySample.isRelease) {
-            releaseSize += applySample.size;
-            releaseCount += applySample.count;
+    for (let item of typeMap) {
+      if (typeof item === 'object' && item !== null && 'size' in item && 'count' in item) {
+        const applySample = item as ApplySample;
+        if (
+          (tyeId === TYPE_VUL || tyeId === TYPE__VK_ALLOC) ||
+          (applySample.subType && applySample.subType === typeName) ||
+          (!applySample.subType && typeName === TYPE_OG_STRING) ||
+          (!applySample.subType && typeName === TYPE_OC_STRING)
+        ) {
+          applySize += applySample.size;
+          applyCount += applySample.count;
+          if (this.isStatistic) {
+            releaseSize += applySample.releaseSize || 0;
+            releaseCount += applySample.releaseCount || 0;
+          } else {
+            if (applySample.isRelease) {
+              releaseSize += applySample.size;
+              releaseCount += applySample.count;
+            }
           }
         }
       }
@@ -1555,6 +1568,61 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
       }
     }
   }
+
+  sumHandler = (data: Array<AnalysisObj>): Array<AnalysisObj> => {
+    const totals = {
+      totalApplyCount: data.reduce((sum, item) => sum + item.applyCount, 0),
+      totalApplySize: data.reduce((sum, item) => sum + item.applySize, 0),
+      totalExistCount: data.reduce((sum, item) => sum + item.existCount, 0),
+      totalExistSize: data.reduce((sum, item) => sum + item.existSize, 0),
+      totalReleaseCount: data.reduce((sum, item) => sum + item.releaseCount, 0),
+      totalReleaseSize: data.reduce((sum, item) => sum + item.releaseSize, 0),
+    };
+    const grouped = data.reduce((acc, item) => {
+      const key = item.tableName;
+      if (!acc[key]) {
+        acc[key] = {
+          ...item,
+          _rawItems: [item]
+        };
+      } else {
+        acc[key].applyCount += item.applyCount;
+        acc[key].applySize += item.applySize;
+        acc[key].existCount += item.existCount;
+        acc[key].existSize += item.existSize;
+        acc[key].releaseCount += item.releaseCount;
+        acc[key].releaseSize += item.releaseSize;
+        acc[key]._rawItems.push(item);
+      }
+      return acc;
+    }, {} as Record<string, AnalysisObj & { _rawItems: AnalysisObj[] }>);
+    const result = Object.values(grouped).map((group) => {
+      const { _rawItems, ...finalItem } = group;
+      const safePercentage = (value: number, total: number): string => {
+        if (total === 0) return "0.00";
+        return ((value / total) * 100).toFixed(2);
+      };
+      const applyCountPercent = safePercentage(group.applyCount, totals.totalApplyCount);
+      const applySizePercent = safePercentage(group.applySize, totals.totalApplySize);
+      const existCountPercent = safePercentage(group.existCount, totals.totalExistCount);
+      const existSizePercent = safePercentage(group.existSize, totals.totalExistSize);
+      const releaseCountPercent = safePercentage(group.releaseCount, totals.totalReleaseCount);
+      const releaseSizePercent = safePercentage(group.releaseSize, totals.totalReleaseSize);
+      return {
+        ...finalItem,
+        applyCountPercent,
+        applySizePercent,
+        existCountPercent,
+        existSizePercent,
+        releaseCountPercent,
+        releaseSizePercent,
+        applySizeFormat: Utils.getBinaryByteWithUnit(group.applySize),
+        existSizeFormat: Utils.getBinaryByteWithUnit(group.existSize),
+        releaseSizeFormat: Utils.getBinaryByteWithUnit(group.releaseSize)
+      };
+    });
+    return result;
+  };
 
   private clearData(): void {
     this.gmPieChart!.dataSource = [];

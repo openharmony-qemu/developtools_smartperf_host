@@ -114,6 +114,7 @@ const HAP_TYPE = ['.hap', '.har', '.hsp'];
 
 export class StatisticsSelection {
   memoryTap: string = '';
+  subType: string = '';
   max: number = 0;
 }
 
@@ -348,7 +349,7 @@ export class ProcedureLogicWorkerGpuMemory extends LogicHandler {
                 0 as tid,
                 callchain_id as eventId,
                 (case when type = 6 then 'GPU_VK' when type = 7 then 'GPU_GLES' else 'GPU_CL' end) as eventType,
-                (case when sub_type_id not null then sub_type_id else type end) as subTypeId,
+                (case when sub_type_id not null then sub_type_id else null end) as subTypeId,
                 max(apply_size) as heapSize,
                 max(release_size) as freeSize,
                 apply_count as count,
@@ -429,18 +430,20 @@ export class ProcedureLogicWorkerGpuMemory extends LogicHandler {
   private setStatisticSubType(analysisSample: AnalysisSample, sample: NativeHookStatistics): void {
     analysisSample.releaseCount = sample.freeCount;
     analysisSample.releaseSize = sample.freeSize;
-    switch (sample.subTypeId) {
-      case 6:
-        analysisSample.subType = 'VulKan';
-        break;
-      case 7:
-        analysisSample.subType = 'OpenGLES';
-        break;
-      case 8:
-        analysisSample.subType = 'OpenCL';
-        break;
-      default:
-        analysisSample.subType = this.dataCache.dataDict.get(sample.subTypeId);
+    if (!sample.subTypeId) {
+      switch (sample.eventType) {
+        case "GPU_VK":
+          analysisSample.subType = 'GPU_VK';
+          break;
+        case "GPU_GLES":
+          analysisSample.subType = 'GPU_GLES';
+          break;
+        case "GPU_CL":
+          analysisSample.subType = 'GPU_CL';
+          break;
+      }
+    } else {
+      analysisSample.subType = this.dataCache.dataDict.get(sample.subTypeId);
     }
   }
 
@@ -742,10 +745,23 @@ export class ProcedureLogicWorkerGpuMemory extends LogicHandler {
   }
 
   queryCallchainsSamples(action: string, leftNs: number, rightNs: number, types: Array<string>): void {
-    this.queryData(
-      this.currentEventId,
-      action,
-      `select A.id,
+    let condition = '';
+    if (types && types.length > 0) {
+      const sortedTypes: number[] = [...new Set(types)].map(type => Number(type)).sort((a, b) => a - b);
+      if (sortedTypes.includes(0)) {
+        condition = `and A.event_type in ('GPU_VK_Alloc_Event', 'GPU_VK_Free_Event','GPU_GLES_Alloc_Event', 'GPU_GLES_Free_Event', 'GPU_CL_Alloc_Event', 'GPU_CL_Free_Event')`;
+      } else {
+        const typeValues: string[] = [];
+        if (sortedTypes.includes(1)) typeValues.push('GPU_VK_Alloc_Event', 'GPU_VK_Free_Event');
+        if (sortedTypes.includes(2)) typeValues.push('GPU_GLES_Alloc_Event', 'GPU_GLES_Free_Event');
+        if (sortedTypes.includes(3)) typeValues.push('GPU_CL_Alloc_Event', 'GPU_CL_Free_Event');
+        if (typeValues.length > 0) {
+          const quotedValues = typeValues.map(value => `'${value}'`).join(',');
+          condition = `and A.event_type in (${quotedValues})`;
+        }
+      }
+    }
+    let sql = `select A.id,
                 callchain_id as eventId,
                 event_type as eventType,
                 heap_size as heapSize,
@@ -766,11 +782,10 @@ export class ProcedureLogicWorkerGpuMemory extends LogicHandler {
                 A.itid = t.id
             where
                 A.start_ts - B.start_ts
-                between ${leftNs} and ${rightNs} and A.event_type in (${types.join(',')})
-                and A.ipid = ${this.currentSelectIPid}
-        `,
-      {}
-    );
+                between ${leftNs} and ${rightNs}
+                ${condition}
+                and A.ipid = ${this.currentSelectIPid};`;
+    this.queryData(this.currentEventId, action, sql, {});
   }
 
   private gmQueryStatisticCallchainsSamples(data: unknown): void {
@@ -1057,6 +1072,15 @@ export class ProcedureLogicWorkerGpuMemory extends LogicHandler {
           return item.eventType.indexOf('GPU_GLES') === 0 && item.heapSize === selectionElement.max && item.subTypeId === null;
         } else if (selectionElement.memoryTap.indexOf('OpenCL') !== -1) {
           return item.eventType.indexOf('GPU_CL') === 0 && item.heapSize === selectionElement.max && item.subTypeId === null;
+        } else {
+          return item.subType === selectionElement.memoryTap;
+        }
+      }
+      if (selectionElement.max === undefined && typeof selectionElement.memoryTap === 'number') {
+        if (selectionElement.memoryTap === -1) {
+          return this.isStatisticMode ? item.eventType === selectionElement.subType && item.subTypeId === null : item.eventType.indexOf(selectionElement.subType) === 0 && item.subTypeId === -1;
+        } else {
+          return item.subTypeId === selectionElement.memoryTap;
         }
       }
     }

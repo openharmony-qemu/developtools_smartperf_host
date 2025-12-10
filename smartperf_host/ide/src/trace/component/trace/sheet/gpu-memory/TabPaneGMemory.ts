@@ -34,7 +34,7 @@ export class TabPaneGMemory extends BaseElement {
     private tblData: LitTable | null | undefined;
     private currentSelection: SelectionParam | undefined;
     private eventTypes: string[] = [];
-    private defaultGpuTypes = ['Graphic Memory', 'VulKan', 'OpenGLES', 'OpenCL'];
+    private defaultGpuTypes = ['Graphic Memory', 'All VulKan', 'All OpenGLES', 'All OpenCL'];
     private memorySource: Array<unknown> = [];
     private gpuType: Array<string> = [...this.defaultGpuTypes];
     private filter: TabPaneFilter | null | undefined;
@@ -67,13 +67,13 @@ export class TabPaneGMemory extends BaseElement {
             this.eventTypes.push("'GPU_GLES_Alloc_Event'");
             this.eventTypes.push("'GPU_CL_Alloc_Event'");
         } else {
-            if (memoryParam.gpuMemory.indexOf(this.defaultGpuTypes[1]) !== -1) {
+            if (memoryParam.gpuMemory.indexOf(this.defaultGpuTypes[1].replace('All ', '')) !== -1) {
                 this.eventTypes.push("'GPU_VK_Alloc_Event'");
             }
-            if (memoryParam.gpuMemory.indexOf(this.defaultGpuTypes[2]) !== -1) {
+            if (memoryParam.gpuMemory.indexOf(this.defaultGpuTypes[2].replace('All ', '')) !== -1) {
                 this.eventTypes.push("'GPU_GLES_Alloc_Event'");
             }
-            if (memoryParam.gpuMemory.indexOf(this.defaultGpuTypes[3]) !== -1) {
+            if (memoryParam.gpuMemory.indexOf(this.defaultGpuTypes[3].replace('All ', '')) !== -1) {
                 this.eventTypes.push("'GPU_CL_Alloc_Event'");
             }
         }//@ts-ignore
