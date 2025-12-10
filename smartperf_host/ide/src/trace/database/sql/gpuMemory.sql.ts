@@ -112,33 +112,48 @@ export const queryGpuMemoryGroupByEvent = (type: string): Promise<Array<GpuMemor
 export const queryNativeHookStatisticSubType = (
   leftNs: number,
   rightNs: number,
-  ipid: number
+  ipid: number,
+  types: Array<string | number>
 ): //@ts-ignore
-  Promise<Array<unknown>> =>
-  query(
+Promise<Array<unknown>> => {
+  let condition = '';
+  if (types && types.length > 0) {
+    const sortedTypes: number[] = [...new Set(types)].map(type => Number(type)).sort((a, b) => a - b);
+    if (sortedTypes.includes(0)) {
+      condition = 'NHS.type IN (6,7,8)';
+    } else {
+      const typeValues: number[] = [];
+      if (sortedTypes.includes(1)) typeValues.push(6);
+      if (sortedTypes.includes(2)) typeValues.push(7);
+      if (sortedTypes.includes(3)) typeValues.push(8);
+      if (typeValues.length > 0) {
+        condition = `NHS.type IN (${typeValues.join(',')})`;
+      }
+    }
+  }
+  return query(
     'queryNativeHookStatisticSubType',
     `SELECT DISTINCT
-       COALESCE(NHS.type, TT.type) AS subTypeId,
+       IFNULL(NHS.sub_type_id, -1) AS subTypeId,
        CASE
-         WHEN NHS.type = 6 THEN 'VulKan'
-         WHEN NHS.type = 7 THEN 'OpenGLES'
-         WHEN NHS.type = 8 THEN 'OpenCL'
-         ELSE TT.default_name
+         WHEN NHS.sub_type_id IS NULL AND NHS.type = 6 THEN 'GPU_VK'
+         WHEN NHS.sub_type_id IS NULL AND NHS.type = 7 THEN 'GPU_GLES'
+         WHEN NHS.sub_type_id IS NULL AND NHS.type = 8 THEN 'GPU_CL'
+         WHEN NHS.sub_type_id IS NOT NULL THEN DD.data
        END AS subType
-       FROM (
-         SELECT 6 AS type, 'VulKan' AS default_name
-         UNION ALL SELECT 7, 'OpenGLES'
-         UNION ALL SELECT 8, 'OpenCL'
-       ) TT
-       LEFT JOIN native_hook_statistic NHS 
-         ON TT.type = NHS.type 
-         AND NHS.type IN (6, 7, 8)
-         AND EXISTS (SELECT 1 FROM trace_range TR WHERE (NHS.ts - TR.start_ts) BETWEEN ${leftNs} AND ${rightNs})
-         AND NHS.ipid = ${ipid}
-       ORDER BY subTypeId;
-      `,
+     FROM native_hook_statistic NHS
+     LEFT JOIN data_dict DD ON NHS.sub_type_id = DD.id
+     WHERE ${condition}
+       AND EXISTS (
+         SELECT 1 FROM trace_range TR 
+         WHERE (NHS.ts - TR.start_ts) BETWEEN ${leftNs} AND ${rightNs}
+       )
+       AND NHS.ipid = ${ipid}
+     ORDER BY subTypeId;
+    `,
     { $leftNs: leftNs, $rightNs: rightNs }
   );
+};
 
 export const queryHeapSizeByIpid = (ipid: number): //@ts-ignore
   Promise<Array<NativeEventHeap>> => {
@@ -233,52 +248,82 @@ export const queryNativeHookStatisticsMalloc = (
     { $leftNs: leftNs, $rightNs: rightNs }
   );
 
-export const queryNativeHookSubType = (
-  leftNs: number,
-  rightNs: number,
-  ipid: number
-): //@ts-ignore
-  Promise<Array<unknown>> =>
-  query(
-    'queryNativeHookSubType',
-    `SELECT DISTINCT
-       CASE
-       	WHEN
-       		NH.sub_type_id IS NULL THEN
-       			- 1 ELSE NH.sub_type_id 
-       			END AS subTypeId,
-       	CASE
-       			WHEN NH.event_type = 'GPU_VK_Alloc_Event' THEN
-       			'VulKan' 
-       			WHEN NH.event_type = 'GPU_GLES_Alloc_Event' THEN
-       			'OpenGLES' 
-       			WHEN NH.event_type = 'GPU_CL_Alloc_Event' THEN
-       			'OpenCL' ELSE TT.default_name 
-       		END AS subType 
-       	FROM
-       		(
-       		SELECT
-       			'GPU_VK_Alloc_Event' AS event_type,
-       			'VulKan' AS default_name,
-       			1 AS sort_order UNION ALL
-       		SELECT
-       			'GPU_GLES_Alloc_Event',
-       			'OpenGLES',
-       			2 UNION ALL
-       		SELECT
-       			'GPU_CL_Alloc_Event',
-       			'OpenCL',
-       			3 
-       		) TT
-       		LEFT JOIN native_hook NH ON TT.event_type = NH.event_type 
-       		AND NH.event_type IN ( 'GPU_VK_Alloc_Event', 'GPU_GLES_Alloc_Event', 'GPU_CL_Alloc_Event' ) 
-       		AND EXISTS ( SELECT 1 FROM trace_range TR WHERE ( NH.start_ts - TR.start_ts ) BETWEEN ${leftNs} AND ${rightNs} ) 
-       		AND NH.ipid = ${ipid} 
-       ORDER BY
-       	TT.sort_order;
+  export const queryNativeHookStatisticsSubType = (
+    leftNs: number,
+    rightNs: number,
+    ipid: number
+  ): Promise<Array<NativeHookMalloc>> =>
+    query(
+      'queryNativeHookStatisticsSubType',
+      `
+        select
+          event_type as eventType,
+          sub_type_id as subTypeId,
+          max(heap_size) as max,
+          sum(case when ((NH.start_ts - TR.start_ts) between ${leftNs} and ${rightNs}) then heap_size else 0 end) as allocByte,
+          sum(case when ((NH.start_ts - TR.start_ts) between ${leftNs} and ${rightNs}) then 1 else 0 end) as allocCount,
+          sum(case when ((NH.end_ts - TR.start_ts) between ${leftNs} and ${rightNs} ) then heap_size else 0 end) as freeByte,
+          sum(case when ((NH.end_ts - TR.start_ts) between ${leftNs} and ${rightNs} ) then 1 else 0 end) as freeCount
+        from
+          native_hook NH,
+          trace_range TR
+        where
+          (NH.start_ts - TR.start_ts) between ${leftNs} and ${rightNs}
+        and
+          (event_type = 'GPU_VK_Alloc_Event' or event_type = 'GPU_GLES_Alloc_Event' or event_type = 'GPU_CL_Alloc_Event')
+        and ipid = ${ipid}
+        group by
+          event_type,sub_type_id;
             `,
-    { $leftNs: leftNs, $rightNs: rightNs }
-  );
+      { $leftNs: leftNs, $rightNs: rightNs }
+    );
+
+  export const queryNativeHookSubType = (
+    leftNs: number,
+    rightNs: number,
+    ipid: number,
+    types: Array<string | number>
+  ): //@ts-ignore
+  Promise<Array<unknown>> => {
+    let condition = '';
+    if (types && types.length > 0) {
+      const sortedTypes: number[] = [...new Set(types)].map(type => Number(type)).sort((a, b) => a - b);
+      if (sortedTypes.includes(0)) {
+        condition = `NH.event_type IN ('GPU_VK_Alloc_Event', 'GPU_GLES_Alloc_Event', 'GPU_CL_Alloc_Event')`;
+      } else {
+        const typeValues: string[] = [];
+        if (sortedTypes.includes(1)) typeValues.push('GPU_VK_Alloc_Event');
+        if (sortedTypes.includes(2)) typeValues.push('GPU_GLES_Alloc_Event');
+        if (sortedTypes.includes(3)) typeValues.push('GPU_CL_Alloc_Event');
+        if (typeValues.length > 0) {
+          const quotedValues = typeValues.map(value => `'${value}'`).join(',');
+          condition = `NH.event_type IN (${quotedValues})`;
+        }
+      }
+    }
+    return query(
+      'queryNativeHookSubType',
+      `SELECT DISTINCT
+         IFNULL(NH.sub_type_id, -1) AS subTypeId,
+         CASE
+           WHEN NH.sub_type_id IS NULL AND NH.event_type = 'GPU_VK_Alloc_Event' THEN 'GPU_VK'
+           WHEN NH.sub_type_id IS NULL AND NH.event_type = 'GPU_GLES_Alloc_Event' THEN 'GPU_GLES'
+           WHEN NH.sub_type_id IS NULL AND NH.event_type = 'GPU_CL_Alloc_Event' THEN 'GPU_CL'
+           WHEN NH.sub_type_id IS NOT NULL THEN DD.data
+         END AS subType
+       FROM native_hook NH
+       LEFT JOIN data_dict DD ON NH.sub_type_id = DD.id
+       WHERE ${condition}
+         AND EXISTS (
+           SELECT 1 FROM trace_range TR 
+           WHERE (NH.start_ts - TR.start_ts) BETWEEN ${leftNs} AND ${rightNs}
+         )
+         AND NH.ipid = ${ipid}
+       ORDER BY subTypeId;
+      `,
+      { $leftNs: leftNs, $rightNs: rightNs }
+    );
+  };
 
 export const queryGpuSnapshotTypes = (ipid: number): Promise<Array<NativeHookSampleQueryInfo>> =>
   query(

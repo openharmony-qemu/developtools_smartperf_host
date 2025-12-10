@@ -214,7 +214,7 @@ export class TabpaneNMCalltree extends BaseElement {
             (data.type === 'FILE_PAGE_MSG' && memory === 2) ||
             (data.type === 'MEMORY_USING_MSG' && memory === 3)
           ) {
-            data.type = `${memory + 2}`;
+            data.type = `${selections.length + 2}`;
           }
         }
       });

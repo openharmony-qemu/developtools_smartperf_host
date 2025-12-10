@@ -205,7 +205,6 @@ void BytraceEventParser::TaskEventInitialization()
 bool BytraceEventParser::SysEnterEvent(const ArgsMap &args, const BytraceLine &line)
 {
     if (streamFilters_->configFilter_->GetSwitchConfig().SyscallsTsSet().empty()) {
-
         return true;
     }
     Unused(args);
