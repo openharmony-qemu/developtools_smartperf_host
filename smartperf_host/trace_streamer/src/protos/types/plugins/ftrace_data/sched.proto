@@ -211,3 +211,12 @@ message SchedWakingFormat {
     int32 target_cpu = 5;
 }
 
+message TimerfdWakeupFormat {
+    int32 thread_pid = 1;
+    int32 thread_tid = 2;
+    string thread_name = 3;
+    uint64 interval = 4;
+    uint64 curr_mono = 5;
+    uint64 expire_mono = 6;
+}
+

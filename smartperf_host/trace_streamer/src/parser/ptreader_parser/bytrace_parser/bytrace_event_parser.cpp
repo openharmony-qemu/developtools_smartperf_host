@@ -25,6 +25,7 @@
 #include "slice_filter.h"
 #include "stat_filter.h"
 #include "syscall_filter.h"
+#include "timerfd_wakeup_filter.h"
 #include "string_to_numerical.h"
 #include "thread_state_flag.h"
 #include "ts_common.h"
@@ -83,6 +84,7 @@ BytraceEventParser::BytraceEventParser(TraceDataCache *dataCache, const TraceStr
     RegulatorEventInitialization();
     BinderEventInitialization();
     StackEventsInitialization();
+    TaskEventInitialization();
     eventList_.reserve(maxBuffSize_);
 }
 
@@ -193,9 +195,17 @@ void BytraceEventParser::StackEventsInitialization()
         bind(&BytraceEventParser::WorkqueueExecuteEndEvent, this, std::placeholders::_1, std::placeholders::_2));
 }
 
+void BytraceEventParser::TaskEventInitialization()
+{
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_TIMERFD_WAKEUP),
+        bind(&BytraceEventParser::TimerFdWakeupEvent, this, std::placeholders::_1, std::placeholders::_2));
+}
+
 bool BytraceEventParser::SysEnterEvent(const ArgsMap &args, const BytraceLine &line)
 {
     if (streamFilters_->configFilter_->GetSwitchConfig().SyscallsTsSet().empty()) {
+
         return true;
     }
     Unused(args);
@@ -826,6 +836,27 @@ bool BytraceEventParser::BinderTransactionAllocBufEvent(const ArgsMap &args, con
     TS_LOGD("dataSize:%" PRIu64 ", offsetSize:%" PRIu64 "", dataSize.value(), offsetsSize.value());
     return true;
 }
+
+bool BytraceEventParser::TimerFdWakeupEvent(const ArgsMap &args, const BytraceLine &line) const
+{
+    if (args.empty() || args.size() < MIN_TIMERFD_WAKEUP_ARGS_COUNT) {
+        TS_LOGD("Failed to parse timerfd_wakeup event, no args or args size < 6");
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_TIMERFD_WAKEUP, STAT_EVENT_DATA_INVALID);
+        return false;
+    }
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_TIMERFD_WAKEUP, STAT_EVENT_RECEIVED);
+    auto pid = base::StrToInt<int32_t>(args.at("thread_pid"));
+    auto tid = base::StrToInt<int32_t>(args.at("thread_tid"));
+    auto threadName = traceDataCache_->GetDataIndex(args.at("thread_name"));
+    auto interval = base::StrToInt<uint64_t>(args.at("interval"));
+    auto currMono = base::StrToInt<uint64_t>(args.at("curr_mono"));
+    auto expireMono = base::StrToInt<uint64_t>(args.at("expire_mono"));
+    TimerfdWakeupRow timerfdWakeupRow = {line.ts,          pid.value(),      tid.value(),       threadName,
+                                         interval.value(), currMono.value(), expireMono.value()};
+    streamFilters_->timerfdWakeupFilter_->AppendTimerfdWakeupEventRow(timerfdWakeupRow);
+    return true;
+}
+
 void BytraceEventParser::ParseDataItem(const BytraceLine &line)
 {
     eventList_.emplace_back(std::make_unique<EventInfo>(line.ts, line));

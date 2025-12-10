@@ -44,6 +44,7 @@ ohos_source_set("ftrace_tables") {
     "task_pool_table.cpp",
     "thread_state_table.cpp",
     "thread_table.cpp",
+    "timerfd_wakeup_table.cpp",
   ]
 
   include_dirs = [ "include" ]

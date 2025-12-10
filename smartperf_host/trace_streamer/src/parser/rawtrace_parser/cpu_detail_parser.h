@@ -82,6 +82,7 @@ private:
     bool RegulatorSetVoltageCompleteEvent(const RawTraceEventInfo &event) const;
     bool RegulatorDisableEvent(const RawTraceEventInfo &event) const;
     bool RegulatorDisableCompleteEvent(const RawTraceEventInfo &event) const;
+    bool TimerfdWakeupEvent(const RawTraceEventInfo &event) const;
 
     void InterruptEventInitialization();
     void ClockEventInitialization();
@@ -90,6 +91,7 @@ private:
     void BinderEventInitialization();
     void StackEventsInitialization();
     void VoltageEventInitialization();
+    void TaskEventInitialization();
 
 public:
     uint32_t cpuCoreMax_ = CPU_CORE_MAX;

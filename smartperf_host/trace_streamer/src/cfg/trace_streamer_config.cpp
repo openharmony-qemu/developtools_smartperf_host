@@ -212,6 +212,7 @@ void TraceStreamerConfig::InitOtherEventNameMap()
     eventNameMap_.emplace(TRACE_VSYNC, TRACE_ACTION_VSYNC);
     eventNameMap_.emplace(TRACE_ON_DO_COMPOSITION, TRACE_ACTION_ON_DO_COMPOSITION);
     eventNameMap_.emplace(TRACE_FRAMEQUEUE, TRACE_ACTION_FRAMEQUEUE);
+    eventNameMap_.emplace(TRACE_EVENT_TIMERFD_WAKEUP, TRACE_ACTION_TIMERFD_WAKEUP);
 }
 void TraceStreamerConfig::InitEbpfEventNameMap()
 {
