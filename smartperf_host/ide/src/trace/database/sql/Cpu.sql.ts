@@ -46,6 +46,42 @@ export const queryCpuKeyPathData = (threads: Array<KeyPathStruct>): Promise<Arra
   );
 };
 
+export const getSchedTaskData = (leftNs: number, rightNs: number): Promise<Array<unknown>> =>
+  query<unknown>(
+    'getSchedTaskData',
+    `SELECT
+      ts as startTime,
+      tid,
+      pid,
+      thread_name as threadName,
+      interval,
+      curr_mono,
+      expire_mono
+    from timerfd_wakeup,
+    trace_range B
+    where
+    startTime >= ${leftNs} AND startTime <= ${rightNs}`
+  )
+
+export const getProcessSchedTaskData = (leftNs: number, rightNs: number, pids: Array<number>, tids: Array<number>) =>
+  query<unknown>(
+    'getSchedTaskData',
+    `SELECT
+      ts as startTime,
+      tid,
+      pid,
+      thread_name as threadName,
+      interval,
+      curr_mono,
+      expire_mono
+    from timerfd_wakeup,
+    trace_range B
+    where
+    startTime >= ${leftNs} AND startTime <= ${rightNs}
+    AND pid in (${pids.join(',')}) 
+    AND tid in (${tids.join(',')})`
+  )
+
 export const getTabCpuUsage = (cpus: Array<number>, leftNs: number, rightNs: number,
   traceId?: string): Promise<Array<CpuUsage>> =>
   query<CpuUsage>(

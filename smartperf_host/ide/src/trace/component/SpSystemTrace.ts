@@ -147,6 +147,7 @@ import { SnapShotStruct } from '../database/ui-worker/ProcedureWorkerSnaps';
 import { ThreadSysCallStruct } from '../database/ui-worker/ProcedureWorkerThreadSysCall';
 import { GpuMemoryStruct } from '../database/ui-worker/ProcedureWorkerGpuMemory';
 import { TabPaneFreqByCpu } from './trace/sheet/cpu/TanpaneFreqByCpu';
+import { TabPaneSchedTaskByCpu } from './trace/sheet/cpu/TabPaneSchedTaskByCpu';
 
 function dpr(): number {
   return window.devicePixelRatio || 1;
@@ -227,6 +228,7 @@ export class SpSystemTrace extends BaseElement {
   selectionParam: SelectionParam | undefined;
   snapshotFiles: FileInfo | null | undefined;
   tabCpuFreq: TabPaneFrequencySample | undefined | null;
+  tabSchedTaskByCpu: TabPaneSchedTaskByCpu | undefined | null;
   tabFreqByCpu: TabPaneFreqByCpu | undefined | null;
   tabCpuState: TabPaneCounterSample | undefined | null;
   collapseAll: boolean = false;

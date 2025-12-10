@@ -163,6 +163,8 @@ import { TabPaneGMSampleList } from '../sheet/gpu-memory/TabPaneGMSampleList';
 import { TabPaneOSAnalysis } from '../sheet/otherSource/TabPaneOSAnalysis';
 import { TabpaneOSCalltree } from '../sheet/otherSource/TabpaneOSCalltree';
 import { TabPaneFreqByCpu } from '../sheet/cpu/TanpaneFreqByCpu';
+import { TabPaneSchedTaskByCpu } from '../sheet/cpu/TabPaneSchedTaskByCpu';
+import { TabPaneSchedTaskChild } from '../sheet/cpu/TabPaneSchedTaskChild';
 
 export let tabConfig: {
   [key: string]: {
@@ -367,6 +369,10 @@ export let tabConfig: {
   'box-cpu-child': {
     title: '',
     type: TabPaneBoxChild,
+  },
+  'box-schedtask-child': {
+    title: '',
+    type: TabPaneSchedTaskChild,
   },
   'box-native-statstics': {
     title: 'Statistics',
@@ -797,6 +803,11 @@ export let tabConfig: {
     title: 'Freq Usage',
     type: TabPaneFreqUsage,
     require: (param: SelectionParam) => param.threadIds.length > 0,
+  },
+  'box-sched-task': {
+    title: 'Sched Task',
+    type: TabPaneSchedTaskByCpu,
+    require: (param: SelectionParam) => param.cpus.length > 0 || param.threadIds.length > 0,
   },
   'tab-hisysevents': {
     title: 'HiSysevents',
