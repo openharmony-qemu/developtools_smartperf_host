@@ -159,7 +159,7 @@ export default struct LineChart {
     }
 
     if (this.pathViewModel.xAixsMode) {
-      this.pathViewModel.xAixsMode.width = this.lineChartModel.width;s
+      this.pathViewModel.xAixsMode.width = this.lineChartModel.width;
       this.pathViewModel.xAixsMode.height = this.lineChartModel.height;
       this.pathViewModel.xAixsMode.topAxis = this.lineChartModel.topAxis;
       this.pathViewModel.xAixsMode.bottomAxis = this.lineChartModel.bottomAxis;
