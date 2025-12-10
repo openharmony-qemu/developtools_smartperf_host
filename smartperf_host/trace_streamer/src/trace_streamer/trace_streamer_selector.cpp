@@ -50,6 +50,7 @@
 #include "string_help.h"
 #include "system_event_measure_filter.h"
 #include "task_pool_filter.h"
+#include "timerfd_wakeup_filter.h"
 
 namespace {
 const uint32_t CHUNK_SIZE = 1024 * 1024;
@@ -161,6 +162,8 @@ void TraceStreamerSelector::InitFilter()
     streamFilters_->irqFilter_ = std::make_unique<IrqFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->frameFilter_ = std::make_unique<FrameFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->syscallFilter_ = std::make_unique<SyscallFilter>(traceDataCache_.get(), streamFilters_.get());
+    streamFilters_->timerfdWakeupFilter_ =
+        std::make_unique<TimerfdWakeupFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->sysEventMemMeasureFilter_ =
         std::make_unique<SystemEventMeasureFilter>(traceDataCache_.get(), streamFilters_.get(), E_SYS_MEMORY_FILTER);
     streamFilters_->sysEventVMemMeasureFilter_ = std::make_unique<SystemEventMeasureFilter>(

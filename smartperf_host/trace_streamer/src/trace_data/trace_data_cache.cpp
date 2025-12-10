@@ -111,6 +111,7 @@
 #include "xpower_app_detaile_wifi_table.h"
 #include "xpower_app_statistic_table.h"
 #include "xpower_component_top_table.h"
+#include "timerfd_wakeup_table.h"
 namespace SysTuning {
 namespace TraceStreamer {
 constexpr uint8_t CPU_ID_FORMAT_WIDTH = 3;
@@ -263,6 +264,7 @@ void TraceDataCache::InitDB()
     TableBase::TableDeclare<CpuUsageInfoTable>(*db_, this, "cpu_usage");
     TableBase::TableDeclare<LiveProcessTable>(*db_, this, "live_process");
     TableBase::TableDeclare<DmaFenceTable>(*db_, this, "dma_fence");
+    TableBase::TableDeclare<TimerfdWakeupTable>(*db_, this, "timerfd_wakeup");
     dbInited_ = true;
 }
 bool TraceDataCache::AnimationTraceEnabled() const
@@ -682,6 +684,7 @@ void TraceDataCache::ClearAllExportedCacheData()
     frameSliceData_.ClearExportedData();
     frameMapsData_.ClearExportedData();
     gpuSliceData_.ClearExportedData();
+    timerfdWakeupData_.ClearExportedData();
 }
 void TraceDataCache::UpdateAllReadySize()
 {

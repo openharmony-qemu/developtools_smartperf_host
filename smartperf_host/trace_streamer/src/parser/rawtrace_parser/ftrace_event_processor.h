@@ -79,7 +79,7 @@ private:
     bool RegulatorSetVoltageComplete(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
     bool RegulatorDisable(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
     bool RegulatorDisableComplete(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
-
+    bool TimerfdWakeup(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
     void InterruptEventInitialization();
     void ClockEventInitialization();
     void CpuEventInitialization();
@@ -87,6 +87,7 @@ private:
     void BinderEventInitialization();
     void StackEventsInitialization();
     void VoltageEventInitialization();
+    void TaskEventInitialization();
 
 private:
     FtraceEventProcessor();

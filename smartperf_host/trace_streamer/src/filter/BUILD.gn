@@ -97,6 +97,7 @@ ohos_source_set("filter") {
     "syscall_filter.cpp",
     "system_event_measure_filter.cpp",
     "task_pool_filter.cpp",
+    "timerfd_wakeup_filter.cpp",
   ]
 
   public_deps =

@@ -80,6 +80,7 @@ private:
     bool BinderTransactionAllocBufEvent(const ArgsMap &args, const BytraceLine &line) const;
     bool SysEnterEvent(const ArgsMap &args, const BytraceLine &line);
     bool SysExitEvent(const ArgsMap &args, const BytraceLine &line);
+    bool TimerFdWakeupEvent(const ArgsMap &args, const BytraceLine &line) const;
     void GetDataSegArgs(const BytraceLine &bufLine, ArgsMap &args) const;
     void InterruptEventInitialization();
     void ClockEventInitialization();
@@ -87,6 +88,7 @@ private:
     void RegulatorEventInitialization();
     void BinderEventInitialization();
     void StackEventsInitialization();
+    void TaskEventInitialization();
 
     std::map<std::string, FuncCall> eventToFunctionMap_ = {};
     static const uint32_t MIN_SCHED_SWITCH_ARGS_COUNT = 6;
@@ -108,6 +110,7 @@ private:
     static const uint32_t MIN_BINDER_TRANSACTION_ARGS_COUNT = 7;
     static const uint32_t MIN_BINDER_TRANSACTION_RECEIVED_ARGS_COUNT = 1;
     static const uint32_t MIN_BINDER_TRANSACTION_ALLOC_BUF_ARGS_COUNT = 3;
+    static const uint32_t MIN_TIMERFD_WAKEUP_ARGS_COUNT = 6;
     std::vector<std::unique_ptr<EventInfo>> eventList_ = {};
     PrintEventParser printEventParser_;
     const DataIndex schedWakeupName_ = traceDataCache_->GetDataIndex("sched_wakeup");
