@@ -20,6 +20,9 @@ import { resetAbility } from '../VmTrackerDataReceiver';
 import { resetDynamicEffect } from '../FrameDynamicEffectReceiver';
 import { resetEnergyEvent } from '../EnergySysEventReceiver';
 import { HangSQLStruct } from '../HangDataReceiver';
+
+// sched_task 缓存表
+export const taskList: Map<number, Array<unknown>> = new Map();
 // thread_state 表缓存
 export const sliceList: Map<number, Array<unknown>> = new Map();
 //cpu 泳道 memory 缓存
@@ -70,6 +73,7 @@ export const xpowerWifiList: Map<string, Array<unknown>> = new Map();
 //xpowerAppDetailList 泳道 memory 模式缓存
 export const xpowerAppDetailList: Map<string, Array<unknown>> = new Map();
 export function clearMemoryCache(data: unknown, proc: Function): void {
+  taskList.clear();
   sliceList.clear();
   cpuList.clear();
   clockList.clear();

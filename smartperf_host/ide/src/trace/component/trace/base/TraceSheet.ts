@@ -120,6 +120,7 @@ import { XpowerThreadCountStruct } from '../../../database/ui-worker/ProcedureWo
 import { XpowerGpuFreqCountStruct } from '../../../database/ui-worker/ProcedureWorkerXpowerGpuFreqCount';
 import { TabPaneSysCallChild } from '../sheet/process/TabPaneSysCallChild';
 import { TabPanePerfSampleChild } from '../sheet/hiperf/TabPerfSampleChild';
+import { TabPaneSchedTaskChild } from '../sheet/cpu/TabPaneSchedTaskChild';
 
 
 @element('trace-sheet')
@@ -309,6 +310,10 @@ export class TraceSheet extends BaseElement {
   }
 
   private tdClickEvent(): void {
+    // @ts-ignore
+    this.getComponentByID<unknown>('box-sched-task')?.addEventListener('td-click', (evt: unknown) => {
+      this.tdClickTaskHandler(evt);
+    });
     // @ts-ignore
     this.getComponentByID<unknown>('box-spt')?.addEventListener('td-click', (evt: unknown) => {
       this.tdClickHandler(evt, true);
@@ -1537,6 +1542,36 @@ export class TraceSheet extends BaseElement {
       this.selection = undefined;
     }
     window.publish(window.SmartEvent.UI.ShowBottomTab, { show: show, delta: delta });
+  }
+
+  tdClickTaskHandler(e: unknown): void {
+    // @ts-ignore
+    this.currentPaneID = e.target.parentElement.id;
+    this.shadowRoot!.querySelectorAll<LitTabpane>('lit-tabpane').forEach((it): boolean =>
+      it.id !== this.currentPaneID ? (it.hidden = true) : (it.hidden = false)
+    );
+    let pane = this.getPaneByID('box-schedtask-child'); //通过Id找到需要展示的Tab页
+    pane.closeable = true; //关闭的ican显示
+    pane.hidden = false;
+    this.litTabs!.activeByKey(pane.key); //显示key值对应的Tab页
+    // @ts-ignore
+    if(e.detail.tid){
+      // @ts-ignore
+      pane.tab = Utils.getInstance().getThreadMap().get(Number(e.detail.tid))?`${Utils.getInstance().getThreadMap().get(Number(e.detail.tid))}[${e.detail.tid}]`:`Thread[${e.detail.tid}]`;
+    }else{
+      // @ts-ignore
+      pane.tab = Utils.getInstance().getProcessMap().get(Number(e.detail.pid))?`${Utils.getInstance().getProcessMap().get(Number(e.detail.pid))}[${Number(e.detail.pid)}]`:`Process[${e.detail.pid}]`;
+    }
+    let param = new BoxJumpParam();
+    param.traceId = this.selection!.traceId;
+    param.leftNs = this.selection!.leftNs;
+    param.rightNs = this.selection!.rightNs;
+    // @ts-ignore
+    param.processId = e.detail.pid;
+    // @ts-ignore
+    param.threadId = e.detail.tid ? e.detail.tid : null;
+    param.isJumpPage = true;
+    (pane.children.item(0) as TabPaneSchedTaskChild).data = param;
   }
 
   tdClickHandler(e: unknown, isDependCpu?: boolean): void {

@@ -38,6 +38,7 @@ type HTMLElementAlias = HTMLElement | null | undefined;
 import { Utils } from './trace/base/Utils';
 import { fuzzyQueryFuncRowData, queryFuncRowData } from '../database/sql/Func.sql';
 import { convertTitle } from './chart/SpXpowerChart';
+import { TabPaneSchedTaskByCpu } from './trace/sheet/cpu/TabPaneSchedTaskByCpu';
 
 // 所有插件以及对应的表
 const pluginArray = [
@@ -895,7 +896,7 @@ export function spSystemTraceInitElement(sp: SpSystemTrace): void {
   }
   sp.tabCpuFreq = sp.traceSheetEL.shadowRoot.querySelector<TabPaneFrequencySample>('tabpane-frequency-sample');
   sp.tabCpuState = sp.traceSheetEL.shadowRoot.querySelector<TabPaneCounterSample>('tabpane-counter-sample');
-  sp.tabCpuState = sp.traceSheetEL.shadowRoot.querySelector<TabPaneCounterSample>('tabpane-counter-sample');
+  sp.tabSchedTaskByCpu = sp.traceSheetEL.shadowRoot.querySelector<TabPaneSchedTaskByCpu>('tabpane-schedTask-cpu');
   sp.wakeupListTbl = sp.traceSheetEL.shadowRoot?.querySelector('#current-selection > tabpane-current-selection')?.
     shadowRoot?.querySelector('#wakeupListTbl');
   sp.rangeSelect = new RangeSelect(sp);
