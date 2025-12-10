@@ -169,7 +169,6 @@ export default struct LineChart {
       console.log('this.pathViewModel.xAixsMode is undefined')
     }
     this.lineChartModel.setPathViewModel(this.pathViewModel);
-    console.log('LineChart this.lineChartModel end: ' + JSON.stringify(this.lineChartModel))
   }
 
 }
