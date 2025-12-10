@@ -451,6 +451,12 @@ XPowerComponentTop *TraceDataCacheWriter::GetXPowerComponentTopInfo()
 {
     return &xPowerComponentTopInfo_;
 }
+
+TimerfdWakeup *TraceDataCacheWriter::GetTimerfdWakeupData()
+{
+    return &timerfdWakeupData_;
+}
+
 void TraceDataCacheWriter::ClearMeasure()
 {
     filterData_.Clear();
@@ -553,6 +559,7 @@ void TraceDataCacheWriter::Clear()
     dmaFenceData_.Clear();
     frameMapsData_.Clear();
     frameSliceData_.Clear();
+    timerfdWakeupData_.Clear();
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

@@ -403,5 +403,11 @@ const XPowerComponentTop &TraceDataCacheReader::GetConstXPowerComponentTopInfo()
 {
     return xPowerComponentTopInfo_;
 }
+
+const TimerfdWakeup &TraceDataCacheReader::GetConstTimerfdWakeupData() const
+{
+    return timerfdWakeupData_;
+}
+
 } // namespace TraceStreamer
 } // namespace SysTuning

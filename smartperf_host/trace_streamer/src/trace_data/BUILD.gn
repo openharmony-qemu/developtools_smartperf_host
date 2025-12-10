@@ -30,6 +30,7 @@ ohos_source_set("trace_data") {
     "trace_stdtype/ftrace/render_service_stdtype.cpp",
     "trace_stdtype/ftrace/sched_stdtype.cpp",
     "trace_stdtype/ftrace/syscall_stdtype.cpp",
+    "trace_stdtype/ftrace/timerfd_wakeup_stdtype.cpp",
     "trace_stdtype/ftrace/template/animation_stdtype.cpp",
     "trace_stdtype/ftrace/template/app_startup_stdtype.cpp",
     "trace_stdtype/ftrace/template/task_pool_stdtype.cpp",

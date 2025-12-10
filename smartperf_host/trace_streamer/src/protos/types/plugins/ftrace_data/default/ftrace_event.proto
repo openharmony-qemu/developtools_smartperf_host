@@ -478,5 +478,6 @@ message FtraceEvent {
         RegulatorEnableFormat regulator_enable_format = 4023;
         RegulatorEnableCompleteFormat regulator_enable_complete_format = 4024;
         RegulatorEnableDelayFormat regulator_enable_delay_format = 4025;
+        TimerfdWakeupFormat timerfd_wakeup_format = 4026;
     }
 }

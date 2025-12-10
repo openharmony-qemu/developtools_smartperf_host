@@ -121,6 +121,7 @@ enum SupportedTraceEventType {
     TRACE_EVENT_DMA_FENCE_ENABLE,
     TRACE_EVENT_DMA_FENCE_SIGNALED,
     TRACE_EVENT_DMA_FENCE,
+    TRACE_EVENT_TIMERFD_WAKEUP,
     TRACE_EVENT_OTHER,
     TRACE_EVENT_MAX
 };
@@ -305,6 +306,7 @@ private:
     const std::string TRACE_ACTION_DMA_FENCE_ENABLE = "dma_fence_enable_signal";
     const std::string TRACE_ACTION_DMA_FENCE_SIGNALED = "dma_fence_signaled";
     const std::string TRACE_ACTION_DMA_FENCE = "dma_fence";
+    const std::string TRACE_ACTION_TIMERFD_WAKEUP = "timerfd_wakeup";
     const std::string TRACE_ACTION_FFRT = "trace_ffrt";
 
     const std::string TRACE_ACTION_SYS_MEMORY = "sys_memory";

@@ -35,6 +35,7 @@
 #include "system_event_measure_filter.h"
 #include "task_pool_filter.h"
 #include "config_filter.h"
+#include "timerfd_wakeup_filter.h"
 
 namespace SysTuning {
 namespace TraceStreamer {

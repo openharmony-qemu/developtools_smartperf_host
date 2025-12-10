@@ -209,6 +209,8 @@ private:
 #endif
 #ifdef ENABLE_HTRACE
     void ParseFtrace(PbreaderDataSegment &dataSeg);
+    void ParseHtraceCommDict(ProtoReader::TracePluginResult_Reader &tracePluginResult);
+    void ParseHtraceCpuStats(ProtoReader::TracePluginResult_Reader &tracePluginResult, PbreaderDataSegment &dataSeg);
 #endif
 #ifdef ENABLE_FFRT
     void ParseFfrtConfig(PbreaderDataSegment &dataSeg);
@@ -288,6 +290,7 @@ private:
 #ifdef ENABLE_HTRACE
     std::unique_ptr<HtraceCpuDetailParser> htraceCpuDetailParser_;
     std::unique_ptr<HtraceSymbolsDetailParser> htraceSymbolsDetailParser_;
+    std::unordered_map<int32_t, std::string> commDict_;
     ClockId dataSourceTypeTraceClockid_ = TS_CLOCK_UNKNOW;
     bool onlyParseFtrace_ = false;
 #endif

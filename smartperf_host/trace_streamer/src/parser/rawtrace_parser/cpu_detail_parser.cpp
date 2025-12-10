@@ -28,6 +28,7 @@
 #include "system_event_measure_filter.h"
 #include "ftrace_event_processor.h"
 #include "string_to_numerical.h"
+#include "timerfd_wakeup_filter.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
@@ -72,6 +73,7 @@ CpuDetailParser::CpuDetailParser(TraceDataCache *dataCache, const TraceStreamerF
     BinderEventInitialization();
     StackEventsInitialization();
     VoltageEventInitialization();
+    TaskEventInitialization();
 }
 
 void CpuDetailParser::InterruptEventInitialization()
@@ -154,6 +156,13 @@ void CpuDetailParser::VoltageEventInitialization()
         config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_DISABLE_COMPLETE),
         std::bind(&CpuDetailParser::RegulatorDisableCompleteEvent, this, std::placeholders::_1));
 }
+
+void CpuDetailParser::TaskEventInitialization()
+{
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_TIMERFD_WAKEUP),
+                                std::bind(&CpuDetailParser::TimerfdWakeupEvent, this, std::placeholders::_1));
+}
+
 void CpuDetailParser::EventAppend(std::shared_ptr<RawTraceEventInfo> event)
 {
     if (event->cpuId >= standAloneCpuEventList_.size()) {
@@ -278,7 +287,7 @@ bool CpuDetailParser::SchedSwitchEvent(const RawTraceEventInfo &event)
     auto uprevtid = streamFilters_->processFilter_->UpdateOrCreateThreadWithName(
         event.msgPtr->timestamp(), schedSwitchMsg.prev_pid(), schedSwitchMsg.prev_comm());
     DataIndex nextInfo = INVALID_DATAINDEX;
-    if (schedSwitchMsg.next_info()!=INVALID_UINT64) {
+    if (schedSwitchMsg.next_info() != INVALID_UINT64) {
         nextInfo = traceDataCache_->GetDataIndex(std::to_string(schedSwitchMsg.next_info()));
     }
     streamFilters_->cpuFilter_->InsertSwitchEvent(event.msgPtr->timestamp(), event.cpuId, uprevtid,
@@ -745,5 +754,22 @@ bool CpuDetailParser::RegulatorDisableCompleteEvent(const RawTraceEventInfo &eve
     traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_REGULATOR_DISABLE_COMPLETE, STAT_EVENT_RECEIVED);
     return true;
 }
+
+bool CpuDetailParser::TimerfdWakeupEvent(const RawTraceEventInfo &event) const
+{
+    auto timerfdWakeupMsg = event.msgPtr->timerfd_wakeup_format();
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_TIMERFD_WAKEUP, STAT_EVENT_RECEIVED);
+    auto pid = timerfdWakeupMsg.thread_pid();
+    auto tid = timerfdWakeupMsg.thread_tid();
+    auto threadNameIndex = traceDataCache_->GetDataIndex(timerfdWakeupMsg.thread_name());
+    auto interval = timerfdWakeupMsg.interval();
+    auto curr_mono = timerfdWakeupMsg.curr_mono();
+    auto expire_mono = timerfdWakeupMsg.expire_mono();
+    TimerfdWakeupRow timerfdWakeupEvent = {
+        event.msgPtr->timestamp(), pid, tid, threadNameIndex, interval, curr_mono, expire_mono};
+    streamFilters_->timerfdWakeupFilter_->AppendTimerfdWakeupEventRow(timerfdWakeupEvent);
+    return true;
+}
+
 } // namespace TraceStreamer
 } // namespace SysTuning
