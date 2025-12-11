@@ -64,8 +64,12 @@ export default struct LineChart {
         .visibility(this.lineChartModel.isShowXAxis ? Visibility.Visible : Visibility.Hidden)
 
         Stack({ alignContent: Alignment.TopStart }) {
-          YAxisView({ model:this.lineChartModel.pathViewModel.leftAxisModel })
-          YAxisView({ model: this.lineChartModel.pathViewModel.rightAxisModel })
+          if (this.lineChartModel.pathViewModel.leftAxisModel) {
+            YAxisView({ model:this.lineChartModel.pathViewModel.leftAxisModel })
+          }
+          if (this.lineChartModel.pathViewModel.rightAxisModel) {
+            YAxisView({ model: this.lineChartModel.pathViewModel.rightAxisModel })
+          }
         }
         .visibility(this.lineChartModel.isShowXAxis ? Visibility.Visible : Visibility.Hidden)
 
@@ -84,6 +88,14 @@ export default struct LineChart {
   public aboutToAppear() {
     console.log('LineChart aboutToAppear')
     console.log('LineChart this.lineChartModel.isShowLegend: ' + this.lineChartModel.isShowLegend)
+    if (!this.lineChartModel) {
+      console.error('aboutToAppear::this.lineChartModel is undefined');
+      return;
+    }
+    if (!this.pathViewModel) {
+      console.error('aboutToAppear::this.pathViewModel is undefined');
+      return;
+    }
     this.initPathViewModel();
 
     // 数据设置 setLegend
@@ -111,8 +123,12 @@ export default struct LineChart {
 
   private initPathViewModel() {
     console.log('LineChart initPathViewModel')
-    console.log('LineChart this.pathViewModel: ' + JSON.stringify(this.pathViewModel))
-    this.pathViewModel.lineChartModel = this.lineChartModel
+    console.log('LineChart initPathViewModel this.pathViewModel: ' + JSON.stringify(this.pathViewModel))
+    if (this.pathViewModel.lineChartModel) {
+      this.pathViewModel.lineChartModel = this.lineChartModel
+    } else {
+      console.log('this.pathViewModel.lineChartModel is undefined')
+    }
     this.pathViewModel.width = this.lineChartModel.width;
     this.pathViewModel.height = this.lineChartModel.height;
     this.pathViewModel.setIsInverted(this.lineChartModel.isInverted);
@@ -124,23 +140,35 @@ export default struct LineChart {
     this.pathViewModel.setIsShowClickValue(this.lineChartModel.isShowValue);
     this.pathViewModel.setPathViewData(this.lineChartModel.lineData);
 
-    this.pathViewModel.leftAxisModel.setWidth(this.lineChartModel.width);
-    this.pathViewModel.leftAxisModel.setHeight(this.lineChartModel.height);
-    this.pathViewModel.leftAxisModel.setMinOffset(this.lineChartModel.minOffset);
-    this.pathViewModel.leftAxisModel.setYAxis(this.lineChartModel.leftAxis);
-    this.pathViewModel.rightAxisModel.setWidth(this.lineChartModel.width);
-    this.pathViewModel.rightAxisModel.setHeight(this.lineChartModel.height);
-    this.pathViewModel.rightAxisModel.setMinOffset(this.lineChartModel.minOffset);
-    this.pathViewModel.rightAxisModel.setYAxis(this.lineChartModel.rightAxis);
+    if (this.pathViewModel.leftAxisModel) {
+      this.pathViewModel.leftAxisModel.setWidth(this.lineChartModel.width);
+      this.pathViewModel.leftAxisModel.setHeight(this.lineChartModel.height);
+      this.pathViewModel.leftAxisModel.setMinOffset(this.lineChartModel.minOffset);
+      this.pathViewModel.leftAxisModel.setYAxis(this.lineChartModel.leftAxis);
+    } else {
+      console.log('this.pathViewModel.leftAxisModel is undefined')
+    }
+    
+    if (this.pathViewModel.rightAxisModel) {
+      this.pathViewModel.rightAxisModel.setWidth(this.lineChartModel.width);
+      this.pathViewModel.rightAxisModel.setHeight(this.lineChartModel.height);
+      this.pathViewModel.rightAxisModel.setMinOffset(this.lineChartModel.minOffset);
+      this.pathViewModel.rightAxisModel.setYAxis(this.lineChartModel.rightAxis);
+    } else {
+      console.log('this.pathViewModel.rightAxisModel is undefined')
+    }
 
-    this.pathViewModel.xAixsMode.width = this.lineChartModel.width;
-    this.pathViewModel.xAixsMode.height = this.lineChartModel.height;
-    this.pathViewModel.xAixsMode.topAxis = this.lineChartModel.topAxis;
-    this.pathViewModel.xAixsMode.bottomAxis = this.lineChartModel.bottomAxis;
-    this.pathViewModel.xAixsMode.minOffset = this.lineChartModel.minOffset;
-    this.pathViewModel.xAixsMode.clipPath = this.pathViewModel.xAixsMode.clipPath;
+    if (this.pathViewModel.xAixsMode) {
+      this.pathViewModel.xAixsMode.width = this.lineChartModel.width;
+      this.pathViewModel.xAixsMode.height = this.lineChartModel.height;
+      this.pathViewModel.xAixsMode.topAxis = this.lineChartModel.topAxis;
+      this.pathViewModel.xAixsMode.bottomAxis = this.lineChartModel.bottomAxis;
+      this.pathViewModel.xAixsMode.minOffset = this.lineChartModel.minOffset;
+      this.pathViewModel.xAixsMode.clipPath = this.pathViewModel.xAixsMode.clipPath;
+    } else {
+      console.log('this.pathViewModel.xAixsMode is undefined')
+    }
     this.lineChartModel.setPathViewModel(this.pathViewModel);
-    console.log('LineChart this.lineChartModel: ' + JSON.stringify(this.lineChartModel))
   }
 
 }
