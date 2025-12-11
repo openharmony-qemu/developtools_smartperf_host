@@ -122,6 +122,7 @@ public:
     XPowerAppDetailWifi *GetXPowerAppDetailWifiInfo();
     XPowerAppDetailDisplay *GetXPowerAppDetailDisplayInfo();
     XPowerComponentTop *GetXPowerComponentTopInfo();
+    TimerfdWakeup *GetTimerfdWakeupData();
 
 private:
     void ClearBase();

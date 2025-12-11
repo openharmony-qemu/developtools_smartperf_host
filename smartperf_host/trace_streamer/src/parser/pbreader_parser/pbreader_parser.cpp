@@ -237,6 +237,7 @@ inline void PbreaderParser::WaitForHPluginParserEnd()
     htraceCpuDetailParser_->FilterAllEvents();
     traceDataCache_->GetDataSourceClockIdData()->SetDataSourceClockId(DATA_SOURCE_TYPE_TRACE,
                                                                       dataSourceTypeTraceClockid_);
+    streamFilters_->processFilter_->UpdateProcessNameByNameToTid(commDict_);
 #endif
 #ifdef ENABLE_HILOG
     pbreaderHiLogParser_->Finish();
@@ -726,25 +727,7 @@ void PbreaderParser::ParseFtrace(PbreaderDataSegment &dataSeg)
     dataSeg.dataType = DATA_SOURCE_TYPE_TRACE;
     ProtoReader::TracePluginResult_Reader tracePluginResult(dataSeg.protoData);
     if (tracePluginResult.has_ftrace_cpu_stats()) {
-        auto cpuStats = *tracePluginResult.ftrace_cpu_stats();
-        ProtoReader::FtraceCpuStatsMsg_Reader ftraceCpuStatsMsg(cpuStats.data_, cpuStats.size_);
-        auto s = *ftraceCpuStatsMsg.per_cpu_stats();
-        ProtoReader::PerCpuStatsMsg_Reader perCpuStatsMsg(s.data_, s.size_);
-        TS_LOGD("s.overrun():%" PRIu64 "", perCpuStatsMsg.overrun());
-        TS_LOGD("s.dropped_events():%" PRIu64 "", perCpuStatsMsg.dropped_events());
-        auto clock = ftraceCpuStatsMsg.trace_clock().ToStdString();
-        if (clock == "boot") {
-            clock_ = TS_CLOCK_BOOTTIME;
-        } else if (clock == "mono") {
-            clock_ = TS_MONOTONIC;
-        } else {
-            TS_LOGI("invalid clock:%s", clock.c_str());
-            dataSeg.status = TS_PARSE_STATUS_INVALID;
-            return;
-        }
-        dataSeg.clockId = clock_;
-        dataSourceTypeTraceClockid_ = clock_;
-        dataSeg.status = TS_PARSE_STATUS_PARSED;
+        ParseHtraceCpuStats(tracePluginResult, dataSeg);
         return;
     }
     bool haveSplitSeg = false;
@@ -760,14 +743,47 @@ void PbreaderParser::ParseFtrace(PbreaderDataSegment &dataSeg)
         pbreaderClockDetailParser_->Parse(dataSeg.protoData); // has Event
         haveSplitSeg = true;
     }
+    if (tracePluginResult.has_comm_dict()) {
+        ParseHtraceCommDict(tracePluginResult);
+    }
     if (traceDataCache_->isSplitFile_ && haveSplitSeg) {
         mPbreaderSplitData_.emplace(splitFileOffset_, nextLength_ + packetSegLength_);
     }
     if (tracePluginResult.has_ftrace_cpu_detail() || tracePluginResult.has_clocks_detail() ||
-        tracePluginResult.has_symbols_detail()) {
+        tracePluginResult.has_symbols_detail() || tracePluginResult.has_comm_dict()) {
         dataSeg.status = TS_PARSE_STATUS_PARSED;
     } else {
         dataSeg.status = TS_PARSE_STATUS_INVALID;
+    }
+}
+void PbreaderParser::ParseHtraceCpuStats(ProtoReader::TracePluginResult_Reader &tracePluginResult,
+                                         PbreaderDataSegment &dataSeg)
+{
+    auto cpuStats = *tracePluginResult.ftrace_cpu_stats();
+    ProtoReader::FtraceCpuStatsMsg_Reader ftraceCpuStatsMsg(cpuStats.data_, cpuStats.size_);
+    auto s = *ftraceCpuStatsMsg.per_cpu_stats();
+    ProtoReader::PerCpuStatsMsg_Reader perCpuStatsMsg(s.data_, s.size_);
+    TS_LOGD("s.overrun():%" PRIu64 "", perCpuStatsMsg.overrun());
+    TS_LOGD("s.dropped_events():%" PRIu64 "", perCpuStatsMsg.dropped_events());
+    std::string clock = ftraceCpuStatsMsg.trace_clock().ToStdString();
+    if (clock == "boot") {
+        clock_ = TS_CLOCK_BOOTTIME;
+    } else if (clock == "mono") {
+        clock_ = TS_MONOTONIC;
+    } else {
+        TS_LOGI("invalid clock:%s", clock.c_str());
+        dataSeg.status = TS_PARSE_STATUS_INVALID;
+        return;
+    }
+    dataSeg.clockId = clock_;
+    dataSourceTypeTraceClockid_ = clock_;
+    dataSeg.status = TS_PARSE_STATUS_PARSED;
+}
+void PbreaderParser::ParseHtraceCommDict(ProtoReader::TracePluginResult_Reader &tracePluginResult)
+{
+    for (auto it = tracePluginResult.comm_dict(); it; it++) {
+        ProtoReader::CommDictMsg_Reader commDictMsg(it->ToBytes());
+        commDict_.insert(std::make_pair<int32_t, std::string>(commDictMsg.tid(), commDictMsg.comm().ToStdString()));
     }
 }
 #endif

@@ -33,6 +33,7 @@ ohos_source_set("trace_data") {
     "trace_stdtype/ftrace/template/animation_stdtype.cpp",
     "trace_stdtype/ftrace/template/app_startup_stdtype.cpp",
     "trace_stdtype/ftrace/template/task_pool_stdtype.cpp",
+    "trace_stdtype/ftrace/timerfd_wakeup_stdtype.cpp",
     "trace_stdtype/hilog/hilog_stdtype.cpp",
     "trace_stdtype/hiperf/hiperf_stdtype.cpp",
     "trace_stdtype/hisysevent/hisysevent_stdtype.cpp",

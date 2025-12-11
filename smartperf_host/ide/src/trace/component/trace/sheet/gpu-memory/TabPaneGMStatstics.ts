@@ -17,7 +17,7 @@ import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
 import { NativeHookMalloc, NativeHookStatisticsTableData } from '../../../../bean/NativeHook';
-import { queryHeapSizeByIpid, queryNativeHookStatistics, queryNativeHookStatisticsMalloc } from '../../../../database/sql/gpuMemory.sql';
+import { queryHeapSizeByIpid, queryNativeHookStatistics, queryNativeHookStatisticsMalloc, queryNativeHookStatisticsSubType } from '../../../../database/sql/gpuMemory.sql';
 import { SpGpuMemoryChart } from '../../../chart/SpGpuMemoryChart';
 import { SpSystemTrace } from '../../../SpSystemTrace';
 import { Utils } from '../../base/Utils';
@@ -69,6 +69,11 @@ export class TabPaneGMStatstics extends BaseElement {
     queryData(gpuStatisticsParam: SelectionParam): void {
         Promise.all([
             queryNativeHookStatistics(gpuStatisticsParam.leftNs, gpuStatisticsParam.rightNs, this.currentSelectIPid),
+            queryNativeHookStatisticsSubType(
+                gpuStatisticsParam.leftNs,
+                gpuStatisticsParam.rightNs,
+                this.currentSelectIPid
+            ),
             queryNativeHookStatisticsMalloc(
                 gpuStatisticsParam.leftNs,
                 gpuStatisticsParam.rightNs,
@@ -91,11 +96,57 @@ export class TabPaneGMStatstics extends BaseElement {
                     typeFilter.push(3);
                 }
             }
-            this.setMallocTableData(values[1], arr, typeFilter);
-            this.gpuStatisticsSource = arr;
+            this.setSubTypeTableData(values[1], arr, typeFilter);
+            this.setMallocTableData(values[2], arr, typeFilter);
+            this.gpuStatisticsSource = this.mergeMemoryData(arr);
             this.sortByColumn(this.sortColumn, this.sortType);
         });
     }
+
+    mergeMemoryData(dataArray: Array<NativeHookStatisticsTableData>): Array<NativeHookStatisticsTableData> {
+        const mergedMap = new Map<string, NativeHookStatisticsTableData>();
+        for (const originalItem of dataArray) {
+          const key = originalItem.memoryTap;
+          if (!mergedMap.has(key)) {
+            mergedMap.set(key, {
+              ...originalItem,
+              existingValue: [...originalItem.existingValue]
+            });
+          } else {
+            const mergedItem = mergedMap.get(key)!;
+            mergedItem.allocCount += originalItem.allocCount;
+            mergedItem.existing += originalItem.existing;
+            mergedItem.freeByte += originalItem.freeByte;
+            mergedItem.freeCount += originalItem.freeCount;
+            mergedItem.totalBytes += originalItem.totalBytes;
+            mergedItem.totalCount += originalItem.totalCount;
+            mergedItem.existingValue = [
+              mergedItem.existingValue[0] + originalItem.existingValue[0],
+              mergedItem.existingValue[1] + originalItem.existingValue[1],
+              originalItem.existingValue[2]
+            ];
+            mergedItem.max = Math.max(mergedItem.max, originalItem.max);
+          }
+        }
+        return Array.from(mergedMap.values()).map(mergedItem => {
+            return {
+              allocCount: mergedItem.allocCount,
+              existing: mergedItem.existing,
+              existingString: Utils.getByteWithUnit(mergedItem.existing),
+              existingValue: [...mergedItem.existingValue],
+              freeByte: mergedItem.freeByte,
+              freeByteString: Utils.getByteWithUnit(mergedItem.freeByte),
+              freeCount: mergedItem.freeCount,
+              isHover: false,
+              max: mergedItem.max,
+              maxStr: Utils.getByteWithUnit(mergedItem.max),
+              memoryTap: mergedItem.memoryTap,
+              totalBytes: mergedItem.totalBytes,
+              totalBytesString: Utils.getByteWithUnit(mergedItem.totalBytes),
+              totalCount: mergedItem.totalCount
+            };
+          });
+        }
 
     setMallocTableData(result: Array<NativeHookMalloc>, arr: Array<NativeHookStatisticsTableData>, types: Array<number>): void {
         result.map((malloc) => {
@@ -132,7 +183,7 @@ export class TabPaneGMStatstics extends BaseElement {
         });
     }
 
-    setSubTypeTableData(result: Array<NativeHookMalloc>, arr: Array<NativeHookStatisticsTableData>): void {
+    setSubTypeTableData(result: Array<NativeHookMalloc>, arr: Array<NativeHookStatisticsTableData>, types: Array<number>): void {
         result.map((sub) => {
             let subType = SpSystemTrace.DATA_DICT.get(sub.subTypeId);
             if (subType !== null && subType !== undefined) {
@@ -150,7 +201,16 @@ export class TabPaneGMStatstics extends BaseElement {
                 data.totalBytesString = Utils.getByteWithUnit(data.totalBytes);
                 data.maxStr = Utils.getByteWithUnit(sub.max);
                 data.existingValue = [data.existing, data.totalBytes, this.allMax];
-                arr.push(data);
+                if (types && types.length > 0) {
+                    const sortedTypes: number[] = [...new Set(types)].sort((a, b) => a - b);
+                    if (sortedTypes.includes(0)) {
+                        arr.push(data);
+                    } else {
+                        if (sortedTypes.includes(1) && sub.eventType === 'GPU_VK_Alloc_Event') arr.push(data);
+                        if (sortedTypes.includes(2) && sub.eventType === 'GPU_GLES_Alloc_Event') arr.push(data);
+                        if (sortedTypes.includes(3) && sub.eventType === 'GPU_CL_Alloc_Event') arr.push(data);
+                    }
+                }
             }
         });
     }
