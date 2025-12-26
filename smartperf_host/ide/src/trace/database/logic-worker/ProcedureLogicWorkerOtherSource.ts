@@ -129,7 +129,7 @@ export class ProcedureLogicWorkerOtherSource extends LogicHandler {
   osArgs?: Map<string, unknown>;
 
   clearAll(): void {
-    this.dataCache.clearGM();
+    this.dataCache.clearOS();
     this.splitMapData = {};
     this.currentSamples = [];
     this.allThreads = [];
