@@ -685,6 +685,8 @@ export class DataCache {
     }
     this.clearEBpf();
     this.clearNM();
+    this.clearGM();
+    this.clearOS();
     this.clearPerf();
     this.clearJsCache();
   }

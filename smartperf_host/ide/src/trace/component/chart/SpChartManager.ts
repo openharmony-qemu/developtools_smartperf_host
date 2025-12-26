@@ -350,8 +350,8 @@ export class SpChartManager {
     await this.cacheDataDictToWorker();
     await perfDataQuery.initPerfCache();
     await this.nativeMemory.initNativeMemory();
-    await this.otherSource.initOtherSource();
     await this.gpuMemory.initGpuMemory();
+    await this.otherSource.initOtherSource();
     await this.fileSystem.initFileCallchain();
     this.perf.resetAllChartData();
   }
