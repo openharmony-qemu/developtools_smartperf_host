@@ -220,3 +220,17 @@ message TimerfdWakeupFormat {
     uint64 expire_mono = 6;
 }
 
+message SchedSwitchLiteFormat { 
+    int32 prev_pid = 1;
+    int32 prev_prio = 2;
+    uint64 prev_state = 3; 
+    int32 next_pid = 4;
+    int32 next_prio = 5;
+    uint64 next_info = 6;
+}
+
+message SchedWakeupLiteFormat { 
+    int32 pid = 1;
+    int32 prio = 2;
+    int32 target_cpu = 3;
+}

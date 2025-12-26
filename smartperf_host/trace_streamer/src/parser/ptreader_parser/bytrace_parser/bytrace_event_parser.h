@@ -47,12 +47,16 @@ public:
 
 private:
     using FuncCall = std::function<bool(const ArgsMap &args, const BytraceLine &line)>;
-    bool SchedSwitchEvent(const ArgsMap &args, const BytraceLine &line) const;
+    bool SchedSwitchEvent(const ArgsMap &args, const BytraceLine &line);
+    bool SchedSwitchLiteEvent(const ArgsMap &args, const BytraceLine &line);
+    bool SchedSwitchCommon(const ArgsMap &args, const BytraceLine &line) const;
     bool BlockedReason(const ArgsMap &args, const BytraceLine &line) const;
     bool TaskRenameEvent(const ArgsMap &args, const BytraceLine &line) const;
     bool TaskNewtaskEvent(const ArgsMap &args, const BytraceLine &line) const;
     bool TracingMarkWriteOrPrintEvent(const ArgsMap &args, const BytraceLine &line);
-    bool SchedWakeupEvent(const ArgsMap &args, const BytraceLine &line) const;
+    bool SchedWakeupEvent(const ArgsMap &args, const BytraceLine &line);
+    bool SchedWakeupLiteEvent(const ArgsMap &args, const BytraceLine &line);
+    bool SchedWakeupCommon(const ArgsMap &args, const BytraceLine &line) const;
     bool SchedWakingEvent(const ArgsMap &args, const BytraceLine &line) const;
     bool CpuIdleEvent(const ArgsMap &args, const BytraceLine &line) const;
     bool CpuFrequencyEvent(const ArgsMap &args, const BytraceLine &line) const;
@@ -82,6 +86,7 @@ private:
     bool SysExitEvent(const ArgsMap &args, const BytraceLine &line);
     bool TimerFdWakeupEvent(const ArgsMap &args, const BytraceLine &line) const;
     void GetDataSegArgs(const BytraceLine &bufLine, ArgsMap &args) const;
+    void SchedEventInitialization();
     void InterruptEventInitialization();
     void ClockEventInitialization();
     void CpuEventInitialization();
@@ -122,6 +127,10 @@ private:
     const DataIndex cpuFrequencyLimitMaxNameId = traceDataCache_->GetDataIndex("cpu_frequency_limits_max");
     const DataIndex cpuFrequencyLimitMinNameId = traceDataCache_->GetDataIndex("cpu_frequency_limits_min");
     const size_t maxBuffSize_ = 1000 * 1000;
+    bool ifFindSchedSwitch_ = false;
+    bool ifFindSchedWakeup_ = false;
+    bool ifFindSchedSwitchLite_ = false;
+    bool ifFindSchedWakeupLite_ = false;
 
 protected:
     TraceStreamerConfig config_{};

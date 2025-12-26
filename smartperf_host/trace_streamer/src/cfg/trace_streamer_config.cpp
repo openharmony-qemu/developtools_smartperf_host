@@ -115,6 +115,8 @@ void TraceStreamerConfig::InitSchedEventNameMap()
     eventNameMap_.emplace(TRACE_EVENT_SCHED_WAKEUP, TRACE_ACTION_SCHED_WAKEUP);
     eventNameMap_.emplace(TRACE_EVENT_SCHED_WAKING, TRACE_ACTION_SCHED_WAKING);
     eventNameMap_.emplace(TRACE_EVENT_SCHED_WAKEUP_NEW, TRACE_ACTION_SCHED_WAKEUP_NEW);
+    eventNameMap_.emplace(TRACE_EVENT_SCHED_SWITCH_LITE, TRACE_ACTION_SCHED_SWITCH_LITE);
+    eventNameMap_.emplace(TRACE_EVENT_SCHED_WAKEUP_LITE, TRACE_ACTION_SCHED_WAKEUP_LITE);
 }
 void TraceStreamerConfig::InitClkEventNameMap()
 {
