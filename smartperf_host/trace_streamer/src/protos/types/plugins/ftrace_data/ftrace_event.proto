@@ -450,5 +450,7 @@ message FtraceEvent {
         WritebackWrittenFormat writeback_written_format = 3226;
         SchedBlockedReasonFormat sched_blocked_reason_format = 4002;
         TimerfdWakeupFormat timerfd_wakeup_format = 4003;
+        SchedSwitchLiteFormat sched_switch_lite_format = 4004;
+        SchedWakeupLiteFormat sched_wakeup_lite_format = 4005;
     }
 }

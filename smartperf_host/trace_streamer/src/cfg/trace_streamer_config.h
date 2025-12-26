@@ -122,6 +122,8 @@ enum SupportedTraceEventType {
     TRACE_EVENT_DMA_FENCE_SIGNALED,
     TRACE_EVENT_DMA_FENCE,
     TRACE_EVENT_TIMERFD_WAKEUP,
+    TRACE_EVENT_SCHED_SWITCH_LITE,
+    TRACE_EVENT_SCHED_WAKEUP_LITE,
     TRACE_EVENT_OTHER,
     TRACE_EVENT_MAX
 };
@@ -235,12 +237,14 @@ private:
     const std::string TRACE_ACTION_BINDER_TRANSACTION = "binder_transaction";
     const std::string TRACE_ACTION_BINDER_TRANSACTION_RECEIVED = "binder_transaction_received";
     const std::string TRACE_ACTION_SCHED_SWITCH = "sched_switch";
+    const std::string TRACE_ACTION_SCHED_SWITCH_LITE = "sched_switch_lite";
     const std::string TRACE_ACTION_SCHED_BLOCKED_REASON = "sched_blocked_reason";
     const std::string TRACE_ACTION_TASK_RENAME = "task_rename";
     const std::string TRACE_ACTION_TASK_NEWTASK = "task_newtask";
     const std::string TRACE_ACTION_TRACING_MARK_WRITE = "tracing_mark_write";
     const std::string TRACE_ACTION_PRINT = "print";
     const std::string TRACE_ACTION_SCHED_WAKEUP = "sched_wakeup";
+    const std::string TRACE_ACTION_SCHED_WAKEUP_LITE = "sched_wakeup_lite";
     const std::string TRACE_ACTION_SCHED_WAKING = "sched_waking";
     const std::string TRACE_ACTION_CPU_IDLE = "cpu_idle";
     const std::string TRACE_ACTION_CPU_FREQUENCY = "cpu_frequency";

@@ -35,21 +35,6 @@ FtraceEventProcessor::FtraceEventProcessor()
         {config_.eventNameMap_.at(TRACE_EVENT_TASK_NEWTASK),
          std::bind(&FtraceEventProcessor::TaskNewtask, this, std::placeholders::_1, std::placeholders::_2,
                    std::placeholders::_3, std::placeholders::_4)},
-        {config_.eventNameMap_.at(TRACE_EVENT_SCHED_SWITCH),
-         std::bind(&FtraceEventProcessor::SchedSwitch, this, std::placeholders::_1, std::placeholders::_2,
-                   std::placeholders::_3, std::placeholders::_4)},
-        {config_.eventNameMap_.at(TRACE_EVENT_SCHED_BLOCKED_REASON),
-         std::bind(&FtraceEventProcessor::SchedBlockedReason, this, std::placeholders::_1, std::placeholders::_2,
-                   std::placeholders::_3, std::placeholders::_4)},
-        {config_.eventNameMap_.at(TRACE_EVENT_SCHED_WAKEUP),
-         std::bind(&FtraceEventProcessor::SchedWakeup, this, std::placeholders::_1, std::placeholders::_2,
-                   std::placeholders::_3, std::placeholders::_4)},
-        {config_.eventNameMap_.at(TRACE_EVENT_SCHED_WAKING),
-         std::bind(&FtraceEventProcessor::SchedWaking, this, std::placeholders::_1, std::placeholders::_2,
-                   std::placeholders::_3, std::placeholders::_4)},
-        {config_.eventNameMap_.at(TRACE_EVENT_SCHED_WAKEUP_NEW),
-         std::bind(&FtraceEventProcessor::SchedWakeupNew, this, std::placeholders::_1, std::placeholders::_2,
-                   std::placeholders::_3, std::placeholders::_4)},
         {config_.eventNameMap_.at(TRACE_EVENT_PROCESS_EXIT),
          std::bind(&FtraceEventProcessor::SchedProcessExit, this, std::placeholders::_1, std::placeholders::_2,
                    std::placeholders::_3, std::placeholders::_4)},
@@ -66,6 +51,7 @@ FtraceEventProcessor::FtraceEventProcessor()
          std::bind(&FtraceEventProcessor::SuspendResume, this, std::placeholders::_1, std::placeholders::_2,
                    std::placeholders::_3, std::placeholders::_4)},
     };
+    SchedEventInitialization();
     InterruptEventInitialization();
     ClockEventInitialization();
     CpuEventInitialization();
@@ -74,6 +60,31 @@ FtraceEventProcessor::FtraceEventProcessor()
     StackEventsInitialization();
     VoltageEventInitialization();
     TaskEventInitialization();
+}
+
+void FtraceEventProcessor::SchedEventInitialization()
+{
+    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SCHED_SWITCH),
+                                  std::bind(&FtraceEventProcessor::SchedSwitch, this, std::placeholders::_1,
+                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SCHED_BLOCKED_REASON),
+                                  std::bind(&FtraceEventProcessor::SchedBlockedReason, this, std::placeholders::_1,
+                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SCHED_WAKEUP),
+                                  std::bind(&FtraceEventProcessor::SchedWakeup, this, std::placeholders::_1,
+                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SCHED_WAKING),
+                                  std::bind(&FtraceEventProcessor::SchedWaking, this, std::placeholders::_1,
+                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SCHED_WAKEUP_NEW),
+                                  std::bind(&FtraceEventProcessor::SchedWakeupNew, this, std::placeholders::_1,
+                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SCHED_SWITCH_LITE),
+                                  std::bind(&FtraceEventProcessor::SchedSwitchLite, this, std::placeholders::_1,
+                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SCHED_WAKEUP_LITE),
+                                  std::bind(&FtraceEventProcessor::SchedWakeupLite, this, std::placeholders::_1,
+                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
 }
 
 void FtraceEventProcessor::InterruptEventInitialization()
@@ -283,6 +294,27 @@ bool FtraceEventProcessor::SchedSwitch(FtraceEvent &ftraceEvent, uint8_t data[],
     }
     return true;
 }
+
+bool FtraceEventProcessor::SchedSwitchLite(FtraceEvent &ftraceEvent,
+                                           uint8_t data[],
+                                           size_t size,
+                                           const EventFormat &format)
+{
+    uint8_t index = 0;
+    auto schedSwitchLiteMsg = ftraceEvent.mutable_sched_switch_lite_format();
+    schedSwitchLiteMsg->set_prev_pid(FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
+    schedSwitchLiteMsg->set_prev_prio(
+        FtraceFieldProcessor::HandleIntField<int16_t>(format.fields, index++, data, size));
+    schedSwitchLiteMsg->set_prev_state(
+        FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+    schedSwitchLiteMsg->set_next_pid(FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
+    schedSwitchLiteMsg->set_next_prio(
+        FtraceFieldProcessor::HandleIntField<int16_t>(format.fields, index++, data, size));
+    schedSwitchLiteMsg->set_next_info(
+        FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+    return true;
+}
+
 bool FtraceEventProcessor::SchedBlockedReason(FtraceEvent &ftraceEvent,
                                               uint8_t data[],
                                               size_t size,
@@ -323,6 +355,21 @@ bool FtraceEventProcessor::SchedWakeup(FtraceEvent &ftraceEvent, uint8_t data[],
     }
     return true;
 }
+
+bool FtraceEventProcessor::SchedWakeupLite(FtraceEvent &ftraceEvent,
+                                           uint8_t data[],
+                                           size_t size,
+                                           const EventFormat &format)
+{
+    uint8_t index = 0;
+    auto schedWakeupLiteMsg = ftraceEvent.mutable_sched_wakeup_lite_format();
+    schedWakeupLiteMsg->set_pid(FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
+    schedWakeupLiteMsg->set_prio(FtraceFieldProcessor::HandleIntField<int16_t>(format.fields, index++, data, size));
+    schedWakeupLiteMsg->set_target_cpu(
+        FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
+    return true;
+}
+
 bool FtraceEventProcessor::SchedWaking(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format)
 {
     uint8_t index = 0;
