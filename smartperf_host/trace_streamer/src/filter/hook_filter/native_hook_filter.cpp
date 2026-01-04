@@ -25,7 +25,6 @@ NativeHookFilter::NativeHookFilter(TraceDataCache *dataCache, const TraceStreame
       anonMmapData_(nullptr),
       hookPluginData_(std::make_unique<ProfilerPluginData>()),
       ipidToSymIdToSymIndex_(INVALID_UINT64),
-      ipidToFilePathIdToFileIndex_(INVALID_UINT64),
       ipidToFrameIdToFrameBytes_(nullptr)
 {
     invalidLibPathIndexs_.insert(traceDataCache_->dataDict_.GetStringIndex("/system/lib/libc++.so"));
@@ -97,14 +96,28 @@ void NativeHookFilter::AppendFrameMaps(uint32_t ipid, uint32_t frameMapId, const
         ipidToFrameIdToFrameBytes_.Insert(ipid, frameMapId, frames);
     }
 }
-void NativeHookFilter::AppendFilePathMaps(uint32_t ipid, uint32_t filePathId, uint64_t fileIndex)
+void NativeHookFilter::AppendFilePathMaps(uint32_t ipid, uint32_t filePathId, uint64_t fileIndex, uint64_t adlt_base)
 {
     if (isSingleProcData_) {
         ipidToFilePathIdToFileIndex_.Insert(SINGLE_PROC_IPID, filePathId, fileIndex);
+        ipidToFilePathIdToAdltBase_.Insert(SINGLE_PROC_IPID, filePathId, adlt_base);
     } else {
         ipidToFilePathIdToFileIndex_.Insert(ipid, filePathId, fileIndex);
+        ipidToFilePathIdToAdltBase_.Insert(ipid, filePathId, adlt_base);
     }
 }
+
+void NativeHookFilter::AppendSMOIdTlbInfo(uint32_t soIndex, uint64_t subNameIndex)
+{
+    soIdxToSubFileIndex_.emplace(std::make_pair(soIndex, subNameIndex));
+}
+
+void NativeHookFilter::AppendSMOMap(uint32_t soIndex, uint64_t startAddr, uint64_t endAddr)
+{
+    std::tuple<uint64_t, uint64_t> addr= {startAddr, endAddr};
+    addrToSoIdx_.insert({std::make_shared<std::tuple<uint64_t, uint64_t>>(addr), soIndex});
+}
+
 void NativeHookFilter::AppendSymbolMap(uint32_t ipid, uint32_t symId, uint64_t symbolIndex)
 {
     if (isSingleProcData_) {
@@ -819,6 +832,29 @@ std::shared_ptr<std::vector<std::shared_ptr<FrameInfo>>> NativeHookFilter::Offli
     }
     return result;
 }
+
+uint64_t NativeHookFilter::GetSubFilePathIndex(uint64_t adltBase, 
+                                               FrameInfo *frameInfo)
+{
+    auto relaIp = frameInfo->ip_ - adltBase;
+    uint64_t start, end;
+    uint32_t soIdx;
+
+    for (auto itor = addrToSoIdx_.begin(); itor != addrToSoIdx_.end(); itor++) {
+        std::tie(start, end) = *(itor->first);
+        if (relaIp >= start && relaIp <= end) {
+            soIdx = itor->second;
+            auto subNameIndex = soIdxToSubFileIndex_.find(soIdx);
+            if (subNameIndex == soIdxToSubFileIndex_.end()) {
+                TS_LOGE("get subNameIndex fail! \n");
+                return INVALID_UINT64;
+            }
+            return subNameIndex->second;
+        }
+    }
+    TS_LOGE("find ip fail! \n");
+    return INVALID_UINT64;
+}
 void NativeHookFilter::FillOfflineSymbolizationFrames(
     std::map<uint64_t, std::shared_ptr<std::vector<uint64_t>>>::iterator mapItor)
 {
@@ -834,6 +870,16 @@ void NativeHookFilter::FillOfflineSymbolizationFrames(
         // Note that the filePathId here is provided for the end side. Not a true TS internal index dictionary.
         auto frameInfo = itor->get();
         filePathIndex = ipidToFilePathIdToFileIndex_.Find(curCacheIpid, frameInfo->filePathId_);
+        auto adltBase = ipidToFilePathIdToAdltBase_.Find(curCacheIpid, frameInfo->filePathId_);
+        if (adltBase != INVALID_UINT64) {
+            //get subFilePathIndex
+            auto subFilePathIndex = GetSubFilePathIndex(adltBase, frameInfo);
+            if (subFilePathIndex == INVALID_UINT64) {
+                TS_LOGE("get sub file info fail! \n");
+            } else {
+                filePathIndex = subFilePathIndex;
+            }
+        }
         std::string vaddr = base::Uint64ToHexText(frameInfo->symVaddr_);
         NativeHookFrameVaddrRow nativeHookFrameVaddrRow = {callChainId_,
                                                            depth++,
@@ -1181,6 +1227,13 @@ void NativeHookFilter::ParseFramesInCallStackCompressedMode()
                 continue;
             }
             auto filePathIndex = ipidToFilePathIdToFileIndex_.Find(curCacheIpid, reader.file_path_id());
+            if (filePathIndex == traceDataCache_->dataDict_.GetStringIndex("/system/lib/libadlt_app.so")) {
+                if (!reader.has_file_path()) {
+                    TS_LOGE("Data exception, frames should has fil_path when adltso");
+                    continue;
+                }
+                filePathIndex = traceDataCache_->dataDict_.GetStringIndex(reader.file_path().ToStdString());
+            }
             if (filePathIndex == INVALID_UINT64) {
                 TS_LOGE("Data exception, can not find fil_path_id(%u)!!!", reader.file_path_id());
                 continue;
@@ -1366,6 +1419,9 @@ void NativeHookFilter::NativeHookReloadElfSymbolTable(const std::unique_ptr<Symb
     std::shared_ptr<std::set<size_t>> frameRows = nullptr;
     for (const auto &item : filePathIndexToFrameTableRowMap_) {
         auto filePath = traceDataCache_->GetDataFromDict(item.first);
+        if (filePath.find(':') != std::string::npos) {
+            filePath = filePath.substr(0, filePath.find(':'));
+        }
         if (base::EndWith(filePath, symbolsFile->filePath_)) {
             frameRows = item.second;
             break;

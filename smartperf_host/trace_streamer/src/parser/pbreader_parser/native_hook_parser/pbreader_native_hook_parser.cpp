@@ -95,7 +95,11 @@ void PbreaderNativeHookParser::ParseFileEvent(const ProtoReader::BytesView &byte
     ProtoReader::FilePathMap_Reader filePathMapReader(bytesView);
     auto ipid = streamFilters_->processFilter_->UpdateOrCreateProcessWithName(filePathMapReader.pid(), "");
     auto nameIndex = traceDataCache_->dataDict_.GetStringIndex(filePathMapReader.name().ToStdString());
-    nativeHookFilter_->AppendFilePathMaps(ipid, filePathMapReader.id(), nameIndex);
+    if (filePathMapReader.has_adlt_base()) {
+        nativeHookFilter_->AppendFilePathMaps(ipid, filePathMapReader.id(), nameIndex, filePathMapReader.adlt_base());
+    } else {
+        nativeHookFilter_->AppendFilePathMaps(ipid, filePathMapReader.id(), nameIndex, INVALID_UINT64);
+    }
 }
 void PbreaderNativeHookParser::ParseSymbolEvent(const ProtoReader::BytesView &bytesView)
 {
@@ -111,6 +115,34 @@ void PbreaderNativeHookParser::ParseSymbolEvent(const ProtoReader::BytesView &by
     auto nameIndex = traceDataCache_->dataDict_.GetStringIndex(symbolMapReader.name().ToStdString());
     nativeHookFilter_->AppendSymbolMap(ipid, symbolMapReader.id(), nameIndex);
 }
+
+//DONE: add smomapsinfo event
+void PbreaderNativeHookParser::ParseSMOMaps(const ProtoReader::BytesView &bytesView)
+{
+    if (traceDataCache_->isSplitFile_) {
+        auto hookData = nativeHookFilter_->GetCommHookData().datas->add_events();
+        SMOMapsInfo *SMOMaps = hookData->mutable_smo_map();
+        SMOMaps->ParseFromArray(bytesView.Data(), bytesView.Size());
+        nativeHookFilter_->GetCommHookData().size += bytesView.Size();
+        return;
+    }
+    ProtoReader::SMOMapsInfo_Reader smoMapsInfo_Reader(bytesView);
+
+    for (auto id_tlb = smoMapsInfo_Reader.id_tlb_entries(); id_tlb; id_tlb++) {
+        ProtoReader::SMOIdTlbEntry_Reader smoIdTlbEntry_Reader(id_tlb.GetDataArea().Data(), id_tlb.GetDataArea().Size());
+        auto subNameIndex = traceDataCache_->dataDict_.GetStringIndex(smoMapsInfo_Reader.file_path().ToStdString() + ":" + smoIdTlbEntry_Reader.name().ToStdString());
+        nativeHookFilter_->AppendSMOIdTlbInfo(smoIdTlbEntry_Reader.so_index(), subNameIndex);
+    }
+
+    for (auto map_entry = smoMapsInfo_Reader.map_entries(); map_entry; map_entry++) {
+        ProtoReader::SMOMapEntry_Reader smoMapEntry_Reader(map_entry.GetDataArea().Data(), map_entry.GetDataArea().Size());
+        auto startAddr = smoMapEntry_Reader.start_addr();
+        auto endAddr = smoMapEntry_Reader.end_addr();
+        auto soIndex = smoMapEntry_Reader.so_index();
+        nativeHookFilter_->AppendSMOMap(soIndex, startAddr, endAddr);
+    }
+}
+
 void PbreaderNativeHookParser::ParseThreadEvent(const ProtoReader::BytesView &bytesView)
 {
     if (traceDataCache_->isSplitFile_) {
@@ -145,6 +177,8 @@ void PbreaderNativeHookParser::ParseNativeHookAuxiliaryEvent(std::unique_ptr<Nat
         nativeHookFilter_->ParseSymbolTableEvent(nativeHookMetaData);
     } else if (reader->has_tag_event()) {
         nativeHookFilter_->ParseTagEvent(reader->tag_event());
+    } else if (reader->has_smo_map()) {
+        ParseSMOMaps(reader->smo_map());
     } else {
         TS_LOGE("unsupported native_hook data!");
     }

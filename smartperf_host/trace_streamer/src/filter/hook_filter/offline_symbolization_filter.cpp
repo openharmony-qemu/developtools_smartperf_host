@@ -24,6 +24,8 @@ OfflineSymbolizationFilter::OfflineSymbolizationFilter(TraceDataCache *dataCache
       symbolTablePtrAndStValueToSymAddr_(nullptr),
       ipidToStartAddrToMapsInfoMap_(nullptr),
       ipidToIpToFrameInfo_(nullptr),
+      ipidToFilePathIdToFileIndex_(INVALID_UINT64),
+      ipidToFilePathIdToAdltBase_(INVALID_UINT64),
       ipidTofilePathIdToSymbolTableMap_(nullptr)
 {
 }
@@ -77,6 +79,10 @@ bool OfflineSymbolizationFilter::CalcSymInfo(uint64_t ipid,
     // calculate symVaddr = ip - vmStart + vmOffset + phdrVaddr - phdrOffset
     uint64_t symVaddr =
         ip - vmStart_ + vmOffset_ + symbolTable->text_exec_vaddr() - symbolTable->text_exec_vaddr_file_offset();
+    auto adltBase = ipidToFilePathIdToAdltBase_.Find(ipid, frameInfo->filePathId_);
+    if (adltBase != INVALID_UINT64) {
+        symVaddr = ip - adltBase;
+    }
     frameInfo->symVaddr_ = symVaddr;
     // pase sym_table to Elf32_Sym or Elf64_Sym array decided by sym_entry_size.
     auto symEntLen = symbolTable->sym_entry_size();
