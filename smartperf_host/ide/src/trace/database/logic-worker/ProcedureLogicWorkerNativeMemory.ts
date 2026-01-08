@@ -12,7 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { MemoryBasicType, MemoryStatisticType, MemoryTraceRowType, MemoryType } from '../../bean/MemoryEnum';
 import { FilterByAnalysis, NativeMemoryExpression } from '../../bean/NativeHook';
+import { AnalysisTabDataLogic, eventConfigMap, getFilterType, queryCallChainsSamplesSql, queryNativeHookEventSql, queryNMFrameDataSql, queryStatisticCallChainsSamplesSql, statisticCallChainsSamplesConfig } from './MemoryMultiInstance';
 import {
   convertJSON,
   DataCache,
@@ -40,7 +42,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
   selectTotalCount = 0;
   currentTreeMapData: CallInfoMap = {};
   currentTreeList: NativeHookCallInfo[] = [];
-  queryAllCallchainsSamples: NativeHookStatistics[] = [];
+  queryAllCallChainsSamples: NativeHookStatistics[] = [];
   currentSamples: NativeHookStatistics[] = [];
   allThreads: NativeHookCallInfo[] = [];
   splitMapData: CallInfoMap = {};
@@ -57,6 +59,16 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
   isHideThread: boolean = false;
   private currentSelectIPid: number = 1;
   useFreedSize: boolean = false;
+  static secondList: string[] = [];
+  private memoryType: MemoryTraceRowType;
+  private analysisTabDataLogic?: AnalysisTabDataLogic;
+  private tableName: string
+
+  constructor(memoryType: MemoryTraceRowType, tableName: string) {
+    super();
+    this.memoryType = memoryType;
+    this.tableName = tableName;
+  }
 
   handle(data: unknown): void {
     //@ts-ignore
@@ -64,42 +76,53 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     //@ts-ignore
     if (data && data.type) {
       //@ts-ignore
-      switch (data.type) {
-        case 'native-memory-init':
+      const realType = data.type.substring(data.type.indexOf('-',) + 1);
+      switch (realType) {
+        case 'init':
+          // 初始化查询frame表数据后缓存
           //@ts-ignore
           this.nmInit(data.params);
           break;
-        case 'native-memory-queryNMFrameData':
+        case 'queryNMFrameData':
+          // 将frame表数据缓存到dataCache中
           this.nmQueryNMFrameData(data);
           break;
-        case 'native-memory-queryCallchainsSamples':
-          this.nmQueryCallchainsSamples(data);
+        case 'queryCallchainsSamples':
+          // 普通模式下框选泳道后根据框选的时间范围查询对应hook表数据
+          this.nmQueryCallChainsSamples(data);
           break;
-        case 'native-memory-queryStatisticCallchainsSamples':
-          this.nmQueryStatisticCallchainsSamples(data);
+        case 'queryStatisticCallchainsSamples':
+          // 统计模式下框选泳道后根据框选的时间范围查询对应hook_statistic表数据
+          this.nmQueryStatisticCallChainsSamples(data);
           break;
-        case 'native-memory-queryAnalysis':
+        case 'queryAnalysis':
+          // Analysis Tab页查询对应samples数据并根据事件合并统计数据
           this.nmQueryAnalysis(data);
           break;
-        case 'native-memory-queryNativeHookEvent':
+        case 'queryNativeHookEvent':
+          // 列表Tab页使用
           this.nmQueryNativeHookEvent(data);
           break;
-        case 'native-memory-action':
+        case 'action':
+          // 列表Tab页使用获取每条数据对应的调用者
           this.nmAction(data);
           break;
-        case 'native-memory-calltree-action':
-          this.nmCalltreeAction(data);
+        case 'calltree-action':
+          // 处理调用栈数据
+          this.nmCallTreeAction(data);
           break;
-        case 'native-memory-init-responseType':
+        case 'init-responseType':
+          // 设置lastLibId
           this.nmInitResponseType(data);
           break;
-        case 'native-memory-get-responseType':
+        case 'get-responseType':
+          // 获取所有lastLibId
           this.nmGetResponseType(data);
           break;
-        case 'native-memory-reset':
+        case 'reset':
           this.isHideThread = false;
           break;
-        case 'native-memory-set-current_ipid':
+        case 'set-current_ipid':
           //@ts-ignore
           this.currentSelectIPid = data.params;
       }
@@ -123,19 +146,19 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     self.postMessage({
       //@ts-ignore
       id: data.id,
-      action: 'native-memory-init',
+      action: `${this.memoryType}-init`,
       results: [],
     });
   }
-  private nmQueryCallchainsSamples(data: unknown): void {
+  private nmQueryCallChainsSamples(data: unknown): void {
     this.searchValue = '';
     //@ts-ignore
     if (data.params.list) {
       //@ts-ignore
-      let callchainsSamples = convertJSON(data.params.list) || [];
+      let callChainsSamples = convertJSON(data.params.list) || [];
       //@ts-ignore
-      this.queryAllCallchainsSamples = callchainsSamples;
-      this.freshCurrentCallchains(this.queryAllCallchainsSamples, true);
+      this.queryAllCallChainsSamples = callChainsSamples;
+      this.freshCurrentCallChains(this.queryAllCallChainsSamples, true);
       // @ts-ignore
       self.postMessage({
         //@ts-ignore
@@ -145,8 +168,8 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
         results: this.allThreads,
       });
     } else {
-      this.queryCallchainsSamples(
-        'native-memory-queryCallchainsSamples',
+      this.queryCallChainsSamples(
+        `${this.memoryType}-queryCallchainsSamples`,
         //@ts-ignore
         data.params.leftNs,
         //@ts-ignore
@@ -156,15 +179,15 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       );
     }
   }
-  private nmQueryStatisticCallchainsSamples(data: unknown): void {
+  private nmQueryStatisticCallChainsSamples(data: unknown): void {
     this.searchValue = '';
     //@ts-ignore
     if (data.params.list) {
       //@ts-ignore
       let samples = convertJSON(data.params.list) || [];
       //@ts-ignore
-      this.queryAllCallchainsSamples = samples;
-      this.freshCurrentCallchains(this.queryAllCallchainsSamples, true);
+      this.queryAllCallChainsSamples = samples;
+      this.freshCurrentCallChains(this.queryAllCallChainsSamples, true);
       // @ts-ignore
       self.postMessage({
         //@ts-ignore
@@ -174,8 +197,8 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
         results: this.allThreads,
       });
     } else {
-      this.queryStatisticCallchainsSamples(
-        'native-memory-queryStatisticCallchainsSamples',
+      this.queryStatisticCallChainsSamples(
+        `${this.memoryType}-queryStatisticCallchainsSamples`,
         //@ts-ignore
         data.params.leftNs,
         //@ts-ignore
@@ -191,20 +214,24 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       //@ts-ignore
       let samples = convertJSON(data.params.list) || [];
       //@ts-ignore
-      this.queryAllCallchainsSamples = samples;
+      this.queryAllCallChainsSamples = samples;
+      if (!this.analysisTabDataLogic) {
+        this.analysisTabDataLogic = new AnalysisTabDataLogic();
+      }
+      this.analysisTabDataLogic.init(this.memoryType, this.isStatisticMode);
       self.postMessage({
         //@ts-ignore
         id: data.id,
         //@ts-ignore
         action: data.action,
-        results: this.combineStatisticAndCallChain(this.queryAllCallchainsSamples),
+        results: this.analysisTabDataLogic.combineStatisticAndCallChain(this.queryAllCallChainsSamples),
       });
     } else {
       //@ts-ignore
       if (data.params.isStatistic) {
         this.isStatisticMode = true;
-        this.queryStatisticCallchainsSamples(
-          'native-memory-queryAnalysis',
+        this.queryStatisticCallChainsSamples(
+          `${this.memoryType}-queryAnalysis`,
           //@ts-ignore
           data.params.leftNs,
           //@ts-ignore
@@ -214,8 +241,8 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
         );
       } else {
         this.isStatisticMode = false;
-        this.queryCallchainsSamples(
-          'native-memory-queryAnalysis',
+        this.queryCallChainsSamples(
+          `${this.memoryType}-queryAnalysis`,
           //@ts-ignore
           data.params.leftNs,
           //@ts-ignore
@@ -248,6 +275,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
         let rightNs = params.get('rightNs');
         let types = params.get('types');
         this.boxRangeNativeHook = [];
+        this.isStatisticMode = false;
         this.queryNativeHookEvent(leftNs, rightNs, types);
       } else {
         this.nmArgs = params;
@@ -269,7 +297,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       });
     }
   }
-  private nmCalltreeAction(data: { params?: unknown; id?: string; action?: string }): void {
+  private nmCallTreeAction(data: { params?: unknown; id?: string; action?: string }): void {
     if (data.params) {
       self.postMessage({
         id: data.id,
@@ -295,53 +323,22 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       results: this.responseTypes,
     });
   }
+
   queryNativeHookEvent(leftNs: number, rightNs: number, types: Array<string>): void {
-    let condition =
-      types.length === 1
-        ? `and A.event_type = ${types[0]}`
-        : "and (A.event_type = 'AllocEvent' or A.event_type = 'MmapEvent')";
-    let libId = this.nmArgs?.get('filterResponseType');
-    let allocType = this.nmArgs?.get('filterAllocType');
-    let eventType = this.nmArgs?.get('filterEventType');
-    if (libId !== undefined && libId !== -1) {
-      condition = `${condition} and last_lib_id = ${libId}`; // filter lib
+    const buildSingleCondition = (type: string): string => `and A.event_type = '${type}'`;
+    const config = eventConfigMap[this.memoryType];
+    if (!config) {
+      return;
     }
-    if (eventType === '1') {
-      condition = `${condition} and event_type = 'AllocEvent'`;
+    let condition = '';
+    if (types.length === 1) {
+      condition = buildSingleCondition(types[0]);
+    } else {
+      condition = config.multiCondition(types); // 使用特定配置的多条件
     }
-    if (eventType === '2') {
-      condition = `${condition} and event_type = 'MmapEvent'`;
-    }
-    if (allocType === '1') {
-      condition = `${condition} and ((A.end_ts - B.start_ts) > ${rightNs} or A.end_ts is null)`;
-    }
-    if (allocType === '2') {
-      condition = `${condition} and (A.end_ts - B.start_ts) <= ${rightNs}`;
-    }
-    let sql = `
-    select
-      callchain_id as eventId,
-      event_type as eventType,
-      heap_size as heapSize,
-      ('0x' || addr) as addr,
-      (A.start_ts - B.start_ts) as startTs,
-      (A.end_ts - B.start_ts) as endTs,
-      tid as threadId,
-      sub_type_id as subTypeId,
-      ifnull(last_lib_id,0) as lastLibId,
-      ifnull(last_symbol_id,0) as lastSymbolId
-    from
-      native_hook A,
-      trace_range B
-    left join
-      thread t
-    on
-      A.itid = t.id
-    where
-    A.start_ts - B.start_ts between ${leftNs} and ${rightNs} ${condition}
-    and A.ipid = ${this.currentSelectIPid}
-    `;
-    this.queryData(this.currentEventId, 'native-memory-queryNativeHookEvent', sql, {});
+
+    const sql = queryNativeHookEventSql(leftNs, rightNs, this.tableName, this.currentSelectIPid, condition, this.nmArgs!);
+    this.queryData(this.currentEventId, `${this.memoryType}-queryNativeHookEvent`, sql, {});
   }
 
   supplementNativeHoodData(): void {
@@ -407,10 +404,8 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
   initNMFrameData(): void {
     this.queryData(
       this.currentEventId,
-      'native-memory-queryNMFrameData',
-      `select h.symbol_id as symbolId, h.file_id as fileId, h.depth, h.callchain_id as eventId, h.vaddr as addr
-                    from native_hook_frame h
-        `,
+      `${this.memoryType}-queryNMFrameData`,
+      queryNMFrameDataSql(),
       {}
     );
   }
@@ -444,8 +439,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
 
   resolvingActionNativeMemoryStack(paramMap: Map<string, unknown>): NativeHookCallInfo[] {
     let eventId = paramMap.get('eventId');
-    //@ts-ignore
-    let frameArr = this.dataCache.nmHeapFrameMap.get(eventId) || [];
+    let frameArr = this.dataCache.nmHeapFrameMap.get(eventId as number) || [];
     let arr: Array<NativeHookCallInfo> = [];
     frameArr.map((frame: HeapTreeDataBean): void => {
       let target = new NativeHookCallInfo();
@@ -462,30 +456,28 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
 
   resolvingActionNativeMemory(paramMap: Map<string, unknown>): Array<NativeMemory> {
     let filterAllocType = paramMap.get('filterAllocType');
-    let filterEventType = paramMap.get('filterEventType');
+    let filterEventType = paramMap.get('filterEventType') as string;
     let filterResponseType = paramMap.get('filterResponseType');
-    let leftNs = paramMap.get('leftNs');
-    let rightNs = paramMap.get('rightNs');
+    let leftNs = paramMap.get('leftNs') as number;
+    let rightNs = paramMap.get('rightNs') as number;
     let sortColumn = paramMap.get('sortColumn');
     let sortType = paramMap.get('sortType');
-    let statisticsSelection = paramMap.get('statisticsSelection');
+    let statisticsSelection = paramMap.get('statisticsSelection') as StatisticsSelection[];
     let filter = this.boxRangeNativeHook;
     if (
       (filterAllocType !== undefined && filterAllocType !== 0) ||
-      (filterEventType !== undefined && filterEventType !== 0) ||
+      (filterEventType !== undefined && filterEventType !== '0') ||
       (filterResponseType !== undefined && filterResponseType !== -1)
     ) {
       filter = this.boxRangeNativeHook.filter((item: NativeMemory): boolean => {
         let filterAllocation = true;
-        //@ts-ignore
         let freed = item.endTs > leftNs && item.endTs <= rightNs && item.endTs !== 0 && item.endTs !== null;
         if (filterAllocType === '1') {
           filterAllocation = !freed;
         } else if (filterAllocType === '2') {
           filterAllocation = freed;
         }
-        //@ts-ignore
-        let filterNative = this.getTypeFromIndex(parseInt(filterEventType), item, statisticsSelection);
+        let filterNative = getFilterType(filterEventType, item, statisticsSelection, this.memoryType, this.isStatisticMode);
         let filterLastLib = filterResponseType === -1 ? true : filterResponseType === item.lastLibId;
         return filterAllocation && filterNative && filterLastLib;
       });
@@ -582,45 +574,13 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       });
     }
   }
-  getTypeFromIndex(
-    indexOf: number,
-    item: NativeHookStatistics | NativeMemory,
-    statisticsSelection: Array<StatisticsSelection>
-  ): boolean {
-    if (indexOf === -1) {
-      return false;
-    }
-    if (indexOf < 3) {
-      if (indexOf === 0) {
-        return true;
-      } else if (indexOf === 1) {
-        return item.eventType === 'AllocEvent';
-      } else if (indexOf === 2) {
-        return item.eventType === 'MmapEvent';
-      }
-    } else if (indexOf - 3 < statisticsSelection.length) {
-      let selectionElement = statisticsSelection[indexOf - 3];
-      if (selectionElement.memoryTap !== undefined && selectionElement.max !== undefined) {
-        if (selectionElement.memoryTap.indexOf('Malloc') !== -1) {
-          return item.eventType === 'AllocEvent' && item.heapSize === selectionElement.max;
-        } else if (selectionElement.memoryTap.indexOf('Mmap') !== -1) {
-          return item.eventType === 'MmapEvent' && item.heapSize === selectionElement.max && item.subTypeId === null;
-        } else {
-          return item.subType === selectionElement.memoryTap;
-        }
-      }
-      if (selectionElement.max === undefined && typeof selectionElement.memoryTap === 'number') {
-        return item.subTypeId === selectionElement.memoryTap && item.eventType === 'MmapEvent';
-      }
-    }
-    return false;
-  }
+
   clearAll(): void {
-    this.dataCache.clearNM();
+    this.dataCache.clearMemory();
     this.splitMapData = {};
     this.currentSamples = [];
     this.allThreads = [];
-    this.queryAllCallchainsSamples = [];
+    this.queryAllCallChainsSamples = [];
     this.realTimeDif = 0;
     this.currentTreeMapData = {};
     this.currentTreeList.length = 0;
@@ -631,163 +591,33 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     this.useFreedSize = false;
   }
 
-  queryCallchainsSamples(action: string, leftNs: number, rightNs: number, types: Array<string>): void {
+  queryCallChainsSamples(action: string, leftNs: number, rightNs: number, types: Array<string>): void {
     this.queryData(
       this.currentEventId,
       action,
-      `select A.id,
-                callchain_id as eventId,
-                event_type as eventType,
-                heap_size as heapSize,
-                (A.start_ts - B.start_ts) as startTs,
-                (A.end_ts - B.start_ts) as endTs,
-                tid,
-                ifnull(last_lib_id,0) as lastLibId,
-                ifnull(last_symbol_id,0) as lastSymbolId,
-                t.name as threadName,
-                A.addr,
-                ifnull(A.sub_type_id, -1) as subTypeId
-            from
-                native_hook A,
-                trace_range B
-                left join
-                thread t
-                on
-                A.itid = t.id
-            where
-                A.start_ts - B.start_ts
-                between ${leftNs} and ${rightNs} and A.event_type in (${types.join(',')})
-                and A.ipid = ${this.currentSelectIPid}
-        `,
+      queryCallChainsSamplesSql(leftNs, rightNs, this.currentSelectIPid, types, this.tableName),
       {}
     );
   }
-  queryStatisticCallchainsSamples(action: string, leftNs: number, rightNs: number, types: Array<number>): void {
-    let condition = '';
+  queryStatisticCallChainsSamples(action: string, leftNs: number, rightNs: number, types: Array<number>): void {
+    let queryCondition: string = '';
+    let selectTypeCase: string = '';
+
     if (types && types.length > 0) {
       const sortedTypes: number[] = [...new Set(types)].sort((a, b) => a - b);
-      if (sortedTypes.includes(0)) {
-        condition = 'and type in (0,1,2,3)';
-      } else {
-        const typeValues: number[] = [];
-        if (sortedTypes.includes(1)) typeValues.push(0);
-        if (sortedTypes.includes(2)) typeValues.push(1, 2, 3);
-        if (typeValues.length > 0) {
-          condition = `and type in (${typeValues.join(',')})`;
-        }
+      const config = statisticCallChainsSamplesConfig[this.memoryType];
+      if (!config) {
+        return;
       }
+      queryCondition = `and type in (${sortedTypes.join(',')})`;
+      selectTypeCase = config.caseStatement;
     }
-    let sql = `select A.id,
-                0 as tid,
-                callchain_id as eventId,
-                (case when type = 0 then 'AllocEvent' else 'MmapEvent' end) as eventType,
-                (case when sub_type_id not null then sub_type_id else type end) as subTypeId,
-                max(apply_size) as heapSize,
-                max(release_size) as freeSize,
-                apply_count as count,
-                release_count as freeCount,
-                (max(A.ts) - B.start_ts) as startTs,
-                ifnull(last_lib_id,0) as lastLibId,
-                ifnull(last_symbol_id,0) as lastSymbolId
-            from
-                native_hook_statistic A,
-                trace_range B
-            where
-                A.ts - B.start_ts
-                between ${leftNs} and ${rightNs}
-                ${condition}
-                and A.ipid = ${this.currentSelectIPid}
-            group by callchain_id,type;`;
+    const statisticTableName = this.tableName + '_statistic';
+    let sql = queryStatisticCallChainsSamplesSql(leftNs, rightNs, statisticTableName, this.currentSelectIPid, queryCondition, selectTypeCase);
     this.queryData(this.currentEventId, action, sql, {});
   }
 
-  combineStatisticAndCallChain(samples: NativeHookStatistics[]): Array<AnalysisSample> {
-    samples.sort((a, b) => a.id - b.id);
-    const analysisSampleList: Array<AnalysisSample> = [];
-    const applyAllocSamples: Array<AnalysisSample> = [];
-    const applyMmapSamples: Array<AnalysisSample> = [];
-    for (const sample of samples) {
-      const count = this.isStatisticMode ? sample.count : 1;
-      const analysisSample = new AnalysisSample(sample.id, sample.heapSize, count, sample.eventType, sample.startTs);
-      if (this.isStatisticMode) {
-        this.setStatisticSubType(analysisSample, sample);
-      } else {
-        let subType: string | undefined;
-        if (sample.subTypeId) {
-          subType = this.dataCache.dataDict.get(sample.subTypeId);
-        }
-        analysisSample.endTs = sample.endTs;
-        analysisSample.addr = sample.addr;
-        analysisSample.tid = sample.tid;
-        analysisSample.threadName = sample.threadName;
-        analysisSample.subType = subType;
-      }
-      if (['FreeEvent', 'MunmapEvent'].includes(sample.eventType)) {
-        if (sample.eventType === 'FreeEvent') {
-          this.setApplyIsRelease(analysisSample, applyAllocSamples);
-        } else {
-          this.setApplyIsRelease(analysisSample, applyMmapSamples);
-        }
-        continue;
-      } else {
-        if (sample.eventType === 'AllocEvent') {
-          applyAllocSamples.push(analysisSample);
-        } else {
-          applyMmapSamples.push(analysisSample);
-        }
-      }
-      let s = this.setAnalysisSampleArgs(analysisSample, sample);
-      analysisSampleList.push(s);
-    }
-    return analysisSampleList;
-  }
-
-  private setStatisticSubType(analysisSample: AnalysisSample, sample: NativeHookStatistics): void {
-    analysisSample.releaseCount = sample.freeCount;
-    analysisSample.releaseSize = sample.freeSize;
-    switch (sample.subTypeId) {
-      case 1:
-        analysisSample.subType = 'MmapEvent';
-        break;
-      case 2:
-        analysisSample.subType = 'FILE_PAGE_MSG';
-        break;
-      case 3:
-        analysisSample.subType = 'MEMORY_USING_MSG';
-        break;
-      default:
-        analysisSample.subType = this.dataCache.dataDict.get(sample.subTypeId);
-    }
-  }
-
-  private setAnalysisSampleArgs(analysisSample: AnalysisSample, sample: NativeHookStatistics): AnalysisSample {
-    const filePath = this.dataCache.dataDict.get(sample.lastLibId)!;
-    let libName = '';
-    if (filePath) {
-      const path = filePath.split('/');
-      libName = path[path.length - 1];
-    }
-    const symbolName = this.dataCache.dataDict.get(sample.lastSymbolId) || libName + ' (' + sample.addr + ')';
-    analysisSample.libId = sample.lastLibId || -1;
-    analysisSample.libName = libName || 'Unknown';
-    analysisSample.symbolId = sample.lastSymbolId || -1;
-    analysisSample.symbolName = symbolName || 'Unknown';
-    return analysisSample;
-  }
-
-  setApplyIsRelease(sample: AnalysisSample, arr: Array<AnalysisSample>): void {
-    let idx = arr.length - 1;
-    for (idx; idx >= 0; idx--) {
-      let item = arr[idx];
-      if (item.endTs === sample.startTs && item.addr === sample.addr) {
-        arr.splice(idx, 1);
-        item.isRelease = true;
-        return;
-      }
-    }
-  }
-
-  private freshCurrentCallchains(samples: NativeHookStatistics[], isTopDown: boolean): void {
+  private freshCurrentCallChains(samples: NativeHookStatistics[], isTopDown: boolean): void {
     this.currentTreeMapData = {};
     this.currentTreeList = [];
     let totalSize = 0;
@@ -828,65 +658,65 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
         this.mergeCallChainSample(root, callChains[topIndex], nativeHookSample);
         if (callChains.length > 1) {
           // 递归造树结构
-          this.merageChildrenByIndex(root, callChains, topIndex, nativeHookSample, isTopDown);
+          this.mergeChildrenByIndex(root, callChains, topIndex, nativeHookSample, isTopDown);
         }
       }
     });
     // 合并线程级别
-    let rootMerageMap = this.mergeNodeData(totalCount, totalSize);
+    let rootMergeMap = this.mergeNodeData(totalCount, totalSize);
     this.handleCurrentTreeList(totalCount, totalSize);
-    this.allThreads = Object.values(rootMerageMap) as NativeHookCallInfo[];
+    this.allThreads = Object.values(rootMergeMap) as NativeHookCallInfo[];
   }
   private mergeNodeData(totalCount: number, totalSize: number): CallInfoMap {
-    let rootMerageMap: CallInfoMap = {};
+    let rootMergeMap: CallInfoMap = {};
     let threads = Object.values(this.currentTreeMapData);
     // 遍历所有线程
-    threads.forEach((merageData: NativeHookCallInfo): void => {
+    threads.forEach((mergeData: NativeHookCallInfo): void => {
       if (this.isHideThread) {
-        merageData.tid = 0;
-        merageData.threadName = undefined;
+        mergeData.tid = 0;
+        mergeData.threadName = undefined;
       }
       // 没有父级，生成父级，把当前项放进去
-      if (rootMerageMap[merageData.tid] === undefined) {
-        let threadMerageData = new NativeHookCallInfo(); //新增进程的节点数据
-        threadMerageData.canCharge = false;
-        threadMerageData.type = -1;
-        threadMerageData.isThread = true;
-        threadMerageData.symbol = `${merageData.threadName || 'Thread'} [${merageData.tid}]`;
-        threadMerageData.children.push(merageData);
-        threadMerageData.initChildren.push(merageData);
-        threadMerageData.count = merageData.count || 1;
-        threadMerageData.heapSize = merageData.heapSize;
-        threadMerageData.totalCount = totalCount;
-        threadMerageData.totalSize = totalSize;
-        threadMerageData.tsArray = [...merageData.tsArray];
-        threadMerageData.countArray = [...merageData.countArray];
-        rootMerageMap[merageData.tid] = threadMerageData;
+      if (rootMergeMap[mergeData.tid] === undefined) {
+        let threadMergeData = new NativeHookCallInfo(); //新增进程的节点数据
+        threadMergeData.canCharge = false;
+        threadMergeData.type = -1;
+        threadMergeData.isThread = true;
+        threadMergeData.symbol = `${mergeData.threadName || 'Thread'} [${mergeData.tid}]`;
+        threadMergeData.children.push(mergeData);
+        threadMergeData.initChildren.push(mergeData);
+        threadMergeData.count = mergeData.count || 1;
+        threadMergeData.heapSize = mergeData.heapSize;
+        threadMergeData.totalCount = totalCount;
+        threadMergeData.totalSize = totalSize;
+        threadMergeData.tsArray = [...mergeData.tsArray];
+        threadMergeData.countArray = [...mergeData.countArray];
+        rootMergeMap[mergeData.tid] = threadMergeData;
       } else {
         // 有父级，直接放进去
-        rootMerageMap[merageData.tid].children.push(merageData);
-        rootMerageMap[merageData.tid].initChildren.push(merageData);
-        rootMerageMap[merageData.tid].count += merageData.count || 1;
-        rootMerageMap[merageData.tid].heapSize += merageData.heapSize;
-        rootMerageMap[merageData.tid].totalCount = totalCount;
-        rootMerageMap[merageData.tid].totalSize = totalSize;
-        for (const count of merageData.countArray) {
-          rootMerageMap[merageData.tid].countArray.push(count);
+        rootMergeMap[mergeData.tid].children.push(mergeData);
+        rootMergeMap[mergeData.tid].initChildren.push(mergeData);
+        rootMergeMap[mergeData.tid].count += mergeData.count || 1;
+        rootMergeMap[mergeData.tid].heapSize += mergeData.heapSize;
+        rootMergeMap[mergeData.tid].totalCount = totalCount;
+        rootMergeMap[mergeData.tid].totalSize = totalSize;
+        for (const count of mergeData.countArray) {
+          rootMergeMap[mergeData.tid].countArray.push(count);
         }
-        for (const ts of merageData.tsArray) {
-          rootMerageMap[merageData.tid].tsArray.push(ts);
+        for (const ts of mergeData.tsArray) {
+          rootMergeMap[mergeData.tid].tsArray.push(ts);
         }
       }
-      merageData.parentNode = rootMerageMap[merageData.tid]; //子节点添加父节点的引用
+      mergeData.parentNode = rootMergeMap[mergeData.tid]; //子节点添加父节点的引用
     });
-    return rootMerageMap;
+    return rootMergeMap;
   }
   private handleCurrentTreeList(totalCount: number, totalSize: number): void {
     let id = 0;
     this.currentTreeList.forEach((nmTreeNode: NativeHookCallInfo): void => {
       nmTreeNode.totalCount = totalCount;
       nmTreeNode.totalSize = totalSize;
-      this.setMerageName(nmTreeNode);
+      this.setMergeName(nmTreeNode);
       if (nmTreeNode.id === '') {
         nmTreeNode.id = id + '';
         id++;
@@ -906,6 +736,9 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     if (filterAnalysis) {
       if (filterAnalysis.type) {
         filterEventType = filterAnalysis.type;
+        if(MemoryType.APPLY_NM_EVENTS.includes(filterEventType)){
+          filterEventType = filterEventType.toLowerCase();
+        }
       }
       if (filterAnalysis.libId) {
         filterResponseType = filterAnalysis.libId;
@@ -917,7 +750,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     let nativeHookType = paramMap.get('nativeHookType') as string;
     let statisticsSelection = paramMap.get('statisticsSelection') as StatisticsSelection[];
     if (!libTree && filterAllocType === '0' && filterEventType === '0' && filterResponseType === -1) {
-      this.currentSamples = this.queryAllCallchainsSamples;
+      this.currentSamples = this.queryAllCallChainsSamples;
       return;
     }
     this.useFreedSize = this.isStatisticMode && filterAllocType === '2';
@@ -946,13 +779,15 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     filterEventType: string,
     statisticsSelection: StatisticsSelection[]
   ): NativeHookStatistics[] {
-    return this.queryAllCallchainsSamples.filter((item: NativeHookStatistics): boolean => {
+    return this.queryAllCallChainsSamples.filter((item: NativeHookStatistics): boolean => {
       let filterAllocation = true;
-      if (nativeHookType === 'native-hook') {
+      if (nativeHookType === 'normal') {
         filterAllocation = this.setFilterAllocation(item, filterAllocType, filterAllocation, leftNs, rightNs);
       } else {
+        // Create & Existing
         if (filterAllocType === '1') {
           filterAllocation = item.heapSize > item.freeSize;
+          // Create & Destroy 
         } else if (filterAllocType === '2') {
           filterAllocation = item.freeSize > 0;
         }
@@ -972,7 +807,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       if (filterAnalysis && filterAnalysis.symbolId) {
         filterFunction = filterAnalysis.symbolId === item.lastSymbolId;
       }
-      let filterNative = this.getTypeFromIndex(parseInt(filterEventType), item, statisticsSelection);
+      let filterNative = getFilterType(filterEventType, item, statisticsSelection, this.memoryType, this.isStatisticMode);
       return filterAllocation && filterNative && filterLastLib && filterThread && filterFunction;
     });
   }
@@ -983,11 +818,13 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     leftNs: number,
     rightNs: number
   ): boolean {
+    // Create & Existing
     if (filterAllocType === '1') {
       filterAllocation =
         item.startTs >= leftNs &&
         item.startTs <= rightNs &&
         (item.endTs > rightNs || item.endTs === 0 || item.endTs === null);
+      // Create & Destroy 
     } else if (filterAllocType === '2') {
       filterAllocation =
         item.startTs >= leftNs &&
@@ -1005,10 +842,12 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
   ): StatisticMap {
     let groupMap: StatisticMap = {};
     filter.forEach((sample: NativeHookStatistics): void => {
-      let currentNode = groupMap[sample.tid + '-' + sample.eventId] || new NativeHookStatistics();
+      // 调用栈合并逻辑为tid相同, EventType 相同，callChainId相同则合并计算
+      const groupKey = sample.tid + '-' + sample.eventType + '-' + sample.eventId ;
+      let currentNode = groupMap[groupKey] || new NativeHookStatistics();
       if (currentNode.count === 0) {
         Object.assign(currentNode, sample);
-        if (filterAllocType === '1' && nativeHookType !== 'native-hook') {
+        if (filterAllocType === '1' && nativeHookType !== 'normal') {
           currentNode.heapSize = sample.heapSize - sample.freeSize;
           currentNode.count = sample.count - sample.freeCount;
         }
@@ -1023,7 +862,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
         currentNode.countArray.push(1);
         currentNode.tsArray.push(sample.startTs);
       }
-      groupMap[sample.tid + '-' + sample.eventId] = currentNode;
+      groupMap[groupKey] = currentNode;
     });
     return groupMap;
   }
@@ -1119,7 +958,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     }
   }
 
-  merageChildrenByIndex(
+  mergeChildrenByIndex(
     currentNode: NativeHookCallInfo,
     callChainDataList: HeapTreeDataBean[],
     index: number,
@@ -1152,7 +991,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
       node.parentNode = currentNode;
     }
     if (node! && !isEnd) {
-      this.merageChildrenByIndex(node, callChainDataList, index, sample, isTopDown);
+      this.mergeChildrenByIndex(node, callChainDataList, index, sample, isTopDown);
     }
   }
 
@@ -1178,7 +1017,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
     return false;
   }
 
-  setMerageName(currentNode: NativeHookCallInfo): void {
+  setMergeName(currentNode: NativeHookCallInfo): void {
     currentNode.lib = this.dataCache.dataDict.get(currentNode.fileId) || 'unknown';
     if (this.isHap(currentNode.lib)) {
       const fullName = this.dataCache.dataDict.get(currentNode.symbolId);
@@ -1224,7 +1063,7 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
         this.groupCallChainSample(args[0] as Map<string, unknown>);
         break;
       case 'getCallChainsBySampleIds':
-        this.freshCurrentCallchains(this.currentSamples, args[0] as boolean);
+        this.freshCurrentCallChains(this.currentSamples, args[0] as boolean);
         break;
       case 'hideSystemLibrary':
         merageBeanDataSplit.hideSystemLibrary(this.allThreads, this.splitMapData);
@@ -1264,8 +1103,10 @@ export class ProcedureLogicWorkerNativeMemory extends LogicHandler {
 
 export class NativeHookStatistics {
   id: number = 0;
+  type: number = 0;
   eventId: number = 0;
   eventType: string = '';
+  hasSubType: number = 0;
   subType: string = '';
   subTypeId: number = 0;
   heapSize: number = 0;
@@ -1324,6 +1165,7 @@ export class NativeMemory {
   index: number = 0;
   eventId: number = 0;
   eventType: string = '';
+  hasSubType: number = 0; // 1有子类型 0没有子类型 
   subType: string = '';
   subTypeId: number = 0;
   addr: string = '';
@@ -1351,58 +1193,8 @@ export class HeapStruct {
 }
 export class StatisticsSelection {
   memoryTap: string = '';
+  subType: string = '';
   max: number = 0;
+  eventType: string = '';
 }
 
-class AnalysisSample {
-  id: number;
-  count: number;
-  size: number;
-  type: number;
-  startTs: number;
-
-  isRelease: boolean;
-  releaseCount?: number;
-  releaseSize?: number;
-
-  endTs?: number;
-  subType?: string;
-  tid?: number;
-  threadName?: string;
-  addr?: string;
-
-  libId!: number;
-  libName!: string;
-  symbolId!: number;
-  symbolName!: string;
-
-  constructor(id: number, size: number, count: number, type: number | string, startTs: number) {
-    this.id = id;
-    this.size = size;
-    this.count = count;
-    this.startTs = startTs;
-    switch (type) {
-      case 'AllocEvent':
-      case '0':
-        this.type = 0;
-        this.isRelease = false;
-        break;
-      case 'MmapEvent':
-      case '1':
-        this.isRelease = false;
-        this.type = 1;
-        break;
-      case 'FreeEvent':
-        this.isRelease = true;
-        this.type = 2;
-        break;
-      case 'MunmapEvent':
-        this.isRelease = true;
-        this.type = 3;
-        break;
-      default:
-        this.isRelease = false;
-        this.type = -1;
-    }
-  }
-}

@@ -145,7 +145,6 @@ import { XpowerGpuFreqStruct } from '../database/ui-worker/ProcedureWorkerXpower
 import { LitProgressBar } from '../../base-ui/progress-bar/LitProgressBar';
 import { SnapShotStruct } from '../database/ui-worker/ProcedureWorkerSnaps';
 import { ThreadSysCallStruct } from '../database/ui-worker/ProcedureWorkerThreadSysCall';
-import { GpuMemoryStruct } from '../database/ui-worker/ProcedureWorkerGpuMemory';
 import { TabPaneFreqByCpu } from './trace/sheet/cpu/TanpaneFreqByCpu';
 import { TabPaneSchedTaskByCpu } from './trace/sheet/cpu/TabPaneSchedTaskByCpu';
 
@@ -617,8 +616,7 @@ export class SpSystemTrace extends BaseElement {
       DmaFenceStruct.selectDmaFenceStruct ||
       XpowerThreadInfoStruct.selectXpowerStruct ||
       XpowerGpuFreqStruct.selectXpowerStruct ||
-      SnapShotStruct.selectSnapShotStruct ||
-      GpuMemoryStruct.selectGpuMemoryStruct;
+      SnapShotStruct.selectSnapShotStruct;
   }
   top: number = 0;
   handler: number = -1;
@@ -1411,7 +1409,6 @@ export class SpSystemTrace extends BaseElement {
     GpuCounterStruct.hoverGpuCounterStruct = undefined;
     DmaFenceStruct.hoverDmaFenceStruct = undefined;
     SnapShotStruct.hoverSnapShotStruct = undefined;
-    GpuMemoryStruct.hoverGpuMemoryStruct = undefined;
     this.tipEL!.style.display = 'none';
     return this;
   }
@@ -1455,7 +1452,6 @@ export class SpSystemTrace extends BaseElement {
     XpowerThreadInfoStruct.selectXpowerStruct = undefined;
     XpowerGpuFreqStruct.selectXpowerStruct = undefined;
     SnapShotStruct.selectSnapShotStruct = undefined;
-    GpuMemoryStruct.selectGpuMemoryStruct = undefined;
     return this;
   }
 

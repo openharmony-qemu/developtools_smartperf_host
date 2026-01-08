@@ -706,6 +706,12 @@ export class DataCache {
     this.osHeapFrameMap.clear();
   }
 
+  public clearMemory(): void {
+    this.clearNM();
+    this.clearGM();
+    this.clearOS();
+  }
+
   public clearEBpf(): void {
     this.eBpfCallChainsMap.clear();
   }
