@@ -31,12 +31,10 @@ import { LitTabs } from '../../base-ui/tabs/lit-tabs';
 import { TabPaneSummary } from '../component/trace/sheet/ark-ts/TabPaneSummary';
 import { JsCpuProfilerStruct } from '../database/ui-worker/ProcedureWorkerCpuProfiler';
 import { SampleStruct } from '../database/ui-worker/ProcedureWorkerBpftrace';
-import { GpuCounterStruct } from '../database/ui-worker/ProcedureWorkerGpuCounter';
-import { Utils } from '../component/trace/base/Utils';
-import { XpowerStatisticStruct } from '../database/ui-worker/ProcedureWorkerXpowerStatistic';
-import { XpowerThreadInfoStruct } from '../database/ui-worker/ProcedureWorkerXpowerThreadInfo';
 import { THREAD_ENERGY, THREAD_LOAD } from '../component/chart/SpXpowerChart';
 import { SpHiPerf } from '../component/chart/SpHiPerf';
+import { MemoryTraceRowType, TraceRowMemoryConfig } from './MemoryEnum';
+import { MemoryAnalysisDataLogic } from '../component/trace/base/MemoryAnalysisData';
 
 export class SelectionParam {
   traceId: string | undefined | null;
@@ -107,15 +105,15 @@ export class SelectionParam {
   processSysCallIds: Array<number> = [];
   funAsync: Array<{ name: string; pid: number, tid: number | undefined }> = [];
   funCatAsync: Array<{ pid: number; threadName: string }> = [];
-  nativeMemory: Array<String> = [];
-  nativeMemoryStatistic: Array<String> = [];
+  nativeMemory: Array<string> = [];
+  nativeMemoryStatistic: Array<string> = [];
   nativeMemoryAllProcess: Array<{ pid: number; ipid: number }> = [];
   nativeMemoryCurrentIPid: number = -1;
-  gpuMemory: Array<String> = [];
+  gpuMemory: Array<string> = [];
   gpuMemoryStatistic: string[] = [];
   gpuMemoryAllProcess: Array<{ pid: number; ipid: number }> = [];
   gpuMemoryCurrentIPid: number = -1;
-  otherSource: Array<String> = [];
+  otherSource: Array<string> = [];
   otherSourceStatistic: string[] = [];
   otherSourceAllProcess: Array<{ pid: number; ipid: number }> = [];
   otherSourceCurrentIPid: number = -1;
@@ -342,111 +340,183 @@ export class SelectionParam {
     }
   }
 
+  // 框选泳道图，统一的内存类型映射配置
+  private getMemoryConfig(rowType: string): TraceRowMemoryConfig | null {
+    // 定义基础配置映射
+    const baseConfigMap = {
+      [TraceRow.ROW_TYPE_NATIVE_MEMORY]: {
+        allProcess: this.nativeMemoryAllProcess,
+        statisticData: this.nativeMemoryStatistic,
+        normalData: this.nativeMemory,
+        currentIPid: this.nativeMemoryCurrentIPid,
+        memoryType: MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY,
+        setter: (ipid: number) => { this.nativeMemoryCurrentIPid = ipid; }
+      },
+      [TraceRow.ROW_TYPE_GPU_MEMORY]: {
+        allProcess: this.gpuMemoryAllProcess,
+        statisticData: this.gpuMemoryStatistic,
+        normalData: this.gpuMemory,
+        currentIPid: this.gpuMemoryCurrentIPid,
+        memoryType: MemoryTraceRowType.ROW_TYPE_GPU_MEMORY,
+        setter: (ipid: number) => { this.gpuMemoryCurrentIPid = ipid; }
+      },
+      [TraceRow.ROW_TYPE_OTHER_SOURCE]: {
+        allProcess: this.otherSourceAllProcess,
+        statisticData: this.otherSourceStatistic,
+        normalData: this.otherSource,
+        currentIPid: this.otherSourceCurrentIPid,
+        memoryType: MemoryTraceRowType.ROW_TYPE_OTHER_SOURCE,
+        setter: (ipid: number) => { this.otherSourceCurrentIPid = ipid; }
+      }
+    };
+
+    // 定义子泳道到父泳道类型的映射
+    const childToParentMap = {
+      [TraceRow.ROW_TYPE_HEAP]: TraceRow.ROW_TYPE_NATIVE_MEMORY,
+      [TraceRow.ROW_TYPE_GPU_HEAP]: TraceRow.ROW_TYPE_GPU_MEMORY,
+      [TraceRow.ROW_TYPE_OTHER_SOURCE_HEAP]: TraceRow.ROW_TYPE_OTHER_SOURCE
+    };
+
+    // 判断是父类型还是子类型
+    let baseType: string | undefined;
+
+    if (baseConfigMap[rowType]) {
+      // 是父类型
+      baseType = rowType;
+    } else if (childToParentMap[rowType]) {
+      // 是子类型，获取其对应的父类型
+      baseType = childToParentMap[rowType];
+    }
+
+    // 如果没有找到对应的基础配置，则返回null
+    if (!baseType || !baseConfigMap[baseType]) {
+      return null;
+    }
+
+    // 获取基础配置并构建返回对象
+    const baseConfig = baseConfigMap[baseType];
+    return {
+      allProcess: baseConfig.allProcess,
+      statisticData: baseConfig.statisticData,
+      normalData: baseConfig.normalData,
+      currentIPid: baseConfig.currentIPid,
+      memoryType: baseConfig.memoryType,
+      setCurrentIPid: baseConfig.setter
+    };
+  }
+
   // @ts-ignore
-  pushNativeMemory(it: TraceRow<unknown>, sp: SpSystemTrace): void {
-    if (it.rowType === TraceRow.ROW_TYPE_NATIVE_MEMORY) {
-      // @ts-ignore
-      let memoryRows: Array<TraceRow<unknown>> = [
+  pushGenericMemoryFolder(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    const folderTypes = [
+      TraceRow.ROW_TYPE_NATIVE_MEMORY,
+      TraceRow.ROW_TYPE_GPU_MEMORY,
+      TraceRow.ROW_TYPE_OTHER_SOURCE,
+    ];
+
+    if (folderTypes.includes(it.rowType!)) {
+      // 使用统一的处理函数，传入 isFolder=true
+      this.pushGenericMemoryData(it, sp, true);
+    }
+  }
+
+  // @ts-ignore
+  pushGenericMemory(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    const heapTypes = [
+      TraceRow.ROW_TYPE_HEAP,
+      TraceRow.ROW_TYPE_GPU_HEAP,
+      TraceRow.ROW_TYPE_OTHER_SOURCE_HEAP
+    ];
+
+    if (heapTypes.includes(it.rowType!)) {
+      // 使用统一的处理函数，传入 isFolder=false
+      this.pushGenericMemoryData(it, sp, false);
+    }
+  }
+
+  // @ts-ignore 
+  private pushGenericMemoryData(it: TraceRow<unknown>, sp: SpSystemTrace, isFolder: boolean): void {
+    const config = this.getMemoryConfig(it.rowType!);
+    if (!config) return;
+    // @ts-ignore
+    let memoryRows: Array<TraceRow<unknown>> = [];
+    if (isFolder) {
+      // 这里不一定有用
+      memoryRows = [
         // @ts-ignore
         ...sp.shadowRoot!.querySelectorAll<TraceRow<unknown>>(`trace-row[row-parent-id='${it.rowId}']`),
       ];
       if (!it.expansion) {
         memoryRows = [...it.childrenList];
       }
-      const rowKey = it.rowId!.split(' ');
-      const process = {
-        ipid: Number(rowKey[rowKey.length - 1]),
-        pid: Number(rowKey[rowKey.length - 2]),
-      };
-      if (!isExistPidInArray(this.nativeMemoryAllProcess, process.pid)) {
-        this.nativeMemoryAllProcess.push(process);
+    } else {
+      memoryRows.push(it)
+    }
+    // 解析进程信息 - 需要向上查找包含进程信息的父节点
+    // @ts-ignore
+    let processRow: TraceRow<unknown> | null = isFolder ? it : it;
+    let rowKey: string | null = null;
+    
+    // 向上查找包含进程信息的父节点（rowId 格式为 "native-memory ${pid} ${ipid}"）
+    while (processRow) {
+      const currentRowId = processRow.rowId || '';
+      if (currentRowId.startsWith('native-memory ') || 
+          currentRowId.startsWith('gpu-memory ') || 
+          currentRowId.startsWith('other-source ')) {
+        rowKey = currentRowId;
+        break;
       }
-      if (this.nativeMemoryCurrentIPid === -1) {
-        this.nativeMemoryCurrentIPid = process.ipid;
+      // 查找父节点
+      if (processRow.rowParentId) {
+        // @ts-ignore
+        processRow = sp.shadowRoot?.querySelector(`trace-row[row-id='${processRow.rowParentId}']`) as TraceRow<unknown> | null;
+      } else {
+        break;
       }
-      memoryRows.forEach((th) => {
+    }
+    
+    if (!rowKey) {
+      // 如果找不到，尝试从 rowParentId 解析（兼容旧逻辑）
+      rowKey = (isFolder ? it.rowId : it.rowParentId) || '';
+    }
+    
+    const rowKeyParts = rowKey.split(' ');
+    const process = {
+      ipid: Number(rowKeyParts[rowKeyParts.length - 1]),
+      pid: Number(rowKeyParts[rowKeyParts.length - 2]),
+    };
+
+    const { allProcess, statisticData, normalData, currentIPid, memoryType, setCurrentIPid } = config;
+
+    // 添加进程信息
+    if (!isExistPidInArray(allProcess, process.pid)) {
+      allProcess.push(process);
+    }
+    // 没有pid的情况
+    if (currentIPid === -1) {
+      setCurrentIPid(process.ipid);
+      const memoryDataLogic = new MemoryAnalysisDataLogic();
+      memoryDataLogic.init(memoryType, false);
+      memoryDataLogic.setCurrentSelectIPid(process.ipid);
+    }
+
+    // 处理子行数据
+    memoryRows.forEach((th) => {
+      // 这里不一定有用
+      if (isFolder) {
         th.rangeSelect = true;
         th.checkType = '2';
-        if (th.getAttribute('heap-type') === 'native_hook_statistic') {
-          this.nativeMemoryStatistic.push(th.rowId!);
-        } else {
-          this.nativeMemory.push(th.rowId!);
-        }
-      });
-      info('load nativeMemory traceRow id is : ', it.rowId);
-    }
+      }
+
+      if (th.getAttribute('heap-type')?.includes('statistic')) {
+        statisticData.push(th.rowId!);
+      } else {
+        normalData.push(th.rowId!);
+      }
+    });
+
+    info(`load ${isFolder ? 'Memory Folder' : 'Memory Heap'} traceRow id is : `, it.rowId);
   }
 
-  // @ts-ignore
-  pushGpuMemory(it: TraceRow<unknown>, sp: SpSystemTrace): void {
-    if (it.rowType === TraceRow.ROW_TYPE_GPU_MEMORY) {
-      // @ts-ignore
-      let memoryRows: Array<TraceRow<unknown>> = [
-        // @ts-ignore
-        ...sp.shadowRoot!.querySelectorAll<TraceRow<unknown>>(`trace-row[row-parent-id='${it.rowId}']`),
-      ];
-      if (!it.expansion) {
-        memoryRows = [...it.childrenList];
-      }
-      const rowKey = it.rowId!.split(' ');
-      const process = {
-        ipid: Number(rowKey[rowKey.length - 1]),
-        pid: Number(rowKey[rowKey.length - 2]),
-      };
-      if (!isExistPidInArray(this.gpuMemoryAllProcess, process.pid)) {
-        this.gpuMemoryAllProcess.push(process);
-      }
-      if (this.gpuMemoryCurrentIPid === -1) {
-        this.gpuMemoryCurrentIPid = process.ipid;
-      }
-      memoryRows.forEach((th) => {
-        th.rangeSelect = true;
-        th.checkType = '2';
-        if (th.getAttribute('gpuMemory-type') === 'native_hook_statistic') {
-          this.gpuMemoryStatistic.push(th.rowId!);
-        } else {
-          this.gpuMemory.push(th.rowId!);
-        }
-      });
-      info('load gpuMemory traceRow id is : ', it.rowId);
-    }
-  }
-
-  // @ts-ignore
-  pushOtherSource(it: TraceRow<unknown>, sp: SpSystemTrace): void {
-    if (it.rowType === TraceRow.ROW_TYPE_OTHER_SOURCE) {
-      // @ts-ignore
-      let otherSourceRows: Array<TraceRow<unknown>> = [
-        // @ts-ignore
-        ...sp.shadowRoot!.querySelectorAll<TraceRow<unknown>>(`trace-row[row-parent-id='${it.rowId}']`),
-      ];
-      if (!it.expansion) {
-        otherSourceRows = [...it.childrenList];
-      }
-      const rowKey = it.rowId!.split(' ');
-      const process = {
-        ipid: Number(rowKey[rowKey.length - 1]),
-        pid: Number(rowKey[rowKey.length - 2]),
-      };
-      if (!isExistPidInArray(this.otherSourceAllProcess, process.pid)) {
-        this.otherSourceAllProcess.push(process);
-      }
-      if (this.otherSourceCurrentIPid === -1) {
-        this.otherSourceCurrentIPid = process.ipid;
-      }
-      otherSourceRows.forEach((th) => {
-        th.rangeSelect = true;
-        th.checkType = '2';
-        if (th.getAttribute('otherSource-type') === 'native_hook_statistic') {
-          this.otherSourceStatistic.push(th.rowId!);
-        } else {
-          this.otherSource.push(th.rowId!);
-        }
-      });
-      info('load otherSource traceRow id is : ', it.rowId);
-    }
-  }
-  
   // @ts-ignore
   pushFunc(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_FUNC) {
@@ -512,86 +582,7 @@ export class SelectionParam {
     }
   }
 
-  // @ts-ignore
-  pushHeap(it: TraceRow<unknown>, sp: SpSystemTrace): void {
-    if (it.rowType === TraceRow.ROW_TYPE_HEAP) {
-      const key = it.rowParentId!.split(' ');
-      const process = {
-        ipid: Number(key[key.length - 1]),
-        pid: Number(key[key.length - 2]),
-      };
 
-      if (!isExistPidInArray(this.nativeMemoryAllProcess, process.pid)) {
-        this.nativeMemoryAllProcess.push(process);
-      }
-      if (this.nativeMemoryCurrentIPid === -1) {
-        this.nativeMemoryCurrentIPid = process.ipid;
-        Utils.getInstance().setCurrentSelectIPid(this.nativeMemoryCurrentIPid);
-      }
-      if (this.nativeMemoryAllProcess) {
-        if (it.getAttribute('heap-type') === 'native_hook_statistic') {
-          this.nativeMemoryStatistic.push(it.rowId!);
-        } else {
-          this.nativeMemory.push(it.rowId!);
-        }
-      }
-      info('load nativeMemory traceRow id is : ', it.rowId);
-    }
-  }
-
-  // @ts-ignore
-  pushGpuHeap(it: TraceRow<unknown>, sp: SpSystemTrace): void {
-    if (it.rowType === TraceRow.ROW_TYPE_GPU_HEAP) {
-      const key = it.rowParentId!.split(' ');
-      const process = {
-        ipid: Number(key[key.length - 1]),
-        pid: Number(key[key.length - 2]),
-      };
-
-      if (!isExistPidInArray(this.gpuMemoryAllProcess, process.pid)) {
-        this.gpuMemoryAllProcess.push(process);
-      }
-      if (this.gpuMemoryCurrentIPid === -1) {
-        this.gpuMemoryCurrentIPid = process.ipid;
-        Utils.getInstance().setGpuCurrentSelectIPid(this.gpuMemoryCurrentIPid);
-      }
-      if (this.gpuMemoryAllProcess) {
-        if (it.getAttribute('gpuMemory-type') === 'native_hook_statistic') {
-          this.gpuMemoryStatistic.push(it.rowId!);
-        } else {
-          this.gpuMemory.push(it.rowId!);
-        }
-      }
-      info('load gpuMemory traceRow id is : ', it.rowId);
-    }
-  }
-
-  // @ts-ignore
-  pushOtherSourceHeap(it: TraceRow<unknown>, sp: SpSystemTrace): void {
-    if (it.rowType === TraceRow.ROW_TYPE_OTHER_SOURCE_HEAP) {
-      const key = it.rowParentId!.split(' ');
-      const process = {
-        ipid: Number(key[key.length - 1]),
-        pid: Number(key[key.length - 2]),
-      };
-
-      if (!isExistPidInArray(this.otherSourceAllProcess, process.pid)) {
-        this.otherSourceAllProcess.push(process);
-      }
-      if (this.otherSourceCurrentIPid === -1) {
-        this.otherSourceCurrentIPid = process.ipid;
-        Utils.getInstance().setGpuCurrentSelectIPid(this.otherSourceCurrentIPid);
-      }
-      if (this.otherSourceAllProcess) {
-        if (it.getAttribute('otherSource-type') === 'native_hook_statistic') {
-          this.otherSourceStatistic.push(it.rowId!);
-        } else {
-          this.otherSource.push(it.rowId!);
-        }
-      }
-      info('load otherSource traceRow id is : ', it.rowId);
-    }
-  }
 
   // @ts-ignore
   pushMonitor(it: TraceRow<unknown>, sp: SpSystemTrace): void {
@@ -1203,7 +1194,7 @@ export class SelectionParam {
   // @ts-ignore
   pushThread(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_THREAD) {
-      this.perfEventTypeId = SpHiPerf.hiperfEvent === -2 ? undefined :  SpHiPerf.hiperfEvent;
+      this.perfEventTypeId = SpHiPerf.hiperfEvent === -2 ? undefined : SpHiPerf.hiperfEvent;
       sp.pushPidToSelection(this, it.rowParentId!, it.protoPid);
       if (it.dataListCache && it.dataListCache.length) {
         //@ts-ignore
@@ -1478,13 +1469,13 @@ export class SelectionParam {
     this.pushCpuFreqFilter(it);
     this.pushCpuFreqLimit(it);
     this.pushProcess(it, sp);
-    this.pushNativeMemory(it, sp);
-    this.pushGpuMemory(it, sp);
-    this.pushOtherSource(it, sp);
+    this.pushGenericMemoryFolder(it, sp);
+    // this.pushGpuMemory(it, sp);
+    // this.pushOtherSource(it, sp);
     this.pushFunc(it, sp);
-    this.pushHeap(it, sp);
-    this.pushGpuHeap(it, sp);
-    this.pushOtherSourceHeap(it, sp);
+    this.pushGenericMemory(it, sp);
+    // this.pushGpuHeap(it, sp);
+    // this.pushOtherSourceHeap(it, sp);
     this.pushMonitor(it, sp);
     this.pushHiperf(it, sp);
     this.pushFileSystem(it, sp);

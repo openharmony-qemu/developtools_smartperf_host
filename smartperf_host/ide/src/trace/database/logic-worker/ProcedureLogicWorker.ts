@@ -14,26 +14,25 @@
  */
 
 import { ProcedureLogicWorkerPerf } from './ProcedureLogicWorkerPerf';
-import { ProcedureLogicWorkerNativeMemory } from './ProcedureLogicWorkerNativeNemory';
+import { ProcedureLogicWorkerNativeMemory } from './ProcedureLogicWorkerNativeMemory';
 import { ProcedureLogicWorkerFileSystem } from './ProcedureLogicWorkerFileSystem';
 import { ProcedureLogicWorkerSPT } from './ProcedureLogicWorkerSPT';
 import { ProcedureLogicWorkerCpuState } from './ProcedureLogicWorkerCpuState';
 import { ProcedureLogicWorkerSchedulingAnalysis } from './ProcedureLogicWorkerSchedulingAnalysis';
 import { DataCache } from './ProcedureLogicWorkerCommon';
 import { ProcedureLogicWorkerJsCpuProfiler } from './ProcedureLogicWorkerJsCpuProfiler';
-import {ProcedureLogicWorkerGpuMemory} from './ProcedureLogicWorkerGpuMemory';
-import {ProcedureLogicWorkerOtherSource} from './ProcedureLogicWorkerOtherSource';
+import { MemoryTableName, MemoryTraceRowType } from '../../bean/MemoryEnum';
 
 let logicWorker = {
   perf: new ProcedureLogicWorkerPerf(),
-  'native-memory': new ProcedureLogicWorkerNativeMemory(),
+  nativeMemory: new ProcedureLogicWorkerNativeMemory(MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY, MemoryTableName.NATIVE_HOOK),
   fileSystem: new ProcedureLogicWorkerFileSystem(),
   CpuState: new ProcedureLogicWorkerCpuState(),
   spt: new ProcedureLogicWorkerSPT(),
   scheduling: new ProcedureLogicWorkerSchedulingAnalysis(),
   jsCpuProfile: new ProcedureLogicWorkerJsCpuProfiler(),
-  'gpu-memory': new ProcedureLogicWorkerGpuMemory(),
-  'other-source': new ProcedureLogicWorkerOtherSource(),
+  gpuMemory: new ProcedureLogicWorkerNativeMemory(MemoryTraceRowType.ROW_TYPE_GPU_MEMORY, MemoryTableName.NATIVE_HOOK),
+  otherSource: new ProcedureLogicWorkerNativeMemory(MemoryTraceRowType.ROW_TYPE_OTHER_SOURCE, MemoryTableName.NATIVE_HOOK),
 };
 
 function match(req: { id: string; type: string; params: { dataDict: Map<number, string> } }): void {
