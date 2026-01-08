@@ -13,10 +13,12 @@
 import { QueryEnum, TraficEnum } from './utils/QueryEnum';
 import { threadPool } from '../SqlLite';
 import { TraceRow } from '../../component/trace/base/TraceRow';
+import { MemoryTraceRowType } from '../../bean/MemoryEnum';
 
 export function nativeMemoryChartDataSender( //@ts-ignore
   row: TraceRow<unknown>,
   setting: {
+    memoryType: string;
     eventType: number;
     ipid: number;
     model: string;
@@ -31,6 +33,7 @@ export function nativeMemoryChartDataSender( //@ts-ignore
         endNS: TraceRow.range?.endNS || 0,
         totalNS: (TraceRow.range?.endNS || 0) - (TraceRow.range?.startNS || 0),
         frame: row.frame,
+        memoryType: setting.memoryType,
         eventType: setting.eventType,
         drawType: setting.drawType,
         model: setting.model,
@@ -44,15 +47,16 @@ export function nativeMemoryChartDataSender( //@ts-ignore
   });
 }
 
-export function nativeMemoryChartDataCacheSender(processes: Array<number>, model: string): Promise<unknown> {
+export function nativeMemoryChartDataCacheSender(processes: Array<number>, model: string, memoryType: MemoryTraceRowType): Promise<unknown> {
   return new Promise((resolve, reject) => {
     threadPool.submitProto(
-      model === 'native_hook' ? QueryEnum.NativeMemoryChartCacheNormal : QueryEnum.NativeMemoryChartCacheStatistic,
+      model.includes('statistic') ? QueryEnum.NativeMemoryChartCacheStatistic: QueryEnum.NativeMemoryChartCacheNormal,
       {
         totalNS: window.totalNS,
         recordStartNS: window.recordStartNS,
         recordEndNS: window.recordEndNS,
         model: model,
+        memoryType: memoryType,
         processes: processes,
         trafic: TraficEnum.SharedArrayBuffer,
         isCache: true,

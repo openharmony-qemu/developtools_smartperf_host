@@ -162,6 +162,7 @@ import { TabPaneGMemory } from '../sheet/gpu-memory/TabPaneGMemory';
 import { TabPaneGMSampleList } from '../sheet/gpu-memory/TabPaneGMSampleList';
 import { TabPaneOSAnalysis } from '../sheet/otherSource/TabPaneOSAnalysis';
 import { TabpaneOSCalltree } from '../sheet/otherSource/TabpaneOSCalltree';
+import { TabPaneOSEvents } from '../sheet/otherSource/TabPaneOSEvents';
 import { TabPaneFreqByCpu } from '../sheet/cpu/TanpaneFreqByCpu';
 import { TabPaneSchedTaskByCpu } from '../sheet/cpu/TabPaneSchedTaskByCpu';
 import { TabPaneSchedTaskChild } from '../sheet/cpu/TabPaneSchedTaskChild';
@@ -433,6 +434,11 @@ export let tabConfig: {
     title: 'Othersource Calltree',
     type: TabpaneOSCalltree,
     require: (param: SelectionParam) => param.otherSource.length > 0 || param.otherSourceStatistic.length > 0,
+  },
+  'box-other-source-events':{
+     title: 'Othersource Events',
+    type: TabPaneOSEvents,
+    require: (param: SelectionParam) => param.otherSource.length > 0,
   },
   'box-live-processes-child': {
     title: 'Live Processes',
