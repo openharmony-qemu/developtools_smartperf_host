@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-export const TabPaneNMemoryHtml = `
+export const tabPaneNMemoryHtml = `
         <style>
         .nm-memory-loading{
             bottom: 0;

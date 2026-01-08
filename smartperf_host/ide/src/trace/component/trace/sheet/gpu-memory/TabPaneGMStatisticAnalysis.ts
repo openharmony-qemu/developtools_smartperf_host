@@ -18,6 +18,7 @@ import { LitCheckBox } from '../../../../../base-ui/checkbox/LitCheckBox';
 import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
+import { MemoryBasicType, MemoryStatisticType, MemoryType } from '../../../../bean/MemoryEnum';
 import { FilterByAnalysis } from '../../../../bean/NativeHook';
 import { procedurePool } from '../../../../database/Procedure';
 import { InitAnalysis } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon';
@@ -28,7 +29,7 @@ import { TabPaneFilter } from '../TabPaneFilter';
 import { TabPaneGMStatisticAnalysisHtml } from './TabPaneGMStatisticAnalysis.html';
 import { TabpaneGMCalltree } from './TabpaneGMCalltree';
 
-const TYPE__VK_ALLOC = 0;
+const TYPE_VK_ALLOC = 0;
 const TYPE_GLES_ALLOC = 1;
 const TYPE_CL_ALLOC = 2;
 const TYPE_VK_FREE = 3;
@@ -231,9 +232,13 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
       );
       treeTab!.analysisTabWidth = this.clientWidth; // @ts-ignore
       const data = evt.detail.data as AnalysisObj;
+      let callTreeType = data.typeName;
+      if (data.typeName === MemoryType.GPU_VK_SIMPLE_NAME || data.typeName === MemoryType.GPU_GLES_SIMPLE_NAME || data.typeName === MemoryType.GPU_CL_SIMPLE_NAME) {
+        callTreeType = `Other ${data.typeName}`;
+      } 
       treeTab!.filterData = new FilterByAnalysis(
         data.typeId,
-        data.typeName,
+        callTreeType,
         data.tName,
         data.tid,
         data.libId,
@@ -523,29 +528,30 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
     let typeFilter = [];
     if (this.isStatistic) {
       for (let type of val.gpuMemoryStatistic) {
-        if (type === 'Graphic Memory') {
-          typeFilter = [0, 1, 2, 3];
+        if (type === MemoryBasicType.GPU_MEMORY[0]) {
+          typeFilter = [MemoryStatisticType.GPU_VK, MemoryStatisticType.GPU_GLES, MemoryStatisticType.GPU_CL];
           break;
-        } else if (type === 'VulKan') {
-          typeFilter.push(1);
-        } else if (type === 'OpenGLES') {
-          typeFilter.push(2);
-        } else {
-          typeFilter.push(3);
+        } else if (type === MemoryBasicType.GPU_MEMORY[1]) {
+          typeFilter.push(MemoryStatisticType.GPU_VK);
+        } else if (type === MemoryBasicType.GPU_MEMORY[2]) {
+          typeFilter.push(MemoryStatisticType.GPU_GLES);
+        } else if (type === MemoryBasicType.GPU_MEMORY[3]) {
+          typeFilter.push(MemoryStatisticType.GPU_CL);
         }
       }
       this.getDataFromWorker(val, typeFilter);
     } else {
       for (let type of val.gpuMemory) {
-        if (type === 'Graphic Memory') {
-          typeFilter = [0, 1, 2, 3];
+        if (type === MemoryBasicType.GPU_MEMORY[0]) {
+          typeFilter = [`${MemoryType.GPU_VK_Alloc_NAME}`,`${MemoryType.GPU_GLES_Alloc_NAME}`,`${MemoryType.GPU_CL_Alloc_NAME}`, 
+            `${MemoryType.GPU_VK_Free_NAME}`, `${MemoryType.GPU_GLES_Free_NAME}`, `${MemoryType.GPU_CL_Free_NAME}`];
           break;
-        } else if (type === 'VulKan') {
-          typeFilter.push(1);
-        } else if (type === 'OpenGLES') {
-          typeFilter.push(2);
-        } else {
-          typeFilter.push(3);
+        } else if (type === MemoryBasicType.GPU_MEMORY[1]) {
+          typeFilter.push(`${MemoryType.GPU_VK_Alloc_NAME}`,`${MemoryType.GPU_VK_Free_NAME}`);
+        } else if (type === MemoryBasicType.GPU_MEMORY[2]) {
+          typeFilter.push(`${MemoryType.GPU_GLES_Alloc_NAME}`,`${MemoryType.GPU_GLES_Free_NAME}`);
+        } else if (type === MemoryBasicType.GPU_MEMORY[3]) {
+          typeFilter.push(`${MemoryType.GPU_CL_Alloc_NAME}`, `${MemoryType.GPU_CL_Free_NAME}`);
         }
       }
       this.getDataFromWorker(val, typeFilter);
@@ -674,9 +680,9 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
         });
       }
     } else {
-      if (this.typeMap.has(TYPE__VK_ALLOC)) {
+      if (this.typeMap.has(TYPE_VK_ALLOC)) {
         let subTypeMap = new Map<string, Array<number | string>>();
-        for (let item of this.typeMap.get(TYPE__VK_ALLOC)!) {
+        for (let item of this.typeMap.get(TYPE_VK_ALLOC)!) {
           // @ts-ignore
           if (item.subType) {
             // @ts-ignore
@@ -700,7 +706,7 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
           }
         }
         subTypeMap.forEach((arr: Array<number | string>, subType: string) => {
-          let mapType = this.setTypeMap(arr, TYPE__VK_ALLOC, subType);
+          let mapType = this.setTypeMap(arr, TYPE_VK_ALLOC, subType);
           if (mapType) {
             this.calPercent(mapType);
             this.eventTypeData.push(mapType);
@@ -1043,7 +1049,8 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
       return;
     }
     for (let data of this.processData) {
-      if (this.skipItemByType(typeName, types, data, libId)) {
+      // @ts-ignore
+      if (!(data.subType || data.typeName).startsWith(typeName) || data.libId !== libId) {
         continue;
       } // @ts-ignore
       if (tid !== undefined && tid !== data.tid) {
@@ -1080,22 +1087,6 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
     this.functionPieChart();
   }
 
-  private skipItemByType(typeName: string, types: Array<string | number>, data: unknown, libId: number): boolean {
-    // @ts-ignore
-    if (data.subType) {
-       // @ts-ignore
-       if (!types.includes(data.subType) || data.libId !== libId) {
-        return true;
-      }
-    } else {
-       // @ts-ignore
-       if (!types.includes(data.type) || data.libId !== libId) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   private gpuProcessLevelClickEvent(it: unknown): void {
     if (this.hideThreadCheckBox?.checked || this.isStatistic) {
       this.reset(this.soUsageTbl!, true);
@@ -1125,7 +1116,8 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
       return;
     }
     for (let itemData of this.processData) {
-      if (this.shouldSkipItem(typeName, types, itemData)) {
+      // @ts-ignore
+      if (!(itemData.subType || itemData.typeName).startsWith(typeName)) {
         continue;
       } // @ts-ignore
       if (tid !== undefined && tid !== itemData.tid) {
@@ -1164,15 +1156,14 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
     this.libraryPieChart(item);
   }
 
-  private getGMThreadSize(item: unknown): void {
+  private getGMThreadSize(selectItem: unknown): void {
     this.progressEL!.loading = true;
     let threadMap = new Map<number, Array<number | string>>(); // @ts-ignore
-    let types = this.getTypes(item); // @ts-ignore
-    let typeName = item.typeName;
-    this.resetCurrentLevelData(item);
+    let typeName = selectItem.typeName;
+    this.resetCurrentLevelData(selectItem);
     for (let itemData of this.processData) {
       // @ts-ignore
-      if (this.shouldSkipItem(typeName, types, itemData)) {
+      if (!(itemData.subType || itemData.typeName).startsWith(typeName)) {
         continue;
       } // @ts-ignore
       if (threadMap.has(itemData.tid)) {
@@ -1189,8 +1180,8 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
       const sizeObj = this.calSizeObj(dbData);
       let analysis = new AnalysisObj(sizeObj.applySize, sizeObj.applyCount, sizeObj.releaseSize, sizeObj.releaseCount);
       this.calPercent(analysis); // @ts-ignore
-      analysis.typeId = item.typeId; // @ts-ignore
-      analysis.typeName = item.typeName;
+      analysis.typeId = selectItem.typeId; // @ts-ignore
+      analysis.typeName = selectItem.typeName;
       analysis.tid = tid; // @ts-ignore
       if (dbData[0].threadName && dbData[0].threadName.length > 0) {
         // @ts-ignore
@@ -1231,7 +1222,7 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
     types.push(parent.typeName!);
     if (!this.isStatistic) {
       let releaseType;
-      if (parent.typeId === TYPE_VUL || parent.typeId === TYPE__VK_ALLOC) {
+      if (parent.typeId === TYPE_VUL || parent.typeId === TYPE_VK_ALLOC) {
         releaseType = TYPE_VK_FREE;
       } else if (parent.typeId === TYPE_OG || parent.typeId === TYPE_GLES_ALLOC) {
         releaseType = TYPE_GLES_FREE;
@@ -1264,17 +1255,6 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
       }
     }
     return sizeObj;
-  }
-
-  private shouldSkipItem(typeName: string, types: Array<number | string>, itemData: unknown): boolean {
-    // @ts-ignore
-    if (itemData.subType) {
-      // @ts-ignore
-      return !types.includes(itemData.subType);
-    } else {
-      // @ts-ignore
-      return !types.includes(itemData.type);
-    }
   }
 
   private showAssignLevel(
@@ -1379,7 +1359,7 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
       if (typeof item === 'object' && item !== null && 'size' in item && 'count' in item) {
         const applySample = item as ApplySample;
         if (
-          (tyeId === TYPE_VUL || tyeId === TYPE__VK_ALLOC) ||
+          (tyeId === TYPE_VUL || tyeId === TYPE_VK_ALLOC) ||
           (applySample.subType && applySample.subType === typeName) ||
           (!applySample.subType && typeName === TYPE_OG_STRING) ||
           (!applySample.subType && typeName === TYPE_OC_STRING)
@@ -1490,14 +1470,14 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
             typeMap.set(TYPE_OC, itemArray);
           }
           break;
-        case TYPE__VK_ALLOC:
+        case TYPE_VK_ALLOC:
           setSize(itemData);
-          if (typeMap.has(TYPE__VK_ALLOC)) {
-            typeMap.get(TYPE__VK_ALLOC)?.push(itemData);
+          if (typeMap.has(TYPE_VK_ALLOC)) {
+            typeMap.get(TYPE_VK_ALLOC)?.push(itemData);
           } else {
             let itemArray: Array<number | string> = [];
             itemArray.push(itemData);
-            typeMap.set(TYPE__VK_ALLOC, itemArray);
+            typeMap.set(TYPE_VK_ALLOC, itemArray);
           }
           break;
         case TYPE_GLES_ALLOC:
@@ -1527,7 +1507,7 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
 
   private getDataByWorkerQuery(args: unknown, handler: Function): void {
     this.progressEL!.loading = true;
-    procedurePool.submitWithName('logic0', 'gpu-memory-queryAnalysis', args, undefined, (results: unknown) => {
+    procedurePool.submitWithName('logic0', 'gpuMemory-queryAnalysis', args, undefined, (results: unknown) => {
       handler(results);
       this.progressEL!.loading = false;
     });
