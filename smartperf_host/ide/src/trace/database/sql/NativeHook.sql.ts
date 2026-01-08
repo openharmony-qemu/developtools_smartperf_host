@@ -14,6 +14,7 @@
  */
 import { query } from '../SqlLite';
 import { NativeHookMalloc, NativeHookProcess, NativeHookSampleQueryInfo } from '../../bean/NativeHook';
+import { MemoryType } from '../../bean/MemoryEnum';
 
 export const queryNativeHookResponseTypes = (
   leftNs: number,
@@ -28,17 +29,16 @@ export const queryNativeHookResponseTypes = (
   const type = isStatistic ? 'type' : 'event_type';
   return query(
     'queryNativeHookResponseTypes',
-    `
-          select 
-            distinct last_lib_id as lastLibId,
-            data_dict.data as value 
-          from 
-            ${table} A ,trace_range B
-            left join data_dict on A.last_lib_id = data_dict.id 
-          where
-          A.${tsKey} - B.start_ts
-          between ${leftNs} and ${rightNs} and A.${type} in (${types.join(',')})
-          and A.ipid = ${pid};
+    `select 
+      distinct last_lib_id as lastLibId,
+      data_dict.data as value 
+    from 
+      ${table} A ,trace_range B
+      left join data_dict on A.last_lib_id = data_dict.id 
+    where
+      A.${tsKey} - B.start_ts between ${leftNs} and ${rightNs}
+      and A.${type} in (${types.join(',')})
+      and A.ipid = ${pid};
       `,
     { $leftNs: leftNs, $rightNs: rightNs, $types: types, $pid: pid }
   );
@@ -50,8 +50,7 @@ export const queryNativeHookStatistics = (
 ): Promise<Array<NativeHookMalloc>> =>
   query(
     'queryNativeHookStatistics',
-    `
-    select
+    `select 
       event_type as eventType,
       sub_type_id as subTypeId,
       max(heap_size) as max,
@@ -64,7 +63,7 @@ export const queryNativeHookStatistics = (
       trace_range B
     where
       (A.start_ts - B.start_ts) between ${leftNs} and ${rightNs}
-     and (event_type = 'AllocEvent' or event_type = 'MmapEvent')
+     and event_type in (${MemoryType.APPLY_NM_EVENTS.map(e => `'${e}'`).join(', ')})
      and ipid = ${ipid}
     group by event_type;`,
     { $leftNs: leftNs, $rightNs: rightNs }
@@ -77,8 +76,7 @@ export const queryNativeHookStatisticsMalloc = (
 ): Promise<Array<NativeHookMalloc>> =>
   query(
     'queryNativeHookStatisticsMalloc',
-    `
-    select
+    `select 
       event_type as eventType,
       heap_size as heapSize,
       sum(case when ((A.start_ts - B.start_ts) between ${leftNs} and ${rightNs}) then heap_size else 0 end) as allocByte,
@@ -91,7 +89,7 @@ export const queryNativeHookStatisticsMalloc = (
     where
       (A.start_ts - B.start_ts) between ${leftNs} and ${rightNs}
     and
-      (event_type = 'AllocEvent' or event_type = 'MmapEvent')
+      event_type in (${MemoryType.APPLY_NM_EVENTS.map(e => `'${e}'`).join(', ')})
     and 
       sub_type_id is null
       and ipid = ${ipid}
@@ -110,8 +108,7 @@ export const queryNativeHookStatisticsSubType = (
 ): Promise<Array<NativeHookMalloc>> =>
   query(
     'queryNativeHookStatisticsSubType',
-    `
-    select
+    `select 
       event_type as eventType,
       sub_type_id as subTypeId,
       max(heap_size) as max,
@@ -125,7 +122,7 @@ export const queryNativeHookStatisticsSubType = (
     where
       (NH.start_ts - TR.start_ts) between ${leftNs} and ${rightNs}
     and
-      (event_type = 'MmapEvent')
+      event_type in (${MemoryType.APPLY_NM_EVENTS.map(e => `'${e}'`).join(', ')})
     and ipid = ${ipid}
     group by
       event_type,sub_type_id;
@@ -136,77 +133,63 @@ export const queryNativeHookStatisticsSubType = (
 export const queryNativeHookSubType = (
   leftNs: number,
   rightNs: number,
-  ipid: number
+  ipid: number,
+  types: Array<string | number>
 ): //@ts-ignore
   Promise<Array<unknown>> =>
   query(
     'queryNativeHookSubType',
-    `select distinct(
-  case when sub_type_id is null  then -1 else sub_type_id end
-) as subTypeId,
-(case when sub_type_id is null then 'Other MmapEvent' else DD.data end) as subType
-      from
-        native_hook NH,
-        trace_range TR
+    `select distinct
+      (case when sub_type_id is null  then -1 else sub_type_id end) as subTypeId,
+      (case when sub_type_id is null then lower(NH.event_type) else DD.data end) as subType
+    from
+      native_hook NH,trace_range TR
       left join data_dict DD on NH.sub_type_id = DD.id
-where event_type = 'MmapEvent' and
-        (NH.start_ts - TR.start_ts) between ${leftNs} and ${rightNs}
-        and ipid = ${ipid}
-        `,
+    where event_type in (${types.map(type => `'${type}'`).join(',')})
+      and (NH.start_ts - TR.start_ts) between ${leftNs} and ${rightNs}
+      and ipid = ${ipid}`,
     { $leftNs: leftNs, $rightNs: rightNs }
   );
 
 export const queryNativeHookStatisticSubType = (
   leftNs: number,
   rightNs: number,
-  ipid: number
+  ipid: number,
+  types: Array<string | number>
 ): //@ts-ignore
   Promise<Array<unknown>> =>
   query(
     'queryNativeHookStatisticSubType',
     `SELECT DISTINCT
+      IFNULL(NHS.sub_type_id, -1) AS subTypeId,
       CASE
-        WHEN type = 3 AND sub_type_id NOT NULL THEN sub_type_id
-        ELSE type
-      END AS subTypeId,
-      CASE
-        WHEN type = 2 THEN 'FILE_PAGE_MSG'
+        WHEN NHS.sub_type_id IS NULL AND NHS.type = 0 THEN 'allocevent'
+        WHEN NHS.sub_type_id IS NULL AND NHS.type = 1 THEN 'mmapevent'
+        WHEN NHS.sub_type_id IS NULL AND NHS.type = 2 THEN 'FILE_PAGE_MSG'
+        WHEN NHS.sub_type_id IS NULL AND NHS.type = 3 THEN 'MEMORY_USING_MSG'
         WHEN type = 3 AND sub_type_id NOT NULL THEN D.data
-        WHEN type = 3 THEN 'MEMORY_USING_MSG'
-        ELSE 'Other MmapEvent'
+        WHEN NHS.sub_type_id IS NOT NULL THEN D.data
       END AS subType
       FROM
         native_hook_statistic NHS
         LEFT JOIN data_dict D ON NHS.sub_type_id = D.id,
         trace_range TR
       WHERE
-        NHS.type >= 1 AND
-        (NHS.ts - TR.start_ts) between ${leftNs} and ${rightNs}
+        NHS.type in (${types.map(type => `${type}`).join(',')})
+        AND (NHS.ts - TR.start_ts) between ${leftNs} and ${rightNs}
         AND ipid = ${ipid}
       `,
     { $leftNs: leftNs, $rightNs: rightNs }
   );
 
-export const queryNativeHookStatisticsCount = (): Promise<Array<{ num: number }>> =>
-  query('queryNativeHookStatisticsCount', `select count(1) num from native_hook_statistic`, {});
+export const queryStatisticType = (tableName: string): Promise<Array<{ type: number }>> =>
+  query('queryStatisticType', `SELECT DISTINCT type from ${tableName}`, {});
 
-export const queryStatisticType = (): Promise<Array<{ num: number }>> =>
-  query('queryStatisticType', `SELECT 
-  EXISTS(SELECT 1 FROM native_hook_statistic WHERE type = 0) AS al,
-  EXISTS(SELECT 1 FROM native_hook_statistic WHERE type = 1) AS mp,
-  EXISTS(SELECT 1 FROM native_hook_statistic WHERE type = 2) AS fp,
-  EXISTS(SELECT 1 FROM native_hook_statistic WHERE type = 3) AS ms;`, {});
-
-export const queryNativeType = (): Promise<Array<{ num: number }>> =>
-  query('queryNativeType', `SELECT 
-    EXISTS(SELECT 1 FROM native_hook WHERE event_type = 'AllocEvent') AS AllocEvent,
-    EXISTS(SELECT 1 FROM native_hook WHERE event_type = 'FreeEvent') AS FreeEvent,
-    EXISTS(SELECT 1 FROM native_hook WHERE event_type = 'MmapEvent') AS MmapEvent,
-    EXISTS(SELECT 1 FROM native_hook WHERE event_type = 'MunmapEvent') AS MunmapEvent;`, {});
+export const queryNativeType = (tableName: string): Promise<Array<{ eventType: string }>> =>
+  query('queryNativeType', `SELECT DISTINCT event_type as eventType from ${tableName}`, {});
 
 export const queryNativeHookProcess = (table: string): Promise<Array<NativeHookProcess>> => {
-  let sql = `
-    select
+  let sql = `select 
       distinct ${table}.ipid,
       pid,
       name
@@ -223,14 +206,13 @@ export const queryNativeHookProcess = (table: string): Promise<Array<NativeHookP
 export const queryNativeHookSnapshotTypes = (ipid: number): Promise<Array<NativeHookSampleQueryInfo>> =>
   query(
     'queryNativeHookSnapshotTypes',
-    `
-select
+    `select 
       event_type as eventType,
       data as subType
     from
       native_hook left join data_dict on native_hook.sub_type_id = data_dict.id
     where
-      (event_type = 'AllocEvent' or event_type = 'MmapEvent')
+      event_type  in (${MemoryType.APPLY_NM_EVENTS.map(e => `'${e}'`).join(', ')})
       and ipid = ${ipid}
     group by
       event_type,data;`,
@@ -240,8 +222,7 @@ select
 export const queryAllHookData = (rightNs: number, ipid: number): Promise<Array<NativeHookSampleQueryInfo>> =>
   query(
     'queryAllHookData',
-    `
-    select
+    `select 
       callchain_id as eventId,
       event_type as eventType,
       data as subType,
@@ -253,9 +234,40 @@ export const queryAllHookData = (rightNs: number, ipid: number): Promise<Array<N
       native_hook n left join data_dict on n.sub_type_id = data_dict.id,
       trace_range t
     where
-      (event_type = 'AllocEvent' or event_type = 'MmapEvent')
+      event_type in (${MemoryType.APPLY_NM_EVENTS.map(e => `'${e}'`).join(', ')})
       and ipid = ${ipid}
     and
       n.start_ts between t.start_ts and ${rightNs} + t.start_ts`,
     { $rightNs: rightNs }
   );
+
+  export const querySubType = (
+    leftNs: number,
+    rightNs: number,
+    ipid: number,
+    tableName: string,
+    eventTypes: Array<string | number>
+  ): Promise<Array<{ subTypeId: number, subType: string, eventType: string }>> => {
+    let eventTypeFiled = 'event_type';
+    let timestampFiled = 'start_ts';
+    if (tableName.includes('statistic')) {
+      eventTypeFiled = 'type';
+      timestampFiled = 'ts';
+    }
+    return query(
+      'querySubType',
+      `select distinct
+          case when NH.sub_type_id is null then -1 else NH.sub_type_id end as subTypeId,
+          case when NH.sub_type_id is null then 'Other ' || NH.${eventTypeFiled} else DD.data end as subType,
+          NH.${eventTypeFiled} as eventType
+        from
+            ${tableName} NH,
+            trace_range TR
+            left join data_dict DD on NH.sub_type_id = DD.id
+        where NH.${eventTypeFiled} in (${eventTypes.map(e => `'${e}'`).join(', ')})
+            and (NH.${timestampFiled} - TR.start_ts) between ${leftNs} and ${rightNs}
+            and NH.ipid = ${ipid}
+            group by subType`,
+      { $leftNs: leftNs, $rightNs: rightNs }
+    );
+  }
