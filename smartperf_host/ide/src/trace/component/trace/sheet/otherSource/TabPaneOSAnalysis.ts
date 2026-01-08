@@ -19,129 +19,73 @@ import { LitCheckBox } from "../../../../../base-ui/checkbox/LitCheckBox";
 import { LitProgressBar } from "../../../../../base-ui/progress-bar/LitProgressBar";
 import { LitTable } from "../../../../../base-ui/table/lit-table";
 import { SelectionParam } from "../../../../bean/BoxSelection";
+import { MemoryTraceRowType, MemoryType } from "../../../../bean/MemoryEnum";
 import { FilterByAnalysis } from "../../../../bean/NativeHook";
 import { InitAnalysis } from "../../../../database/logic-worker/ProcedureLogicWorkerCommon";
-import { procedurePool } from "../../../../database/Procedure";
-import { SpSystemTrace } from "../../../SpSystemTrace";
-import { Utils } from "../../base/Utils";
+import { AnalysisUICallback, MemoryAnalysisDataLogic } from "../../base/MemoryAnalysisData";
 import { initSort } from "../SheetUtils";
 import { TabPaneFilter } from "../TabPaneFilter";
 import { TabPaneOSAnalysisHtml } from "./TabPaneOSAnalysisHtml";
 import { TabpaneOSCalltree } from "./TabpaneOSCalltree";
-
-const TYPE_FD = 4;
-const TYPE_THREAD = 5;
-const PIE_CHART_LIMIT = 20;
-
-const TYPE_FD_STRING = 'FD';
-const TYPE_THREAD_STRING = 'THREAD';
-
-class AnalysisObj {
-  tName?: string;
-  tid?: number;
-  typeName?: string;
-  typeId?: number;
-  libName?: string;
-  libId?: number;
-  symbolName?: string;
-  symbolId?: number;
-
-  tableName = '';
-
-  applySize: number;
-  applySizeFormat: string;
-  applyCount: number;
-  releaseSize: number;
-  releaseSizeFormat: string;
-  releaseCount: number;
-  existSize: number;
-  existSizeFormat: string;
-  existCount: number;
-
-  applySizePercent?: string;
-  applyCountPercent?: string;
-  releaseSizePercent?: string;
-  releaseCountPercent?: string;
-  existSizePercent?: string;
-  existCountPercent?: string;
-
-  constructor(applySize: number, applyCount: number, releaseSize: number, releaseCount: number) {
-    this.applySize = applySize;
-    this.applyCount = applyCount;
-    this.releaseSize = releaseSize;
-    this.releaseCount = releaseCount;
-    this.existSize = applySize - releaseSize;
-    this.existCount = applyCount - releaseCount;
-    this.applySizeFormat = Utils.getBinaryByteWithUnit(this.applySize);
-    this.releaseSizeFormat = Utils.getBinaryByteWithUnit(this.releaseSize);
-    this.existSizeFormat = Utils.getBinaryByteWithUnit(this.existSize);
-  }
-}
-
-class SizeObj {
-  applySize = 0;
-  applyCount = 0;
-  releaseSize = 0;
-  releaseCount = 0;
-}
+import { AnalysisObj } from "../../../../bean/MemoryAnalysisStruct";
 
 @element('tabpane-other-source-analysis')
-export class TabPaneOSAnalysis extends BaseElement {
+export class TabPaneOSAnalysis extends BaseElement implements AnalysisUICallback {
+
   private currentSelection: SelectionParam | undefined;
-  private typeUsageTbl: LitTable | null | undefined;
-  private threadUsageTbl: LitTable | null | undefined;
-  private soUsageTbl: LitTable | null | undefined;
-  private functionUsageTbl: LitTable | null | undefined;
-  private osPieChart: LitChartPie | null | undefined;
-  private osBack: HTMLDivElement | null | undefined;
-  private osTableArray: NodeListOf<LitTable> | undefined | null;
-  private osSortColumn: string = '';
-  private osSortType: number = 0;
-  private titleEl: HTMLDivElement | undefined | null;
-  private tabName: HTMLDivElement | null | undefined;
-  private range: HTMLLabelElement | null | undefined;
-  private isStatistic = false;
+  private typeUsageTbl: LitTable | null | undefined; // 类型页
+  private threadUsageTbl: LitTable | null | undefined; // 线程页
+  private soUsageTbl: LitTable | null | undefined; // Lib页
+  private functionUsageTbl: LitTable | null | undefined; // 函数页
+  private osPieChart: LitChartPie | null | undefined; // 饼图
+  private osBack: HTMLDivElement | null | undefined; // 返回按钮
+  private osTableArray: NodeListOf<LitTable> | undefined | null; // [类型页,线程页,Lib页.函数页]
+  private titleEl: HTMLDivElement | undefined | null; // 饼图左上角标题
+  private tabName: HTMLDivElement | null | undefined; // 饼图上方标题
+  private range: HTMLLabelElement | null | undefined; // 右上角时间范围
+  private progressEL: LitProgressBar | null | undefined; // loading条
+  private hideThreadCheckBox: LitCheckBox | undefined | null; // 隐藏线程选项
+  private filterEl: TabPaneFilter | undefined | null; // 左下Options 选项
+  private osTableBox: HTMLDivElement | undefined | null; // 父容器
+
+  private osSortColumn: string = ''; // 右侧列表页排序列
+  private osSortType: number = 0; // 列表页排序方式
+  private isStatistic = false; // 是否统计模式
   private threadName: string = '';
-  private progressEL: LitProgressBar | null | undefined;
-  private eventTypeData!: Array<AnalysisObj>;
-  private typeStatisticsData!: {};
-  private threadStatisticsData!: {};
-  private libStatisticsData!: {};
-  private functionStatisticsData!: {};
-  private currentLevel = -1;
-  private hideThreadCheckBox: LitCheckBox | undefined | null;
-  private processData!: Array<unknown>;
-  private threadData!: Array<AnalysisObj>;
-  private soData!: Array<AnalysisObj>;
-  private functionData!: Array<AnalysisObj>;
-  private currentLevelApplySize = 0;
-  private currentLevelReleaseSize = 0;
-  private currentLevelExistSize = 0;
-  private currentLevelApplyCount = 0;
-  private currentLevelReleaseCount = 0;
-  private currentLevelExistCount = 0;
-  private typeMap!: Map<number, Array<unknown>>;
-  private currentLevelData!: Array<unknown>;
-  private type: string = '';
-  private filterEl: TabPaneFilter | undefined | null;
-  private osTableBox: HTMLDivElement | undefined | null;
+
+  private currentLevel = -1; // 当前选中的层级，类型为0，线程为1。。。
+  private type: string = ''; // 当前层级的EventType
+
+  private typeStatisticsData!: AnalysisObj; // 点击的类型统计数据
+  private threadStatisticsData!: AnalysisObj; // 点击的线程统计数据
+  private libStatisticsData!: AnalysisObj; // 点击的Lib统计数据
+  private functionStatisticsData!: AnalysisObj; // 点击的函数统计数据
+
+  private currentLevelData!: Array<AnalysisObj>; // 当前层级所有数据
+  private dataLogic?: MemoryAnalysisDataLogic;
+
 
   set data(analysisParam: SelectionParam) {
+    this.isStatistic = analysisParam.otherSource.length === 0;
+    if (!this.dataLogic) {
+      this.dataLogic = new MemoryAnalysisDataLogic();
+    }
+    this.dataLogic.setUiInterface(this);
+    this.dataLogic.init(MemoryTraceRowType.ROW_TYPE_OTHER_SOURCE, this.isStatistic);
     if (this.currentSelection === analysisParam) {
-      if (this.eventTypeData) {
-        // @ts-ignore
-        this.eventTypeData.unshift(this.typeStatisticsData);
-        this.typeUsageTbl!.recycleDataSource = this.eventTypeData;
-        // @ts-ignore
-        this.eventTypeData.shift(this.typeStatisticsData);
+      this.hideThreadCheckBox!.checked = false;
+
+      const eventTypeData = this.dataLogic.getEventTypeData();
+      if (eventTypeData) {
+        eventTypeData.unshift(this.typeStatisticsData);
+        this.typeUsageTbl!.recycleDataSource = eventTypeData;
+        eventTypeData.shift();
       }
       return;
     };
-    this.hideThreadCheckBox!.checked = false;
-    if (analysisParam.otherSourceStatistic.length > 0) {
-      Utils.getInstance().setOherSourceCurrentSelectIPid(analysisParam.otherSourceCurrentIPid);
-      Utils.getInstance().initOtherSourceResponseTypeList(analysisParam);
-    }
+    this.dataLogic.setCurrentSelectIPid(analysisParam.otherSourceCurrentIPid);
+    this.dataLogic.initResponseTypeList(analysisParam);
+
     this.resizeTable();
     this.reset(this.typeUsageTbl!, false);
     this.currentSelection = analysisParam;
@@ -150,14 +94,13 @@ export class TabPaneOSAnalysis extends BaseElement {
     this.range!.textContent = `Selected range: ${parseFloat(
       ((analysisParam.rightNs - analysisParam.leftNs) / 1000000.0).toFixed(5)
     )}  ms`;
-    this.isStatistic = analysisParam.otherSource.length === 0;
     if (this.isStatistic) {
       this.threadName = '';
     }
-    this.getOSEventTypeSize(analysisParam);
-    this.showAssignLevel(this.typeUsageTbl!, this.functionUsageTbl!, 0, this.eventTypeData);
+    this.dataLogic.getEventTypeSize(analysisParam);
+    this.showAssignLevel(this.typeUsageTbl!, this.functionUsageTbl!, 0, this.dataLogic.getEventTypeData());
   }
-  
+
   initElements(): void {
     this.range = this.shadowRoot?.querySelector('#time-range');
     this.osPieChart = this.shadowRoot!.querySelector<LitChartPie>('#os-chart-pie');
@@ -177,8 +120,8 @@ export class TabPaneOSAnalysis extends BaseElement {
     this.hideThreadCheckBox = popover!!.querySelector<LitCheckBox>('div > #hideThread');
     this.hideThreadCheckBox?.addEventListener('change', () => {
       this.reset(this.typeUsageTbl!, false);
-      this.showAssignLevel(this.typeUsageTbl!, this.functionUsageTbl!, 0, this.eventTypeData); // @ts-ignore
-      this.getOSTypeSize(this.currentSelection, this.processData);
+      this.showAssignLevel(this.typeUsageTbl!, this.functionUsageTbl!, 0, this.dataLogic!.getEventTypeData());
+      this.dataLogic!.getTypeSize();
     });
     this.initOSTableArray();
     this.initTable();
@@ -212,11 +155,17 @@ export class TabPaneOSAnalysis extends BaseElement {
       let treeTab = this.parentElement?.parentElement?.querySelector<TabpaneOSCalltree>(
         '#box-os-calltree > tabpane-os-calltree'
       );
-      treeTab!.analysisTabWidth = this.clientWidth; // @ts-ignore
+      treeTab!.analysisTabWidth = this.clientWidth;
+      // @ts-ignore
       const data = evt.detail.data as AnalysisObj;
+      // Other情况
+      let callTreeType = data.typeName
+      if (data.typeName === MemoryType.FD_SIMPLE_NAME || data.typeName === MemoryType.THREAD_SIMPLE_NAME) {
+        callTreeType = `Other ${data.typeName}`;
+      } 
       treeTab!.filterData = new FilterByAnalysis(
         data.typeId,
-        data.typeName,
+        callTreeType,
         data.tName,
         data.tid,
         data.libId,
@@ -242,26 +191,27 @@ export class TabPaneOSAnalysis extends BaseElement {
 
   private getBack(): void {
     this.osBack!.addEventListener('click', () => {
+      const eventTypeData = this.dataLogic!.getEventTypeData()
       if (this.tabName!.textContent === 'Statistic By Thread Existing') {
-        this.showAssignLevel(this.typeUsageTbl!, this.threadUsageTbl!, 0, this.eventTypeData);
+        this.showAssignLevel(this.typeUsageTbl!, this.threadUsageTbl!, 0, eventTypeData);
         this.osBack!.style.visibility = 'hidden';
-        this.typePieChart();
+        this.typePieChart(eventTypeData);
       } else if (this.tabName!.textContent === 'Statistic By Library Existing') {
         if (this.hideThreadCheckBox?.checked || this.isStatistic) {
-          this.showAssignLevel(this.typeUsageTbl!, this.soUsageTbl!, 0, this.eventTypeData);
+          this.showAssignLevel(this.typeUsageTbl!, this.soUsageTbl!, 0, eventTypeData);
           this.osBack!.style.visibility = 'hidden';
-          this.typePieChart();
+          this.typePieChart(eventTypeData);
         } else {
-          this.showAssignLevel(this.threadUsageTbl!, this.soUsageTbl!, 1, this.threadData);
-          this.threadPieChart();
+          this.showAssignLevel(this.threadUsageTbl!, this.soUsageTbl!, 1, this.dataLogic!.getThreadData());
+          this.threadPieChart(this.dataLogic!.getThreadData());
         }
       } else if (this.tabName!.textContent === 'Statistic By Function Existing') {
-        this.showAssignLevel(this.soUsageTbl!, this.functionUsageTbl!, 2, this.soData);
-        this.libraryPieChart();
+        this.showAssignLevel(this.soUsageTbl!, this.functionUsageTbl!, 2, this.dataLogic!.getLibData());
+        this.libraryPieChart(this.dataLogic!.getLibData());
       }
     });
   }
-  
+
   initTable(): void {
     this.typeUsageTbl!.addEventListener('row-click', (evt) => {
       // @ts-ignore
@@ -338,11 +288,10 @@ export class TabPaneOSAnalysis extends BaseElement {
 
   private osThreadLevelClickEvent(it: AnalysisObj): void {
     this.reset(this.soUsageTbl!, true);
-    this.showAssignLevel(this.soUsageTbl!, this.threadUsageTbl!, 2, this.eventTypeData);
-    this.getOSLibSize(it);
+    this.showAssignLevel(this.soUsageTbl!, this.threadUsageTbl!, 2, this.dataLogic!.getEventTypeData());
+    this.dataLogic?.getLibSize(it)
     const typeName = this.type;
 
-    // @ts-ignore
     let title = typeName;
     if (!this.hideThreadCheckBox?.checked) {
       this.threadName = `${it.tableName}`;
@@ -396,55 +345,55 @@ export class TabPaneOSAnalysis extends BaseElement {
     }
   }
 
-  private sortDataByExistSize(sortType: number, sortColumnArr: Array<unknown>): unknown[] {
+  private sortDataByExistSize(sortType: number, sortColumnArr: Array<AnalysisObj>): AnalysisObj[] {
     return sortColumnArr.sort((statisticAnalysisLeftData, statisticAnalysisRightData) => {
-      return sortType === 1 // @ts-ignore
-        ? statisticAnalysisLeftData.existSize - statisticAnalysisRightData.existSize // @ts-ignore
+      return sortType === 1
+        ? statisticAnalysisLeftData.existSize - statisticAnalysisRightData.existSize
         : statisticAnalysisRightData.existSize - statisticAnalysisLeftData.existSize;
     });
   }
 
-  private sortDataByExistCount(sortType: number, sortColumnArr: Array<unknown>): unknown[] {
+  private sortDataByExistCount(sortType: number, sortColumnArr: Array<AnalysisObj>): AnalysisObj[] {
     return sortColumnArr.sort((statisticAnalysisLeftData, statisticAnalysisRightData) => {
-      return sortType === 1 // @ts-ignore
-        ? statisticAnalysisLeftData.existCount - statisticAnalysisRightData.existCount // @ts-ignore
+      return sortType === 1
+        ? statisticAnalysisLeftData.existCount - statisticAnalysisRightData.existCount
         : statisticAnalysisRightData.existCount - statisticAnalysisLeftData.existCount;
     });
   }
 
-  private sortDataByReleaseSize(sortType: number, sortColumnArr: Array<unknown>): unknown[] {
+  private sortDataByReleaseSize(sortType: number, sortColumnArr: Array<AnalysisObj>): AnalysisObj[] {
     return sortColumnArr.sort((statisticAnalysisLeftData, statisticAnalysisRightData) => {
-      return sortType === 1 // @ts-ignore
-        ? statisticAnalysisLeftData.releaseSize - statisticAnalysisRightData.releaseSize // @ts-ignore
+      return sortType === 1
+        ? statisticAnalysisLeftData.releaseSize - statisticAnalysisRightData.releaseSize
         : statisticAnalysisRightData.releaseSize - statisticAnalysisLeftData.releaseSize;
     });
   }
 
-  private sortDataByReleaseCount(sortType: number, sortColumnArr: Array<unknown>): unknown[] {
+  private sortDataByReleaseCount(sortType: number, sortColumnArr: Array<AnalysisObj>): AnalysisObj[] {
     return sortColumnArr.sort((statisticAnalysisLeftData, statisticAnalysisRightData) => {
-      return sortType === 1 // @ts-ignore
-        ? statisticAnalysisLeftData.releaseCount - statisticAnalysisRightData.releaseCount // @ts-ignore
+      return sortType === 1
+        ? statisticAnalysisLeftData.releaseCount - statisticAnalysisRightData.releaseCount
         : statisticAnalysisRightData.releaseCount - statisticAnalysisLeftData.releaseCount;
     });
   }
 
-  private sortDataByApplySize(sortType: number, sortColumnArr: Array<unknown>): unknown[] {
+  private sortDataByApplySize(sortType: number, sortColumnArr: Array<AnalysisObj>): AnalysisObj[] {
     return sortColumnArr.sort((statisticAnalysisLeftData, statisticAnalysisRightData) => {
-      return sortType === 1 // @ts-ignore
-        ? statisticAnalysisLeftData.applySize - statisticAnalysisRightData.applySize // @ts-ignore
+      return sortType === 1
+        ? statisticAnalysisLeftData.applySize - statisticAnalysisRightData.applySize
         : statisticAnalysisRightData.applySize - statisticAnalysisLeftData.applySize;
     });
   }
 
-  private sortDataByApplyCount(sortType: number, sortColumnArr: Array<unknown>): unknown[] {
+  private sortDataByApplyCount(sortType: number, sortColumnArr: Array<AnalysisObj>): AnalysisObj[] {
     return sortColumnArr.sort((statisticAnalysisLeftData, statisticAnalysisRightData) => {
-      return sortType === 1 // @ts-ignore
-        ? statisticAnalysisLeftData.applyCount - statisticAnalysisRightData.applyCount // @ts-ignore
+      return sortType === 1
+        ? statisticAnalysisLeftData.applyCount - statisticAnalysisRightData.applyCount
         : statisticAnalysisRightData.applyCount - statisticAnalysisLeftData.applyCount;
     });
   }
 
-  private updateSortColumnArr(sortColumnArr: unknown[]): unknown[] {
+  private updateSortColumnArr(sortColumnArr: AnalysisObj[]): AnalysisObj[] {
     switch (this.currentLevel) {
       case 0:
         sortColumnArr.unshift(this.typeStatisticsData);
@@ -462,7 +411,7 @@ export class TabPaneOSAnalysis extends BaseElement {
     return sortColumnArr;
   }
 
-  private getSortedColumnZeroArr(data: unknown[]): unknown[] {
+  private getSortedColumnZeroArr(data: AnalysisObj[]): AnalysisObj[] {
     let sortColumnZeroArr = [...data];
     switch (this.currentLevel) {
       case 0:
@@ -500,100 +449,36 @@ export class TabPaneOSAnalysis extends BaseElement {
     return osCurrentTable;
   }
 
-  private getOSEventTypeSize(val: SelectionParam): void {
-    this.progressEL!.loading = true;
-    let typeFilter: number[] = [];
-    if (this.isStatistic) {
-      for (let type of val.otherSourceStatistic) {
-        if (type === 'FD') {
-          typeFilter.push(1);
-        } else if (type === 'THREAD') {
-          typeFilter.push(2);
-        }
-      }
-      this.getDataFromWorker(val, typeFilter);
-    } else {
-     //非统计模式
-    }
-  }
 
-  private getDataFromWorker(val: SelectionParam, typeFilter: Array<number | string>): void {
-    this.getDataByWorkerQuery(
-      {
-        leftNs: val.leftNs,
-        rightNs: val.rightNs,
-        types: typeFilter,
-        isStatistic: this.isStatistic,
-      },
-      (results: unknown) => {
-        this.processData = JSON.parse(JSON.stringify(results));
-        this.getOSTypeSize(val, this.processData);
-      }
-    );
+  loading(isLoading: boolean): void {
+    this.progressEL!.loading = isLoading;
   }
-
-  private getOSTypeSize(val: SelectionParam, result: unknown): void {
-    this.resetCurrentLevelData();// @ts-ignore
-    this.typeMap = this.typeSizeGroup(this.processData);
-    this.currentLevelExistSize = this.currentLevelApplySize - this.currentLevelReleaseSize;
-    this.currentLevelExistCount = this.currentLevelApplyCount - this.currentLevelReleaseCount;
-    this.eventTypeData = [];
-    if (this.isStatistic) {
-      if (this.typeMap.has(TYPE_FD)) {
-        let fdType = this.setTypeMap(this.typeMap, TYPE_FD, TYPE_FD_STRING);
-        if (fdType) {
-          this.calPercent(fdType);
-          this.eventTypeData.push(fdType);
-        }
-      }
-      if (this.typeMap.has(TYPE_THREAD)) {
-        let subTypeMap = new Map<string, Array<number | string>>();
-        for (let item of this.typeMap.get(TYPE_THREAD)!) {
-          // @ts-ignore
-          if (item.subType) {
-            // @ts-ignore
-            if (subTypeMap.has(item.subType)) {
-              // @ts-ignore
-              subTypeMap.get(item.subType)?.push(item);
-            } else {
-              let dataArray: Array<number | string> = []; // @ts-ignore
-              dataArray.push(item); // @ts-ignore
-              subTypeMap.set(item.subType, dataArray);
-            }
-          } else {
-            if (subTypeMap.has(TYPE_THREAD_STRING)) {
-              // @ts-ignore
-              subTypeMap.get(TYPE_THREAD_STRING)?.push(item);
-            } else {
-              let dataArray: Array<number | string> = []; // @ts-ignore
-              dataArray.push(item);
-              subTypeMap.set(TYPE_THREAD_STRING, dataArray);
-            }
-          }
-        }
-        subTypeMap.forEach((arr: Array<number | string>, subType: string) => {
-          let mapType = this.setTypeMap(this.typeMap, TYPE_THREAD, subType);
-          if (mapType) {
-            this.calPercent(mapType);
-            this.eventTypeData.push(mapType);
-          }
-        });
-      }
-      
-    } else {
-    }
-    this.eventTypeData.sort((a, b) => b.existSize - a.existSize);
-    this.typeStatisticsData = this.totalData(this.typeStatisticsData);
-    this.progressEL!.loading = false;
+  setTypeChartData(data: Array<AnalysisObj>, statisticData: AnalysisObj): void {
     this.currentLevel = 0;
-    this.typePieChart();
+    this.typeStatisticsData = statisticData;
+    this.typePieChart(data);
   }
+  setThreadChartData(data: Array<AnalysisObj>, statisticData: AnalysisObj): void {
+    this.currentLevel = 1;
+    this.threadStatisticsData = statisticData;
+    this.threadPieChart(data);
+  }
+  setLibChartData(data: Array<AnalysisObj>, statisticData: AnalysisObj): void {
+    this.currentLevel = 2;
+    this.libStatisticsData = statisticData;
+    this.libraryPieChart(data);
 
-  private typePieChart(): void {
+  }
+  setFunctionChartData(data: Array<AnalysisObj>, statisticData: AnalysisObj): void {
+    this.currentLevel = 3;
+    this.functionStatisticsData = statisticData;
+    this.functionPieChart(data)
+  }
+  private typePieChart(typeData: Array<AnalysisObj>): void {
     this.osPieChart!.config = {
       appendPadding: 0,
-      data: this.getPieChartData(this.eventTypeData),
-      angleField: 'existSize',
+      data: this.dataLogic!.getPieChartData(typeData),
+      angleField: 'existCount',
       colorField: 'tableName',
       radius: 1,
       label: {
@@ -603,19 +488,16 @@ export class TabPaneOSAnalysis extends BaseElement {
         // @ts-ignore
         const obj = typeTipValue.obj as AnalysisObj;
         return `<div>   
-                    <div>Memory Type:${obj.tableName}</div>
-                    <div>Existing:${obj.existSizeFormat} (${obj.existSizePercent}%)</div>
-                    <div># Existing:${obj.existCount} (${obj.existCountPercent}%)</div>
-                    <div>Total Bytes:${obj.applySizeFormat} (${obj.applySizePercent}%)</div>
-                    <div># Total:${obj.applyCount} (${obj.applyCountPercent}%)</div>
-                    <div>Transient:${obj.releaseSizeFormat} (${obj.releaseSizePercent}%)</div>
-                    <div># Transient:${obj.releaseCount} (${obj.releaseCountPercent}%)</div>
+                  <div>Memory Type:${obj.tableName}</div>
+                  <div># Existing:${obj.existCount} (${obj.existCountPercent}%)</div>
+                  <div># Total:${obj.applyCount} (${obj.applyCountPercent}%)</div>
+                  <div># Transient:${obj.releaseCount} (${obj.releaseCountPercent}%)</div>
                 </div>`;
       },
       angleClick: (it): void => {
         // @ts-ignore
         if (it.tableName !== 'other') {
-          this.otherSourceProcessLevelClickEvent(it);
+          this.otherSourceProcessLevelClickEvent(it as AnalysisObj);
         }
       },
       hoverHandler: (osData): void => {
@@ -634,20 +516,18 @@ export class TabPaneOSAnalysis extends BaseElement {
 
     this.titleEl!.textContent = '';
     this.tabName!.textContent = 'Statistic By Event Type Existing';
-    // @ts-ignore
-    this.eventTypeData.unshift(this.typeStatisticsData);
-    this.typeUsageTbl!.recycleDataSource = this.eventTypeData;
-    // @ts-ignore
-    this.eventTypeData.shift(this.typeStatisticsData);
+    typeData.unshift(this.typeStatisticsData);
+    this.typeUsageTbl!.recycleDataSource = typeData;
+    typeData.shift();
     this.typeUsageTbl?.reMeauseHeight();
-    this.currentLevelData = this.eventTypeData;
+    this.currentLevelData = typeData;
   }
 
-  private threadPieChart(): void {
+  private threadPieChart(threadData: Array<AnalysisObj>): void {
     this.osPieChart!.config = {
       appendPadding: 0,
-      data: this.getPieChartData(this.threadData),
-      angleField: 'existSize',
+      data: this.dataLogic!.getPieChartData(threadData),
+      angleField: 'existCount',
       colorField: 'tableName',
       radius: 1,
       label: {
@@ -658,19 +538,15 @@ export class TabPaneOSAnalysis extends BaseElement {
         const obj = threadTipValue.obj as AnalysisObj;
         return `<div>
                     <div>Thread:${obj.tableName}</div>
-                    <div>Existing:${obj.existSizeFormat} (${obj.existSizePercent}%)</div>
                     <div># Existing:${obj.existCount} (${obj.existCountPercent}%)</div>
-                    <div>Total Bytes:${obj.applySizeFormat} (${obj.applySizePercent}%)</div>
                     <div># Total:${obj.applyCount} (${obj.applyCountPercent}%)</div>
-                    <div>Transient:${obj.releaseSizeFormat} (${obj.releaseSizePercent}%)</div>
                     <div># Transient:${obj.releaseCount} (${obj.releaseCountPercent}%)</div>
                 </div>`;
       },
-      angleClick: (it: unknown): void => {
+      angleClick: (it): void => {
         // @ts-ignore
         if (it.tid !== 'other') {
-         // @ts-ignore
-          this.osThreadLevelClickEvent(it);
+          this.osThreadLevelClickEvent(it as AnalysisObj);
         }
       },
       hoverHandler: (data): void => {
@@ -686,23 +562,20 @@ export class TabPaneOSAnalysis extends BaseElement {
         },
       ],
     };
-    const typeName = this.type;
-    this.titleEl!.textContent = typeName + '';
+    this.titleEl!.textContent = this.type + '';
     this.tabName!.textContent = 'Statistic By Thread Existing';
-    // @ts-ignore
-    this.threadData.unshift(this.threadStatisticsData);
-    this.threadUsageTbl!.recycleDataSource = this.threadData;
-    // @ts-ignore
-    this.threadData.shift(this.threadStatisticsData);
-    this.currentLevelData = this.threadData;
+    threadData.unshift(this.threadStatisticsData);
+    this.threadUsageTbl!.recycleDataSource = threadData;
+    threadData.shift();
+    this.currentLevelData = threadData;
     this.threadUsageTbl?.reMeauseHeight();
   }
 
-  private libraryPieChart(item?: unknown): void {
+  private libraryPieChart(soData: Array<AnalysisObj>): void {
     this.osPieChart!.config = {
       appendPadding: 0,
-      data: this.getPieChartData(this.soData),
-      angleField: 'existSize',
+      data: this.dataLogic!.getPieChartData(soData),
+      angleField: 'existCount',
       colorField: 'tableName',
       radius: 1,
       label: {
@@ -714,7 +587,7 @@ export class TabPaneOSAnalysis extends BaseElement {
       angleClick: (it): void => {
         // @ts-ignore
         if (it.tableName !== 'other') {
-          this.otherSourceSoLevelClickEvent(it);
+          this.otherSourceSoLevelClickEvent(it as AnalysisObj);
         }
       },
       hoverHandler: (data): void => {
@@ -730,27 +603,23 @@ export class TabPaneOSAnalysis extends BaseElement {
         },
       ],
     };
-    const typeName = this.type;
-    let title = typeName;
     if (!this.hideThreadCheckBox?.checked && this.threadName.length > 0) {
-      title += ' / ' + this.threadName;
+      this.type += ' / ' + this.threadName;
     }
-    this.titleEl!.textContent = title;
+    this.titleEl!.textContent = this.type;
     this.tabName!.textContent = 'Statistic By Library Existing';
-    // @ts-ignore
-    this.soData.unshift(this.libStatisticsData);
-    this.soUsageTbl!.recycleDataSource = this.soData;
-    // @ts-ignore
-    this.soData.shift(this.libStatisticsData);
-    this.currentLevelData = this.soData;
+    soData.unshift(this.libStatisticsData);
+    this.soUsageTbl!.recycleDataSource = soData;
+    soData.shift();
+    this.currentLevelData = soData;
     this.soUsageTbl?.reMeauseHeight();
   }
 
-  private functionPieChart(): void {
+  private functionPieChart(functionData: Array<AnalysisObj>): void {
     this.osPieChart!.config = {
       appendPadding: 0,
-      data: this.getPieChartData(this.functionData),
-      angleField: 'existSize',
+      data: this.dataLogic!.getPieChartData(functionData),
+      angleField: 'existCount',
       colorField: 'tableName',
       radius: 1,
       label: {
@@ -761,16 +630,10 @@ export class TabPaneOSAnalysis extends BaseElement {
         const obj = functionTipValue.obj as AnalysisObj;
         return `<div>
                     <div>Function:${obj.symbolName}</div>
-                    <div>Existing:${obj.existSizeFormat} 
-                    (${obj.existSizePercent}%)</div>
                     <div># Existing:${obj.existCount} 
                     (${obj.existCountPercent}%)</div>
-                    <div>Total Bytes:${obj.applySizeFormat} 
-                    (${obj.applySizePercent}%)</div>
                     <div># Total:${obj.applyCount} 
                     (${obj.applyCountPercent}%)</div>
-                    <div>Transient:${obj.releaseSizeFormat} 
-                    (${obj.releaseSizePercent}%)</div>
                     <div># Transient:${obj.releaseCount} 
                     (${obj.releaseCountPercent}%)</div>
                 </div>`;
@@ -788,125 +651,29 @@ export class TabPaneOSAnalysis extends BaseElement {
         },
       ],
     };
-    // @ts-ignore
-    this.functionData.unshift(this.functionStatisticsData);
-    this.functionUsageTbl!.recycleDataSource = this.functionData;
-    // @ts-ignore
-    this.functionData.shift(this.functionStatisticsData);
-    this.currentLevelData = this.functionData;
+    this.titleEl!.textContent = this.type;
+    this.tabName!.textContent = 'Statistic By Function Existing';
+    functionData.unshift(this.functionStatisticsData);
+    this.functionUsageTbl!.recycleDataSource = functionData;
+    functionData.shift();
+    this.currentLevelData = functionData;
     this.functionUsageTbl?.reMeauseHeight();
   }
 
-  private otherSourceSoLevelClickEvent(it: unknown): void {
+  private otherSourceSoLevelClickEvent(it: AnalysisObj): void {
     this.reset(this.functionUsageTbl!, true);
-    this.showAssignLevel(this.functionUsageTbl!, this.soUsageTbl!, 3, this.eventTypeData);
-    this.getOSFunctionSize(it);
+    this.showAssignLevel(this.functionUsageTbl!, this.soUsageTbl!, 3, this.dataLogic!.getEventTypeData());
+    this.dataLogic?.getFunctionSize(it)
     const typeName = this.type;
-    // @ts-ignore
     let title = typeName || '';
     if (!this.hideThreadCheckBox?.checked && this.threadName.length > 0) {
       title += ` / ${this.threadName}`;
-    } // @ts-ignore
-    if (it.libName.length > 0) {
-      // @ts-ignore
+    }
+    if (it.libName && it.libName.length > 0) {
       title += ` / ${it.libName}`;
     }
     this.titleEl!.textContent = title;
     this.osPieChart?.hideTip();
-  }
-
-  private getOSFunctionSize(item: unknown): void {
-    this.progressEL!.loading = true;
-    this.shadowRoot!.querySelector<HTMLDivElement>('.os-subheading')!.textContent = 'Statistic By Function Existing';
-    // @ts-ignore
-    let typeId = item.typeId; // @ts-ignore
-    let typeName = item.typeName; // @ts-ignore
-    let tid = item.tid; // @ts-ignore
-    let libId = item.libId; // @ts-ignore
-    let symbolMap = new Map<number, Array<number | string>>();
-    this.resetCurrentLevelData(item); // @ts-ignore
-    let types = this.getTypes(item);
-    if (!this.processData) {
-      return;
-    }
-    for (let data of this.processData) {
-      if (this.skipItemByType(typeName, types, data, libId)) {
-        continue;
-      } // @ts-ignore
-      if (tid !== undefined && tid !== data.tid) {
-        continue;
-      } // @ts-ignore
-      if (symbolMap.has(data.symbolId)) {
-        // @ts-ignore
-        symbolMap.get(data.symbolId)?.push(data);
-      } else {
-        let dataArray: Array<number | string> = []; // @ts-ignore
-        dataArray.push(data); // @ts-ignore
-        symbolMap.set(data.symbolId, dataArray);
-      }
-    }
-    this.functionData = [];
-    symbolMap.forEach((symbolItems, symbolId) => {
-      let symbolPath = SpSystemTrace.DATA_DICT.get(symbolId)?.split('/');
-      let symbolName = symbolPath ? symbolPath[symbolPath.length - 1] : 'null';
-      const sizeObj = this.calSizeObj(symbolItems);
-      let analysis = new AnalysisObj(sizeObj.applySize, sizeObj.applyCount, sizeObj.releaseSize, sizeObj.releaseCount);
-      this.calPercent(analysis);
-      analysis.typeId = typeId;
-      analysis.typeName = typeName;
-      analysis.tid = tid;
-      analysis.tName = 'Thread ' + tid;
-      analysis.libId = libId; // @ts-ignore
-      analysis.libName = item.libName;
-      analysis.symbolId = symbolId;
-      analysis.symbolName = symbolName;
-      analysis.tableName = analysis.symbolName;
-      this.functionData.push(analysis);
-    });
-    this.baseSort(this.functionData);
-    this.functionPieChart();
-  }
-
-  private skipItemByType(typeName: string, types: Array<string | number>, data: unknown, libId: number): boolean {
-    if (typeName === TYPE_FD_STRING) {
-      // @ts-ignore
-      if (!types.includes(data.type) || data.libId !== libId) {
-        return true;
-      }
-    } else if (typeName === TYPE_THREAD_STRING) {
-      if (this.isStatistic) {
-        // @ts-ignore
-        if (data.subType) {
-          // @ts-ignore
-          if (!types.includes(data.subType) || !types.includes(data.type) || data.libId !== libId) {
-            return true;
-          }
-        } else {
-          return true;
-        }
-      } else {
-        // @ts-ignore
-        if (!data.subType) {
-          // @ts-ignore
-          if (!types.includes(data.type) || data.libId !== libId) {
-            return true;
-          }
-        } else {
-          return true;
-        }
-      }
-    } else {
-      // @ts-ignore
-      if (data.subType) {
-        // @ts-ignore
-        if (!types.includes(data.subType) || !types.includes(data.type) || data.libId !== libId) {
-          return true;
-        }
-      } else {
-        return true;
-      }
-    }
-    return false;
   }
 
   private getLibraryTipValue(libraryTipValue: unknown): string {
@@ -914,218 +681,37 @@ export class TabPaneOSAnalysis extends BaseElement {
     const obj = libraryTipValue.obj as AnalysisObj;
     return `<div>
                     <div>Library:${obj.libName}</div>
-                    <div>Existing:${obj.existSizeFormat} 
-                    (${obj.existSizePercent}%)</div>
                     <div># Existing:${obj.existCount} 
                     (${obj.existCountPercent}%)</div>
-                    <div>Total Bytes:${obj.applySizeFormat} 
-                    (${obj.applySizePercent}%)</div>
                     <div># Total:${obj.applyCount} 
                     (${obj.applyCountPercent}%)</div>
-                    <div>Transient:${obj.releaseSizeFormat} 
-                    (${obj.releaseSizePercent}%)</div>
                     <div># Transient:${obj.releaseCount} 
                     (${obj.releaseCountPercent}%)</div>
                 </div>`;
   }
 
-  private otherSourceProcessLevelClickEvent(it: unknown): void {
+  private otherSourceProcessLevelClickEvent(it: AnalysisObj): void {
     if (this.hideThreadCheckBox?.checked || this.isStatistic) {
       this.reset(this.soUsageTbl!, true);
-      this.showAssignLevel(this.soUsageTbl!, this.typeUsageTbl!, 1, this.eventTypeData);
-      this.getOSLibSize(it);
+      this.showAssignLevel(this.soUsageTbl!, this.typeUsageTbl!, 1, this.dataLogic!.getEventTypeData());
+      this.dataLogic?.getLibSize(it)
     } else {
       this.reset(this.threadUsageTbl!, true);
-      this.showAssignLevel(this.threadUsageTbl!, this.typeUsageTbl!, 1, this.eventTypeData);
-      this.getOSThreadSize(it);
-    } // @ts-ignore
-    this.titleEl!.textContent = it.typeName;
+      this.showAssignLevel(this.threadUsageTbl!, this.typeUsageTbl!, 1, this.dataLogic!.getEventTypeData());
+      this.dataLogic?.getThreadSize(it)
+    }
     // @ts-ignore
-    this.type = it.typeName;
+    this.titleEl!.textContent = it.typeName;
+    this.type = it.typeName!;
     this.osPieChart?.hideTip();
   }
 
-  private getOSThreadSize(item: unknown): void {
-    this.progressEL!.loading = true;
-    let threadMap = new Map<number, Array<number | string>>(); // @ts-ignore
-    let types = this.getTypes(item); // @ts-ignore
-    let typeName = item.typeName;
-    this.resetCurrentLevelData(item);
-    for (let itemData of this.processData) {
-      // @ts-ignore
-      if (this.shouldSkipItem(typeName, types, itemData)) {
-        continue;
-      } // @ts-ignore
-      if (threadMap.has(itemData.tid)) {
-        // @ts-ignore
-        threadMap.get(itemData.tid)?.push(itemData);
-      } else {
-        let itemArray: Array<number | string> = []; // @ts-ignore
-        itemArray.push(itemData); // @ts-ignore
-        threadMap.set(itemData.tid, itemArray);
-      }
-    }
-    this.threadData = [];
-    threadMap.forEach((dbData: Array<unknown>, tid: number) => {
-      const sizeObj = this.calSizeObj(dbData);
-      let analysis = new AnalysisObj(sizeObj.applySize, sizeObj.applyCount, sizeObj.releaseSize, sizeObj.releaseCount);
-      this.calPercent(analysis); // @ts-ignore
-      analysis.typeId = item.typeId; // @ts-ignore
-      analysis.typeName = item.typeName;
-      analysis.tid = tid; // @ts-ignore
-      if (dbData[0].threadName && dbData[0].threadName.length > 0) {
-        // @ts-ignore
-        analysis.tName = `${dbData[0].threadName}(${tid})`;
-      } else {
-        analysis.tName = `Thread ${tid}`;
-      }
-      analysis.tableName = analysis.tName;
-      this.threadData.push(analysis);
-    });
-    this.threadData.sort((a, b) => b.existSize - a.existSize);
-    this.threadStatisticsData = this.totalData(this.threadStatisticsData);
-    this.currentLevel = 1;
-    this.currentLevelData = this.threadData;
-    this.progressEL!.loading = false;
-    this.threadPieChart();
-  }
-
-  private getTypes(parent: AnalysisObj): Array<number | string> {
-    let types: Array<number | string> = [];
-    types.push(parent.typeId!);
-    types.push(parent.typeName!);
-    return types;
-  }
-
-  private getOSLibSize(item: unknown): void {
-    this.progressEL!.loading = true; // @ts-ignore
-    let typeId = item.typeId; // @ts-ignore
-    let typeName = item.typeName; // @ts-ignore
-    let tid = item.tid;
-    let libMap = new Map<number, Array<number | string>>();
-    this.resetCurrentLevelData(item); // @ts-ignore
-    let types = this.getTypes(item);
-    this.soData = [];
-    if (!this.processData) {
-      return;
-    }
-    for (let itemData of this.processData) {
-      if (this.shouldSkipItem(typeName, types, itemData)) {
-        continue;
-      } // @ts-ignore
-      if (tid !== undefined && tid !== itemData.tid) {
-        continue;
-      } // @ts-ignore
-      let libId = itemData.libId;
-      if (libMap.has(libId)) {
-        // @ts-ignore
-        libMap.get(libId)?.push(itemData);
-      } else {
-        let dataArray: Array<number | string> = []; // @ts-ignore
-        dataArray.push(itemData);
-        libMap.set(libId, dataArray);
-      }
-    }
-    this.soData = [];
-    libMap.forEach((libItems, libId) => {
-      let libPath = SpSystemTrace.DATA_DICT.get(libId)?.split('/');
-      let libName = '';
-      if (libPath) {
-        libName = libPath[libPath.length - 1];
-      }
-      const sizeObj = this.calSizeObj(libItems);
-      let analysis = new AnalysisObj(sizeObj.applySize, sizeObj.applyCount, sizeObj.releaseSize, sizeObj.releaseCount);
-      this.calPercent(analysis);
-      analysis.typeId = typeId;
-      analysis.typeName = typeName;
-      analysis.tid = tid;
-      analysis.tName = 'Thread ' + tid;
-      analysis.libId = libId;
-      analysis.libName = libName;
-      analysis.tableName = analysis.libName;
-      this.soData.push(analysis);
-    });
-    this.baseSort(this.soData);
-    this.libraryPieChart(item);
-  }
-
-  private baseSort(data: Array<AnalysisObj>): void {
-    if (data === this.functionData) {
-      this.functionData.sort((a, b) => b.existSize - a.existSize);
-      // @ts-ignore
-      this.functionStatisticsData = this.totalData(this.functionStatisticsData);
-      this.currentLevel = 3;
-      this.progressEL!.loading = false;
-    }
-    if (data === this.soData) {
-      this.soData.sort((a, b) => b.existSize - a.existSize);
-      this.libStatisticsData = this.totalData(this.libStatisticsData);
-      this.currentLevel = 2;
-      this.progressEL!.loading = false;
-    }
-  }
-
-  private calSizeObj(dbData: Array<unknown>): SizeObj {
-    let sizeObj = new SizeObj();
-    for (let item of dbData) {
-      if (this.isStatistic) {
-        // @ts-ignore
-        sizeObj.applyCount += item.count; // @ts-ignore
-        sizeObj.applySize += item.size; // @ts-ignore
-        sizeObj.releaseCount += item.releaseCount; // @ts-ignore
-        sizeObj.releaseSize += item.releaseSize;
-      } else {
-        // @ts-ignore
-        sizeObj.applyCount += item.count; // @ts-ignore
-        sizeObj.applySize += item.size; // @ts-ignore
-        if (item.isRelease) {
-          // @ts-ignore
-          sizeObj.releaseCount += item.count; // @ts-ignore
-          sizeObj.releaseSize += item.size;
-        }
-      }
-    }
-    return sizeObj;
-  }
-
-  private shouldSkipItem(typeName: string, types: Array<number | string>, itemData: unknown): boolean {//需要做修改
-    if (typeName === TYPE_FD_STRING) {
-      // @ts-ignore
-      return !types.includes(itemData.type);
-    } else if (typeName === TYPE_THREAD_STRING) {
-      if (this.isStatistic) {
-        // @ts-ignore
-        if (itemData.subType) {
-          // @ts-ignore
-          return !types.includes(itemData.subType) || !types.includes(itemData.type);
-        } else {
-          return true;
-        }
-      } else {
-        // @ts-ignore
-        if (!itemData.subType) {
-          // @ts-ignore
-          return !types.includes(itemData.type);
-        } else {
-          return true;
-        }
-      }
-    } else {
-      // @ts-ignore
-      if (itemData.subType) {
-        // @ts-ignore
-        return !types.includes(itemData.subType) || !types.includes(itemData.type);
-      } else {
-        return true;
-      }
-    }
-  }
 
   private showAssignLevel(
     showOSTable: LitTable,
     hideOSTable: LitTable,
     currentLevel: number,
-    currentLevelData: Array<unknown>
+    currentLevelData: Array<AnalysisObj>
   ): void {
     showOSTable!.style.display = 'grid';
     hideOSTable!.style.display = 'none';
@@ -1133,205 +719,6 @@ export class TabPaneOSAnalysis extends BaseElement {
     showOSTable?.removeAttribute('hideDownload');
     this.currentLevel = currentLevel;
     this.currentLevelData = currentLevelData;
-  }
-
-  private getPieChartData(res: unknown[]): unknown[] {
-    if (res.length > PIE_CHART_LIMIT) {
-      let pieChartArr: string[] = [];
-      let other: unknown = {
-        tableName: 'other',
-        tName: 'other',
-        libName: 'other',
-        symbolName: 'other',
-        existSizePercent: 0,
-        existSize: 0,
-        existSizeFormat: '',
-        existCount: 0,
-        existCountPercent: 0,
-        applySizeFormat: '',
-        applySize: 0,
-        applySizePercent: 0,
-        applyCount: 0,
-        applyCountPercent: 0,
-        releaseSizeFormat: '',
-        releaseSize: 0,
-        releaseSizePercent: 0,
-        releaseCount: 0,
-        releaseCountPercent: 0,
-      };
-      for (let i = 0; i < res.length; i++) {
-        if (i < PIE_CHART_LIMIT - 1) {
-          // @ts-ignore
-          pieChartArr.push(res[i]);
-        } else {
-          // @ts-ignore
-          other.existCount += res[i].existCount; // @ts-ignore
-          other.existSize += res[i].existSize; // @ts-ignore
-          other.applySize += res[i].applySize; // @ts-ignore
-          other.applyCount += res[i].applyCount; // @ts-ignore
-          other.releaseSize += res[i].releaseSize; // @ts-ignore
-          other.releaseCount += res[i].releaseCount; // @ts-ignore
-          other.existSizeFormat = Utils.getBinaryByteWithUnit(other.existSize); // @ts-ignore
-          other.applySizeFormat = Utils.getBinaryByteWithUnit(other.applySize); // @ts-ignore
-          other.releaseSizeFormat = Utils.getBinaryByteWithUnit(other.releaseSize); // @ts-ignore
-          other.existSizePercent = this.currentLevelExistSize === 0 ? 0 : ((other.existSize / this.currentLevelExistSize) * 100).toFixed(2); // @ts-ignore
-          other.existCountPercent = this.currentLevelExistCount === 0 ? 0 : ((other.existCount / this.currentLevelExistCount) * 100).toFixed(2); // @ts-ignore
-          other.applySizePercent = this.currentLevelApplySize === 0 ? 0 : ((other.applySize / this.currentLevelApplySize) * 100).toFixed(2); // @ts-ignore
-          other.applyCountPercent = this.currentLevelApplyCount === 0 ? 0 : ((other.applyCount / this.currentLevelApplyCount) * 100).toFixed(2);
-          // @ts-ignore
-          other.releaseSizePercent = this.currentLevelReleaseSize === 0 ? 0 :
-            // @ts-ignore
-            ((other.releaseSize / this.currentLevelReleaseSize) * 100).toFixed(2); // @ts-ignore
-          other.releaseCountPercent = this.currentLevelReleaseCount === 0 ? 0 : ((other.releaseCount / this.currentLevelReleaseCount) * 100).toFixed(2);
-        }
-      } // @ts-ignore
-      pieChartArr.push(other);
-      return pieChartArr;
-    }
-    return res;
-  }
-
-private totalData(total: {}): {} {
-  total = {
-    existSizeFormat: Utils.getBinaryByteWithUnit(this.currentLevelExistSize),
-    existSizePercent: this.currentLevelExistSize === 0 ? 0 : ((this.currentLevelExistSize / this.currentLevelExistSize) * 100).toFixed(2),
-    existCount: this.currentLevelExistCount,
-    existCountPercent: this.currentLevelExistCount === 0 ? 0 : ((this.currentLevelExistCount / this.currentLevelExistCount) * 100).toFixed(2),
-    releaseSizeFormat: Utils.getBinaryByteWithUnit(this.currentLevelReleaseSize),
-    releaseSizePercent: this.currentLevelReleaseSize === 0 ? 0 : ((this.currentLevelReleaseSize / this.currentLevelReleaseSize) * 100).toFixed(2),
-    releaseCount: this.currentLevelReleaseCount,
-    releaseCountPercent: this.currentLevelReleaseCount === 0 ? 0 : ((this.currentLevelReleaseCount / this.currentLevelReleaseCount) * 100).toFixed(2),
-    applySizeFormat: Utils.getBinaryByteWithUnit(this.currentLevelApplySize),
-    applySizePercent: this.currentLevelApplySize === 0 ? 0 : ((this.currentLevelApplySize / this.currentLevelApplySize) * 100).toFixed(2),
-    applyCount: this.currentLevelApplyCount,
-    applyCountPercent: this.currentLevelApplyCount === 0 ? 0 : ((this.currentLevelApplyCount / this.currentLevelApplyCount) * 100).toFixed(2),
-    existSize: 0,
-    tableName: '',
-    tName: '',
-    libName: '',
-    symbolName: '',
-  };
-  return total;
-}
-
-private calPercent(item: AnalysisObj): void {
-  item.applySizePercent = this.currentLevelApplySize === 0 ? '0' : ((item.applySize / this.currentLevelApplySize) * 100).toFixed(2);
-  item.applyCountPercent = this.currentLevelApplyCount === 0 ? '0' : ((item.applyCount / this.currentLevelApplyCount) * 100).toFixed(2);
-  item.releaseSizePercent = this.currentLevelReleaseSize === 0 ? '0' : ((item.releaseSize / this.currentLevelReleaseSize) * 100).toFixed(2);
-  item.releaseCountPercent = this.currentLevelReleaseCount === 0 ? '0' : ((item.releaseCount / this.currentLevelReleaseCount) * 100).toFixed(2);
-  item.existSizePercent = this.currentLevelExistSize === 0 ? '0' : ((item.existSize / this.currentLevelExistSize) * 100).toFixed(2);
-  item.existCountPercent = this.currentLevelExistCount === 0 ? '0' : ((item.existCount / this.currentLevelExistCount) * 100).toFixed(2);
-}
-
-  private setTypeMap(typeMap: Map<number, unknown>, tyeId: number, typeName: string): AnalysisObj | null {
-    let applySize = 0;
-    let releaseSize = 0;
-    let applyCount = 0;
-    let releaseCount = 0;
-    let currentType = typeMap.get(tyeId);
-    if (!currentType) {
-      return null;
-    }
-
-    // @ts-ignore
-    for (let applySample of typeMap.get(tyeId)!) {
-      if (
-        (tyeId === TYPE_FD || tyeId === TYPE_THREAD) ||
-        (applySample.subType && applySample.subType === typeName) ||
-        (!applySample.subType && typeName === TYPE_FD_STRING) ||
-        (!applySample.subType && typeName === TYPE_THREAD_STRING)
-      ) {
-        applySize += applySample.size;
-        applyCount += applySample.count;
-        if (this.isStatistic) {
-          releaseSize += applySample.releaseSize;
-          releaseCount += applySample.releaseCount;
-        } else {
-          if (applySample.isRelease) {
-            releaseSize += applySample.size;
-            releaseCount += applySample.count;
-          }
-        }
-      }
-    }
-    let typeItem = new AnalysisObj(applySize, applyCount, releaseSize, releaseCount);
-    typeItem.typeId = tyeId;
-    typeItem.typeName = typeName;
-    typeItem.tableName = typeName;
-    return typeItem;
-  }
-
-  private resetCurrentLevelData(parent?: unknown): void {
-    if (parent) {
-      // @ts-ignore
-      this.currentLevelApplySize = parent.applySize; // @ts-ignore
-      this.currentLevelApplyCount = parent.applyCount; // @ts-ignore
-      this.currentLevelExistSize = parent.existSize; // @ts-ignore
-      this.currentLevelExistCount = parent.existCount; // @ts-ignore
-      this.currentLevelReleaseSize = parent.releaseSize; // @ts-ignore
-      this.currentLevelReleaseCount = parent.releaseCount;
-    } else {
-      this.currentLevelApplySize = 0;
-      this.currentLevelApplyCount = 0;
-      this.currentLevelExistSize = 0;
-      this.currentLevelExistCount = 0;
-      this.currentLevelReleaseSize = 0;
-      this.currentLevelReleaseCount = 0;
-    }
-  }
-
-  private typeSizeGroup(dbArray: Array<number | string>): Map<number, Array<number | string>> {
-    let typeMap = new Map<number, Array<number | string>>();
-    if (!dbArray || dbArray.length === 0) {
-      return typeMap;
-    }
-
-    const setSize = (item: unknown): void => {
-      // @ts-ignore
-      this.currentLevelApplySize += item.size; // @ts-ignore
-      this.currentLevelApplyCount += item.count;
-      if (this.isStatistic) {
-        // @ts-ignore
-        this.currentLevelReleaseSize += item.releaseSize; // @ts-ignore
-        this.currentLevelReleaseCount += item.releaseCount;
-      } else {
-      }
-    };
-
-    for (let itemData of dbArray) {
-      // @ts-ignore
-      switch (itemData.type) {
-        case TYPE_FD:
-          setSize(itemData);
-          if (typeMap.has(TYPE_FD)) {
-            typeMap.get(TYPE_FD)?.push(itemData);
-          } else {
-            let itemArray: Array<number | string> = [];
-            itemArray.push(itemData);
-            typeMap.set(TYPE_FD, itemArray);
-          }
-          break;
-        case TYPE_THREAD:
-          setSize(itemData);
-          if (typeMap.has(TYPE_THREAD)) {
-            typeMap.get(TYPE_THREAD)?.push(itemData);
-          } else {
-            let itemArray: Array<number | string> = [];
-            itemArray.push(itemData);
-            typeMap.set(TYPE_THREAD, itemArray);
-          }
-          break;
-      }
-    }
-    return typeMap;
-  }
-
-  private getDataByWorkerQuery(args: unknown, handler: Function): void {
-    this.progressEL!.loading = true;
-    procedurePool.submitWithName('logic0', 'other-source-queryAnalysis', args, undefined, (results: unknown) => {
-      handler(results);
-      this.progressEL!.loading = false;
-    });
   }
 
   resizeTable(): void {

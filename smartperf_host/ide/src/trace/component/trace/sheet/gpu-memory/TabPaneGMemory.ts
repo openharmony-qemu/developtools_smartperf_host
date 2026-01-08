@@ -18,6 +18,7 @@ import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressB
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { LitPageTable } from '../../../../../base-ui/table/LitPageTable';
 import { SelectionParam } from '../../../../bean/BoxSelection';
+import { MemoryBasicType } from '../../../../bean/MemoryEnum';
 import { NativeHookCallInfo, NativeMemory } from '../../../../bean/NativeHook';
 import { formatRealDateMs, getByteWithUnit, getTimeString } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon';
 import { procedurePool } from '../../../../database/Procedure';
@@ -34,7 +35,7 @@ export class TabPaneGMemory extends BaseElement {
     private tblData: LitTable | null | undefined;
     private currentSelection: SelectionParam | undefined;
     private eventTypes: string[] = [];
-    private defaultGpuTypes = ['Graphic Memory', 'All VulKan', 'All OpenGLES', 'All OpenCL'];
+    private defaultGpuTypes = MemoryBasicType.GPU_MEMORY;
     private memorySource: Array<unknown> = [];
     private gpuType: Array<string> = [...this.defaultGpuTypes];
     private filter: TabPaneFilter | null | undefined;
@@ -43,7 +44,7 @@ export class TabPaneGMemory extends BaseElement {
     private filterGpuType: string = '0';
     private filterResponseType: number = -1;
     private filterResponseSelect: string = '0';
-    private statsticsSelection: Array<unknown> = [];
+    private statisticsSelection: Array<unknown> = [];
     private sortColumn: string = '';
     private sortType: number = 0;
     private gmMemoryLoadingList: number[] = [];
@@ -63,18 +64,18 @@ export class TabPaneGMemory extends BaseElement {
     queryData(memoryParam: SelectionParam, resetFilter: boolean = true): void {
         this.eventTypes = [];
         if (memoryParam.gpuMemory.indexOf(this.defaultGpuTypes[0]) !== -1) {
-            this.eventTypes.push("'GPU_VK_Alloc_Event'");
-            this.eventTypes.push("'GPU_GLES_Alloc_Event'");
-            this.eventTypes.push("'GPU_CL_Alloc_Event'");
+            this.eventTypes.push("GPU_VK_Alloc_Event");
+            this.eventTypes.push("GPU_GLES_Alloc_Event");
+            this.eventTypes.push("GPU_CL_Alloc_Event");
         } else {
-            if (memoryParam.gpuMemory.indexOf(this.defaultGpuTypes[1].replace('All ', '')) !== -1) {
-                this.eventTypes.push("'GPU_VK_Alloc_Event'");
+            if (memoryParam.gpuMemory.indexOf(this.defaultGpuTypes[1]) !== -1) {
+                this.eventTypes.push("GPU_VK_Alloc_Event");
             }
-            if (memoryParam.gpuMemory.indexOf(this.defaultGpuTypes[2].replace('All ', '')) !== -1) {
-                this.eventTypes.push("'GPU_GLES_Alloc_Event'");
+            if (memoryParam.gpuMemory.indexOf(this.defaultGpuTypes[2]) !== -1) {
+                this.eventTypes.push("GPU_GLES_Alloc_Event");
             }
-            if (memoryParam.gpuMemory.indexOf(this.defaultGpuTypes[3].replace('All ', '')) !== -1) {
-                this.eventTypes.push("'GPU_CL_Alloc_Event'");
+            if (memoryParam.gpuMemory.indexOf(this.defaultGpuTypes[3]) !== -1) {
+                this.eventTypes.push("GPU_CL_Alloc_Event");
             }
         }//@ts-ignore
         TabPaneGMSampleList.serSelection(memoryParam);
@@ -90,7 +91,7 @@ export class TabPaneGMemory extends BaseElement {
             this.resetFilter();
             this.setGmMemoryLoading(true);
             this.initFilterTypes(() => {
-                this.filterSetSelectList(this.filter!, 0);
+                this.filterSetSelectList(this.filter!, this.filterGpuType ? parseInt(this.filterGpuType) : 0);
                 this.getDataByNativeMemoryWorker(memoryParam, resetFilter);
             });
         } else {
@@ -99,21 +100,23 @@ export class TabPaneGMemory extends BaseElement {
     }
 
     getDataByNativeMemoryWorker(val: SelectionParam | unknown, refresh = false): void {
+        const filterTypeName = this.typeIndexToTypeName(this.filterGpuType)
         let args = new Map<string, unknown>();
         args.set('filterAllocType', this.filterAllocationType);
-        args.set('filterEventType', this.filterGpuType);
+        args.set('filterEventType', filterTypeName);
         args.set('filterResponseType', this.filterResponseType); //@ts-ignore
         args.set('leftNs', val.leftNs); //@ts-ignore
         args.set('rightNs', val.rightNs);
         args.set('types', this.eventTypes);
         args.set('refresh', refresh);
         let selections: Array<unknown> = [];
-        if (this.statsticsSelection.length > 0) {
-            this.statsticsSelection.map((memory) => {
+        if (this.statisticsSelection.length > 0) {
+            this.statisticsSelection.map((memory) => {
                 selections.push({
                     //@ts-ignore
                     memoryTap: memory.memoryTap, //@ts-ignore
-                    max: memory.max,
+                    max: memory.max,//@ts-ignore
+                    eventType: memory.eventType
                 });
             });
         }
@@ -124,7 +127,7 @@ export class TabPaneGMemory extends BaseElement {
         if (this.memoryTbl!.recycleDs.length > 1_0000) {
             this.memoryTbl!.recycleDataSource = [];
         }
-        this.startGmMemoryWorker('gpu-memory-queryNativeHookEvent', args, (results: unknown[]) => {
+        this.startGmMemoryWorker('gpuMemory-queryNativeHookEvent', args, (results: unknown[]) => {
             this.tblData!.recycleDataSource = [];
             this.setGmMemoryLoading(false);
             if (results.length > 0) {
@@ -154,6 +157,14 @@ export class TabPaneGMemory extends BaseElement {
                 this.memoryTbl!.recycleDataSource = [];
             }
         });
+    }
+
+    private typeIndexToTypeName(typeIndex?: string | null): string {
+        if (typeIndex) {
+            return this.gpuType[parseInt(typeIndex)];
+        } else {
+            return this.defaultGpuTypes[0];
+        }
     }
 
     startGmMemoryWorker(type: string, args: unknown, handler: Function): void {
@@ -201,16 +212,17 @@ export class TabPaneGMemory extends BaseElement {
             })
         );
         gmFilterEl!.secondSelect = `${typeIndexOf}`;
+        this.filterGpuType = `${typeIndexOf}`;
         gmFilterEl!.thirdSelect = this.filterResponseSelect;
     }
 
     initFilterTypes(initCallback?: () => void): void {
         this.gpuType = [...this.defaultGpuTypes];
-        this.statsticsSelection = [];
+        this.statisticsSelection = [];
         if (this.currentSelection) {
             this.setFilterGpuTypeSelection(this.currentSelection);
         }
-        procedurePool.submitWithName('logic0', 'gpu-memory-get-responseType', {}, undefined, (res: unknown) => {
+        procedurePool.submitWithName('logic0', 'gpuMemory-get-responseType', {}, undefined, (res: unknown) => {
             this.filter!.setSelectList(
                 null,
                 this.gpuType,
@@ -263,16 +275,16 @@ export class TabPaneGMemory extends BaseElement {
         if (val.statisticsSelectData) {
             // @ts-ignore
             typeIndexOf = this.gpuType.indexOf(val.statisticsSelectData.memoryTap);
-            if (this.statsticsSelection.indexOf(val.statisticsSelectData) === -1 && typeIndexOf === -1) {
-                this.statsticsSelection.push(val.statisticsSelectData);
+            if (this.statisticsSelection.indexOf(val.statisticsSelectData) === -1 && typeIndexOf === -1) {
+                this.statisticsSelection.push(val.statisticsSelectData);
                 // @ts-ignore
                 this.gpuType.push(val.statisticsSelectData.memoryTap);
                 typeIndexOf = this.gpuType.length - 1;
             } else {
                 // @ts-ignore
-                let index = this.statsticsSelection.findIndex((mt) => mt.memoryTap === val.statisticsSelectData.memoryTap);
+                let index = this.statisticsSelection.findIndex((mt) => mt.memoryTap === val.statisticsSelectData.memoryTap);
                 if (index !== -1) {
-                    this.statsticsSelection[index] = val.statisticsSelectData;
+                    this.statisticsSelection[index] = val.statisticsSelectData;
                 }
             }
         }
@@ -411,8 +423,8 @@ export class TabPaneGMemory extends BaseElement {
                                 this.rowSelectData = filterTemp[0];
                                 let args = new Map<string, unknown>(); //@ts-ignore
                                 args.set('startTs', this.rowSelectData.startTs);
-                                args.set('actionType', 'gpu-memory-state-change');
-                                this.startGmMemoryWorker('gpu-memory-action', args, (results: unknown[]) => { });
+                                args.set('actionType', 'gpuMemory-state-change');
+                                this.startGmMemoryWorker('gpuMemory-action', args, (results: unknown[]) => { });
                                 TabPaneGMSampleList.addSampleData(this.rowSelectData, this.currentSelection!.gpuMemoryCurrentIPid);
                                 this.memoryTbl!.scrollToData(this.rowSelectData);
                             }
@@ -449,7 +461,7 @@ export class TabPaneGMemory extends BaseElement {
         let args = new Map<string, unknown>();
         args.set('eventId', gpuMemoryHook.eventId);
         args.set('actionType', 'memory-stack');
-        this.startGmMemoryWorker('gpu-memory-action', args, (results: unknown[]) => {
+        this.startGmMemoryWorker('gpuMemory-action', args, (results: unknown[]) => {
             let thread = new NativeHookCallInfo();
             thread.threadId = gpuMemoryHook.threadId;
             thread.threadName = Utils.getInstance().getThreadMap().get(thread.threadId) || 'Thread';

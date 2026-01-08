@@ -24,6 +24,7 @@ import { SpGpuMemoryChart } from '../../../chart/SpGpuMemoryChart';
 import { formatRealDateMs, getTimeString } from '../../../../database/logic-worker/ProcedureLogicWorkerCommon';
 import { FilterData, TabPaneFilter } from '../TabPaneFilter';
 import { procedurePool } from '../../../../database/Procedure';
+import { MemoryBasicType } from '../../../../bean/MemoryEnum';
 
 @element('tabpane-gpu-sample')
 export class TabPaneGMSampleList extends BaseElement {
@@ -32,7 +33,7 @@ export class TabPaneGMSampleList extends BaseElement {
     static tblData: LitTable | null | undefined;
     static sampleTbl: LitTable | null | undefined;
     static types: Array<string> = [];
-    static gpuType: Array<string> = ['Graphic Memory', 'VulKan', 'OpenGLES', 'OpenCL'];
+    static gpuType: Array<string> = [...MemoryBasicType.GPU_MEMORY];
     static samplerInfoSource: Array<NativeHookSamplerInfo> = [];
     static sampleTypesList: unknown[] = [];
     static tableMarkData: Array<NativeMemory> = [];
