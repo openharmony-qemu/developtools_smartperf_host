@@ -23,7 +23,6 @@ import { LitCheckBox } from '../../../../base-ui/checkbox/LitCheckBox';
 import { LitSelect } from '../../../../base-ui/select/LitSelect';
 import { queryTransferList } from '../../../database/sql/Perf.sql';
 import { TabPaneFilterHtml } from './TabPaneFilter.html';
-import { SpSystemTrace } from '../../SpSystemTrace';
 
 export interface FilterData {
   inputValue: string;
@@ -33,6 +32,16 @@ export interface FilterData {
   mark: boolean | null | undefined;
   icon: string | null;
   type: string;
+}
+
+export interface FilterTreeData {
+  callTree: boolean[];
+  callTreeConstraints: {
+    checked: boolean;
+    inputs: string[];
+  };
+  dataMining: unknown[] | undefined;
+  dataLibrary: unknown[] | undefined;
 }
 
 export interface MiningData {
@@ -68,21 +77,6 @@ export class TabPaneFilter extends BaseElement {
   private cutList: Array<unknown> | undefined;
   private libraryList: Array<unknown> | undefined;
   private transferChecked: string | undefined;
-  private isStatisticsMem: boolean = false;
-
-  get isStatisticsMemory(): boolean {
-    return this.isStatisticsMem;
-  }
-  set isStatisticsMemory(value) {
-    let hideThreadEL = this.shadowRoot?.querySelector('.popover .tree-check:nth-child(4)');
-    if (value) {
-      hideThreadEL?.classList.add('hide');
-    } else {
-      if (hideThreadEL!.classList.contains('hide')) {
-        hideThreadEL!.classList.remove('hide');
-      }
-    }
-  }
 
   filterData(
     type: string,
@@ -875,15 +869,7 @@ export class TabPaneFilter extends BaseElement {
     return idx;
   }
 
-  getFilterTreeData(): {
-    callTree: boolean[];
-    callTreeConstraints: {
-      checked: boolean;
-      inputs: string[];
-    };
-    dataMining: unknown[] | undefined;
-    dataLibrary: unknown[] | undefined;
-  } {
+  getFilterTreeData(): FilterTreeData {
     let row = this.shadowRoot!.querySelectorAll<LitCheckBox>('.tree-check lit-check-box');
     let inputs = this.shadowRoot!.querySelectorAll<HTMLInputElement>('.constraints-input');
     let check = this.shadowRoot!.querySelector<LitCheckBox>('#constraints-check');

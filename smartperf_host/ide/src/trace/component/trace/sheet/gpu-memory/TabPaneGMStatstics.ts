@@ -16,6 +16,7 @@
 import { BaseElement, element } from '../../../../../base-ui/BaseElement';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
+import { MemoryBasicType, MemoryType } from '../../../../bean/MemoryEnum';
 import { NativeHookMalloc, NativeHookStatisticsTableData } from '../../../../bean/NativeHook';
 import { queryHeapSizeByIpid, queryNativeHookStatistics, queryNativeHookStatisticsMalloc, queryNativeHookStatisticsSubType } from '../../../../database/sql/gpuMemory.sql';
 import { SpGpuMemoryChart } from '../../../chart/SpGpuMemoryChart';
@@ -27,7 +28,7 @@ import { TabPaneGMSampleList } from './TabPaneGMSampleList';
 @element('tabpane-gpu-statistics')
 export class TabPaneGMStatstics extends BaseElement {
     private gpuStatisticsTbl: LitTable | null | undefined;
-    private gpuType: Array<string> = ['Graphic Memory', 'VulKan', 'OpenGLES', 'OpenCL'];
+    private gpuType: Array<string> = [...MemoryBasicType.GPU_MEMORY];
     private gpuStatisticsSource: Array<NativeHookStatisticsTableData> = [];
     private currentSelection: SelectionParam | undefined;
     private currentSelectIPid = 1;
@@ -85,12 +86,12 @@ export class TabPaneGMStatstics extends BaseElement {
             this.setMemoryTypeData(gpuStatisticsParam, values[0], arr);
             let typeFilter = [];
             for (let type of gpuStatisticsParam.gpuMemory) {
-                if (type === 'Graphic Memory') {
+                if (type === MemoryBasicType.GPU_MEMORY[0]) {
                     typeFilter = [0, 1, 2, 3];
                     break;
-                } else if (type === 'VulKan') {
+                } else if (type === MemoryBasicType.GPU_MEMORY[1]) {
                     typeFilter.push(1);
-                } else if (type === 'OpenGLES') {
+                } else if (type === MemoryBasicType.GPU_MEMORY[2]) {
                     typeFilter.push(2);
                 } else {
                     typeFilter.push(3);
@@ -141,6 +142,7 @@ export class TabPaneGMStatstics extends BaseElement {
               max: mergedItem.max,
               maxStr: Utils.getByteWithUnit(mergedItem.max),
               memoryTap: mergedItem.memoryTap,
+              eventType: mergedItem.eventType,
               totalBytes: mergedItem.totalBytes,
               totalBytesString: Utils.getByteWithUnit(mergedItem.totalBytes),
               totalCount: mergedItem.totalCount
@@ -151,11 +153,12 @@ export class TabPaneGMStatstics extends BaseElement {
     setMallocTableData(result: Array<NativeHookMalloc>, arr: Array<NativeHookStatisticsTableData>, types: Array<number>): void {
         result.map((malloc) => {
             let data = new NativeHookStatisticsTableData();
-            if (malloc.eventType === 'GPU_VK_Alloc_Event') {
+            data.eventType = malloc.eventType;
+            if (malloc.eventType === MemoryType.GPU_VK_Alloc_NAME) {
                 data.memoryTap = `VulKan ${Utils.getByteWithUnit(malloc.heapSize)}`;
-            } else if (malloc.eventType === 'GPU_GLES_Alloc_Event') {
+            } else if (malloc.eventType === MemoryType.GPU_GLES_Alloc_NAME) {
                 data.memoryTap = `OpenGLES ${Utils.getByteWithUnit(malloc.heapSize)}`;
-            } else if (malloc.eventType === 'GPU_CL_Alloc_Event') {
+            } else if (malloc.eventType === MemoryType.GPU_CL_Alloc_NAME) {
                 data.memoryTap = `OpenCL ${Utils.getByteWithUnit(malloc.heapSize)}`;
             }
             data.existing = malloc.allocByte - malloc.freeByte;
@@ -175,9 +178,9 @@ export class TabPaneGMStatstics extends BaseElement {
                 if (sortedTypes.includes(0)) {
                     arr.push(data);
                 } else {
-                    if (sortedTypes.includes(1) && malloc.eventType === 'GPU_VK_Alloc_Event') arr.push(data);
-                    if (sortedTypes.includes(2) && malloc.eventType === 'GPU_GLES_Alloc_Event') arr.push(data);
-                    if (sortedTypes.includes(3) && malloc.eventType === 'GPU_CL_Alloc_Event') arr.push(data);
+                    if (sortedTypes.includes(1) && malloc.eventType === MemoryType.GPU_VK_Alloc_NAME) arr.push(data);
+                    if (sortedTypes.includes(2) && malloc.eventType === MemoryType.GPU_GLES_Alloc_NAME) arr.push(data);
+                    if (sortedTypes.includes(3) && malloc.eventType === MemoryType.GPU_CL_Alloc_NAME) arr.push(data);
                 }
             }
         });
@@ -188,6 +191,7 @@ export class TabPaneGMStatstics extends BaseElement {
             let subType = SpSystemTrace.DATA_DICT.get(sub.subTypeId);
             if (subType !== null && subType !== undefined) {
                 let data = new NativeHookStatisticsTableData();
+                data.eventType = subType;
                 data.memoryTap = subType;
                 data.existing = sub.allocByte - sub.freeByte;
                 data.allocCount = sub.allocCount - sub.freeCount;
@@ -206,9 +210,9 @@ export class TabPaneGMStatstics extends BaseElement {
                     if (sortedTypes.includes(0)) {
                         arr.push(data);
                     } else {
-                        if (sortedTypes.includes(1) && sub.eventType === 'GPU_VK_Alloc_Event') arr.push(data);
-                        if (sortedTypes.includes(2) && sub.eventType === 'GPU_GLES_Alloc_Event') arr.push(data);
-                        if (sortedTypes.includes(3) && sub.eventType === 'GPU_CL_Alloc_Event') arr.push(data);
+                        if (sortedTypes.includes(1) && sub.eventType === MemoryType.GPU_VK_Alloc_NAME) arr.push(data);
+                        if (sortedTypes.includes(2) && sub.eventType === MemoryType.GPU_GLES_Alloc_NAME) arr.push(data);
+                        if (sortedTypes.includes(3) && sub.eventType === MemoryType.GPU_CL_Alloc_NAME) arr.push(data);
                     }
                 }
             }
@@ -244,13 +248,13 @@ export class TabPaneGMStatstics extends BaseElement {
             if (all !== null) {
                 this.processHookData(hook, all);
             }
-            if (vk !== null && hook.eventType === 'GPU_VK_Alloc_Event') {
+            if (vk !== null && hook.eventType === MemoryType.GPU_VK_Alloc_NAME) {
                 this.processHookData(hook, vk);
             }
-            if (OG !== null && hook.eventType === 'GPU_GLES_Alloc_Event') {
+            if (OG !== null && hook.eventType === MemoryType.GPU_GLES_Alloc_NAME) {
                 this.processHookData(hook, OG);
             }
-            if (OC !== null && hook.eventType === 'GPU_CL_Alloc_Event') {
+            if (OC !== null && hook.eventType === MemoryType.GPU_CL_Alloc_NAME) {
                 this.processHookData(hook, OC);
             }
         }

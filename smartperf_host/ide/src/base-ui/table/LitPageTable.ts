@@ -39,7 +39,7 @@ export class LitPageTable extends BaseElement {
   currentTreeDivList: HTMLDivElement[] = [];
   public rememberScrollTop = false;
   public getItemTextColor?: (data: unknown) => string;
-  public itemTextHandleMap: Map<string, (value: unknown) => string> = new Map<string, (value: unknown) => string>();
+  public itemTextHandleMap: Map<string, (value: number) => string> = new Map<string, (value: number) => string>();
   public exportLoading: boolean = false;
   public exportTextHandleMap: Map<string, (value: unknown) => string> = new Map<string, (value: unknown) => string>();
   public ds: Array<unknown> = [];

@@ -12,17 +12,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { info } from '../../../log/Log';
 import { BaseStruct } from '../../bean/BaseStruct';
-import { procedurePool } from '../../database/Procedure';
-import { GpuMemoryEventHeap, queryBootTime, queryCount, queryGpuMemoryGroupByEvent, queryGpuMemoryRealTime, queryGpuType, queryProcess, queryStatisticType } from '../../database/sql/gpuMemory.sql';
+import { GpuMemoryEventHeap, queryGpuMemoryGroupByEvent} from '../../database/sql/gpuMemory.sql';
 import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { SpSystemTrace } from '../SpSystemTrace';
 import { TraceRow } from '../trace/base/TraceRow';
-import { GpuMemoryRender, GpuMemoryStruct } from '../../database/ui-worker/ProcedureWorkerGpuMemory';
 import { Utils } from '../trace/base/Utils';
-import { gpuMemoryChartDataCacheSender, GpuMemorySender } from '../../database/data-trafic/GpuMemoryDataSender';
+import { nativeMemoryChartDataSender } from '../../database/data-trafic/NativeMemoryDataSender';
+import { MemoryBasicType, MemoryTraceRowType } from '../../bean/MemoryEnum';
+import { NativeHookProcess } from '../../bean/NativeHook';
+import { HeapRender, HeapStruct } from '../../database/ui-worker/ProcedureWorkerHeap';
 
 export class SpGpuMemoryChart {
   private trace: SpSystemTrace;
@@ -34,72 +34,12 @@ export class SpGpuMemoryChart {
     this.trace = trace;
   }
 
-  initChart = async (): Promise<void> => {
-    let isShowGpu = false;
-    let isShowStatic = false;
-    let result = await queryGpuType();
-    let result1 = await queryStatisticType();
-    if (result.length > 0) {
-      isShowGpu = Object.values(result[0]).some(value => value === 1);
-    }
-    if (result1.length > 0) {
-      isShowStatic = Object.values(result1[0]).some(value => value === 1);
-    }
-    if (!isShowGpu && !isShowStatic) {
-      return;
-    }
-    let gpuMemoryType = 'native_hook';
-    let count = await queryCount();
-    if (count && count[0] && count[0].num > 0) {
-      gpuMemoryType = 'native_hook_statistic';
-    }
-    let gpuProcess = await queryProcess(gpuMemoryType);
-    info('gpuMemory Process data size is: ', gpuProcess!.length);
-    if (gpuProcess.length === 0) {
-      return;
-    }
-    await this.initGpuMemory();
-    await gpuMemoryChartDataCacheSender(
-      gpuProcess.map((it) => it.ipid),
-      gpuMemoryType
-    );
+  initChart = async (gpuMemoryType: string, process: NativeHookProcess): Promise<void> => {
     SpGpuMemoryChart.EVENT_HEAP = await queryGpuMemoryGroupByEvent(gpuMemoryType);
-    for (const process of gpuProcess) {
-      const floder = this.initGpuMemoryFolder(process.pid, process.ipid);
-      this.initData(floder, gpuMemoryType, process);
-    }
-  }
+    const floder = this.initGpuMemoryFolder(process.pid, process.ipid);
+    this.initData(floder, gpuMemoryType, process);
 
-  initGpuMemory = async (): Promise<void> => {
-    let time = new Date().getTime();
-    let isRealtime = false;
-    let realTimeDif = 0;
-    SpGpuMemoryChart.REAL_TIME_DIF = 0;
-    let queryTime = await queryGpuMemoryRealTime();
-    let bootTime = await queryBootTime();
-    if (queryTime.length > 0) {
-      //@ts-ignore
-      isRealtime = queryTime[0].clock_name === 'realtime';
-    }
-    if (bootTime.length > 0 && isRealtime) {
-      //@ts-ignore
-      realTimeDif = queryTime[0].ts - bootTime[0].ts;
-      SpGpuMemoryChart.REAL_TIME_DIF = realTimeDif;
-    }
-    await new Promise<unknown>((resolve) => {
-      procedurePool.submitWithName(
-        'logic0',
-        'gpu-memory-init',
-        { isRealtime, realTimeDif },
-        undefined,
-        (res: unknown) => {
-          resolve(res);
-        }
-      );
-    });
-    let durTime = new Date().getTime() - time;
-    info('The time to init the gpu memory data is: ', durTime);
-  };
+  }
 
   initGpuMemoryFolder(process: number, ipid: number): TraceRow<BaseStruct> {
     const gpuMemoryRow = TraceRow.skeleton();
@@ -164,10 +104,9 @@ export class SpGpuMemoryChart {
   }
 
   initData(folder: TraceRow<BaseStruct>, type: string, process: { pid: number; ipid: number }): void {
-    const chartList = ['Graphic Memory', 'VulKan', 'OpenGLES', 'OpenCL'];
-    for (let i = 0; i < chartList.length; i++) {
-      const gm = chartList[i];
-      const allGpuRow = TraceRow.skeleton<GpuMemoryStruct>();
+    for (let i = 0; i < MemoryBasicType.GPU_MEMORY.length; i++) {
+      const gm = MemoryBasicType.GPU_MEMORY[i];
+      const allGpuRow = TraceRow.skeleton<HeapStruct>();
       allGpuRow.index = i;
       allGpuRow.rowParentId = `gpu-memory ${process.pid} ${process.ipid}`;
       allGpuRow.rowHidden = !folder.expansion;
@@ -180,24 +119,25 @@ export class SpGpuMemoryChart {
       allGpuRow.rowType = TraceRow.ROW_TYPE_GPU_HEAP;
       allGpuRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
       allGpuRow.selectChangeHandler = this.trace.selectChangeHandler;
-      allGpuRow.setAttribute('gpuMemory-type', type);
+      allGpuRow.setAttribute('heap-type', type);
       allGpuRow.setAttribute('children', '');
       allGpuRow.focusHandler = (): void => {
         let tip = '';
-        if (GpuMemoryStruct.hoverGpuMemoryStruct) {
+        if (HeapStruct.hoverHeapStruct) {
           if (allGpuRow.drawType === 1) {
-            tip = `<span>${GpuMemoryStruct.hoverGpuMemoryStruct.density}</span>`;
+            tip = `<span>${HeapStruct.hoverHeapStruct.density}</span>`;
           } else {
-            tip = `<span>${Utils.getByteWithUnit(GpuMemoryStruct.hoverGpuMemoryStruct.heapsize!)}</span>`;
+            tip = `<span>${Utils.getByteWithUnit(HeapStruct.hoverHeapStruct.heapsize!)}</span>`;
           }
         }
-        this.trace?.displayTip(allGpuRow, GpuMemoryStruct.hoverGpuMemoryStruct, tip);
+        this.trace?.displayTip(allGpuRow, HeapStruct.hoverHeapStruct, tip);
       };
       allGpuRow.findHoverStruct = (): void => {
-        GpuMemoryStruct.hoverGpuMemoryStruct = allGpuRow.getHoverStruct();
+        HeapStruct.hoverHeapStruct = allGpuRow.getHoverStruct();
       }; //@ts-ignore
       allGpuRow.supplierFrame = (): Promise<unknown> =>
-        GpuMemorySender(allGpuRow, {
+        nativeMemoryChartDataSender(allGpuRow, {
+          memoryType: MemoryTraceRowType.ROW_TYPE_GPU_MEMORY,
           eventType: i,
           ipid: process.ipid,
           model: type,
@@ -208,7 +148,7 @@ export class SpGpuMemoryChart {
     }
   }
 
-  chartThreadHandler(row: TraceRow<GpuMemoryStruct>): void {
+  chartThreadHandler(row: TraceRow<HeapStruct>): void {
     row.onThreadHandler = (useCache): void => {
       let context: CanvasRenderingContext2D;
       if (row.currentContext) {
@@ -217,11 +157,11 @@ export class SpGpuMemoryChart {
         context = row.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
       }
       row.canvasSave(context);
-      (renders.gpuMemory as GpuMemoryRender).renderMainThread(
+      (renders.heap as HeapRender).renderMainThread(
         {
           context: context,
           useCache: useCache,
-          type: 'gpuMemory'
+          type: MemoryTraceRowType.ROW_TYPE_GPU_MEMORY,
         },
         row
       );
