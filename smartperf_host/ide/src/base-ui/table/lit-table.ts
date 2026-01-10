@@ -36,6 +36,7 @@ import {
   fixed,
   formatName,
 } from './LitTableHtml';
+import { NativeHookStatisticsTableData } from '../../trace/bean/NativeHook';
 
 @element('lit-table')
 export class LitTable extends HTMLElement {
@@ -44,8 +45,8 @@ export class LitTable extends HTMLElement {
   currentTreeDivList: HTMLDivElement[] = [];
   public rememberScrollTop = false;
   public getItemTextColor?: (data: unknown) => string;
-  public itemTextHandleMap: Map<string, (value: unknown) => string> = new Map<string, (value: unknown) => string>();
-  public exportTextHandleMap: Map<string, (value: unknown) => string> = new Map<string, (value: unknown) => string>();
+  public itemTextHandleMap: Map<string, (value: NativeHookStatisticsTableData) => string> = new Map<string, (value: NativeHookStatisticsTableData) => string>();
+  public exportTextHandleMap: Map<string, (value: NativeHookStatisticsTableData) => string> = new Map<string, (value: NativeHookStatisticsTableData) => string>();
   public ds: Array<unknown> = [];
   public recycleDs: Array<unknown> = [];
   public gridTemplateColumns: Array<string> = [];
