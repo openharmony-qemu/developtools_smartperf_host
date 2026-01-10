@@ -73,6 +73,9 @@ function orgnazitionMap(
         // return (item.ts > args.leftNs && item.ts < args.rightNs) || (item.ts + item.dur > args.leftNs && item.ts + item.dur < args.rightNs);
         return (!(item.ts > args.rightNs || item.ts + item.dur < args.leftNs)) && args.cpuArray.indexOf(item.cpu) !== -1;
     });
+    if (cpuFreqArr.length === 0) {
+        return [];
+    }
     let cpuFreqMap = takeCpuFreqToMap(cpuFreqArr, args.leftNs, args.rightNs);
     return dealRunningData(cpuFreqMap, result, sum, args.cpuArray, args.broCpuData, args.recordStartNS)
 }
@@ -416,6 +419,7 @@ function dealTree(
 ): Array<RunningFreqData> {
     let result: Array<RunningFreqData> = [];
     params.forEach((item, key) => {
+        item = item.filter((e) => e.frequency !== 'unknown')
         let cpuData: RunningFreqData = creatNewObj(item[0].cpu, false);
         for (let i = 0; i < item.length; i++) {
             // @ts-ignore
@@ -435,7 +439,7 @@ function dealTree(
             cpuData.thread = '';
         }
         if (item.length > 10) {
-            item.sort((a, b) => a.consumpower - b.consumpower);
+            item.sort((a, b) => b.consumpower - a.consumpower);
             let top10Arr = item.slice(0, 10);
             top10Arr.forEach(e => cpuData.children?.push(e));
         }
