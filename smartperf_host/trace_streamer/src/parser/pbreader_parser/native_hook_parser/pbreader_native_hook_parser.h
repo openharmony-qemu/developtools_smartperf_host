@@ -54,6 +54,7 @@ private:
     void ParseFrameMap(std::unique_ptr<NativeHookMetaData> &nativeHookMetaData);
     bool ParseStackMap(const ProtoReader::BytesView &bytesView);
     void SplitHookData(std::unique_ptr<NativeHookMetaData> &nativeHookMetaData, bool &haveSplitSeg);
+    void ParseSMOMaps(const ProtoReader::BytesView &bytesView);
 
 private:
     std::vector<std::shared_ptr<const std::string>> segs_ = {};

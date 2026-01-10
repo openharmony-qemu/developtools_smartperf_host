@@ -685,6 +685,8 @@ export class DataCache {
     }
     this.clearEBpf();
     this.clearNM();
+    this.clearGM();
+    this.clearOS();
     this.clearPerf();
     this.clearJsCache();
   }
@@ -702,6 +704,12 @@ export class DataCache {
   public clearOS(): void {
     this.osFileDict.clear();
     this.osHeapFrameMap.clear();
+  }
+
+  public clearMemory(): void {
+    this.clearNM();
+    this.clearGM();
+    this.clearOS();
   }
 
   public clearEBpf(): void {

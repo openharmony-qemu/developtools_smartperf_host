@@ -76,7 +76,7 @@ public:
     void ParseConfigInfo(ProtoReader::BytesView &protoData, uint64_t &statisticsInterval);
     void AppendStackMaps(uint32_t ipid, uint32_t stackid, std::vector<uint64_t> &frames);
     void AppendFrameMaps(uint32_t ipid, uint32_t frameMapId, const ProtoReader::BytesView &bytesView);
-    void AppendFilePathMaps(uint32_t ipid, uint32_t filePathId, uint64_t fileIndex);
+    void AppendFilePathMaps(uint32_t ipid, uint32_t filePathId, uint64_t fileIndex, uint64_t adlt_base);
     void AppendSymbolMap(uint32_t ipid, uint32_t symId, uint64_t symbolIndex);
     void AppendThreadNameMap(uint32_t ipid, uint32_t nameId, uint64_t threadNameIndex);
     void ParseMapsEvent(std::unique_ptr<NativeHookMetaData> &nativeHookMetaData);
@@ -84,6 +84,8 @@ public:
     void ParseTagEvent(const ProtoReader::BytesView &bytesView);
     void FinishParseNativeHookData();
     void NativeHookReloadElfSymbolTable(const std::unique_ptr<SymbolsFile> &symbolsFile);
+    void AppendSMOIdTlbInfo(uint32_t soIndex, uint64_t subNameIndex);
+    void AppendSMOMap(uint32_t soIndex, uint64_t startAddr, uint64_t endAddr);
     CommHookData &GetCommHookData();
     ProfilerPluginData *GetHookPluginData();
     void SerializeHookCommDataToString();
@@ -158,6 +160,7 @@ private:
     bool IsSameSymbolTable(std::shared_ptr<ProtoReader::SymbolTable_Reader> reader1,
                            std::shared_ptr<ProtoReader::SymbolTable_Reader> reader2);
     bool AreBytesViewsEqual(const ProtoReader::BytesView &view1, const ProtoReader::BytesView &view2);
+    uint64_t GetSubFilePathIndex(uint64_t adltBase, FrameInfo *frameInfo);
 
 private:
     // first key is addr, second key is size, value is set<row> in db
@@ -165,8 +168,9 @@ private:
     DoubleMap<uint64_t, uint64_t, std::shared_ptr<std::set<uint64_t>>> anonMmapData_;
     std::unique_ptr<ProfilerPluginData> hookPluginData_ = nullptr;
     DoubleMap<uint32_t, uint32_t, uint64_t> ipidToSymIdToSymIndex_;
-    DoubleMap<uint32_t, uint32_t, uint64_t> ipidToFilePathIdToFileIndex_;
+    std::unordered_map<std::shared_ptr<std::tuple<uint64_t, uint64_t>>, uint32_t> addrToSoIdx_ = {};
     DoubleMap<uint32_t, uint64_t, std::shared_ptr<const ProtoReader::BytesView>> ipidToFrameIdToFrameBytes_;
+    std::map<uint32_t/* soIndex */, uint64_t/* subNameIndex */> soIdxToSubFileIndex_ = {};
     std::unordered_map<DataIndex, std::shared_ptr<std::set<size_t>>> filePathIndexToFrameTableRowMap_ = {};
     std::multimap<uint64_t, std::unique_ptr<NativeHookMetaData>> tsToMainEventsMap_ = {};
     std::map<uint64_t, std::shared_ptr<std::vector<uint64_t>>> reparseStackIdToFramesMap_ = {};

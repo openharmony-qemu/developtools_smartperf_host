@@ -71,6 +71,8 @@ private:
     bool SchedWaking(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
     bool SchedWakeupNew(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
     bool SchedProcessExit(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
+    bool SchedSwitchLite(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
+    bool SchedWakeupLite(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
     bool SchedProcessFree(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
     bool ClockSetRate(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
     bool ClockEnable(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
@@ -88,6 +90,7 @@ private:
     void StackEventsInitialization();
     void VoltageEventInitialization();
     void TaskEventInitialization();
+    void SchedEventInitialization();
 
 private:
     FtraceEventProcessor();

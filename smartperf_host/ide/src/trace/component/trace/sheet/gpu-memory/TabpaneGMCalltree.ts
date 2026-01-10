@@ -20,10 +20,12 @@ import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressB
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
 import { ChartMode } from '../../../../bean/FrameChartStruct';
+import { MemoryBasicType, MemoryStatisticType, MemoryTableName, MemoryType } from '../../../../bean/MemoryEnum';
 import { FilterByAnalysis, NativeMemoryExpression } from '../../../../bean/NativeHook';
 import { FileMerageBean } from '../../../../database/logic-worker/ProcedureLogicWorkerFileSystem';
 import { procedurePool } from '../../../../database/Procedure';
 import { queryNativeHookStatisticSubType, queryNativeHookSubType } from '../../../../database/sql/gpuMemory.sql';
+import { querySubType } from '../../../../database/sql/NativeHook.sql';
 import { FrameChart } from '../../../chart/FrameChart';
 import { ParseExpression } from '../SheetUtils';
 import { FilterData, TabPaneFilter } from '../TabPaneFilter';
@@ -53,12 +55,13 @@ export class TabpaneGMCalltree extends BaseElement {
     private filterGpuType: string = '0';
     private filterResponseType: number = -1;
     private filterResponseSelect: string = '0';
-    private gpuType: Array<string> = ['Graphic Memory', 'VulKan', 'OpenGLES', 'OpenCL'];
+    private gpuType: Array<string> = [...MemoryBasicType.GPU_MEMORY];
+    private filterTypes: Array<string> = [];
     private _analysisTabWidth: number = 0;
     private loadingList: number[] = [];
     private sortKey: string = 'heapSizeStr';
     private sortType: number = 0;
-    private systmeRuleName: string = '/system/';
+    private systemRuleName: string = '/system/';
     private numRuleName: string = '/max/min/';
     private gmCallTreeFrameChart: FrameChart | null | undefined;
     private _initFromAnalysis = false;
@@ -157,7 +160,7 @@ export class TabpaneGMCalltree extends BaseElement {
         } else {
             this.gmCallTreeFilter!.style.display = 'none';
         }
-        procedurePool.submitWithName('logic0', 'gpu-memory-reset', [], undefined, () => { });
+        procedurePool.submitWithName('logic0', 'gpuMemory-reset', [], undefined, () => { });
         this.gmCallTreeFilter!.disabledTransfer(true);
         this.gmCallTreeFilter!.initializeFilterTree(true, true, this.currentSelection!.gpuMemory.length > 0);
         this.gmCallTreeFilter!.filterValue = '';
@@ -231,13 +234,14 @@ export class TabpaneGMCalltree extends BaseElement {
     }
 
     private initGetFilterByGMCallTreeFilter(gmCallTreeData: FilterData): void {
+        const typeName = this.typeIndexToTypeName(gmCallTreeData.secondSelect)
         if (
             this.filterLifespanType !== gmCallTreeData.firstSelect ||
-            this.filterGpuType !== gmCallTreeData.secondSelect ||
+            this.filterGpuType !== typeName ||
             this.filterResponseSelect !== gmCallTreeData.thirdSelect
         ) {
             this.filterLifespanType = gmCallTreeData.firstSelect || '0';
-            this.filterGpuType = gmCallTreeData.secondSelect || '0';
+            this.filterGpuType = typeName;
             this.filterResponseSelect = gmCallTreeData.thirdSelect || '0';
             let thirdIndex = parseInt(gmCallTreeData.thirdSelect || '0');
             if (this.responseTypes.length > thirdIndex) {
@@ -426,7 +430,7 @@ export class TabpaneGMCalltree extends BaseElement {
             } else {
                 resultArgs.push({
                     funcName: 'resotreAllNode',
-                    funcArgs: [[this.systmeRuleName]],
+                    funcArgs: [[this.systemRuleName]],
                 });
                 resultArgs.push({
                     funcName: 'resetAllNode',
@@ -434,7 +438,7 @@ export class TabpaneGMCalltree extends BaseElement {
                 });
                 resultArgs.push({
                     funcName: 'clearSplitMapData',
-                    funcArgs: [this.systmeRuleName],
+                    funcArgs: [this.systemRuleName],
                 });
             }
             this.getDataByWorker(resultArgs, (result: unknown[]): void => {
@@ -520,7 +524,7 @@ export class TabpaneGMCalltree extends BaseElement {
         }
         groupArgs.set(
             'nativeHookType',
-            this.currentSelection!.gpuMemory.length > 0 ? 'native-hook' : 'native-hook-statistic'
+            this.currentSelection!.gpuMemory.length > 0 ? 'normal' : 'statistic'
         );
         return groupArgs;
     }
@@ -556,42 +560,32 @@ export class TabpaneGMCalltree extends BaseElement {
 
     async initFilterTypes(types: Array<string | number>): Promise<void> {
         this.currentGMCallTreeFilter = this.shadowRoot?.querySelector<TabPaneFilter>('#gm-call-tree-filter');
-        let secondFilterList = ['Graphic Memory', 'All VulKan', 'All OpenGLES', 'All OpenCL'];
-        const addSubType = (subTypeList: unknown): void => {
-            if (!subTypeList) {
-                return;
-            }
-            // @ts-ignore
-            for (let data of subTypeList) {
-                secondFilterList.push(data.subType);
-            }
-        };
-        if (this.currentSelection!.gpuMemory!.length > 0) {
-            let subTypeList = await queryNativeHookSubType(
-                this.currentSelection!.leftNs,
-                this.currentSelection!.rightNs,
-                this.currentSelectIPid,
-                types
-            );
-            // @ts-ignore
-            this.subTypeResult = subTypeList;
-            addSubType(subTypeList);
-        } else {
-            let subTypeList = await queryNativeHookStatisticSubType(
-                this.currentSelection!.leftNs,
-                this.currentSelection!.rightNs,
-                this.currentSelectIPid,
-                types
-            );
-            // @ts-ignore
-            this.subTypeResult = subTypeList;
-            addSubType(subTypeList);
-        }
-        this.gMCallTreeFilterExtend(secondFilterList);
+        this.filterTypes = [...MemoryBasicType.GPU_MEMORY];
+        const isStatisticMode = this.currentSelection!.gpuMemoryStatistic.length > 0;
+        const tableName =  isStatisticMode ? MemoryTableName.NATIVE_HOOK_STATISTIC : MemoryTableName.NATIVE_HOOK;
+        await querySubType(this.currentSelection!.leftNs, this.currentSelection!.rightNs, this.currentSelectIPid,
+            tableName, types).then((res: { subTypeId: number, subType: string, eventType: string }[]) => {
+                this.filterTypes.push(...res.map((item) => {
+                    if (isStatisticMode) {
+                        if (item.subType === null || item.subType.startsWith('Other ')) {
+                            const type = parseInt(item.eventType)
+                            if (type === MemoryStatisticType.GPU_VK) {
+                                return `Other ${MemoryType.GPU_VK_Alloc_NAME}`
+                            } else if (type === MemoryStatisticType.GPU_GLES) {
+                                return `Other ${MemoryType.GPU_GLES_Alloc_NAME}`
+                            } else if (type === MemoryStatisticType.GPU_CL) {
+                                return `Other ${MemoryType.GPU_CL_Alloc_NAME}`
+                            }
+                        }
+                    }
+                    return item.subType;
+                }));
+            });
+        this.gMCallTreeFilterExtend(this.filterTypes);
     }
 
     private gMCallTreeFilterExtend(secondFilterList: string[]): void {
-        procedurePool.submitWithName('logic0', 'gpu-memory-get-responseType', {}, undefined, (res: unknown) => {
+        procedurePool.submitWithName('logic0', 'gpuMemory-get-responseType', {}, undefined, (res: unknown) => {
             // @ts-ignore
             this.responseTypes = res;
             this.eventList = ['All GpuMemory', 'Created & Existing', 'Created & Destroyed']
@@ -627,32 +621,31 @@ export class TabpaneGMCalltree extends BaseElement {
 
     initTypes(gmCallTreeParam: SelectionParam): void {
         if (gmCallTreeParam.gpuMemory.length > 0) {
-            this.gmCallTreeFilter!.isStatisticsMemory = false;
             if (gmCallTreeParam.gpuMemory.indexOf(this.gpuType[0]) !== -1) {
-                this.types.push(0);
+                // 组装sql语句，需要加单引号作为sql的字符串
+                this.types.push(`${MemoryType.GPU_VK_Alloc_NAME}`, `${MemoryType.GPU_GLES_Alloc_NAME}`, `${MemoryType.GPU_CL_Alloc_NAME}`);
             }
             if (gmCallTreeParam.gpuMemory.indexOf(this.gpuType[1]) !== -1) {
-                this.types.push(1);
+                this.types.push(`${MemoryType.GPU_VK_Alloc_NAME}`);
             }
             if (gmCallTreeParam.gpuMemory.indexOf(this.gpuType[2]) !== -1) {
-                this.types.push(2);
+                this.types.push(`${MemoryType.GPU_GLES_Alloc_NAME}`);
             }
             if (gmCallTreeParam.gpuMemory.indexOf(this.gpuType[3]) !== -1) {
-                this.types.push(3);
+                this.types.push(`${MemoryType.GPU_CL_Alloc_NAME}`);
             }
         } else {
-            this.gmCallTreeFilter!.isStatisticsMemory = true;
             if (gmCallTreeParam.gpuMemoryStatistic.indexOf(this.gpuType[0]) !== -1) {
-                this.types.push(0);
+                this.types.push(MemoryStatisticType.GPU_VK, MemoryStatisticType.GPU_GLES, MemoryStatisticType.GPU_CL);
             }
             if (gmCallTreeParam.gpuMemoryStatistic.indexOf(this.gpuType[1]) !== -1) {
-                this.types.push(1);
+                this.types.push(MemoryStatisticType.GPU_VK);
             }
             if (gmCallTreeParam.gpuMemoryStatistic.indexOf(this.gpuType[2]) !== -1) {
-                this.types.push(2);
+                this.types.push(MemoryStatisticType.GPU_GLES);
             }
             if (gmCallTreeParam.gpuMemoryStatistic.indexOf(this.gpuType[3]) !== -1) {
-                this.types.push(3);
+                this.types.push(MemoryStatisticType.GPU_CL);
             }
         }
     }
@@ -665,8 +658,8 @@ export class TabpaneGMCalltree extends BaseElement {
         procedurePool.submitWithName(
             'logic0',
             this.currentSelection!.gpuMemory!.length > 0
-                ? 'gpu-memory-queryCallchainsSamples'
-                : 'gpu-memory-queryStatisticCallchainsSamples',
+                ? 'gpuMemory-queryCallchainsSamples'
+                : 'gpuMemory-queryStatisticCallchainsSamples',
             args,
             undefined,
             (callChainsResults: unknown): void => {
@@ -746,7 +739,6 @@ export class TabpaneGMCalltree extends BaseElement {
                 });
             });
         }
-        this.setFilterType(selections, this._filterData!);
         param.set('filterByTitleArr', this._filterData);
         param.set('filterAllocType', '0');
         param.set('statisticsSelection', selections);
@@ -794,7 +786,7 @@ export class TabpaneGMCalltree extends BaseElement {
         this.gmCallTreeLoadingPage.style.visibility = 'visible';
         procedurePool.submitWithName(
             'logic0',
-            'gpu-memory-calltree-action',
+            'gpuMemory-calltree-action',
             args,
             undefined,
             (callTreeActionResults: unknown): void => {
@@ -990,6 +982,14 @@ export class TabpaneGMCalltree extends BaseElement {
         }
         let resultLength = resultValue.length;
         this.gpuMemoryTbr!.dataSource = resultLength === 0 ? [] : resultValue;
+    }
+
+    private typeIndexToTypeName(typeIndex?: string | null): string {
+        if (typeIndex) {
+            return this.filterTypes[parseInt(typeIndex)];
+        } else {
+            return MemoryBasicType.GPU_MEMORY[0];
+        }
     }
 
     getParentTree(

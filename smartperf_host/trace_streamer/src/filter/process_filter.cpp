@@ -244,6 +244,27 @@ std::tuple<uint32_t, TraceStdtype::Process *> ProcessFilter::CreateProcessMaybe(
 
     return std::make_tuple(internalPid, process);
 }
+
+void ProcessFilter::UpdateThreadNameByNameToTid(std::unordered_map<int32_t, std::string> &tidToName)
+{
+    auto threadList = traceDataCache_->GetConstThreadData();
+    auto size = threadList.size();
+    for (auto row = 0; row < size; row++) {
+        if (threadList[row].nameIndex_ != 0) {
+            continue;
+        }
+        auto thread = traceDataCache_->GetThreadData(row);
+        if (!thread) {
+            continue;
+        }
+        auto it = tidToName.find(thread->tid_);
+        if (it != tidToName.end()) {
+            auto res = UpdateOrCreateThreadWithName(thread->startT_, thread->tid_, it->second.c_str());
+            TS_LOGI("Update thread name %s to tid %d", it->second.c_str(), thread->tid_);
+        }
+    }
+}
+
 void ProcessFilter::UpdateProcessNameByNameToTid(std::unordered_map<int32_t, std::string> &tidToName)
 {
     auto processList = traceDataCache_->GetConstProcessData();

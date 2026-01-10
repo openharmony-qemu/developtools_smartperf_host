@@ -42,6 +42,7 @@ void RawTraceParser::WaitForParserEnd()
     hasGotHeader_ = false;
     curCpuCoreNum_ = 0;
     auto tidToName = ftraceProcessor_->GetTidToName();
+    streamFilters_->processFilter_->UpdateThreadNameByNameToTid(tidToName);
     streamFilters_->processFilter_->UpdateProcessNameByNameToTid(tidToName);
     ClearRawTraceData();
     TS_LOGI("Parser raw trace end!");

@@ -57,16 +57,6 @@ BytraceEventParser::BytraceEventParser(TraceDataCache *dataCache, const TraceStr
          bind(&BytraceEventParser::TaskRenameEvent, this, std::placeholders::_1, std::placeholders::_2)},
         {config_.eventNameMap_.at(TRACE_EVENT_TASK_NEWTASK),
          bind(&BytraceEventParser::TaskNewtaskEvent, this, std::placeholders::_1, std::placeholders::_2)},
-        {config_.eventNameMap_.at(TRACE_EVENT_SCHED_SWITCH),
-         bind(&BytraceEventParser::SchedSwitchEvent, this, std::placeholders::_1, std::placeholders::_2)},
-        {config_.eventNameMap_.at(TRACE_EVENT_SCHED_BLOCKED_REASON),
-         bind(&BytraceEventParser::BlockedReason, this, std::placeholders::_1, std::placeholders::_2)},
-        {config_.eventNameMap_.at(TRACE_EVENT_SCHED_WAKEUP),
-         bind(&BytraceEventParser::SchedWakeupEvent, this, std::placeholders::_1, std::placeholders::_2)},
-        {config_.eventNameMap_.at(TRACE_EVENT_SCHED_WAKING),
-         bind(&BytraceEventParser::SchedWakingEvent, this, std::placeholders::_1, std::placeholders::_2)},
-        {config_.eventNameMap_.at(TRACE_EVENT_SCHED_WAKEUP_NEW),
-         bind(&BytraceEventParser::SchedWakeupEvent, this, std::placeholders::_1, std::placeholders::_2)},
         {config_.eventNameMap_.at(TRACE_EVENT_PROCESS_EXIT),
          bind(&BytraceEventParser::ProcessExitEvent, this, std::placeholders::_1, std::placeholders::_2)},
         {config_.eventNameMap_.at(TRACE_EVENT_IPI_ENTRY),
@@ -78,6 +68,7 @@ BytraceEventParser::BytraceEventParser(TraceDataCache *dataCache, const TraceStr
         {config_.eventNameMap_.at(TRACE_EVENT_SYS_EXIT),
          bind(&BytraceEventParser::SysExitEvent, this, std::placeholders::_1, std::placeholders::_2)},
     };
+    SchedEventInitialization();
     InterruptEventInitialization();
     ClockEventInitialization();
     CpuEventInitialization();
@@ -86,6 +77,31 @@ BytraceEventParser::BytraceEventParser(TraceDataCache *dataCache, const TraceStr
     StackEventsInitialization();
     TaskEventInitialization();
     eventList_.reserve(maxBuffSize_);
+}
+
+void BytraceEventParser::SchedEventInitialization()
+{
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_SCHED_SWITCH),
+        bind(&BytraceEventParser::SchedSwitchEvent, this, std::placeholders::_1, std::placeholders::_2));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_SCHED_BLOCKED_REASON),
+        bind(&BytraceEventParser::BlockedReason, this, std::placeholders::_1, std::placeholders::_2));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_SCHED_WAKEUP),
+        bind(&BytraceEventParser::SchedWakeupEvent, this, std::placeholders::_1, std::placeholders::_2));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_SCHED_WAKING),
+        bind(&BytraceEventParser::SchedWakingEvent, this, std::placeholders::_1, std::placeholders::_2));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_SCHED_WAKEUP_NEW),
+        bind(&BytraceEventParser::SchedWakeupEvent, this, std::placeholders::_1, std::placeholders::_2));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_SCHED_SWITCH_LITE),
+        bind(&BytraceEventParser::SchedSwitchLiteEvent, this, std::placeholders::_1, std::placeholders::_2));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_SCHED_WAKEUP_LITE),
+        bind(&BytraceEventParser::SchedWakeupLiteEvent, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 void BytraceEventParser::InterruptEventInitialization()
@@ -278,7 +294,27 @@ bool BytraceEventParser::SysExitEvent(const ArgsMap &args, const BytraceLine &li
     return true;
 }
 
-bool BytraceEventParser::SchedSwitchEvent(const ArgsMap &args, const BytraceLine &line) const
+bool BytraceEventParser::SchedSwitchEvent(const ArgsMap &args, const BytraceLine &line)
+{
+    if (ifFindSchedSwitchLite_) {
+        TS_LOGI("SCHED_SWITCH and SCHED_SWITCH_LITE both exist, only deal with SCHED_SWITCH_LITE");
+        return false;
+    }
+    ifFindSchedSwitch_ = true;
+    return SchedSwitchCommon(args, line);
+}
+
+bool BytraceEventParser::SchedSwitchLiteEvent(const ArgsMap &args, const BytraceLine &line)
+{
+    if (ifFindSchedSwitch_) {
+        TS_LOGI("SCHED_SWITCH and SCHED_SWITCH_LITE both exist, only deal with SCHED_SWITCH");
+        return false;
+    }
+    ifFindSchedSwitchLite_ = true;
+    return SchedSwitchCommon(args, line);
+}
+
+bool BytraceEventParser::SchedSwitchCommon(const ArgsMap &args, const BytraceLine &line) const
 {
     if (args.empty() || args.size() < MIN_SCHED_SWITCH_ARGS_COUNT) {
         TS_LOGW("Failed to parse sched_switch event, no args or args size < 6, argsStr=%s.", line.argsStr.data());
@@ -324,6 +360,7 @@ bool BytraceEventParser::SchedSwitchEvent(const ArgsMap &args, const BytraceLine
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_SWITCH, STAT_EVENT_RECEIVED);
     return true;
 }
+
 bool BytraceEventParser::BlockedReason(const ArgsMap &args, const BytraceLine &line) const
 {
     if (args.empty() || args.size() < MIN_BLOCKED_REASON_ARGS_COUNT) {
@@ -385,7 +422,27 @@ bool BytraceEventParser::TracingMarkWriteOrPrintEvent(const ArgsMap &args, const
     return printEventParser_.ParsePrintEvent(line.task, line.ts, line.pid, line.argsStr.c_str(), line);
 }
 // prefer to use waking, unless no waking, can use wakeup
-bool BytraceEventParser::SchedWakeupEvent(const ArgsMap &args, const BytraceLine &line) const
+bool BytraceEventParser::SchedWakeupEvent(const ArgsMap &args, const BytraceLine &line)
+{
+    if (ifFindSchedWakeupLite_) {
+        TS_LOGI("SCHED_WAKEUP and SCHED_WAKEUP_LITE both exist, only deal with SCHED_WAKEUP_LITE");
+        return false;
+    }
+    ifFindSchedWakeup_ = true;
+    return SchedWakeupCommon(args, line);
+}
+
+bool BytraceEventParser::SchedWakeupLiteEvent(const ArgsMap &args, const BytraceLine &line)
+{
+    if (ifFindSchedWakeup_) {
+        TS_LOGI("SCHED_WAKEUP and SCHED_WAKEUP_LITE both exist, only deal with SCHED_WAKEUP");
+        return false;
+    }
+    ifFindSchedWakeupLite_ = true;
+    return SchedWakeupCommon(args, line);
+}
+
+bool BytraceEventParser::SchedWakeupCommon(const ArgsMap &args, const BytraceLine &line) const
 {
     if (args.size() < MIN_SCHED_WAKEUP_ARGS_COUNT) {
         TS_LOGD("Failed to parse SchedWakeupEvent event, no args or args size < 2");

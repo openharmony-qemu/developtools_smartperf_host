@@ -78,6 +78,8 @@ protected:
     DoubleMap<uint64_t /* ipid */, uint32_t /* filePathId */, std::shared_ptr<ProtoReader::SymbolTable_Reader>>
         ipidTofilePathIdToSymbolTableMap_;
     std::unordered_map<uint32_t, std::shared_ptr<ElfSymbolTable>> filePathIdToImportSymbolTableMap_ = {};
+    DoubleMap<uint32_t, uint32_t, uint64_t> ipidToFilePathIdToFileIndex_;
+    DoubleMap<uint32_t/* ipid */, uint32_t/* file_path_id */, uint64_t/* adltbase */> ipidToFilePathIdToAdltBase_;
 
     using IpToFrameInfoType = std::map<uint64_t, std::shared_ptr<FrameInfo>>;
 

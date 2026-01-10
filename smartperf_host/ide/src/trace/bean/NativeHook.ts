@@ -58,6 +58,7 @@ export class NativeHookProcess {
 
 export class NativeHookStatisticsTableData {
   memoryTap: string = '';
+  eventType: string = '';
   existing: number = 0;
   existingString: string = '';
   freeByteString: string = '';

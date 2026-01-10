@@ -44,9 +44,11 @@ private:
     void DealEvent(const RawTraceEventInfo &event);
     bool SchedSwitchEvent(const RawTraceEventInfo &event);
     bool SchedBlockReasonEvent(const RawTraceEventInfo &event);
-    bool SchedWakeupEvent(const RawTraceEventInfo &event) const;
+    bool SchedWakeupEvent(const RawTraceEventInfo &event);
     bool SchedWakingEvent(const RawTraceEventInfo &event) const;
     bool SchedWakeupNewEvent(const RawTraceEventInfo &event) const;
+    bool SchedSwitchLiteEvent(const RawTraceEventInfo &event);
+    bool SchedWakeupLiteEvent(const RawTraceEventInfo &event);
     bool ProcessExitEvent(const RawTraceEventInfo &event) const;
     bool ProcessFreeEvent(const RawTraceEventInfo &event) const;
     bool BinderTractionEvent(const RawTraceEventInfo &event) const;
@@ -92,6 +94,7 @@ private:
     void StackEventsInitialization();
     void VoltageEventInitialization();
     void TaskEventInitialization();
+    void SchedEventInitialization();
 
 public:
     uint32_t cpuCoreMax_ = CPU_CORE_MAX;
@@ -125,6 +128,10 @@ private:
     const DataIndex dmaFenceDestroyIndex_ = traceDataCache_->GetDataIndex("dma_fence_destroy");
     const DataIndex dmaFenceEnableIndex_ = traceDataCache_->GetDataIndex("dma_fence_enable_signal");
     const DataIndex dmaFenceSignaledIndex_ = traceDataCache_->GetDataIndex("dma_fence_signaled");
+    bool ifFindSchedSwitch_ = false;
+    bool ifFindSchedWakeup_ = false;
+    bool ifFindSchedSwitchLite_ = false;
+    bool ifFindSchedWakeupLite_ = false;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

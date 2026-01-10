@@ -43,16 +43,6 @@ CpuDetailParser::CpuDetailParser(TraceDataCache *dataCache, const TraceStreamerF
          std::bind(&CpuDetailParser::TaskRenameEvent, this, std::placeholders::_1)},
         {config_.eventNameMap_.at(TRACE_EVENT_TASK_NEWTASK),
          std::bind(&CpuDetailParser::TaskNewtaskEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_SCHED_SWITCH),
-         std::bind(&CpuDetailParser::SchedSwitchEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_SCHED_BLOCKED_REASON),
-         std::bind(&CpuDetailParser::SchedBlockReasonEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_SCHED_WAKEUP),
-         std::bind(&CpuDetailParser::SchedWakeupEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_SCHED_WAKING),
-         std::bind(&CpuDetailParser::SchedWakingEvent, this, std::placeholders::_1)},
-        {config_.eventNameMap_.at(TRACE_EVENT_SCHED_WAKEUP_NEW),
-         std::bind(&CpuDetailParser::SchedWakeupNewEvent, this, std::placeholders::_1)},
         {config_.eventNameMap_.at(TRACE_EVENT_PROCESS_EXIT),
          std::bind(&CpuDetailParser::ProcessExitEvent, this, std::placeholders::_1)},
         {config_.eventNameMap_.at(TRACE_EVENT_IPI_ENTRY),
@@ -66,6 +56,7 @@ CpuDetailParser::CpuDetailParser(TraceDataCache *dataCache, const TraceStreamerF
         {config_.eventNameMap_.at(TRACE_EVENT_TRACING_MARK_WRITE),
          std::bind(&CpuDetailParser::ParseTracingMarkWriteOrPrintEvent, this, std::placeholders::_1)},
     };
+    SchedEventInitialization();
     InterruptEventInitialization();
     ClockEventInitialization();
     CpuEventInitialization();
@@ -74,6 +65,24 @@ CpuDetailParser::CpuDetailParser(TraceDataCache *dataCache, const TraceStreamerF
     StackEventsInitialization();
     VoltageEventInitialization();
     TaskEventInitialization();
+}
+
+void CpuDetailParser::SchedEventInitialization()
+{
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SCHED_SWITCH),
+                                std::bind(&CpuDetailParser::SchedSwitchEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SCHED_BLOCKED_REASON),
+                                std::bind(&CpuDetailParser::SchedBlockReasonEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SCHED_WAKEUP),
+                                std::bind(&CpuDetailParser::SchedWakeupEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SCHED_WAKING),
+                                std::bind(&CpuDetailParser::SchedWakingEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SCHED_WAKEUP_NEW),
+                                std::bind(&CpuDetailParser::SchedWakeupNewEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SCHED_SWITCH_LITE),
+                                std::bind(&CpuDetailParser::SchedSwitchLiteEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SCHED_WAKEUP_LITE),
+                                std::bind(&CpuDetailParser::SchedWakeupLiteEvent, this, std::placeholders::_1));
 }
 
 void CpuDetailParser::InterruptEventInitialization()
@@ -278,9 +287,13 @@ void CpuDetailParser::DealEvent(const RawTraceEventInfo &event)
 }
 bool CpuDetailParser::SchedSwitchEvent(const RawTraceEventInfo &event)
 {
+    if (ifFindSchedSwitchLite_) {
+        TS_LOGI("SCHED_SWITCH and SCHED_SWITCH_LITE both exist, only deal with SCHED_SWITCH");
+        return false;
+    }
+    ifFindSchedSwitch_ = true;
     auto schedSwitchMsg = event.msgPtr->sched_switch_format();
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_SWITCH, STAT_EVENT_RECEIVED);
-
     auto schedSwitchPrevState = schedSwitchMsg.prev_state();
     auto nextInternalTid = streamFilters_->processFilter_->UpdateOrCreateThreadWithName(
         event.msgPtr->timestamp(), schedSwitchMsg.next_pid(), schedSwitchMsg.next_comm());
@@ -295,6 +308,28 @@ bool CpuDetailParser::SchedSwitchEvent(const RawTraceEventInfo &event)
                                                   schedSwitchMsg.next_prio(), nextInfo);
     return true;
 }
+
+bool CpuDetailParser::SchedSwitchLiteEvent(const RawTraceEventInfo &event)
+{
+    if (ifFindSchedSwitch_) {
+        TS_LOGI("SCHED_SWITCH and SCHED_SWITCH_LITE both exist, only deal with SCHED_SWITCH_LITE");
+        return false;
+    }
+    ifFindSchedSwitchLite_ = true;
+    auto schedSwitchLiteMsg = event.msgPtr->sched_switch_lite_format();
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_SWITCH_LITE, STAT_EVENT_RECEIVED);
+    auto schedSwitchPrevState = schedSwitchLiteMsg.prev_state();
+    auto nextInternalTid =
+        streamFilters_->processFilter_->UpdateOrCreateThread(event.msgPtr->timestamp(), schedSwitchLiteMsg.next_pid());
+    auto uprevtid =
+        streamFilters_->processFilter_->UpdateOrCreateThread(event.msgPtr->timestamp(), schedSwitchLiteMsg.prev_pid());
+    DataIndex nextInfo = traceDataCache_->GetDataIndex(std::to_string(schedSwitchLiteMsg.next_info()));
+    streamFilters_->cpuFilter_->InsertSwitchEvent(event.msgPtr->timestamp(), event.cpuId, uprevtid,
+                                                  schedSwitchLiteMsg.prev_prio(), schedSwitchPrevState, nextInternalTid,
+                                                  schedSwitchLiteMsg.next_prio(), nextInfo);
+    return true;
+}
+
 bool CpuDetailParser::SchedBlockReasonEvent(const RawTraceEventInfo &event)
 {
     auto reasonMsg = event.msgPtr->sched_blocked_reason_format();
@@ -315,12 +350,16 @@ bool CpuDetailParser::SchedBlockReasonEvent(const RawTraceEventInfo &event)
     }
     return true;
 }
-bool CpuDetailParser::SchedWakeupEvent(const RawTraceEventInfo &event) const
+bool CpuDetailParser::SchedWakeupEvent(const RawTraceEventInfo &event)
 {
+    if (ifFindSchedWakeupLite_) {
+        TS_LOGI("SCHED_WAKEUP and SCHED_WAKEUP_LITE both exist, only deal with SCHED_WAKEUP_LITE");
+        return false;
+    }
+    ifFindSchedWakeup_ = true;
     auto wakeupMsg = event.msgPtr->sched_wakeup_format();
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_WAKEUP, STAT_EVENT_RECEIVED);
     auto instants = traceDataCache_->GetInstantsData();
-
     InternalTid internalTid =
         streamFilters_->processFilter_->UpdateOrCreateThread(event.msgPtr->timestamp(), wakeupMsg.pid());
     InternalTid wakeupFromPid =
@@ -331,6 +370,28 @@ bool CpuDetailParser::SchedWakeupEvent(const RawTraceEventInfo &event) const
                                                  internalTid);
     return true;
 }
+
+bool CpuDetailParser::SchedWakeupLiteEvent(const RawTraceEventInfo &event)
+{
+    if (ifFindSchedWakeup_) {
+        TS_LOGI("SCHED_WAKEUP and SCHED_WAKEUP_LITE both exist, only deal with SCHED_WAKEUP");
+        return false;
+    }
+    ifFindSchedWakeupLite_ = true;
+    auto wakeupLiteMsg = event.msgPtr->sched_wakeup_lite_format();
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_WAKEUP_LITE, STAT_EVENT_RECEIVED);
+    auto instants = traceDataCache_->GetInstantsData();
+    InternalTid internalTid =
+        streamFilters_->processFilter_->UpdateOrCreateThread(event.msgPtr->timestamp(), wakeupLiteMsg.pid());
+    InternalTid wakeupFromPid =
+        streamFilters_->processFilter_->UpdateOrCreateThread(event.msgPtr->timestamp(), eventTid_);
+    instants->AppendInstantEventData(event.msgPtr->timestamp(), schedWakeupIndex_, internalTid, wakeupFromPid);
+    streamFilters_->cpuFilter_->InsertWakeupEvent(event.msgPtr->timestamp(), internalTid);
+    traceDataCache_->GetRawData()->AppendRawData(event.msgPtr->timestamp(), RAW_SCHED_WAKEUP,
+                                                 wakeupLiteMsg.target_cpu(), internalTid);
+    return true;
+}
+
 bool CpuDetailParser::SchedWakingEvent(const RawTraceEventInfo &event) const
 {
     auto wakeingMsg = event.msgPtr->sched_waking_format();
