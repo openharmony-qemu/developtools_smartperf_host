@@ -30,6 +30,7 @@ import { LogStruct } from '../ui-worker/ProcedureWorkerLog';
 import { query } from '../SqlLite';
 import { Utils } from '../../component/trace/base/Utils';
 import { FuncStruct } from '../ui-worker/ProcedureWorkerFunc';
+import { MemoryType } from '../../bean/MemoryEnum';
 
 export const queryEventCountMap = (
   traceId?: string
@@ -147,17 +148,10 @@ export const queryHeapSizeByIpid = (ipid: number): //@ts-ignore
     FROM
       native_hook h left join process p on p.ipid = h.ipid
     WHERE
-      event_type = 'AllocEvent' and
+      event_type in (${MemoryType.APPLY_NM_EVENTS.map(e => `'${e}'`).join(', ')}) and
       p.ipid = ${ipid}
-    UNION ALL
-    SELECT
-      event_type AS eventType,
-      sum(heap_size) AS sumHeapSize
-    FROM
-      native_hook h left join process p on p.ipid = h.ipid
-    WHERE
-      event_type = 'MmapEvent' and
-      p.ipid = ${ipid}`
+    GROUP BY 
+    event_type;`
   );
 };
 /*-------------------------------------------------------------------------------------*/

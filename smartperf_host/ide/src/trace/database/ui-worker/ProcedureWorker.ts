@@ -79,8 +79,8 @@ import { XpowerGpuFreqCountRender } from './ProcedureWorkerXpowerGpuFreqCount';
 import { XpowerGpuFreqRender } from './ProcedureWorkerXpowerGpuFreq';
 import { SnapShotRender } from './ProcedureWorkerSnaps';
 import { ThreadSysCallRender } from './ProcedureWorkerThreadSysCall';
-import { GpuMemoryRender } from './ProcedureWorkerGpuMemory';
-import { OtherSourceRender } from './ProcedureWorkerOtherSource';
+// import { GpuMemoryRender } from './ProcedureWorkerGpuMemory';
+// import { OtherSourceRender } from './ProcedureWorkerOtherSource';
 
 let dataList: unknown = {};
 let dataList2: unknown = {};
@@ -105,8 +105,6 @@ export let renders = {
   hitch: new hitchTimeRender(),
   'app-so-init': new SoRender(),
   heap: new HeapRender(),
-  gpuMemory: new GpuMemoryRender(),
-  otherSource: new OtherSourceRender(),
   'heap-timeline': new HeapTimelineRender(),
   'heap-snapshot': new HeapSnapshotRender(),
   mem: new MemRender(),
