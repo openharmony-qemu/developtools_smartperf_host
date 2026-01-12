@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2026. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -116,7 +116,7 @@ void PbreaderNativeHookParser::ParseSymbolEvent(const ProtoReader::BytesView &by
     nativeHookFilter_->AppendSymbolMap(ipid, symbolMapReader.id(), nameIndex);
 }
 
-//DONE: add smomapsinfo event
+// DONE: add smomapsinfo event
 void PbreaderNativeHookParser::ParseSMOMaps(const ProtoReader::BytesView &bytesView)
 {
     if (traceDataCache_->isSplitFile_) {
@@ -129,13 +129,16 @@ void PbreaderNativeHookParser::ParseSMOMaps(const ProtoReader::BytesView &bytesV
     ProtoReader::SMOMapsInfo_Reader smoMapsInfo_Reader(bytesView);
 
     for (auto id_tlb = smoMapsInfo_Reader.id_tlb_entries(); id_tlb; id_tlb++) {
-        ProtoReader::SMOIdTlbEntry_Reader smoIdTlbEntry_Reader(id_tlb.GetDataArea().Data(), id_tlb.GetDataArea().Size());
-        auto subNameIndex = traceDataCache_->dataDict_.GetStringIndex(smoMapsInfo_Reader.file_path().ToStdString() + ":" + smoIdTlbEntry_Reader.name().ToStdString());
+        ProtoReader::SMOIdTlbEntry_Reader smoIdTlbEntry_Reader(id_tlb.GetDataArea().Data(),
+                                                               id_tlb.GetDataArea().Size());
+        auto subNameIndex = traceDataCache_->dataDict_.GetStringIndex(smoMapsInfo_Reader.file_path().ToStdString() +
+                                                                      ":" + smoIdTlbEntry_Reader.name().ToStdString());
         nativeHookFilter_->AppendSMOIdTlbInfo(smoIdTlbEntry_Reader.so_index(), subNameIndex);
     }
 
     for (auto map_entry = smoMapsInfo_Reader.map_entries(); map_entry; map_entry++) {
-        ProtoReader::SMOMapEntry_Reader smoMapEntry_Reader(map_entry.GetDataArea().Data(), map_entry.GetDataArea().Size());
+        ProtoReader::SMOMapEntry_Reader smoMapEntry_Reader(map_entry.GetDataArea().Data(),
+                                                           map_entry.GetDataArea().Size());
         auto startAddr = smoMapEntry_Reader.start_addr();
         auto endAddr = smoMapEntry_Reader.end_addr();
         auto soIndex = smoMapEntry_Reader.so_index();
@@ -206,7 +209,9 @@ void PbreaderNativeHookParser::Parse(PbreaderDataSegment &dataSeg, bool &haveSpl
               nativeHookMetaData->reader_->has_mmap_event() || nativeHookMetaData->reader_->has_munmap_event() ||
               nativeHookMetaData->reader_->has_statistics_event() ||
               nativeHookMetaData->reader_->has_trace_alloc_event() ||
-              nativeHookMetaData->reader_->has_trace_free_event());
+              nativeHookMetaData->reader_->has_trace_free_event() ||
+              nativeHookMetaData->reader_->has_trace_move_event() ||
+              nativeHookMetaData->reader_->has_trace_free_region_event());
         hookBootTime_ = 0;
         if (!isCommData_ && (nativeHookMetaData->reader_->has_tv_sec() || nativeHookMetaData->reader_->has_tv_nsec())) {
             auto timeStamp = nativeHookMetaData->reader_->tv_nsec() + nativeHookMetaData->reader_->tv_sec() * SEC_TO_NS;
