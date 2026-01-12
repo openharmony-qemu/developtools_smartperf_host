@@ -306,7 +306,7 @@ export class FrameChart extends BaseElement {
    * @returns 是否包含
    */
   private isExpectedFunction(str: string, symbol: string): boolean {
-    const keyList = Object.keys(asyncStack)
+    const keyList = Object.keys(asyncStack);
     if (keyList.includes(str)) {
       const funcList = (asyncStack as Record<string, string[]>)[str];
       if (funcList.includes(symbol)) {
@@ -348,7 +348,7 @@ export class FrameChart extends BaseElement {
       node.isJsStack = false;
     }
 
-    node.isPurpleSo = this.isExpectedFunction(node.lib, node.symbol)
+    node.isAsyncStack = this.isExpectedFunction(node.lib, node.symbol)
 
 
     //设置搜索以及点选的显示值，将点击/搜索的值设置为父节点的显示值,或者反选有子节点并且只有一个子节点
