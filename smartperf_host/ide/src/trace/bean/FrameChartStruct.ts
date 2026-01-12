@@ -20,6 +20,15 @@ import { BaseStruct, drawString } from '../database/ui-worker/ProcedureWorkerCom
 
 const padding: number = 1;
 const rectHeight = 20;
+const purpleSo = [
+  'libark_jsruntime.so',
+  'libtaskpool.z.so',
+  'libworker.z.so',
+  'libffrt.so',
+  'libeventhandler.z.so',
+  'libuv.so',
+  'libarkweb_engine.so',
+]
 const lightBlue = {
   r: 82,
   g: 145,
@@ -30,6 +39,12 @@ const lightGreen = {
   r: 132,
   g: 200,
   b: 112,
+  a: 0.9,
+};
+const purple = {
+  r: 147,
+  g: 112,
+  b: 219,
   a: 0.9,
 };
 
@@ -79,6 +94,7 @@ export class ChartStruct extends BaseStruct {
   isThread: boolean = false;
   isProcess: boolean = false;
   isJsStack: boolean = false;
+  isPurpleSo: boolean = false;
   sourceFile: string = '';
   lineNumber: Set<number> = new Set<number>();
 }
@@ -151,7 +167,11 @@ export function draw(canvasCtx: CanvasRenderingContext2D, node: ChartStruct): vo
       if (node.isJsStack) {
         canvasCtx.fillStyle = `rgba(${lightGreen.r}, ${lightGreen.g}, ${lightGreen.b}, ${lightGreen.a})`;
       } else {
-        canvasCtx.fillStyle = getHeatColor(node.percent);
+        if (node.isPurpleSo) {
+          canvasCtx.fillStyle = `rgba(${purple.r}, ${purple.g}, ${purple.b}, ${purple.a})`;
+        } else {
+          canvasCtx.fillStyle = getHeatColor(node.percent);
+        }
       }
     }
   }
