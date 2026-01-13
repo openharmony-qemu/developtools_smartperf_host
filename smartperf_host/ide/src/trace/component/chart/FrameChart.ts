@@ -15,7 +15,7 @@
 
 import { BaseElement, element } from '../../../base-ui/BaseElement';
 import { Rect } from '../trace/timer-shaft/Rect';
-import { ChartMode, ChartStruct, draw, setFuncFrame } from '../../bean/FrameChartStruct';
+import { ChartMode, ChartStruct, draw, setFuncFrame, splitSymbol } from '../../bean/FrameChartStruct';
 import { SpApplication } from '../../SpApplication';
 import { Utils } from '../trace/base/Utils';
 import { TabPaneFilter } from '../trace/sheet/TabPaneFilter';
@@ -347,8 +347,7 @@ export class FrameChart extends BaseElement {
     } else {
       node.isJsStack = false;
     }
-
-    node.isAsyncStack = this.isExpectedFunction(node.lib, node.symbol)
+    node.isAsyncStack = this.isExpectedFunction(node.lib, splitSymbol(node))
 
 
     //设置搜索以及点选的显示值，将点击/搜索的值设置为父节点的显示值,或者反选有子节点并且只有一个子节点

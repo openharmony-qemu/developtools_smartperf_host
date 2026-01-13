@@ -196,7 +196,7 @@ export function draw(canvasCtx: CanvasRenderingContext2D, node: ChartStruct): vo
   node.isDraw = true;
 }
 
-function splitSymbol(node: ChartStruct): string {
+export function splitSymbol(node: ChartStruct): string {
   if (node.depth === 0 || node.isProcess || node.isThread) {
     return node.symbol;
   }
