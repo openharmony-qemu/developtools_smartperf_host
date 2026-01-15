@@ -233,13 +233,12 @@ export class TabPaneCurrentSelection extends BaseElement {
   }
 
   // 处理next_info的展示
-  parseSchedSwitchHmNew(num: number): string {
-    let numBig = BigInt(num);
+  parseSchedSwitchHmNew(num: bigint): string {
     // 将数字拆分为高32位和低32位
     // @ts-ignore
-    const low = Number(numBig & 0xFFFFFFFFn);
+    const low = Number(num & 0xFFFFFFFFn);
     // @ts-ignore
-    const high = Number((numBig >> 32n) & 0xFFFFFFFFn);
+    const high = Number((num >> 32n) & 0xFFFFFFFFn);
 
     // 创建一个8字节的Uint8Array
     const buffer = new Uint8Array(8);
@@ -303,7 +302,7 @@ export class TabPaneCurrentSelection extends BaseElement {
       if (args.length > 0) {
         args.forEach((arg) => {
           if (arg.keyName === 'next_info') {
-            list.push({ name: arg.keyName, value: arg.strValue?.indexOf(',') === -1 ? this.parseSchedSwitchHmNew(Number(arg.strValue)) : arg.strValue });
+            list.push({ name: arg.keyName, value: arg.strValue?.indexOf(',') === -1 ? this.parseSchedSwitchHmNew(BigInt(arg.strValue)) : arg.strValue });
           } else {
             list.push({ name: arg.keyName, value: arg.strValue })
           }
@@ -1427,7 +1426,7 @@ export class TabPaneCurrentSelection extends BaseElement {
           // @ts-ignore
           if (arg.keyName === 'next_info') {
             // @ts-ignore
-            list.push({ name: arg.keyName, value: arg.strValue?.indexOf(',') === -1 ? this.parseSchedSwitchHmNew(Number(arg.strValue)) : arg.strValue });
+            list.push({ name: arg.keyName, value: arg.strValue?.indexOf(',') === -1 ? this.parseSchedSwitchHmNew(BigInt(arg.strValue)) : arg.strValue });
           } else {
             // @ts-ignore
             list.push({ name: arg.keyName, value: arg.strValue })
