@@ -26,60 +26,6 @@ export class GpuMemoryEventHeap {
   sumHeapSize: number = 0;
 }
 
-export const queryCount = (): Promise<Array<{ num: number }>> =>
-  query('queryCount', `select count(1) num from native_hook_statistic`, {});
-
-export const queryStatisticType = (): Promise<Array<{ num: number }>> =>
-  query('queryStatisticType', `SELECT 
-  EXISTS(SELECT 1 FROM native_hook_statistic WHERE type = 6) AS vk,
-  EXISTS(SELECT 1 FROM native_hook_statistic WHERE type = 7) AS og,
-  EXISTS(SELECT 1 FROM native_hook_statistic WHERE type = 8) AS oc;`, {});
-
-export const queryGpuType = (): Promise<Array<{ num: number }>> =>
-  query('queryGpuType', `SELECT 
-    EXISTS(SELECT 1 FROM native_hook WHERE event_type = 'GPU_VK_Alloc_Event') AS vkAlloc,
-    EXISTS(SELECT 1 FROM native_hook WHERE event_type = 'GPU_VK_Free_Event') AS vkFree,
-    EXISTS(SELECT 1 FROM native_hook WHERE event_type = 'GPU_GLES_Alloc_Event') AS ogAlloc,
-    EXISTS(SELECT 1 FROM native_hook WHERE event_type = 'GPU_GLES_Free_Event') AS ogFree,
-    EXISTS(SELECT 1 FROM native_hook WHERE event_type = 'GPU_CL_Alloc_Event') AS ocAlloc,
-    EXISTS(SELECT 1 FROM native_hook WHERE event_type = 'GPU_CL_Free_Event') AS ocFree;`, {});
-
-export const queryProcess = (table: string): Promise<Array<gpuProcess>> => {
-  let sql = `
-    select
-      distinct ${table}.ipid,
-      pid,
-      name
-    from
-      ${table}
-    left join
-      process p
-    on
-      ${table}.ipid = p.id
-    `;
-  return query('queryProcess', sql, {});
-};
-
-export const queryGpuMemoryRealTime = (): //@ts-ignore
-  Promise<Array<unknown>> =>
-  query(
-    'queryGpuMemoryRealTime',
-    `select cs.ts,cs.clock_name from datasource_clockid dc 
-    left join clock_snapshot cs on dc.clock_id = cs.clock_id 
-    where data_source_name = 'memory-plugin' or data_source_name = 'nativehook'
-`,
-    {}
-  );
-
-export const queryBootTime = (): //@ts-ignore
-  Promise<Array<unknown>> =>
-  query(
-    'queryBootTime',
-    `select CS.ts -TR.start_ts as ts ,clock_name from clock_snapshot as CS ,trace_range as TR
-      where clock_name = 'boottime'`,
-    {}
-  );
-
 export const queryGpuMemoryGroupByEvent = (type: string): Promise<Array<GpuMemoryEventHeap>> => {
   let sql = `
         SELECT
@@ -118,18 +64,7 @@ export const queryNativeHookStatisticSubType = (
 Promise<Array<unknown>> => {
   let condition = '';
   if (types && types.length > 0) {
-    const sortedTypes: number[] = [...new Set(types)].map(type => Number(type)).sort((a, b) => a - b);
-    if (sortedTypes.includes(0)) {
-      condition = 'NHS.type IN (6,7,8)';
-    } else {
-      const typeValues: number[] = [];
-      if (sortedTypes.includes(1)) typeValues.push(6);
-      if (sortedTypes.includes(2)) typeValues.push(7);
-      if (sortedTypes.includes(3)) typeValues.push(8);
-      if (typeValues.length > 0) {
-        condition = `NHS.type IN (${typeValues.join(',')})`;
-      }
-    }
+    condition = `NHS.type IN (${types.join(',')})`;
   }
   return query(
     'queryNativeHookStatisticSubType',
@@ -287,19 +222,7 @@ export const queryNativeHookStatisticsMalloc = (
   Promise<Array<unknown>> => {
     let condition = '';
     if (types && types.length > 0) {
-      const sortedTypes: number[] = [...new Set(types)].map(type => Number(type)).sort((a, b) => a - b);
-      if (sortedTypes.includes(0)) {
-        condition = `NH.event_type IN ('GPU_VK_Alloc_Event', 'GPU_GLES_Alloc_Event', 'GPU_CL_Alloc_Event')`;
-      } else {
-        const typeValues: string[] = [];
-        if (sortedTypes.includes(1)) typeValues.push('GPU_VK_Alloc_Event');
-        if (sortedTypes.includes(2)) typeValues.push('GPU_GLES_Alloc_Event');
-        if (sortedTypes.includes(3)) typeValues.push('GPU_CL_Alloc_Event');
-        if (typeValues.length > 0) {
-          const quotedValues = typeValues.map(value => `'${value}'`).join(',');
-          condition = `NH.event_type IN (${quotedValues})`;
-        }
-      }
+      condition = `NH.event_type IN (${types.map(type => type).join(',')})`;
     }
     return query(
       'queryNativeHookSubType',

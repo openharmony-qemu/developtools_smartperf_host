@@ -67,6 +67,8 @@ if [ ! -d "hiviewdfx/faultloggerd" ];then
    cd hiviewdfx/faultloggerd
    perl -pi -e 's/\r$//' interfaces/innerkits/unwinder/src/elf/dfx_elf.cpp
    $patch -p1  < ../../../prebuilts/patch_hiperf/hiviewdfx_faultloggerd.patch
+   perl -pi -e 's/\r$//' interfaces/innerkits/unwinder/include/dfx_elf.h
+   $patch -p1  < ../../../prebuilts/patch_hiperf/hiviewdfx_faultloggerd_smo.patch
    cd ../../
 fi
 
@@ -74,6 +76,7 @@ if [ ! -f "hiperf/BUILD.gn" ];then
     git clone --depth=1 git@gitee.com:openharmony/developtools_hiperf.git hiperf
     cd hiperf
     $patch -p1  < ../../prebuilts/patch_hiperf/hiperf.patch
+    $patch -p1  < ../../prebuilts/patch_hiperf/hiperf_smo.patch
     cd ..
 fi
 

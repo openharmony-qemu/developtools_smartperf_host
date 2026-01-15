@@ -155,8 +155,8 @@ export class SpLtpoChart {
   initFpsName(): void {
     SpLtpoChart.fpsnameList.map((item) => {
       if (item.name!.indexOf('=') === -1) {
-        let cutFpsNameArr = item.name!.split(',')[0].split(':');
-        let cutFpsNameTimeArr = item.name!.split(',')[1].split(':');
+        let cutFpsNameArr = item.name!.indexOf('CommitLayers screenId') === -1? item.name!.split(',')[0].split(':') : item.name!.split(',')[1].split(':');
+        let cutFpsNameTimeArr = item.name!.indexOf('CommitLayers screenId') === -1? item.name!.split(',')[1].split(':') : item.name!.split(',')[2].split(':');
         item.fps = Number(cutFpsNameArr[cutFpsNameArr.length - 1]);
         item.nowTime = Number(cutFpsNameTimeArr[cutFpsNameTimeArr.length - 1]);
       } else {

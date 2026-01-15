@@ -16,7 +16,7 @@ import { lostFrameList } from './utils/AllMemoryCache';
 
 export const queryPresentInfo = (args: any): string => {
   return `SELECT ts,dur,name FROM callstack WHERE callid in (SELECT id FROM "thread" WHERE name LIKE('${args.threadName}'))
-    AND name LIKE('${args.funcName}')`;
+    AND (name LIKE('${args.funcName}') OR name LIKE('H:Waiting for PresentFence_%'))`;
 };
 
 export function lostFrameReceiver(data: any, proc: Function): void {

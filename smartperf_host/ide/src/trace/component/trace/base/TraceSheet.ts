@@ -16,11 +16,11 @@
 import { BaseElement, element } from '../../../../base-ui/BaseElement';
 import { type LitTabs } from '../../../../base-ui/tabs/lit-tabs';
 import { LitTabpane } from '../../../../base-ui/tabs/lit-tabpane';
-import { 
-  BoxJumpParam, 
+import {
+  BoxJumpParam,
   SelectionParam,
   SysCallBoxJumpParam,
-  SliceBoxJumpParam, 
+  SliceBoxJumpParam,
   PerfSampleBoxJumpParam
 } from '../../../bean/BoxSelection';
 import { type TabPaneCurrentSelection } from '../sheet/TabPaneCurrentSelection';
@@ -56,7 +56,7 @@ import { type AppStartupStruct } from '../../../database/ui-worker/ProcedureWork
 import { type AllAppStartupStruct } from '../../../database/ui-worker/ProcedureWorkerAllAppStartup';
 import { type SoStruct } from '../../../database/ui-worker/ProcedureWorkerSoInit';
 import { type FrameAnimationStruct } from '../../../database/ui-worker/ProcedureWorkerFrameAnimation';
-import { type TraceRow } from './TraceRow';
+import { TraceRow } from './TraceRow';
 import { type FrameDynamicStruct } from '../../../database/ui-worker/ProcedureWorkerFrameDynamic';
 import { type TabPaneFrameDynamic } from '../sheet/frame/TabPaneFrameDynamic';
 import { type FrameSpacingStruct } from '../../../database/ui-worker/ProcedureWorkerFrameSpacing';
@@ -121,6 +121,8 @@ import { XpowerGpuFreqCountStruct } from '../../../database/ui-worker/ProcedureW
 import { TabPaneSysCallChild } from '../sheet/process/TabPaneSysCallChild';
 import { TabPanePerfSampleChild } from '../sheet/hiperf/TabPerfSampleChild';
 import { TabPaneSchedTaskChild } from '../sheet/cpu/TabPaneSchedTaskChild';
+import { MemoryAnalysisDataLogic } from './MemoryAnalysisData';
+import { MemoryTraceRowType } from '../../../bean/MemoryEnum';
 
 
 @element('trace-sheet')
@@ -353,8 +355,8 @@ export class TraceSheet extends BaseElement {
     this.currentPaneID = 'box-perf-analysis';
     //隐藏除了当前Tab页的其他Tab页
     this.shadowRoot!.querySelectorAll<LitTabpane>('lit-tabpane').forEach(
-      (it)=>{
-        if(it.id === this.currentPaneID) {
+      (it) => {
+        if (it.id === this.currentPaneID) {
           it.hidden = false;
         }
       }
@@ -681,9 +683,9 @@ export class TraceSheet extends BaseElement {
       let timerOut = window.setTimeout(() => {
         window.clearTimeout(timerOut);
         let errorTipHtml = document.querySelector('body > sp-application')?.shadowRoot?.querySelector('#sp-system-trace')
-        ?.shadowRoot?.querySelector('div > trace-sheet')?.shadowRoot?.querySelector('#box-perf-analysis > tabpane-perf-analysis')?.shadowRoot?.querySelector('#SO-err-tips');
+          ?.shadowRoot?.querySelector('div > trace-sheet')?.shadowRoot?.querySelector('#box-perf-analysis > tabpane-perf-analysis')?.shadowRoot?.querySelector('#SO-err-tips');
         let connected = document.querySelector('body > sp-application')
-        ?.shadowRoot?.querySelector('#main-menu')?.shadowRoot?.querySelector('div.bottom > div.extend_connect') as HTMLDivElement;
+          ?.shadowRoot?.querySelector('#main-menu')?.shadowRoot?.querySelector('div.bottom > div.extend_connect') as HTMLDivElement;
         if (connected && connected.style.backgroundColor !== 'green') {
           errorTipHtml!.innerHTML = 'Please check if the extension service is enabled and try again!';
           importFileBt!.files = null;
@@ -701,47 +703,47 @@ export class TraceSheet extends BaseElement {
             this.loadSoComplete = false;
             window.publish(window.SmartEvent.UI.Loading, { loading: true, text: 'Import So File' });
             this.uploadSoOrAN(fileList).then(r => {
-            errorTipHtml!.innerHTML = '';
-            let soFileList = fileList.filter(item => !item.name.includes('.an'));
-            if (soFileList.length === 0) {
-              window.publish(window.SmartEvent.UI.UploadSOFile, {});
-              importFileBt!.disabled = false;
-              return;
+              errorTipHtml!.innerHTML = '';
+              let soFileList = fileList.filter(item => !item.name.includes('.an'));
+              if (soFileList.length === 0) {
+                window.publish(window.SmartEvent.UI.UploadSOFile, {});
+                importFileBt!.disabled = false;
+                return;
+              }
+              threadPool.submit(
+                'upload-so',
+                '',
+                soFileList,
+                (res: unknown) => {
+                  importFileBt!.disabled = false; // @ts-ignore
+                  if (res.result === 'ok') {
+                    window.publish(window.SmartEvent.UI.UploadSOFile, {});
+                    this.loadSoComplete = true;
+                  } else {
+                    // @ts-ignore
+                    const failedList = res.failedArray.join(',');
+                    window.publish(window.SmartEvent.UI.Error, `parse so file ${failedList} failed!`);
+                  }
+                },
+                'upload-so'
+              )
             }
-            threadPool.submit(
-              'upload-so',
-              '',
-              soFileList,
-              (res: unknown) => {
-                importFileBt!.disabled = false; // @ts-ignore
-                if (res.result === 'ok') {
-                  window.publish(window.SmartEvent.UI.UploadSOFile, {});
-                  this.loadSoComplete = true;
-                } else {
-                  // @ts-ignore
-                  const failedList = res.failedArray.join(',');
-                  window.publish(window.SmartEvent.UI.Error, `parse so file ${failedList} failed!`);
-                }
-              },
-              'upload-so'
-            )
+            ).finally(() => {
+              fileList.length = 0;
+            })
           }
-          ).finally(() => {
-            fileList.length = 0;
-          })
         }
-      }
-      importFileBt!.files = null;
-      importFileBt!.value = '';
+        importFileBt!.files = null;
+        importFileBt!.value = '';
       }, 500)
     });
     this.addClickEventToSoSymbolImport();
   }
 
-  private addClickEventToSoSymbolImport(): void{
+  private addClickEventToSoSymbolImport(): void {
     let symbolBt: HTMLInputElement | undefined | null =
       this.shadowRoot?.querySelector<HTMLInputElement>('#so-symbolization');
-      symbolBt!.addEventListener('change', (event): void => {
+    symbolBt!.addEventListener('change', (event): void => {
       let files = symbolBt?.files;
       if (files) {
         let fileList: Array<File> = [];
@@ -767,13 +769,13 @@ export class TraceSheet extends BaseElement {
               symbolBt!.disabled = false;
               setTimeout(() => {
                 // @ts-ignore
-              if (res.result === 'ok') {
-                window.publish(window.SmartEvent.UI.UploadSOFile, {});
-              } else {
-                // @ts-ignore
-                const failedList = res.failedArray.join(',');
-                window.publish(window.SmartEvent.UI.Error, `parse so file ${failedList} failed!`);
-              }
+                if (res.result === 'ok') {
+                  window.publish(window.SmartEvent.UI.UploadSOFile, {});
+                } else {
+                  // @ts-ignore
+                  const failedList = res.failedArray.join(',');
+                  window.publish(window.SmartEvent.UI.Error, `parse so file ${failedList} failed!`);
+                }
               }, 500);
             },
             'upload-so'
@@ -858,7 +860,7 @@ export class TraceSheet extends BaseElement {
         let blob: Blob | null = file.slice(writeSize, writeSize + sliceLen);
         let buffer: ArrayBuffer | null = await blob.arrayBuffer();
         let data: Uint8Array | null = new Uint8Array(buffer);
-		const dataObject = {
+        const dataObject = {
           file_name: fileName,
           buffer_index: bufferIndex,
           buffer_size: sliceLen,
@@ -866,7 +868,7 @@ export class TraceSheet extends BaseElement {
           is_last: writeSize + sliceLen >= file.size
         };
         const dataString = JSON.stringify(dataObject);
-		const jsonStr = `${dataString.length}|${dataString}`;
+        const jsonStr = `${dataString.length}|${dataString}`;
         const textEncoder = new TextEncoder();
         const jsonData = textEncoder.encode(jsonStr);
         let mergeData: Uint8Array = new Uint8Array(jsonData.length + data.length);
@@ -1008,7 +1010,7 @@ export class TraceSheet extends BaseElement {
       callback
     );
 
-  displaySysCallData = (data: ThreadSysCallStruct) => 
+  displaySysCallData = (data: ThreadSysCallStruct) =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setSysCallData(data);
   displayMemData = (data: ProcessMemStruct): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setMemData(data);
@@ -1055,44 +1057,34 @@ export class TraceSheet extends BaseElement {
   displayStaticInitData = (data: SoStruct, scrollCallback: Function): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setStaticInitData(data, scrollCallback);
 
-  displayNativeHookData = (data: HeapStruct, rowType: string, ipid: number): void => {
+  // 统计模式点选
+  displayGenicMemoryData = (data: HeapStruct, childrenRowType: string, ipid: number, rowType: string): void => {
     let val = new SelectionParam();
-    val.nativeMemoryStatistic.push(rowType);
-    val.nativeMemoryCurrentIPid = ipid;
-    val.nativeMemory = [];
     val.leftNs = data.startTime! + data.dur!;
     val.rightNs = data.startTime! + data.dur! + 1;
     this.selection = val;
-    this.displayTab<TabPaneNMStatisticAnalysis>('box-native-statistic-analysis', 'box-native-calltree').data = val;
-    this.showUploadSoBt(val);
-    this.showSwitchProcessBt(val);
-  };
+    switch (rowType) {
+      case TraceRow.ROW_TYPE_HEAP:
+        val.nativeMemoryStatistic.push(childrenRowType);
+        val.nativeMemoryCurrentIPid = ipid;
+        val.nativeMemory = [];
+        this.displayTab<TabPaneNMStatisticAnalysis>('box-native-statistic-analysis', 'box-native-calltree').data = val;
+        break;
+      case TraceRow.ROW_TYPE_GPU_HEAP:
+        val.gpuMemoryStatistic.push(childrenRowType);
+        val.gpuMemoryCurrentIPid = ipid;
+        val.gpuMemory = [];
+        this.displayTab<TabPaneGMStatisticAnalysis>('box-gpu-statistic-analysis', 'box-gpu-calltree').data = val;
 
-  displayGMHookData = (data: HeapStruct, rowType: string, ipid: number): void => {
-    let val = new SelectionParam();
-    val.gpuMemoryStatistic.push(rowType);
-    val.gpuMemoryCurrentIPid = ipid;
-    val.gpuMemory = [];
-    val.leftNs = data.startTime! + data.dur!;
-    val.rightNs = data.startTime! + data.dur! + 1;
-    this.selection = val;
-    this.displayTab<TabPaneGMStatisticAnalysis>('box-gpu-statistic-analysis', 'box-gpu-calltree').data = val;
-    this.showUploadSoBt(val);
-    this.showSwitchProcessBt(val);
-  };
-
-  displayOSHookData = (data: HeapStruct, rowType: string, ipid: number): void => {
-    let val = new SelectionParam();
-    val.otherSourceStatistic.push(rowType);
-    val.otherSourceCurrentIPid = ipid;
-    val.otherSource = [];
-    val.leftNs = data.startTime! + data.dur!;
-    val.rightNs = data.startTime! + data.dur! + 1;
-    this.selection = val;
-    this.displayTab<TabPaneGMStatisticAnalysis>('box-other-source-analysis', 'box-os-calltree').data = val;
-    this.showUploadSoBt(val);
-    this.showSwitchProcessBt(val);
-  };
+        break;
+      case TraceRow.ROW_TYPE_OTHER_SOURCE_HEAP:
+        val.otherSourceStatistic.push(childrenRowType);
+        val.otherSourceCurrentIPid = ipid;
+        val.otherSource = [];
+        this.displayTab<TabPaneGMStatisticAnalysis>('box-other-source-analysis', 'box-os-calltree').data = val;
+        break;
+    }
+  }
 
   displayGpuSelectedData = (type: string, startTs: number, dataList: Array<SnapshotStruct>): void => {
     this.displayTab<TabPaneGpuClickSelectComparison>('gpu-click-select-comparison').getGpuClickDataByDB(
@@ -1415,24 +1407,25 @@ export class TraceSheet extends BaseElement {
     ) {
       let param: SelectionParam = new SelectionParam();
       Object.assign(param, this.selection);
+      const logic = new MemoryAnalysisDataLogic();
       if (param.nativeMemory.length > 0 || param.nativeMemoryStatistic.length > 0) {
-        Utils.getInstance().initResponseTypeList(param);
+        logic.setMemoryType(MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY);
         if (ipid) {
-          Utils.getInstance().setCurrentSelectIPid(ipid);
+          logic.setCurrentSelectIPid(ipid);
           param.nativeMemoryCurrentIPid = ipid;
         }
       }
       if (param.gpuMemory.length > 0 || param.gpuMemoryStatistic.length > 0) {
-        Utils.getInstance().initGpuResponseTypeList(param);
+        logic.setMemoryType(MemoryTraceRowType.ROW_TYPE_GPU_MEMORY);
         if (ipid) {
-          Utils.getInstance().setGpuCurrentSelectIPid(ipid);
+          logic.setCurrentSelectIPid(ipid);
           param.gpuMemoryCurrentIPid = ipid;
         }
       }
       if (param.otherSource.length > 0 || param.otherSourceStatistic.length > 0) {
-        Utils.getInstance().initOtherSourceResponseTypeList(param);
+        logic.setMemoryType(MemoryTraceRowType.ROW_TYPE_OTHER_SOURCE);
         if (ipid) {
-          Utils.getInstance().setOherSourceCurrentSelectIPid(ipid);
+          logic.setCurrentSelectIPid(ipid);
           param.otherSourceCurrentIPid = ipid;
         }
       }
@@ -1555,12 +1548,12 @@ export class TraceSheet extends BaseElement {
     pane.hidden = false;
     this.litTabs!.activeByKey(pane.key); //显示key值对应的Tab页
     // @ts-ignore
-    if(e.detail.tid){
+    if (e.detail.tid) {
       // @ts-ignore
-      pane.tab = Utils.getInstance().getThreadMap().get(Number(e.detail.tid))?`${Utils.getInstance().getThreadMap().get(Number(e.detail.tid))}[${e.detail.tid}]`:`Thread[${e.detail.tid}]`;
-    }else{
+      pane.tab = Utils.getInstance().getThreadMap().get(Number(e.detail.tid)) ? `${Utils.getInstance().getThreadMap().get(Number(e.detail.tid))}[${e.detail.tid}]` : `Thread[${e.detail.tid}]`;
+    } else {
       // @ts-ignore
-      pane.tab = Utils.getInstance().getProcessMap().get(Number(e.detail.pid))?`${Utils.getInstance().getProcessMap().get(Number(e.detail.pid))}[${Number(e.detail.pid)}]`:`Process[${e.detail.pid}]`;
+      pane.tab = Utils.getInstance().getProcessMap().get(Number(e.detail.pid)) ? `${Utils.getInstance().getProcessMap().get(Number(e.detail.pid))}[${Number(e.detail.pid)}]` : `Process[${e.detail.pid}]`;
     }
     let param = new BoxJumpParam();
     param.traceId = this.selection!.traceId;
@@ -1625,7 +1618,7 @@ export class TraceSheet extends BaseElement {
     if (level === 'Process') {
       // @ts-ignore
       param.processId = [e.detail.id];
-    } else if (level === 'Thread'){
+    } else if (level === 'Thread') {
       // @ts-ignore
       param.processId = [e.detail.parentId];
       // @ts-ignore
@@ -1635,7 +1628,7 @@ export class TraceSheet extends BaseElement {
       param.threadId = [e.detail.parentId];
       // @ts-ignore
       param.sysCallId = e.detail.id;
-    }  
+    }
     param.isJumpPage = true; // @ts-ignore
     (pane.children.item(0) as TabPaneSysCallChild).data = param;
   }

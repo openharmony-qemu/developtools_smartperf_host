@@ -892,14 +892,16 @@ HWTEST_F(TableTest, PerfFilesTableTest, TestSize.Level1)
     uint32_t serial = 1;
     DataIndex symbols = stream_.traceDataCache_->GetDataIndex("symbol");
     DataIndex filePath = stream_.traceDataCache_->GetDataIndex("filePath");
+    DataIndex soName = stream_.traceDataCache_->GetDataIndex("soName");
 
     uint64_t fileIds1 = stream_.traceDataCache_->GetDataIndex("file1");
     uint32_t serial1 = 1;
     DataIndex symbols1 = stream_.traceDataCache_->GetDataIndex("symbol1");
     DataIndex filePath1 = stream_.traceDataCache_->GetDataIndex("filePath1");
+    DataIndex soName1 = stream_.traceDataCache_->GetDataIndex("soName1");
 
-    stream_.traceDataCache_->GetPerfFilesData()->AppendNewPerfFiles(fileIds, serial, symbols, filePath);
-    stream_.traceDataCache_->GetPerfFilesData()->AppendNewPerfFiles(fileIds1, serial1, symbols1, filePath1);
+    stream_.traceDataCache_->GetPerfFilesData()->AppendNewPerfFiles(fileIds, serial, symbols, filePath, soName);
+    stream_.traceDataCache_->GetPerfFilesData()->AppendNewPerfFiles(fileIds1, serial1, symbols1, filePath1, soName1);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 1);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect2, false), 0);

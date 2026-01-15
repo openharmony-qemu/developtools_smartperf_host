@@ -40,7 +40,6 @@ import { xpowerAppDetailDataReceiver } from '../xpower/XpowerAppDetailDataReceiv
 import {
   dmaDataReceiver,
   gpuDataReceiver,
-  gpuMemoryDataReceiver,
   gpuResourceDataReceiver,
   gpuTotalDataReceiver,
   gpuWindowDataReceiver,
@@ -71,8 +70,6 @@ import { cpuProfilerDataReceiver } from '../ArkTsReceiver';
 import { frameActualReceiver, frameExpectedReceiver } from '../FrameJanksReceiver';
 import { diskIoReceiver, eBPFVmReceiver, fileSystemDataReceiver } from '../EBPFReceiver';
 import { nativeMemoryDataHandler } from '../NativeMemoryDataReceiver';
-import { gpuMemoryDataHandler } from '../GpuMemoryDataReceiver';
-import { otherSourceDataHandler } from '../OtherSourceDataReceiver';
 import { frameAnimationReceiver, frameDynamicReceiver, frameSpacingReceiver } from '../FrameDynamicEffectReceiver';
 import {
   energySysEventReceiver,
@@ -113,12 +110,6 @@ traficHandlers.set(QueryEnum.HiperfThreadData, hiperfThreadDataReceiver);
 traficHandlers.set(QueryEnum.NativeMemoryChartCacheNormal, nativeMemoryDataHandler);
 traficHandlers.set(QueryEnum.NativeMemoryChartCacheStatistic, nativeMemoryDataHandler);
 traficHandlers.set(QueryEnum.NativeMemoryChartData, nativeMemoryDataHandler);
-traficHandlers.set(QueryEnum.GpuMemoryCacheNormal, gpuMemoryDataHandler);
-traficHandlers.set(QueryEnum.GpuMemoryCacheStatistic, gpuMemoryDataHandler);
-traficHandlers.set(QueryEnum.GpuMemoryData, gpuMemoryDataHandler);
-traficHandlers.set(QueryEnum.otherSourceCacheNormal, otherSourceDataHandler);
-traficHandlers.set(QueryEnum.otherSourceCacheStatistic, otherSourceDataHandler);
-traficHandlers.set(QueryEnum.otherSourceData, otherSourceDataHandler);
 traficHandlers.set(QueryEnum.HangData, hangDataReceiver);
 traficHandlers.set(QueryEnum.ClockData, clockDataReceiver);
 traficHandlers.set(QueryEnum.IrqData, irqDataReceiver);
@@ -132,7 +123,6 @@ traficHandlers.set(QueryEnum.processDeliverInputEventData, processDeliverInputEv
 traficHandlers.set(QueryEnum.processTouchEventDispatchData, processTouchEventDispatchDataReceiver);
 traficHandlers.set(QueryEnum.VmTrackerSmapsData, sMapsDataReceiver);
 traficHandlers.set(QueryEnum.VmTrackerDmaData, dmaDataReceiver);
-traficHandlers.set(QueryEnum.VmTrackerGpuMemoryData, gpuMemoryDataReceiver);
 traficHandlers.set(QueryEnum.VmTrackerGpuData, gpuDataReceiver);
 traficHandlers.set(QueryEnum.VmTrackerGpuResourceData, gpuResourceDataReceiver);
 traficHandlers.set(QueryEnum.VmTrackerGpuTotalData, gpuTotalDataReceiver);

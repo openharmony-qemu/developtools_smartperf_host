@@ -116,13 +116,14 @@ void PerfCallChain::SetSourceFileNameAndLineNumber(size_t index, DataIndex Sourc
         lineNumbers_[index] = lineNumber;
     }
 }
-size_t PerfFiles::AppendNewPerfFiles(uint64_t fileIds, uint32_t serial, DataIndex symbols, DataIndex filePath)
+size_t PerfFiles::AppendNewPerfFiles(uint64_t fileIds, uint32_t serial, DataIndex symbols, DataIndex filePath, DataIndex soName)
 {
     ids_.emplace_back(Size());
     fileIds_.emplace_back(fileIds);
     serials_.emplace_back(serial);
     symbols_.emplace_back(symbols);
     filePaths_.emplace_back(filePath);
+    soNames_.emplace_back(soName);
     return Size() - 1;
 }
 const std::deque<uint64_t> &PerfFiles::FileIds() const
@@ -141,6 +142,10 @@ const std::deque<DataIndex> &PerfFiles::Symbols() const
 const std::deque<DataIndex> &PerfFiles::FilePaths() const
 {
     return filePaths_;
+}
+const std::deque<DataIndex> &PerfFiles::SoNames() const
+{
+    return soNames_;
 }
 
 bool PerfFiles::EraseFileIdSameData(uint64_t fileId)
@@ -168,6 +173,29 @@ bool PerfFiles::EraseFileIdSameData(uint64_t fileId)
     }
     return false;
 }
+bool PerfFiles::RefreshFileIdSoNames(uint64_t fileId, std::vector<DataIndex>& soNames)
+{
+    uint64_t start = INVALID_UINT64;
+    uint64_t end = INVALID_UINT64;
+    for (auto row = 0; row < Size(); row++) {
+        if (fileIds_[row] == fileId) {
+            if (start == INVALID_UINT64) {
+                start = row;
+                end = row;
+            } else {
+                end = row;
+            }
+        }
+    }
+    end++;
+    if (start != INVALID_DATAINDEX && end <= Size() && end - start == soNames.size()) {
+        for (int id = 0; id < soNames.size(); id++) {
+            soNames_[start + id] = soNames[id];
+        }
+        return true;
+    }
+    return false;
+}
 void PerfFiles::Clear()
 {
     CacheBase::Clear();
@@ -175,6 +203,7 @@ void PerfFiles::Clear()
     serials_.clear();
     symbols_.clear();
     filePaths_.clear();
+    soNames_.clear();
 }
 
 size_t PerfSample::AppendNewPerfSample(const PerfSampleRow &perfSampleRow)

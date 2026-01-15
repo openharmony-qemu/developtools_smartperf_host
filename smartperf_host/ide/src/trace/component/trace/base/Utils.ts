@@ -14,6 +14,7 @@
  */
 
 import { SelectionParam } from '../../../bean/BoxSelection';
+import { MemoryBasicType, MemoryStatisticType, MemoryTraceRowType, MemoryType } from '../../../bean/MemoryEnum';
 import { procedurePool } from '../../../database/Procedure';
 import { queryNativeHookResponseTypes } from '../../../database/sql/NativeHook.sql';
 import { TraceMode } from '../../../SpApplicationPublicFunc';
@@ -723,110 +724,48 @@ export class Utils {
     return Math.max(startTime, startTime1) <= Math.min(endTime, endTime1);
   }
 
-  initResponseTypeList(val: SelectionParam): void {
-    const isStatistic = val.nativeMemoryStatistic.length > 0;
-    const selection = isStatistic ? val.nativeMemoryStatistic : val.nativeMemory;
-    let types: Array<string | number> = [];
-    if (selection.indexOf('All Heap & Anonymous VM') !== -1) {
-      if (isStatistic) {
-        types.push(0, 1, 2, 3);
-      } else {
-        types.push("'AllocEvent'", "'MmapEvent'");
-      }
-    } else {
-      if (selection.indexOf('All Heap') !== -1) {
-        if (isStatistic) {
-          types.push(0);
-        } else {
-          types.push("'AllocEvent'");
-        }
-      }
-      if (selection.indexOf('All Anonymous VM') !== -1) {
-        if (isStatistic) {
-          types.push(1, 2, 3);
-        } else {
-          types.push("'MmapEvent'");
-        }
-      }
-    }
-    queryNativeHookResponseTypes(val.leftNs, val.rightNs, types, val.nativeMemoryCurrentIPid, isStatistic).then((res): void => {
-      procedurePool.submitWithName('logic0', 'native-memory-init-responseType', res, undefined, (): void => { });
-    });
-  }
-
   initGpuResponseTypeList(val: SelectionParam): void {
     const isStatistic = val.gpuMemoryStatistic.length > 0;
     const selection = isStatistic ? val.gpuMemoryStatistic : val.gpuMemory;
     let types: Array<string | number> = [];
 
-    if (selection.indexOf('Graphic Memory') !== -1) {
+    if (selection.indexOf(MemoryBasicType.GPU_MEMORY[0]) !== -1) {
       if (isStatistic) {
-        types.push(6, 7, 8);
+        types.push(MemoryStatisticType.GPU_VK, MemoryStatisticType.GPU_GLES, MemoryStatisticType.GPU_CL);
       } else {
-        types.push("'VulKan'", "'OpenGLES'", "'OpenCL'");
+        types.push(`'${MemoryType.GPU_VK_Alloc_NAME}'`,`'${MemoryType.GPU_GLES_Alloc_NAME}'`,`'${MemoryType.GPU_CL_Alloc_NAME}'`);
       }
     } else {
-      if (selection.indexOf('VulKan') !== -1) {
+      if (selection.indexOf(MemoryBasicType.GPU_MEMORY[1]) !== -1) {
         if (isStatistic) {
-          types.push(6);
+          types.push(MemoryStatisticType.GPU_VK);
         } else {
-          types.push("'VulKan'");
+          types.push(`'${MemoryType.GPU_VK_Alloc_NAME}'`);
         }
       }
-      if (selection.indexOf('OpenGLES') !== -1) {
+      if (selection.indexOf(MemoryBasicType.GPU_MEMORY[2]) !== -1) {
         if (isStatistic) {
-          types.push(7);
+          types.push(MemoryStatisticType.GPU_GLES);
         } else {
-          types.push("'OpenGLES'");
+          types.push(`'${MemoryType.GPU_GLES_Alloc_NAME}'`);
         }
       }
-      if (selection.indexOf('OpenCL') !== -1) {
+      if (selection.indexOf(MemoryBasicType.GPU_MEMORY[3]) !== -1) {
         if (isStatistic) {
-          types.push(8);
+          types.push(MemoryStatisticType.GPU_CL);
         } else {
-          types.push("'OpenCL'");
+          types.push(`'${MemoryType.GPU_CL_Alloc_NAME}'`);
         }
       }
     }
 
     queryNativeHookResponseTypes(val.leftNs, val.rightNs, types, val.gpuMemoryCurrentIPid, isStatistic).then((res): void => {
-      procedurePool.submitWithName('logic0', 'gpu-memory-init-responseType', res, undefined, (): void => { });
+      procedurePool.submitWithName('logic0', 'gpuMemory-init-responseType', res, undefined, (): void => { });
     });
-  }
-
-  initOtherSourceResponseTypeList(val: SelectionParam): void {
-    const isStatistic = val.otherSourceStatistic.length > 0;
-    const selection = isStatistic ? val.otherSourceStatistic : val.otherSource;
-    let types: Array<string | number> = [];
-
-      if (selection.indexOf('FD') !== -1) {
-        if (isStatistic) {
-          types.push(4);
-        } else {
-        }
-      }
-      if (selection.indexOf('THREAD') !== -1) {
-        if (isStatistic) {
-          types.push(5);
-        } else {
-        }
-      }
-    
-    queryNativeHookResponseTypes(val.leftNs, val.rightNs, types, val.otherSourceCurrentIPid, isStatistic).then((res): void => {
-      procedurePool.submitWithName('logic0', 'other-source-init-responseType', res, undefined, (): void => { });
-    });
-  }
-
-  setCurrentSelectIPid(ipid: number): void {
-    procedurePool.submitWithName('logic0', 'native-memory-set-current_ipid', ipid, undefined, (): void => { });
   }
 
   setGpuCurrentSelectIPid(ipid: number): void {
-    procedurePool.submitWithName('logic0', 'gpu-memory-set-current_ipid', ipid, undefined, (): void => { });
-  }
-
-  setOherSourceCurrentSelectIPid(ipid: number): void {
-    procedurePool.submitWithName('logic0', 'other-source-set-current_ipid', ipid, undefined, (): void => { });
+    procedurePool.submitWithName('logic0', 'gpuMemory-set-current_ipid', ipid, undefined, (): void => { });
   }
 
   public static convertJSON(arr: ArrayBuffer | Array<unknown>): unknown {
