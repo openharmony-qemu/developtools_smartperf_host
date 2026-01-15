@@ -77,6 +77,38 @@ func cors(fs http.Handler, version string) http.HandlerFunc {
 	}
 }
 
+// AuthVerifyType 定义签名和验证的类型
+type AuthVerifyType int
+
+const (
+	RSA_3072_SHA512 AuthVerifyType = iota
+	RSA_ENCRYPT
+)
+
+
+// RsaSign 生成 RSA 签名
+func RsaSign(buf string, signKey *rsa.PrivateKey) (string, error) {
+	hash := sha512.Sum512([]byte(buf))
+	signature, err := rsa.SignPSS(rand.Reader, signKey, crypto.SHA512, hash[:], &rsa.PSSOptions{
+		SaltLength: rsa.PSSSaltLengthEqualsHash,
+	})
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(signature), nil
+}
+
+// RsaSignAndBase64 生成 RSA 签名并进行 Base64 编码
+func RsaSignAndBase64(buf string, authType AuthVerifyType) (string, error) {
+	var signResult string
+	var err error
+		signResult, err = RsaSign(buf, hdcPrivateKey)
+		if err != nil {
+			return "", err
+		}
+	return signResult, nil
+}
+
 func exist(path string) bool {
 	_, err := os.Stat(path)
 	if err != nil {
@@ -280,17 +312,17 @@ func signatureHdcMsg(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "text/json")
 	hdcMsg := r.URL.Query().Get("message")
+	authType := RSA_3072_SHA512
+	signResult, err := RsaSignAndBase64(hdcMsg, authType)
 	if len(hdcMsg) == 0 {
 		resp(&w)(false, -1, "Invalid message", nil)
 		return
 	}
-	hashed := sha512.Sum512([]byte(hdcMsg))
-	signatures, err := rsa.SignPKCS1v15(nil, hdcPrivateKey, crypto.SHA512, hashed[:])
 	if err != nil {
 		resp(&w)(false, -1, "sign failed", nil)
 	} else {
 		resp(&w)(true, 0, "success", map[string]interface{}{
-			"signatures": base64.StdEncoding.EncodeToString(signatures),
+			"signatures": signResult,
 		})
 	}
 }
