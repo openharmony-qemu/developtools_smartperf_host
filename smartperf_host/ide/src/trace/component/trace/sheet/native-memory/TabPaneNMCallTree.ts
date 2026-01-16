@@ -27,7 +27,7 @@ import '../../../../../base-ui/headline/lit-headline';
 import { LitHeadLine } from '../../../../../base-ui/headline/lit-headline';
 import { TabPaneNMCallTreeHtml } from './TabPaneNMCallTree.html';
 import { querySubType } from '../../../../database/sql/NativeHook.sql';
-import { getCurrentTypes, getEventTypeNameFromTypeId, MemoryBasicType, MemoryStatisticType, MemoryTableName, MemoryTraceRowType, MemoryType } from '../../../../bean/MemoryEnum';
+import { getCurrentTypes, getEventTypeNameFromTypeId, MemoryBasicType, MemoryTableName, MemoryTraceRowType } from '../../../../bean/MemoryEnum';
 
 const InvertOptionIndex: number = 0;
 const HideSystemSoOptionIndex: number = 1;
@@ -117,7 +117,13 @@ export class TabpaneNMCalltree extends BaseElement {
 
   private async init(nmCallTreeParam: SelectionParam): Promise<void> {
     // 初始化样式
-    this.initUI();
+    this.initUI(nmCallTreeParam);
+    // 根据 isStatistic 设置 isStatistics 属性
+    if (this.isStatistic) {
+      this.nmCallTreeFilter!.setAttribute('isStatistics', '');
+    } else {
+      this.nmCallTreeFilter!.removeAttribute('isStatistics');
+    }
     let types: Array<string | number> = [];
     this.initTypes(nmCallTreeParam, types);
     // 初始化选择框内容
@@ -147,7 +153,8 @@ export class TabpaneNMCalltree extends BaseElement {
     );
   }
 
-  initUI(): void {
+  initUI(nmCallTreeParam: SelectionParam): void {
+    this.currentSelection = nmCallTreeParam;
     this.headLine!.clear();
     this.isHideThread = false;
     this.searchValue = '';
@@ -514,13 +521,13 @@ export class TabpaneNMCalltree extends BaseElement {
       if (this.currentSelectedData && !this.currentSelectedData.canCharge) {
         return nmCallTreeFuncArgs;
       } // @ts-ignore
-      if (this.currentSelectedData !== undefined && this.currentSelectedData.libName !== '') {
+      if (this.currentSelectedData !== undefined && this.currentSelectedData.lib !== '') {
         // @ts-ignore
-        this.nmCallTreeFilter!.addDataMining({ name: this.currentSelectedData.libName }, nmCallTreeFuncData.item);
+        this.nmCallTreeFilter!.addDataMining({ name: this.currentSelectedData.lib }, nmCallTreeFuncData.item);
         nmCallTreeFuncArgs.push({
           funcName: 'splitTree',
           // @ts-ignore
-          funcArgs: [this.currentSelectedData.libName, false, false],
+          funcArgs: [this.currentSelectedData.lib, false, false],
         });
       } else {
         return nmCallTreeFuncArgs;
