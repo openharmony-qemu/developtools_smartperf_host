@@ -175,7 +175,7 @@ export class TabPaneOSAnalysis extends BaseElement implements AnalysisUICallback
       );
       // 首次打开初始化数据 非首次初始化UI
       if (!InitAnalysis.getInstance().isInitOSAnalysis) {
-        treeTab?.initUI();
+        treeTab?.initUI(this.currentSelection!);
         treeTab?.filterByAnalysis();
       } else {
         treeTab!.initFromAnalysis = true;

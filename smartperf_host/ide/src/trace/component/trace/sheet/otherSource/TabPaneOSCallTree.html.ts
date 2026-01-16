@@ -95,7 +95,7 @@ export const TabPaneOSCallTreeHtml = `
         </div>
         </lit-slicer>
      </selector>
-     <tab-pane-filter id="os-call-tree-filter" first second icon otherSource></tab-pane-filter>
+     <tab-pane-filter id="os-call-tree-filter" first second icon basicMemory></tab-pane-filter>
      <lit-progress-bar class="progress os-call-tree-progress"></lit-progress-bar>
     <selector class="os-call-tree-selector" id='show_chart'>
         <tab-framechart id='framechart' style='width: 100%;height: auto'> </tab-framechart>

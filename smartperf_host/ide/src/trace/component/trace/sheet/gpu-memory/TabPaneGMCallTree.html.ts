@@ -101,7 +101,7 @@ export const TabPaneGMCallTreeHtml = `
         </div>
         </lit-slicer>
      </selector>
-     <tab-pane-filter id="gm-call-tree-filter" first second icon gpuMemory></tab-pane-filter>
+     <tab-pane-filter id="gm-call-tree-filter" first second icon basicMemory></tab-pane-filter>
      <lit-progress-bar class="progress gm-call-tree-progress"></lit-progress-bar>
     <selector class="gm-call-tree-selector" id='show_chart'>
         <tab-framechart id='framechart' style='width: 100%;height: auto'> </tab-framechart>
