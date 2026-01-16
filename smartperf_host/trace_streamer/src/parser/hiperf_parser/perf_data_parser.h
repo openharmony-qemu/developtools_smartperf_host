@@ -107,6 +107,7 @@ private:
     void UpdatePerfSampleData(uint32_t callChainId, const PerfRecordSample *sample);
     std::tuple<uint64_t, DataIndex> GetFileIdWithLikelyFilePath(const std::string &inputFilePath);
     bool ReloadPerfFile(const std::unique_ptr<SymbolsFile> &symbolsFile, uint64_t &fileId, DataIndex &filePathIndex);
+    bool RefreshPerfFileSoNames();
     void ReloadPerfCallChain(const std::unique_ptr<SymbolsFile> &symbolsFile, uint64_t fileId, DataIndex filePathIndex);
     uint32_t UpdateCallChainUnCompressed(const PerfRecordSample *sample);
     SplitPerfState DataLengthProcessing(const std::deque<uint8_t> &dequeBuffer,

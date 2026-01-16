@@ -69,19 +69,22 @@ private:
 
 class PerfFiles : public CacheBase {
 public:
-    size_t AppendNewPerfFiles(uint64_t fileIds, uint32_t serial, DataIndex symbols, DataIndex filePath);
+    size_t AppendNewPerfFiles(uint64_t fileIds, uint32_t serial, DataIndex symbols, DataIndex filePath, DataIndex soName);
     const std::deque<uint64_t> &FileIds() const;
     const std::deque<DataIndex> &Symbols() const;
     const std::deque<DataIndex> &FilePaths() const;
+    const std::deque<DataIndex> &SoNames() const;
     const std::deque<uint32_t> &Serials() const;
     void Clear() override;
     bool EraseFileIdSameData(uint64_t fileId);
+    bool RefreshFileIdSoNames(uint64_t fileId, std::vector<DataIndex>& soNames);
 
 private:
     std::deque<uint64_t> fileIds_ = {};
     std::deque<uint32_t> serials_ = {};
     std::deque<DataIndex> symbols_ = {};
     std::deque<DataIndex> filePaths_ = {};
+    std::deque<DataIndex> soNames_ = {};
 };
 struct PerfSampleRow {
     uint32_t sampleId = INVALID_UINT32;

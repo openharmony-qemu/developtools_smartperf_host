@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-import { Rect, Render, isFrameContainPoint, ns2x, drawLoadingFrame } from './ProcedureWorkerCommon';
+import { Rect, isFrameContainPoint, ns2x, drawLoadingFrame } from './ProcedureWorkerCommon';
 import { TraceRow } from '../../component/trace/base/TraceRow';
 import { HeapStruct as BaseHeapStruct } from '../../bean/HeapStruct';
 import { SpSystemTrace } from '../../component/SpSystemTrace';
 export class NativeMemoryRender {
-  renderMainThread(req: HeapStruct, row: TraceRow<HeapStruct>): void {}
+  renderMainThread(req: HeapStruct, row: TraceRow<HeapStruct>): void { }
 }
 export class HeapRender {
   renderMainThread(
@@ -129,6 +129,7 @@ function setHeapFrameIfUse(res: Array<HeapStruct>, startNS: number, endNS: numbe
   }
 }
 
+// 统计模式点选
 export function HeapStructOnClick(
   clickRowType: string,
   sp: SpSystemTrace,
@@ -137,18 +138,18 @@ export function HeapStructOnClick(
 ): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (
-      clickRowType === TraceRow.ROW_TYPE_HEAP &&
+      (clickRowType === TraceRow.ROW_TYPE_HEAP || TraceRow.ROW_TYPE_GPU_HEAP || TraceRow.ROW_TYPE_OTHER_SOURCE_HEAP) &&
       row &&
-      row.getAttribute('heap-type') === 'native_hook_statistic' &&
+      row.getAttribute('heap-type')?.includes('statistic') &&
       (HeapStruct.hoverHeapStruct || entry)
     ) {
       HeapStruct.selectHeapStruct = entry || HeapStruct.hoverHeapStruct;
-      const key = row.rowParentId!.split(' ');
+      const key = row.rowParentId!.split(' ').some(item => /\d/.test(item)) ? row.rowParentId!.split(' ') : row.parentRowEl!.rowParentId!.split(' ');
       let ipid = 1;
       if (key.length > 0) {
         ipid = Number(key[key.length - 1]);
       }
-      sp.traceSheetEL?.displayNativeHookData(HeapStruct.selectHeapStruct!, row.rowId!, ipid);
+      sp.traceSheetEL?.displayGenicMemoryData(HeapStruct.selectHeapStruct!, row.rowId!, ipid, clickRowType);
       sp.timerShaftEL?.modifyFlagList(undefined);
       reject(new Error());
     } else {
@@ -209,7 +210,7 @@ export class HeapStruct extends BaseHeapStruct {
         if (data.minHeapSize < 0) {
           drawHeight = Math.ceil(
             (((data.heapsize || 0) - data.minHeapSize) * (data.frame.height || 0)) /
-              (data.maxHeapSize - data.minHeapSize)
+            (data.maxHeapSize - data.minHeapSize)
           );
         } else {
           drawHeight = Math.ceil(((data.heapsize || 0) * (data.frame.height || 0)) / data.maxHeapSize);

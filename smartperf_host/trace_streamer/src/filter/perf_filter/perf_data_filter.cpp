@@ -25,10 +25,10 @@ PerfDataFilter::PerfDataFilter(TraceDataCache *dataCache, const TraceStreamerFil
 }
 PerfDataFilter::~PerfDataFilter() = default;
 
-size_t PerfDataFilter::AppendPerfFiles(uint64_t fileId, uint32_t serial, DataIndex symbols, DataIndex filePath)
+size_t PerfDataFilter::AppendPerfFiles(uint64_t fileId, uint32_t serial, DataIndex symbols, DataIndex filePath, DataIndex soName)
 {
     fileIds_.emplace(fileId);
-    auto size = traceDataCache_->GetPerfFilesData()->AppendNewPerfFiles(fileId, serial, symbols, filePath);
+    auto size = traceDataCache_->GetPerfFilesData()->AppendNewPerfFiles(fileId, serial, symbols, filePath, soName);
     fileIdToRowInFileTable_.Insert(fileId, serial, size);
     if (!serial || serial == INVALID_UINT32) {
         fileIdToRow_.insert(std::make_pair(fileId, size));

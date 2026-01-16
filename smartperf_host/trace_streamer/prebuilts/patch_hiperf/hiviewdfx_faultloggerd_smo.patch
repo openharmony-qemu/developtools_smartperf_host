@@ -1,0 +1,1211 @@
+diff --git a/OAT.xml b/OAT.xml
+index 25a6918..8fe694a 100644
+--- a/OAT.xml
++++ b/OAT.xml
+@@ -107,6 +107,7 @@ Note:If the text contains special characters, please escape them according to th
+                 <filteritem type="filename" name="dwarf_test_aarch64_elf" desc="the binary file for test, the file is self-developed"/>
+                 <filteritem type="filename" name="elf32_test" desc="the binary file for test, the file is self-developed"/>
+                 <filteritem type="filename" name="elf_test" desc="the binary file for test, the file is self-developed"/>
++                <filteritem type="filename" name="libadlt_test" desc="the binary file for test, the file is self-developed"/>
+             </filefilter>
+         </filefilterlist>
+         <licensematcherlist>
+diff --git a/interfaces/common/dfx_define.h b/interfaces/common/dfx_define.h
+index 5e52d17..eb7c08d 100644
+--- a/interfaces/common/dfx_define.h
++++ b/interfaces/common/dfx_define.h
+@@ -67,6 +67,7 @@ static const char* const PROC_SELF_CMDLINE_PATH = "/proc/self/cmdline";
+ static const char* const PROC_SELF_COMM_PATH = "/proc/self/comm";
+ static const char* const PROC_SELF_MAPS_PATH = "/proc/self/maps";
+ static const char* const PROC_SELF_EXE_PATH = "/proc/self/exe";
++static const char* const ADLT_PATH_NAME_START = "/system/lib/libadlt";
+ #ifdef DFX_LOG_HILOG_BASE
+ static const char* const PROCESSDUMP_PATH = "/system/bin/processdump";
+ #else
+diff --git a/interfaces/common/dfx_frame.h b/interfaces/common/dfx_frame.h
+index b4065ae..b6772f1 100644
+--- a/interfaces/common/dfx_frame.h
++++ b/interfaces/common/dfx_frame.h
+@@ -20,6 +20,9 @@
+ #include <memory>
+ #include <string>
+ #include "string_printf.h"
++#include "string_util.h"
++#include "dfx_elf.h"
++#include "dfx_map.h"
+ 
+ namespace OHOS {
+ namespace HiviewDFX {
+@@ -91,6 +94,7 @@ struct DfxFrame {
+     int32_t column {0};
+     /** Js frame package name */
+     std::string packageName;
++    std::string originSoName {""};
+     /** state of parse symbol */
+     ParseSymbolState parseSymbolState;
+ 
+@@ -128,6 +132,13 @@ struct DfxFrame {
+         }
+         output.append("@");
+         output.append(mapName);
++        if (StartsWith(mapName, ADLT_PATH_NAME_START) && EndsWith(mapName, ".so")) {
++            if (!originSoName.empty()) {
++                output.append(":");
++                output.append(originSoName);
++            }
++        }
++        
+         output.append(":");
+         output.append(std::to_string(index));
+         return output;
+diff --git a/interfaces/common/dfx_socket_request.h b/interfaces/common/dfx_socket_request.h
+index a32f411..8febe7d 100644
+--- a/interfaces/common/dfx_socket_request.h
++++ b/interfaces/common/dfx_socket_request.h
+@@ -250,6 +250,8 @@ typedef struct FaultLoggerdStatsRequest {
+     uint32_t writeDumpInfoCost;
+     /** caller elf offset */
+     uintptr_t offset;
++    /** SMO parse symbol time */
++    uint64_t smoParseTime;
+     char summary[128]; // 128 : max summary size
+     /** the caller elf of dumpcatcher interface */
+     char callerElf[128]; // 128 : max function name size
+diff --git a/interfaces/innerkits/backtrace/fp_backtrace.cpp b/interfaces/innerkits/backtrace/fp_backtrace.cpp
+index 3592a94..4f1816f 100644
+--- a/interfaces/innerkits/backtrace/fp_backtrace.cpp
++++ b/interfaces/innerkits/backtrace/fp_backtrace.cpp
+@@ -172,7 +172,7 @@ DfxFrame* FpBacktraceImpl::SymbolicAddress(void* pc)
+         frame = nullptr;
+         return nullptr;
+     }
+-    frame->mapName = frame->map->GetElfName();
++    
+     frame->relPc = frame->map->GetRelPc(frame->pc);
+     frame->mapOffset = frame->map->offset;
+     auto elf = frame->map->GetElf();
+diff --git a/interfaces/innerkits/unwinder/BUILD.gn b/interfaces/innerkits/unwinder/BUILD.gn
+index ec7c74e..01d9862 100644
+--- a/interfaces/innerkits/unwinder/BUILD.gn
++++ b/interfaces/innerkits/unwinder/BUILD.gn
+@@ -35,6 +35,7 @@ dfx_unwinder_sources = [
+   "src/registers/dfx_regs_x86_64.cpp",
+   "src/registers/getcontext_x86_64.S",
+   "src/unwind_local/thread_context.cpp",
++  "src/utils/dfx_frame.cpp",
+   "src/utils/dfx_frame_formatter.cpp",
+   "src/utils/dfx_instr_statistic.cpp",
+   "src/utils/dfx_instructions.cpp",
+@@ -355,6 +356,7 @@ if (defined(ohos_lite)) {
+       "src/maps/dfx_map.cpp",
+       "src/maps/dfx_maps.cpp",
+       "src/memory/dfx_memory.cpp",
++      "src/utils/dfx_frame.cpp",
+       "src/utils/unwinder_config.cpp",
+     ]
+     deps = [
+diff --git a/interfaces/innerkits/unwinder/include/dfx_elf.h b/interfaces/innerkits/unwinder/include/dfx_elf.h
+index cc2db91..3ed3582 100644
+--- a/interfaces/innerkits/unwinder/include/dfx_elf.h
++++ b/interfaces/innerkits/unwinder/include/dfx_elf.h
+@@ -1,111 +1,116 @@
+-/*
+- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+- * Licensed under the Apache License, Version 2.0 (the "License");
+- * you may not use this file except in compliance with the License.
+- * You may obtain a copy of the License at
+- *
+- * http://www.apache.org/licenses/LICENSE-2.0
+- *
+- * Unless required by applicable law or agreed to in writing, software
+- * distributed under the License is distributed on an "AS IS" BASIS,
+- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+- * See the License for the specific language governing permissions and
+- * limitations under the License.
+- */
+-
+-#ifndef DFX_ELF_H
+-#define DFX_ELF_H
+-
+-#include <functional>
+-#include <memory>
+-#include <mutex>
+-#include <set>
+-#include "dfx_elf_parser.h"
+-#include "dfx_map.h"
+-
+-namespace OHOS {
+-namespace HiviewDFX {
+-struct DlCbData {
+-    uintptr_t pc;
+-    UnwindTableInfo uti;
+-    bool singleFde = false;
+-};
+-
+-class DfxElf final {
+-public:
+-    DfxElf() { Init(); }
+-    explicit DfxElf (const std::shared_ptr<DfxMmap>& mmap) : mmap_(mmap) { Init(); }
+-    ~DfxElf() { Clear(); }
+-
+-    void SetMmap(const std::shared_ptr<DfxMmap>& mmap) { mmap_ = mmap; }
+-    bool IsValid();
+-    uint8_t GetClassType();
+-    ArchType GetArchType();
+-    uint64_t GetElfSize();
+-    std::string GetElfName();
+-    std::string GetBuildId();
+-    void SetBuildId(const std::string& buildId);
+-    static std::string GetBuildId(uint64_t noteAddr, uint64_t noteSize);
+-    GnuDebugDataHdr GetGnuDebugDataHdr();
+-    uintptr_t GetGlobalPointer();
+-    int64_t GetLoadBias();
+-    uint64_t GetLoadBase(uint64_t mapStart, uint64_t mapOffset);
+-    void SetLoadBase(uint64_t base);
+-    uint64_t GetStartPc();
+-    uint64_t GetEndPc();
+-    uint64_t GetStartVaddr();
+-    uint64_t GetEndVaddr();
+-    void SetBaseOffset(uint64_t offset);
+-    uint64_t GetBaseOffset();
+-    uint64_t GetStartOffset();
+-    uint64_t GetRelPc(uint64_t pc, uint64_t mapStart, uint64_t mapOffset);
+-    const uint8_t* GetMmapPtr();
+-    size_t GetMmapSize();
+-    bool Read(uintptr_t pos, void* buf, size_t size);
+-    const std::unordered_map<uint64_t, ElfLoadInfo>& GetPtLoads();
+-    const std::set<ElfSymbol>& GetFuncSymbols();
+-    bool GetFuncInfo(uint64_t addr, ElfSymbol& elfSymbol);
+-    bool GetSectionInfo(ShdrInfo& shdr, const std::string secName);
+-    bool GetSectionData(unsigned char* buf, uint64_t size, std::string secName);
+-    int FindUnwindTableInfo(uintptr_t pc, std::shared_ptr<DfxMap> map, struct UnwindTableInfo& uti);
+-    static int FindUnwindTableLocal(uintptr_t pc, struct UnwindTableInfo& uti);
+-
+-protected:
+-    void Init();
+-    void Clear();
+-    bool InitHeaders();
+-    bool IsMiniDebugInfoValid();
+-#if is_ohos && !is_mingw
+-    static int DlPhdrCb(struct dl_phdr_info* info, size_t size, void* data);
+-    static void ParsePhdr(struct dl_phdr_info* info, const ElfW(Phdr)* (&pHdrSections)[4], const uintptr_t pc);
+-    static bool ProccessDynamic(const ElfW(Phdr)* pDynamic, ElfW(Addr) loadBase, UnwindTableInfo* uti);
+-    static struct DwarfEhFrameHdr* InitHdr(struct DwarfEhFrameHdr& synthHdr,
+-        struct dl_phdr_info* info, const ElfW(Phdr)* pEhHdr);
+-    static bool FindSection(struct dl_phdr_info* info, const std::string secName, ShdrInfo& shdr);
+-    static bool FillUnwindTableByEhhdrLocal(struct DwarfEhFrameHdr* hdr, struct UnwindTableInfo* uti);
+-#endif
+-    bool FillUnwindTableByEhhdr(struct DwarfEhFrameHdr* hdr, uintptr_t shdrBase, struct UnwindTableInfo* uti);
+-    static bool FillUnwindTableByExidx(ShdrInfo shdr, uintptr_t loadBase, struct UnwindTableInfo* uti);
+-    bool FindFuncSymbol(uint64_t addr, const std::set<ElfSymbol>& symbols, ElfSymbol& elfSymbol);
+-    bool IsValidElf(const void* ptr, size_t size);
+-    bool GetFuncInfoLazily(uint64_t addr, ElfSymbol& elfSymbol);
+-
+-private:
+-    bool valid_ = false;
+-    uint8_t classType_ = 0;
+-    int64_t loadBias_ = 0;
+-    uint64_t loadBase_ = static_cast<uint64_t>(-1);
+-    uint64_t startPc_ = static_cast<uint64_t>(-1);
+-    uint64_t endPc_ = 0;
+-    uint64_t baseOffset_ = 0; // use for so in hap
+-    std::string buildId_ = "";
+-    struct UnwindTableInfo uti_;
+-    bool hasTableInfo_ = false;
+-    std::shared_ptr<DfxMmap> mmap_ = nullptr;
+-    std::unique_ptr<ElfParser> elfParse_ = nullptr;
+-    std::set<ElfSymbol> funcSymbols_ {};
+-    std::shared_ptr<DfxElf> miniDebugInfo_ = nullptr;
+-};
+-} // namespace HiviewDFX
+-} // namespace OHOS
+-#endif
++/*
++ * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef DFX_ELF_H
++#define DFX_ELF_H
++
++#include <functional>
++#include <memory>
++#include <mutex>
++#include <set>
++#include "dfx_elf_parser.h"
++#include "dfx_map.h"
++
++namespace OHOS {
++namespace HiviewDFX {
++struct DlCbData {
++    uintptr_t pc;
++    UnwindTableInfo uti;
++    bool singleFde = false;
++};
++
++class DfxElf final {
++public:
++    DfxElf() { Init(); }
++    explicit DfxElf (const std::shared_ptr<DfxMmap>& mmap) : mmap_(mmap) { Init(); }
++    ~DfxElf() { Clear(); }
++
++    void SetMmap(const std::shared_ptr<DfxMmap>& mmap) { mmap_ = mmap; }
++    bool IsValid();
++    uint8_t GetClassType();
++    ArchType GetArchType();
++    uint64_t GetElfSize();
++    std::string GetElfName();
++    std::string GetBuildId();
++    void SetBuildId(const std::string& buildId);
++    static std::string GetBuildId(uint64_t noteAddr, uint64_t noteSize);
++    GnuDebugDataHdr GetGnuDebugDataHdr();
++    uintptr_t GetGlobalPointer();
++    int64_t GetLoadBias();
++    uint64_t GetLoadBase(uint64_t mapStart, uint64_t mapOffset);
++    void SetLoadBase(uint64_t base);
++    uint64_t GetStartPc();
++    uint64_t GetEndPc();
++    uint64_t GetStartVaddr();
++    uint64_t GetEndVaddr();
++    void SetBaseOffset(uint64_t offset);
++    uint64_t GetBaseOffset();
++    uint64_t GetStartOffset();
++    uint64_t GetRelPc(uint64_t pc, uint64_t mapStart, uint64_t mapOffset);
++    const uint8_t* GetMmapPtr();
++    size_t GetMmapSize();
++    bool Read(uintptr_t pos, void* buf, size_t size);
++    const std::unordered_map<uint64_t, ElfLoadInfo>& GetPtLoads();
++    const std::set<ElfSymbol>& GetFuncSymbols();
++    bool GetFuncInfo(uint64_t addr, ElfSymbol& elfSymbol);
++    bool GetSectionInfo(ShdrInfo& shdr, const std::string secName);
++    bool GetSectionData(unsigned char* buf, uint64_t size, std::string secName);
++    int FindUnwindTableInfo(uintptr_t pc, std::shared_ptr<DfxMap> map, struct UnwindTableInfo& uti);
++    static int FindUnwindTableLocal(uintptr_t pc, struct UnwindTableInfo& uti);
++
++    bool IsAdlt();
++    const std::vector<AdltMapInfo>& GetAdltMap() const;
++    const std::string& GetAdltStrtab() const;
++    std::string GetAdltOriginSoNameByRelPc(uint64_t relPc) const;
++
++protected:
++    void Init();
++    void Clear();
++    bool InitHeaders();
++    bool IsMiniDebugInfoValid();
++#if is_ohos && !is_mingw
++    static int DlPhdrCb(struct dl_phdr_info* info, size_t size, void* data);
++    static void ParsePhdr(struct dl_phdr_info* info, const ElfW(Phdr)* (&pHdrSections)[4], const uintptr_t pc);
++    static bool ProccessDynamic(const ElfW(Phdr)* pDynamic, ElfW(Addr) loadBase, UnwindTableInfo* uti);
++    static struct DwarfEhFrameHdr* InitHdr(struct DwarfEhFrameHdr& synthHdr,
++        struct dl_phdr_info* info, const ElfW(Phdr)* pEhHdr);
++    static bool FindSection(struct dl_phdr_info* info, const std::string secName, ShdrInfo& shdr);
++    static bool FillUnwindTableByEhhdrLocal(struct DwarfEhFrameHdr* hdr, struct UnwindTableInfo* uti);
++#endif
++    bool FillUnwindTableByEhhdr(struct DwarfEhFrameHdr* hdr, uintptr_t shdrBase, struct UnwindTableInfo* uti);
++    static bool FillUnwindTableByExidx(ShdrInfo shdr, uintptr_t loadBase, struct UnwindTableInfo* uti);
++    bool FindFuncSymbol(uint64_t addr, const std::set<ElfSymbol>& symbols, ElfSymbol& elfSymbol);
++    bool IsValidElf(const void* ptr, size_t size);
++    bool GetFuncInfoLazily(uint64_t addr, ElfSymbol& elfSymbol);
++
++private:
++    bool valid_ = false;
++    uint8_t classType_ = 0;
++    int64_t loadBias_ = 0;
++    uint64_t loadBase_ = static_cast<uint64_t>(-1);
++    uint64_t startPc_ = static_cast<uint64_t>(-1);
++    uint64_t endPc_ = 0;
++    uint64_t baseOffset_ = 0; // use for so in hap
++    std::string buildId_ = "";
++    struct UnwindTableInfo uti_;
++    bool hasTableInfo_ = false;
++    std::shared_ptr<DfxMmap> mmap_ = nullptr;
++    std::unique_ptr<ElfParser> elfParse_ = nullptr;
++    std::set<ElfSymbol> funcSymbols_ {};
++    std::shared_ptr<DfxElf> miniDebugInfo_ = nullptr;
++};
++} // namespace HiviewDFX
++} // namespace OHOS
++#endif
+diff --git a/interfaces/innerkits/unwinder/include/dfx_elf_define.h b/interfaces/innerkits/unwinder/include/dfx_elf_define.h
+index a71d76b..c35723f 100644
+--- a/interfaces/innerkits/unwinder/include/dfx_elf_define.h
++++ b/interfaces/innerkits/unwinder/include/dfx_elf_define.h
+@@ -37,6 +37,8 @@ static const std::string SYMTAB = ".symtab";
+ static const std::string DYNSYM = ".dynsym";
+ static const std::string DYNSTR = ".dynstr";
+ static const std::string PLT = ".plt";
++constexpr auto ADLTSTRTAB = ".adlt.strtab";
++constexpr auto ADLTMAP = ".adlt.map";
+ 
+ struct ElfLoadInfo {
+     uint64_t offset = 0;
+@@ -80,6 +82,13 @@ struct ShdrInfo {
+     uint64_t size = 0;
+ };
+ 
++struct AdltMapInfo {
++    uint32_t pcBegin;
++    uint32_t pcEnd;
++    uint32_t psodIndex;     // so merging order index
++    uint32_t nameOffset;    // so name offset int .adlt.strtab
++};
++
+ struct __attribute__((packed)) DwarfEhFrameHdr {
+     unsigned char version = 0;
+     unsigned char ehFramePtrEnc = 0;
+diff --git a/interfaces/innerkits/unwinder/include/dfx_elf_parser.h b/interfaces/innerkits/unwinder/include/dfx_elf_parser.h
+index 86a4bdd..b40267b 100644
+--- a/interfaces/innerkits/unwinder/include/dfx_elf_parser.h
++++ b/interfaces/innerkits/unwinder/include/dfx_elf_parser.h
+@@ -65,14 +65,26 @@ public:
+     const GnuDebugDataHdr& GetGnuDebugDataHdr() const;
+     std::string GetBuildId();
+     static std::string ParseHexBuildId(uint64_t noteAddr, uint64_t noteSize);
++    std::string GetAdltOriginSoNameByRelPc(uint64_t relPc) const;
++    std::string GetNameByNameOffset(uint32_t nameOffset) const;
++    const std::string& GetAdltStrtab() const { return adltStrtab_; }
++    const std::vector<AdltMapInfo>& GetAdltMap() const { return adltMap_; }
++    bool IsAdlt() { return ptAdlt; }
++
+ protected:
+     size_t MmapSize();
++    void GetAdltStrTabSectionInfo(uint64_t shOffset, uint64_t shSize);
++    void GetAdltMapSectionInfo(uint64_t shOffset, uint64_t shSize);
+     template <typename EhdrType, typename PhdrType, typename ShdrType>
+     bool ParseAllHeaders();
+     template <typename EhdrType>
+     bool ParseElfHeaders(const EhdrType& ehdr);
++    template <typename PhdrType>
++    void UpdateVaddrAndOffset(const PhdrType& phdr);
+     template <typename EhdrType, typename PhdrType>
+     bool ParseProgramHeaders(const EhdrType& ehdr);
++    template <typename ShdrType>
++    void ExtractSymSectionHeadersInfo(const ShdrType& shdr);
+     template <typename EhdrType, typename ShdrType>
+     bool ExtractSectionHeadersInfo(const EhdrType& ehdr, ShdrType& shdr);
+     template <typename EhdrType, typename ShdrType>
+@@ -119,6 +131,9 @@ private:
+     std::map<std::pair<uint32_t, const std::string>, ShdrInfo> shdrInfoPairs_;
+     std::unordered_map<uint64_t, ElfLoadInfo> ptLoads_;
+     std::string sectionNames_;
++    bool ptAdlt = false;
++    std::string adltStrtab_;
++    std::vector<AdltMapInfo> adltMap_;
+ };
+ 
+ class ElfParser32 : public ElfParser {
+diff --git a/interfaces/innerkits/unwinder/include/dfx_map.h b/interfaces/innerkits/unwinder/include/dfx_map.h
+index f220f4a..336cb3d 100644
+--- a/interfaces/innerkits/unwinder/include/dfx_map.h
++++ b/interfaces/innerkits/unwinder/include/dfx_map.h
+@@ -52,6 +52,8 @@ public:
+     std::string GetElfName();
+     uint64_t GetRelPc(uint64_t pc);
+     std::string ToString() const;
++    void SetAdltLoadBase(uint64_t loadBase) { adltLoadBase_ = loadBase; }
++    uint64_t GetAdltLoadBase() const { return adltLoadBase_; }
+ 
+     uint64_t begin = 0;
+     uint64_t end = 0;
+@@ -69,6 +71,8 @@ public:
+     uint64_t elfOffset = 0;
+     uint64_t elfStartOffset = 0;
+     int32_t symbolFileIndex = -1; // symbols file index
++    uint64_t adltLoadBase_ = static_cast<uint64_t>(-1);
++
+     // use for find
+     inline bool operator==(const std::string &sname) const
+     {
+diff --git a/interfaces/innerkits/unwinder/include/dfx_maps.h b/interfaces/innerkits/unwinder/include/dfx_maps.h
+index baeb8db..873fb8d 100644
+--- a/interfaces/innerkits/unwinder/include/dfx_maps.h
++++ b/interfaces/innerkits/unwinder/include/dfx_maps.h
+@@ -55,6 +55,7 @@ public:
+     bool IsArkExecutedMap(uintptr_t addr);
+     uint32_t filePathId_ {0}; // for maps item filePath id
+ private:
++    void ParseMaps(const pid_t pid, FILE* fp, int& fgetCount);
+     bool Parse(const pid_t pid, const std::string& path);
+     void HandleSpecialMap(const std::shared_ptr<DfxMap>& map);
+     int FindMapIndexByAddr(uintptr_t addr) const;
+@@ -69,6 +70,7 @@ private:
+     uintptr_t stackTop_ = 0;
+     uintptr_t ArkStackStart_ = 0;
+     uintptr_t ArkStackEnd_ = 0;
++    uint32_t adltMapIndex_ = -1;
+ };
+ } // namespace HiviewDFX
+ } // namespace OHOS
+diff --git a/interfaces/innerkits/unwinder/include/dfx_symbol.h b/interfaces/innerkits/unwinder/include/dfx_symbol.h
+index 5b724c2..290eb2a 100644
+--- a/interfaces/innerkits/unwinder/include/dfx_symbol.h
++++ b/interfaces/innerkits/unwinder/include/dfx_symbol.h
+@@ -44,6 +44,8 @@ struct DfxSymbol {
+     uint64_t offset_ = 0;
+     mutable bool matched_ = false; // if some callstack match this
+     int32_t hit_ = 0;
++    std::string originSoName_ = "";
++    std::shared_ptr<DfxMap> map = nullptr;
+ 
+     // elf use this
+     DfxSymbol(uint64_t vaddr, uint64_t size, const std::string &name, const std::string &demangle,
+diff --git a/interfaces/innerkits/unwinder/libunwinder.map b/interfaces/innerkits/unwinder/libunwinder.map
+index 3fd02d9..75721f0 100644
+--- a/interfaces/innerkits/unwinder/libunwinder.map
++++ b/interfaces/innerkits/unwinder/libunwinder.map
+@@ -86,6 +86,7 @@
+       "vtable for OHOS::HiviewDFX::DfxRegsLoongArch64";
+       "vtable for OHOS::HiviewDFX::RegularElfFactory";
+       "vtable for OHOS::HiviewDFX::CompressHapElfFactory";
++      OHOS::HiviewDFX::DfxFrame::ToSymbolString*;
+       OHOS::HiviewDFX::DfxFrameFormatter::GetFrameStr*;
+       OHOS::HiviewDFX::DfxFrameFormatter::GetFramesStr*;
+       OHOS::HiviewDFX::DfxElf::GetStartVaddr*;
+@@ -123,6 +124,10 @@
+       OHOS::HiviewDFX::DfxJsvm::ParseJsvmFrameInfo*;
+       OHOS::HiviewDFX::DfxJsvm::Instance*;
+       OHOS::HiviewDFX::DfxOfflineParser*;
++      OHOS::HiviewDFX::DfxElf::GetAdltOriginSoNameByRelPc*;
++      OHOS::HiviewDFX::DfxElf::GetAdltStrtab*;
++      OHOS::HiviewDFX::DfxElf::GetAdltMap*;
++      OHOS::HiviewDFX::DfxElf::IsAdlt*;
+     };
+   local:
+     *;
+diff --git a/interfaces/innerkits/unwinder/src/elf/dfx_elf.cpp b/interfaces/innerkits/unwinder/src/elf/dfx_elf.cpp
+index 79d230e..97ea3f9 100644
+--- a/interfaces/innerkits/unwinder/src/elf/dfx_elf.cpp
++++ b/interfaces/innerkits/unwinder/src/elf/dfx_elf.cpp
+@@ -296,6 +296,26 @@ bool DfxElf::GetSectionData(unsigned char* buf, uint64_t size, std::string secNa
+     return elfParse_->GetSectionData(buf, size, secName);
+ }
+ 
++std::string DfxElf::GetAdltOriginSoNameByRelPc(uint64_t relPc) const
++{
++    return elfParse_->GetAdltOriginSoNameByRelPc(relPc);
++}
++
++const std::string& DfxElf::GetAdltStrtab() const
++{
++    return elfParse_->GetAdltStrtab();
++}
++
++const std::vector<AdltMapInfo>& DfxElf::GetAdltMap() const
++{
++    return elfParse_->GetAdltMap();
++}
++
++bool DfxElf::IsAdlt()
++{
++    return elfParse_->IsAdlt();
++}
++
+ GnuDebugDataHdr DfxElf::GetGnuDebugDataHdr()
+ {
+     if (!IsValid()) {
+diff --git a/interfaces/innerkits/unwinder/src/elf/dfx_elf_parser.cpp b/interfaces/innerkits/unwinder/src/elf/dfx_elf_parser.cpp
+index ca2e062..d00e6d7 100644
+--- a/interfaces/innerkits/unwinder/src/elf/dfx_elf_parser.cpp
++++ b/interfaces/innerkits/unwinder/src/elf/dfx_elf_parser.cpp
+@@ -43,6 +43,7 @@ namespace {
+ #undef LOG_TAG
+ #define LOG_DOMAIN 0xD002D11
+ #define LOG_TAG "DfxElfParser"
++#define PT_ADLT 0x6788FC61
+ }
+ 
+ bool ElfParser::Read(uintptr_t pos, void *buf, size_t size)
+@@ -115,6 +116,20 @@ bool ElfParser::ParseElfHeaders(const EhdrType& ehdr)
+     return true;
+ }
+ 
++template <typename PhdrType>
++void ElfParser::UpdateVaddrAndOffset(const PhdrType& phdr)
++{
++    if (static_cast<uint64_t>(phdr.p_vaddr) < static_cast<uint64_t>(startVaddr_)) {
++        startVaddr_ = static_cast<uint64_t>(phdr.p_vaddr);
++        startOffset_ = static_cast<uint64_t>(phdr.p_offset);
++    }
++    if (static_cast<uint64_t>(phdr.p_vaddr + phdr.p_memsz) > static_cast<uint64_t>(endVaddr_)) {
++        endVaddr_ = static_cast<uint64_t>(phdr.p_vaddr + phdr.p_memsz);
++    }
++    DFXLOGU("Elf startVaddr: %{public}" PRIx64 ", endVaddr: %{public}" PRIx64 "",
++        startVaddr_, endVaddr_);
++}
++
+ template <typename EhdrType, typename PhdrType>
+ bool ElfParser::ParseProgramHeaders(const EhdrType& ehdr)
+ {
+@@ -148,17 +163,12 @@ bool ElfParser::ParseProgramHeaders(const EhdrType& ehdr)
+                 }
+                 firstLoadHeader = false;
+ 
+-                if (static_cast<uint64_t>(phdr.p_vaddr) < static_cast<uint64_t>(startVaddr_)) {
+-                    startVaddr_ = static_cast<uint64_t>(phdr.p_vaddr);
+-                    startOffset_ = static_cast<uint64_t>(phdr.p_offset);
+-                }
+-                if (static_cast<uint64_t>(phdr.p_vaddr + phdr.p_memsz) > static_cast<uint64_t>(endVaddr_)) {
+-                    endVaddr_ = static_cast<uint64_t>(phdr.p_vaddr + phdr.p_memsz);
+-                }
+-                DFXLOGU("Elf startVaddr: %{public}" PRIx64 ", endVaddr: %{public}" PRIx64 "",
+-                    startVaddr_, endVaddr_);
++                UpdateVaddrAndOffset(phdr);
+                 break;
+             }
++            case PT_ADLT:
++                ptAdlt = true;
++                break;
+             case PT_DYNAMIC: {
+                 dynamicOffset_ = phdr.p_offset;
+                 break;
+@@ -175,6 +185,48 @@ const GnuDebugDataHdr& ElfParser::GetGnuDebugDataHdr() const
+     return gnuDebugDataHdr_;
+ }
+ 
++void ElfParser::GetAdltStrTabSectionInfo(uint64_t shOffset, uint64_t shSize)
++{
++    std::vector<char> tabBuf(shSize, 0);
++    if (!Read(shOffset, tabBuf.data(), shSize)) {
++        DFXLOGE("Get .adlt.strtab failed, offset: 0x%{public}" PRIx64 ", size: 0x%{public}" PRIx64, shOffset, shSize);
++    } else {
++        adltStrtab_ = std::string(tabBuf.begin(), tabBuf.begin() + shSize);
++        DFXLOGI("Get adlt.strtab success, len: %{public}" PRIuPTR, adltStrtab_.length());
++    }
++}
++
++void ElfParser::GetAdltMapSectionInfo(uint64_t shOffset, uint64_t shSize)
++{
++    if (shSize % sizeof(AdltMapInfo) != 0) {
++        DFXLOGE("Invalid .adlt.map section size, offset: 0x%{public}" PRIx64 ", size: 0x%{public}" PRIx64,
++            shOffset, shSize);
++        return;
++    }
++    uint64_t mapNum = shSize / sizeof(AdltMapInfo);
++    std::vector<AdltMapInfo> buf(mapNum);
++    if (Read(shOffset, buf.data(), shSize)) {
++        adltMap_ = std::move(buf);
++    }
++}
++
++template <typename ShdrType>
++void ElfParser::ExtractSymSectionHeadersInfo(const ShdrType& shdr)
++{
++    ElfShdr elfShdr;
++    elfShdr.name = static_cast<uint32_t>(shdr.sh_name);
++    elfShdr.type = static_cast<uint32_t>(shdr.sh_type);
++    elfShdr.flags = static_cast<uint64_t>(shdr.sh_flags);
++    elfShdr.addr = static_cast<uint64_t>(shdr.sh_addr);
++    elfShdr.offset = static_cast<uint64_t>(shdr.sh_offset);
++    elfShdr.size = static_cast<uint64_t>(shdr.sh_size);
++    elfShdr.link = static_cast<uint32_t>(shdr.sh_link);
++    elfShdr.info = static_cast<uint32_t>(shdr.sh_info);
++    elfShdr.addrAlign = static_cast<uint64_t>(shdr.sh_addralign);
++    elfShdr.entSize = static_cast<uint64_t>(shdr.sh_entsize);
++    symShdrs_.emplace_back(elfShdr);
++}
++
+ template <typename EhdrType, typename ShdrType>
+ bool ElfParser::ExtractSectionHeadersInfo(const EhdrType& ehdr, ShdrType& shdr)
+ {
+@@ -194,6 +246,14 @@ bool ElfParser::ExtractSectionHeadersInfo(const EhdrType& ehdr, ShdrType& shdr)
+             continue;
+         }
+ 
++        if (shdr.sh_size > 0) {
++            if (secName == ADLTSTRTAB) { // .adlt.strtab
++                GetAdltStrTabSectionInfo(shdr.sh_offset, shdr.sh_size);
++            } else if (secName == ADLTMAP) { // .adlt.map
++                GetAdltMapSectionInfo(shdr.sh_offset, shdr.sh_size);
++            }
++        }
++        
+         if (shdr.sh_size != 0 && secName == GNU_DEBUGDATA) {
+             gnuDebugDataHdr_.address = reinterpret_cast<uintptr_t>(shdr.sh_offset +
+                 static_cast<uint8_t *>(mmap_->Get()));
+@@ -211,18 +271,7 @@ bool ElfParser::ExtractSectionHeadersInfo(const EhdrType& ehdr, ShdrType& shdr)
+             if (shdr.sh_link >= ehdr.e_shnum) {
+                 continue;
+             }
+-            ElfShdr elfShdr;
+-            elfShdr.name = static_cast<uint32_t>(shdr.sh_name);
+-            elfShdr.type = static_cast<uint32_t>(shdr.sh_type);
+-            elfShdr.flags = static_cast<uint64_t>(shdr.sh_flags);
+-            elfShdr.addr = static_cast<uint64_t>(shdr.sh_addr);
+-            elfShdr.offset = static_cast<uint64_t>(shdr.sh_offset);
+-            elfShdr.size = static_cast<uint64_t>(shdr.sh_size);
+-            elfShdr.link = static_cast<uint32_t>(shdr.sh_link);
+-            elfShdr.info = static_cast<uint32_t>(shdr.sh_info);
+-            elfShdr.addrAlign = static_cast<uint64_t>(shdr.sh_addralign);
+-            elfShdr.entSize = static_cast<uint64_t>(shdr.sh_entsize);
+-            symShdrs_.emplace_back(elfShdr);
++            ExtractSymSectionHeadersInfo(shdr);
+         }
+     }
+     return true;
+@@ -565,6 +614,36 @@ std::string ElfParser::ToReadableBuildId(const std::string& buildIdHex)
+     return buildId;
+ }
+ 
++std::string ElfParser::GetNameByNameOffset(uint32_t nameOffset) const
++{
++    if (nameOffset < adltStrtab_.length()) {
++        size_t endPos = adltStrtab_.find('\0', nameOffset);
++        if (endPos != std::string::npos) {
++            return adltStrtab_.substr(nameOffset, endPos - nameOffset);
++        }
++    }
++    DFXLOGE("get elf name from .adlt.strtab fail, nameOffset: %{public}" PRIu32 ", adltstrtab.size: %{public}" PRIuPTR,
++        nameOffset, adltStrtab_.length());
++    return "";
++}
++
++std::string ElfParser::GetAdltOriginSoNameByRelPc(uint64_t relPc) const
++{
++    auto it = std::lower_bound(
++        adltMap_.begin(),
++        adltMap_.end(),
++        relPc,
++        [](const AdltMapInfo& info, uint64_t pc) {
++            return info.pcEnd <= pc;
++        });
++    if (it != adltMap_.end() && relPc >= it->pcBegin && relPc < it->pcEnd) {
++        return GetNameByNameOffset(it->nameOffset);
++    }
++    DFXLOGE("get elf nameOffset fail, relPc: 0x%{public}" PRIx64 ", mapSize: %{public}" PRIuPTR,
++        relPc, adltMap_.size());
++    return "";
++}
++
+ bool ElfParser32::InitHeaders()
+ {
+     return ParseAllHeaders<Elf32_Ehdr, Elf32_Phdr, Elf32_Shdr>();
+diff --git a/interfaces/innerkits/unwinder/src/maps/dfx_map.cpp b/interfaces/innerkits/unwinder/src/maps/dfx_map.cpp
+index b42df4f..e4b7e7c 100644
+--- a/interfaces/innerkits/unwinder/src/maps/dfx_map.cpp
++++ b/interfaces/innerkits/unwinder/src/maps/dfx_map.cpp
+@@ -378,6 +378,10 @@ const std::shared_ptr<DfxElf> DfxMap::GetElf(pid_t pid)
+         if (elf != nullptr && !elf->IsValid()) {
+             elf = nullptr;
+         }
++        // adlt need update lodeBase
++        if (elf != nullptr && elf->IsAdlt()) {
++            elf->SetLoadBase(GetAdltLoadBase());
++        }
+         DFXLOGU("GetElf name: %{public}s", name.c_str());
+     }
+     return elf;
+diff --git a/interfaces/innerkits/unwinder/src/maps/dfx_maps.cpp b/interfaces/innerkits/unwinder/src/maps/dfx_maps.cpp
+index afe48fc..8a38418 100644
+--- a/interfaces/innerkits/unwinder/src/maps/dfx_maps.cpp
++++ b/interfaces/innerkits/unwinder/src/maps/dfx_maps.cpp
+@@ -93,24 +93,14 @@ bool DfxMaps::Create(const pid_t pid, std::vector<std::shared_ptr<DfxMap>>& maps
+     return true;
+ }
+ 
+-bool DfxMaps::Parse(const pid_t pid, const std::string& path)
++void DfxMaps::ParseMaps(const pid_t pid, FILE* fp, int& fgetCount)
+ {
+-    DFX_TRACE_SCOPED_DLSYM("ParseMaps");
+-    if ((pid < 0) || (path == "")) {
+-        DFXLOGE("param is error");
+-        return false;
+-    }
+-
+-    FILE* fp = nullptr;
+-    fp = fopen(path.c_str(), "r");
+-    if (fp == nullptr) {
+-        DFXLOGE("Failed to open %{public}s, err=%{public}d", path.c_str(), errno);
+-        return false;
+-    }
+-
+     char mapBuf[PATH_LEN] = {0};
+-    int fgetCount = 0;
++    bool adltFound = false;
++    bool adltExecFound = false;
+     std::shared_ptr<DfxMap> prevMap = nullptr;
++    std::vector<std::shared_ptr<DfxMap>> adltMaps;
++    uint64_t adltLoadBase = static_cast<uint64_t>(-1);
+     while (fgets(mapBuf, sizeof(mapBuf), fp) != nullptr) {
+         fgetCount++;
+         auto map = std::make_shared<DfxMap>();
+@@ -119,7 +109,24 @@ bool DfxMaps::Parse(const pid_t pid, const std::string& path)
+             continue;
+         }
+         DfxMap::FormatMapName(pid, map->name);
+-        if (map->IsMapExec()) {
++        bool isExec = map->IsMapExec();
++        /* The adlt so is composed of multiple so files, therefore there are multiple text sections.
++         * Different text section has different start address, to get the relPc, the traditional formula
++         * is no longer valid. We should get the file LoadBase, to find the map record which
++         * name start with ADLT_PATH_NAME_START, end with ".so", offset == 0, can not execute
++         */
++        if (StartsWith(map->name, ADLT_PATH_NAME_START) && EndsWith(map->name, ".so")) {
++            adltMaps.push_back(map);
++            if (isExec && !adltExecFound) {
++                adltMapIndex_ = maps_.size();
++                adltExecFound = true;
++            }
++            if (!adltFound && map->offset == 0 && !isExec) {
++                adltLoadBase = map->begin;
++                adltFound = true;
++            }
++        }
++        if (isExec) {
+             map->prevMap = prevMap;
+         }
+         prevMap = map;
+@@ -135,7 +142,31 @@ bool DfxMaps::Parse(const pid_t pid, const std::string& path)
+             AddMap(map, enableMapIndex_);
+         }
+     }
++    for (auto &iter : adltMaps) {
++        iter->SetAdltLoadBase(adltLoadBase);
++    }
++}
++
++bool DfxMaps::Parse(const pid_t pid, const std::string& path)
++{
++    DFX_TRACE_SCOPED_DLSYM("ParseMaps");
++    if ((pid < 0) || (path == "")) {
++        DFXLOGE("param is error");
++        return false;
++    }
++
++    FILE* fp = nullptr;
++    fp = fopen(path.c_str(), "r");
++    if (fp == nullptr) {
++        DFXLOGE("Failed to open %{public}s, err=%{public}d", path.c_str(), errno);
++        return false;
++    }
++
++    int fgetCount = 0;
++    ParseMaps(pid, fp, fgetCount);
++
+     (void)fclose(fp);
++    
+     if (fgetCount == 0) {
+         DFXLOGE("Failed to get maps(%{public}s), err(%{public}d).", path.c_str(), errno);
+         return false;
+@@ -224,6 +255,10 @@ int DfxMaps::FindMapIndexByAddr(uintptr_t addr) const
+             continue;
+         }
+         if (addr >= cur->begin && addr < cur->end) {
++            if (StartsWith(cur->name, ADLT_PATH_NAME_START) &&
++                adltMapIndex_ >= 0 && adltMapIndex_ < maps_.size()) {
++                return adltMapIndex_;
++            }
+             return index;
+         } else if (addr < cur->begin) {
+             last = index;
+diff --git a/interfaces/innerkits/unwinder/unwinder.cpp b/interfaces/innerkits/unwinder/unwinder.cpp
+index 3270636..32fc675 100644
+--- a/interfaces/innerkits/unwinder/unwinder.cpp
++++ b/interfaces/innerkits/unwinder/unwinder.cpp
+@@ -1271,8 +1271,8 @@ void Unwinder::Impl::ParseFrameSymbol(DfxFrame& frame)
+         return;
+     }
+     if (!DfxSymbols::GetFuncNameAndOffsetByPc(frame.relPc, elf, frame.funcName, frame.funcOffset)) {
+-        DFXLOGU("Failed to get symbol, relPc: %{public}" PRIx64 ", mapName: %{public}s",
+-            frame.relPc, frame.mapName.c_str());
++        DFXLOGU("Failed to get symbol, relPc: 0x%{public}" PRIx64 ", pc: 0x%{public}" PRIx64 ", mapName: %{public}s",
++            frame.relPc, frame.pc, frame.mapName.c_str());
+     }
+     frame.parseSymbolState.SetParseSymbolState(true);
+ }
+@@ -1285,18 +1285,27 @@ void Unwinder::Impl::FillFrame(DfxFrame& frame, bool needSymParse)
+         DFXLOGU("Current frame is not mapped.");
+         return;
+     }
+-    frame.mapName = frame.map->GetElfName();
++    std::string mapName = frame.map->GetElfName();
++    frame.mapName = mapName;
+     DFX_TRACE_SCOPED_DLSYM("FillFrame:%s", frame.mapName.c_str());
+     frame.relPc = frame.map->GetRelPc(frame.pc);
+     frame.mapOffset = frame.map->offset;
+-    if (frame.map->GetElf() == nullptr) {
++    auto elf = frame.map->GetElf();
++    if (elf == nullptr) {
+         return;
+     }
+-    frame.buildId = frame.map->GetElf()->GetBuildId();
+-    DFXLOGU("mapName: %{public}s, mapOffset: %{public}" PRIx64 "", frame.mapName.c_str(), frame.mapOffset);
++    frame.buildId = elf->GetBuildId();
+     if (needSymParse) {
+         ParseFrameSymbol(frame);
+     }
++    if (elf->IsAdlt()) {
++        std::string originSoName = elf->GetAdltOriginSoNameByRelPc(frame.relPc);
++        if (!originSoName.empty()) {
++            mapName.append(":" + originSoName);
++        }
++    }
++    frame.mapName = mapName;
++    DFXLOGU("mapName: %{public}s, mapOffset: %{public}" PRIx64 "", frame.mapName.c_str(), frame.mapOffset);
+ }
+ 
+ void Unwinder::Impl::FillJsFrame(DfxFrame& frame)
+diff --git a/services/fault_logger_service.cpp b/services/fault_logger_service.cpp
+index 1384a0a..add89b0 100644
+--- a/services/fault_logger_service.cpp
++++ b/services/fault_logger_service.cpp
+@@ -148,7 +148,8 @@ void StatsService::ReportDumpStats(const DumpStats& stat)
+         "DUMPER_START_TIME", stat.processdumpStartTime - stat.signalTime,
+         "WRITE_DUMP_INFO_TIME", stat.writeDumpInfoCost,
+         "UNWIND_TIME", stat.processdumpFinishTime - stat.processdumpStartTime,
+-        "TARGET_PROCESS_THREAD_COUNT", stat.targetProcessThreadCount);
++        "TARGET_PROCESS_THREAD_COUNT", stat.targetProcessThreadCount,
++        "SMO_PARSE_TIME", stat.smoParseTime);
+ }
+ 
+ std::string StatsService::GetElfName(const FaultLoggerdStatsRequest& request)
+@@ -175,6 +176,7 @@ int32_t StatsService::OnRequest(const std::string& socketName, int32_t connectio
+         stats.processdumpFinishTime = requestData.processdumpFinishTime;
+         stats.targetProcessName = requestData.targetProcess;
+         stats.writeDumpInfoCost = requestData.writeDumpInfoCost;
++        stats.smoParseTime = requestData.smoParseTime;
+     } else if (requestData.type == DUMP_CATCHER) {
+         auto task = [requestData, this] {
+             auto iter = std::find_if(stats_.begin(), stats_.end(), [&requestData](const DumpStats& dumpStats) {
+diff --git a/services/fault_logger_service.h b/services/fault_logger_service.h
+index 9e02228..2419d3b 100644
+--- a/services/fault_logger_service.h
++++ b/services/fault_logger_service.h
+@@ -74,6 +74,7 @@ struct DumpStats {
+     uint64_t processdumpStartTime = 0;
+     uint64_t processdumpFinishTime = 0;
+     uint64_t dumpCatcherFinishTime = 0;
++    uint64_t smoParseTime = 0;
+     int32_t result = 0;
+     uint32_t targetProcessThreadCount = 0;
+     uint32_t writeDumpInfoCost = 0;
+diff --git a/test/resource/ohos_test.xml b/test/resource/ohos_test.xml
+index 043f8b4..242304e 100644
+--- a/test/resource/ohos_test.xml
++++ b/test/resource/ohos_test.xml
+@@ -49,6 +49,7 @@
+             <option name="push" value="testdata/syms_from_readelf_64 -> /data/test/resource/testdata/" src="res"/>
+             <option name="push" value="testdata/testmaps_32 -> /data/test/resource/testdata/" src="res"/>
+             <option name="push" value="testdata/testmaps_64 -> /data/test/resource/testdata/" src="res"/>
++            <option name="push" value="testdata/libadlt_test -> /data/test/resource/testdata/" src="res"/>
+         </preparer>
+     </target>
+     <target name="test_dwarf">
+diff --git a/test/unittest/unwind/elf_test.cpp b/test/unittest/unwind/elf_test.cpp
+index e637653..df07483 100644
+--- a/test/unittest/unwind/elf_test.cpp
++++ b/test/unittest/unwind/elf_test.cpp
+@@ -144,6 +144,104 @@ HWTEST_F(DfxElfTest, DfxElfTest002, TestSize.Level2)
+     GTEST_LOG_(INFO) << "DfxElfTest002: end.";
+ }
+ 
++/**
++ * @tc.name: DfxElfTestAdltStrTabSection
++ * @tc.desc: test DfxElf adlt.strtab section
++ * @tc.type: FUNC
++ */
++HWTEST_F(DfxElfTest, DfxElfTestAdltStrTabSection, TestSize.Level2)
++{
++    GTEST_LOG_(INFO) << "DfxElfTestAdltStrTabSection: start.";
++    std::string filePath = "/data/test/resource/testdata/libadlt_test";
++    RegularElfFactory factory(filePath);
++    auto elf = factory.Create();
++    ASSERT_TRUE(elf != nullptr);
++    GTEST_LOG_(INFO) << elf->GetElfName();
++    ASSERT_TRUE(elf->IsValid());
++    ASSERT_TRUE(elf->IsAdlt());
++ 
++    // check .adlt.strtab section
++    std::string strTab = elf->GetAdltStrtab();
++    EXPECT_EQ(strTab.size(), 0x67);
++    ShdrInfo shdr;
++    std::string secName = ".adlt.strtab";
++    GTEST_LOG_(INFO) << secName;
++    ASSERT_TRUE(elf->GetSectionInfo(shdr, secName));
++    EXPECT_EQ(shdr.size, strTab.size());
++ 
++    GTEST_LOG_(INFO) << "DfxElfTestAdltStrTabSection: end.";
++}
++
++/**
++ * @tc.name: DfxElfTestAdltMapSection
++ * @tc.desc: test DfxElf adlt.map section
++ * @tc.type: FUNC
++ */
++HWTEST_F(DfxElfTest, DfxElfTestAdltMapSection, TestSize.Level2)
++{
++    GTEST_LOG_(INFO) << "DfxElfTestAdltMapSection: start.";
++    std::string filePath = "/data/test/resource/testdata/libadlt_test";
++    RegularElfFactory factory(filePath);
++    auto elf = factory.Create();
++    ASSERT_TRUE(elf != nullptr);
++    GTEST_LOG_(INFO) << elf->GetElfName();
++    ASSERT_TRUE(elf->IsValid());
++    ASSERT_TRUE(elf->IsAdlt());
++
++    // check .adlt.map section
++    std::vector<AdltMapInfo> adltMap = elf->GetAdltMap();
++    std::string secName = ".adlt.map";
++    GTEST_LOG_(INFO) << secName;
++    ShdrInfo shdr;
++    ASSERT_TRUE(elf->GetSectionInfo(shdr, secName));
++    EXPECT_GT(shdr.size, 0);
++    EXPECT_EQ(shdr.size, adltMap.size() * sizeof(AdltMapInfo));
++    EXPECT_EQ(shdr.size % sizeof(AdltMapInfo), 0);
++    std::vector<uint8_t> buf(shdr.size);
++    ASSERT_TRUE(elf->GetSectionData(buf.data(), shdr.size, secName));
++    EXPECT_EQ(shdr.size, buf.size());
++
++    GTEST_LOG_(INFO) << "DfxElfTestAdltMapSection: end.";
++}
++
++/**
++ * @tc.name: DfxElfTestAdltGetOriginSoFunc
++ * @tc.desc: test DfxElf Get Origin So Func
++ * @tc.type: FUNC
++ */
++HWTEST_F(DfxElfTest, DfxElfTestAdltGetOriginSoFunc, TestSize.Level2)
++{
++    GTEST_LOG_(INFO) << "DfxElfTestAdltGetOriginSoFunc: start.";
++    std::string filePath = "/data/test/resource/testdata/libadlt_test";
++    RegularElfFactory factory(filePath);
++    auto elf = factory.Create();
++    ASSERT_TRUE(elf != nullptr);
++    GTEST_LOG_(INFO) << elf->GetElfName();
++    ASSERT_TRUE(elf->IsValid());
++ 
++    // get .adlt.map section
++    std::string secName = ".adlt.map";
++    ShdrInfo shdr;
++    ASSERT_TRUE(elf->GetSectionInfo(shdr, secName));
++    EXPECT_GT(shdr.size, 0);
++    std::vector<uint8_t> buf(shdr.size);
++    ASSERT_TRUE(elf->GetSectionData(buf.data(), shdr.size, secName));
++    EXPECT_EQ(shdr.size, buf.size());
++ 
++    // check func: GetAdltOriginSoNameByRelPc
++    // legal relPc
++    AdltMapInfo* mapInfo = reinterpret_cast<AdltMapInfo*>(buf.data());
++    uint32_t relPc = mapInfo[0].pcBegin;
++    std::string originSoName = elf->GetAdltOriginSoNameByRelPc(relPc);
++    EXPECT_GT(originSoName.size(), 0);
++    // illegal relPc
++    relPc = mapInfo[0].pcEnd;
++    originSoName = elf->GetAdltOriginSoNameByRelPc(relPc);
++    ASSERT_TRUE(originSoName.empty());
++ 
++    GTEST_LOG_(INFO) << "DfxElfTestAdltGetOriginSoFunc: end.";
++}
++
+ /**
+  * @tc.name: DfxElfTest003
+  * @tc.desc: test DfxElf functions with using error
+@@ -250,6 +348,8 @@ HWTEST_F(DfxElfTest, DfxElfTest008, TestSize.Level2)
+     ElfSymbol elfSymbol;
+     elfParse->GetFuncSymbolByAddr(addr, elfSymbol);
+     ASSERT_EQ(buildId, "");
++    // illegal size
++    elfParse->GetAdltMapSectionInfo(0, 13);
+ }
+ 
+ /**
+diff --git a/test/unittest/unwind/maps_test.cpp b/test/unittest/unwind/maps_test.cpp
+index 045c0fb..ea6f8fd 100644
+--- a/test/unittest/unwind/maps_test.cpp
++++ b/test/unittest/unwind/maps_test.cpp
+@@ -27,6 +27,7 @@ namespace OHOS {
+ namespace HiviewDFX {
+ namespace {
+ const string INVALID_MAP_NAME = "/system/lib64/init/libinit_context111.z.so";
++const string ADLT_MAP_NAME = "/system/lib/libadlt_app.so";
+ #ifdef __arm__
+ const string MAPS_FILE = "/data/test/resource/testdata/testmaps_32";
+ const string VALID_MAP_NAME = "/system/lib/init/libinit_context.z.so";
+@@ -35,6 +36,7 @@ const string INVALID_MAP_ITEM = "f6d83000-f6d84000 r--p 00001000 b3:07 1892 /sys
+ const string VDSO_MAP_ITEM = "f7c21000-f7c22000 r-xp 00000000 00:00 0                                  [vdso]";
+ const string ARK_HAP_MAP_NAME = "/system/app/SceneBoard/SceneBoard.hap";
+ const string ARK_CODE_MAP_NAME = "[anon:ArkTS Code:libdialog.z.so/Dialog.js]";
++#define ADLT_MAP_LOAD_BASE 0xa0400000
+ #else
+ const string MAPS_FILE = "/data/test/resource/testdata/testmaps_64";
+ const string VALID_MAP_NAME = "/system/lib64/init/libinit_context.z.so";
+@@ -44,6 +46,7 @@ const string INVALID_MAP_ITEM = "7f0ab40000-7f0ab41000 r--p 00000000 b3:07 1882
+ const string VDSO_MAP_ITEM = "7f8b9df000-7f8b9e0000 r-xp 00000000 00:00 0                              [vdso]";
+ const string ARK_HAP_MAP_NAME = "/system/app/SceneBoard/SceneBoard.hap";
+ const string ARK_CODE_MAP_NAME = "[anon:ArkTS Code:libdialog.z.so/Dialog.js]";
++#define ADLT_MAP_LOAD_BASE 0x5aa0400000
+ #endif
+ }
+ 
+@@ -202,6 +205,47 @@ HWTEST_F(MapsTest, CreateMapsTest, TestSize.Level2)
+     GTEST_LOG_(INFO) << "CreateMapsTest: end.";
+ }
+ 
++/**
++ * @tc.name: AdltMapLoadBaseTest
++ * @tc.desc: test adlt map loadbase
++ * @tc.type: FUNC
++ */
++HWTEST_F(MapsTest, AdltMapLoadBaseTest, TestSize.Level2)
++{
++    GTEST_LOG_(INFO) << "AdltMapLoadBaseTest: start.";
++    std::vector<std::shared_ptr<DfxMap>> mapsV;
++    EXPECT_EQ(true, maps_->FindMapsByName(ADLT_MAP_NAME, mapsV));
++    for (auto map : mapsV) {
++        EXPECT_EQ(ADLT_MAP_LOAD_BASE, map->GetAdltLoadBase());
++    }
++    GTEST_LOG_(INFO) << "invalid pid or path test.";
++    std::string invalidPath = "";
++    ASSERT_TRUE(DfxMaps::Create(-1, invalidPath) == nullptr);
++    ASSERT_TRUE(DfxMaps::Create(getpid(), invalidPath) == nullptr);
++    invalidPath = "/data/xxxx";
++    ASSERT_TRUE(DfxMaps::Create(getpid(), invalidPath) == nullptr);
++    GTEST_LOG_(INFO) << "AdltMapLoadBaseTest: end.";
++}
++
++/**
++ * @tc.name: AdltMapIndexTest
++ * @tc.desc: test adlt map index
++ * @tc.type: FUNC
++ */
++HWTEST_F(MapsTest, AdltMapIndexTest, TestSize.Level2)
++{
++    GTEST_LOG_(INFO) << "AdltMapIndexTest: start.";
++    std::vector<std::shared_ptr<DfxMap>> mapsV;
++    ASSERT_TRUE(maps_->adltMapIndex_ >= 0);
++    ASSERT_TRUE(maps_->adltMapIndex_ < maps_->maps_.size());
++    EXPECT_EQ(true, maps_->FindMapsByName(ADLT_MAP_NAME, mapsV));
++    for (auto map : mapsV) {
++        EXPECT_EQ(maps_->adltMapIndex_, maps_->FindMapIndexByAddr(map->begin));
++    }
++    
++    GTEST_LOG_(INFO) << "AdltMapIndexTest: end.";
++}
++
+ /**
+  * @tc.name: GetStackRangeTest
+  * @tc.desc: test GetStackRange
+diff --git a/test/unittest/unwind/unwinder_test.cpp b/test/unittest/unwind/unwinder_test.cpp
+index b619223..2a04c7b 100644
+--- a/test/unittest/unwind/unwinder_test.cpp
++++ b/test/unittest/unwind/unwinder_test.cpp
+@@ -27,6 +27,7 @@
+ #include "dfx_regs_get.h"
+ #include "dfx_test_util.h"
+ #include "elapsed_time.h"
++#include "elf_factory.h"
+ #include "unwinder.h"
+ 
+ #if defined(__x86_64__)
+@@ -666,6 +667,48 @@ HWTEST_F(UnwinderTest, FillFrameTest001, TestSize.Level2)
+     GTEST_LOG_(INFO) << "FillFrameTest001: end.";
+ }
+ 
++/**
++ * @tc.name: FillFrameTestAdltMap
++ * @tc.desc: test unwinder FillFrame interface
++ *  in local case
++ * @tc.type: FUNC
++ */
++HWTEST_F(UnwinderTest, FillFrameTestAdltMap, TestSize.Level2)
++{
++    GTEST_LOG_(INFO) << "FillFrameTestAdltMap: start.";
++    auto unwinder = std::make_shared<Unwinder>();
++#ifdef __arm__
++    string testMap = "9c04b000-9c04d000 r--p 08177000 1ff:01 24 /data/test/resource/testdata/libadlt_test";
++#else
++    string testMap = "5a9c04b000-5a9c04d000 r--p 08177000 1ff:01 24 /data/test/resource/testdata/libadlt_test";
++#endif
++    auto map = DfxMap::Create(testMap);
++    ASSERT_TRUE(map != nullptr);
++    std::string filePath = "/data/test/resource/testdata/libadlt_test";
++    RegularElfFactory factory(filePath);
++    auto elf = factory.Create();
++    ASSERT_TRUE(elf != nullptr);
++    GTEST_LOG_(INFO) << elf->GetElfName();
++    ASSERT_TRUE(elf->IsValid());
++    ASSERT_TRUE(elf->IsAdlt());
++#ifdef __arm__
++    uint64_t loadBase = 0xa0400000;
++#else
++    uint64_t loadBase = 0x5aa0400000;
++#endif
++    map->SetAdltLoadBase(loadBase);
++    elf->SetLoadBase(map->GetAdltLoadBase());
++    map->elf = elf;
++    
++    DfxFrame frame;
++    frame.map = map;
++    frame.pc = loadBase + 0x37e8;
++    unwinder->FillFrame(frame);
++    GTEST_LOG_(INFO) << frame.mapName;
++    
++    GTEST_LOG_(INFO) << "FillFrameTestAdltMap: end.";
++}
++
+ /**
+  * @tc.name: FillJsFrameTest001
+  * @tc.desc: test unwinder FillJsFrame interface
+@@ -1010,6 +1053,29 @@ HWTEST_F(UnwinderTest, UnwinderTest004, TestSize.Level2)
+     std::string str = DfxFrameFormatter::GetFrameStr(frame);
+     ASSERT_NE(str, "") << "UnwinderTest004: end.";
+ }
++
++/**
++ * @tc.name: UnwinderTest005
++ * @tc.desc: test DfxFrame ToSymbolString
++ * @tc.type: FUNC
++ */
++HWTEST_F(UnwinderTest, UnwinderTest005, TestSize.Level2)
++{
++    GTEST_LOG_(INFO) << "UnwinderTest005: start.";
++    DfxFrame frame;
++    frame.isJsFrame = true;
++    frame.funcName = "test";
++    frame.packageName = "test";
++    frame.mapName = "/system/lib/libadlt_app.so";
++    frame.mapOffset = 0x140;
++    frame.funcOffset = 0x339a38;
++    frame.pc = 0x5990339B78;
++    frame.originSoName = "lib2d_graphics.z.so";
++    frame.index = 11;
++    std::string str = frame.ToSymbolString();
++    GTEST_LOG_(INFO) << str;
++    ASSERT_NE(str, "") << "UnwinderTest005: end.";
++}
+ } // namespace HiviewDFX
+ } // namepsace OHOS
+ 
+diff --git a/tools/process_dump/process_dumper.cpp b/tools/process_dump/process_dumper.cpp
+index 3f67482..97c7ef3 100644
+--- a/tools/process_dump/process_dumper.cpp
++++ b/tools/process_dump/process_dumper.cpp
+@@ -679,6 +679,7 @@ void ProcessDumper::ReportSigDumpStats()
+     stat->processdumpStartTime = startTime_;
+     stat->processdumpFinishTime = finishTime_ == 0 ? GetTimeMillisec() : finishTime_;
+     stat->writeDumpInfoCost = finishParseSymbolTime_ > 0 ? stat->processdumpFinishTime - finishParseSymbolTime_ : 0;
++    stat->smoParseTime = smoParseTime_;
+     if (memcpy_s(stat->targetProcess, sizeof(stat->targetProcess),
+         request_.processName, sizeof(request_.processName)) != 0) {
+         DFXLOGE("Failed to copy target processName (%{public}d)", errno);
+diff --git a/tools/process_dump/process_dumper.h b/tools/process_dump/process_dumper.h
+index 4df89b5..dd900f0 100644
+--- a/tools/process_dump/process_dumper.h
++++ b/tools/process_dump/process_dumper.h
+@@ -82,6 +82,7 @@ private:
+     std::unique_ptr<CoredumpManager> coredumpManager_;
+ #endif
+     uint64_t finishParseSymbolTime_ = 0;
++    uint64_t smoParseTime_ = 0;
+ };
+ } // namespace HiviewDFX
+ } // namespace OHOS
