@@ -31,6 +31,7 @@ import { promises } from 'dns';
 
 export class SpClockChart {
   private readonly trace: SpSystemTrace;
+  private similarDmaFolder!: TraceRow<BaseStruct>;
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -55,7 +56,7 @@ export class SpClockChart {
         clockList.push(item[0]);
       }
     }
-    await this.initDmaFence(folder);
+    await this.addDmaList(folder, traceId);
     await this.initData(folder, clockList, traceId);
   }
 
@@ -201,18 +202,108 @@ export class SpClockChart {
   }
 
   // @ts-ignore
-  async initDmaFence(folder: TraceRow<unknown>): Promise<void> {
+  async addDmaList(folder: TraceRow<unknown>, traceId?: string): Promise<void> {
     let dmaFenceNameList = await queryDmaFenceName();
     if (dmaFenceNameList.length) {
-      let dmaFenceList = [];
       const timelineValues = dmaFenceNameList.map(obj => obj.timeline);
-      for (let i = 0; i < timelineValues.length; i++) {
+      const similarDmaCounts: Record<string, number> = {}; //同名thread添加子进程  
+      const similarDmaList: unknown[] = [];
+      const differentDmaList: unknown[] = [];
+      timelineValues.forEach(item => {
+        if (item !== undefined) {
+          if (item.indexOf('hvgr_timeline') !== -1) {
+            similarDmaList.push(item);
+          } else {
+            differentDmaList.push(item);
+          }
+        }
+      });
+
+      differentDmaList.length && await this.initDmaFence(folder, differentDmaList);
+      if (similarDmaList.length) {
+        let similarFolder = this.initSimilarThreadFolder(traceId);
+        if (similarFolder) {
+          folder.addChildTraceRow(this.similarDmaFolder);
+        }
+        await this.initSimilarDmaData(this.similarDmaFolder,similarDmaList);
+      }
+    }
+  }
+
+  async initSimilarDmaData(similarFolder: TraceRow<BaseStruct>, list: unknown[]): Promise<void> {
+    for (let i = 0; i < list.length; i++) {
+      let traceRow: TraceRow<DmaFenceStruct> = TraceRow.skeleton<DmaFenceStruct>();
+      // @ts-ignore
+      traceRow.rowId = list[i];
+      traceRow.rowType = TraceRow.ROW_TYPE_SIMILAR_DMA_FENCE;
+      traceRow.rowParentId = similarFolder.rowId;
+      traceRow.style.height = 40 + 'px';
+      traceRow.name = `${list[i]}`;
+      traceRow.folder = false;
+      traceRow.rowHidden = !similarFolder.expansion;
+      traceRow.setAttribute('children', '');
+      traceRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+      traceRow.selectChangeHandler = this.trace.selectChangeHandler;
+      // @ts-ignore
+      traceRow.supplierFrame = (): Promise<DmaFenceStruct[]> => {
+        return dmaFenceSender('dma_fence_init', `${list[i]}`, traceRow).then((res) => {
+          res.forEach((item: unknown) => {
+            // @ts-ignore
+            let detail = Utils.DMAFENCECAT_MAP.get(item.id!);
+            if (detail) {
+              let catValue = (detail.cat.match(/^dma_(.*)$/))![1];
+              // @ts-ignore
+              item.sliceName = catValue.endsWith('ed') ? `${catValue.slice(0, -2)}(${detail.seqno})` : `${catValue}(${detail.seqno})`;
+              // @ts-ignore
+              item.driver = detail.driver;
+              // @ts-ignore
+              item.context = detail.context;
+              // @ts-ignore
+              item.depth = 0;
+            }
+
+          });
+          return res;
+        });
+
+      };
+      traceRow.onThreadHandler = (useCache): void => {
+        let context: CanvasRenderingContext2D;
+        if (traceRow.currentContext) {
+          context = traceRow.currentContext;
+        } else {
+          context = traceRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+        }
+        traceRow.canvasSave(context);
+        (renders.dmaFence as DmaFenceRender).renderMainThread(
+          {
+            dmaFenceContext: context,
+            useCache: useCache,
+            type: 'dmaFence',
+            maxValue: 20,
+            index: 1,
+            maxName: ''
+          },
+          traceRow
+        );
+        traceRow.canvasRestore(context, this.trace);
+      };
+        similarFolder.addChildTraceRow(traceRow);
+    }
+  }
+
+  // @ts-ignore
+  async initDmaFence(folder: TraceRow<unknown>, list: unknown[]): Promise<void> {
+    if (list.length) {
+      let dmaFenceList = [];
+      for (let i = 0; i < list.length; i++) {
         let traceRow: TraceRow<DmaFenceStruct> = TraceRow.skeleton<DmaFenceStruct>();
-        traceRow.rowId = timelineValues[i];
+        // @ts-ignore
+        traceRow.rowId = list[i];
         traceRow.rowType = TraceRow.ROW_TYPE_DMA_FENCE;
         traceRow.rowParentId = folder.rowId;
         traceRow.style.height = 40 + 'px';
-        traceRow.name = `${timelineValues[i]}`;
+        traceRow.name = `${list[i]}`;
         traceRow.folder = false;
         traceRow.rowHidden = !folder.expansion;
         traceRow.setAttribute('children', '');
@@ -220,7 +311,7 @@ export class SpClockChart {
         traceRow.selectChangeHandler = this.trace.selectChangeHandler;
         // @ts-ignore
         traceRow.supplierFrame = (): Promise<DmaFenceStruct[]> => {
-          return dmaFenceSender('dma_fence_init', `${timelineValues[i]}`, traceRow).then((res) => {
+          return dmaFenceSender('dma_fence_init', `${list[i]}`, traceRow).then((res) => {
             res.forEach((item: unknown) => {
               // @ts-ignore
               let detail = Utils.DMAFENCECAT_MAP.get(item.id!);
@@ -269,6 +360,40 @@ export class SpClockChart {
 
   }
 
+  // @ts-ignore
+  initSimilarThreadFolder(traceId?: string): TraceRow<BaseStruct> {
+    let similarDmaFolder = TraceRow.skeleton(traceId);
+    similarDmaFolder.rowId = 'hvgr_timeline';
+    similarDmaFolder.index = 0;
+    similarDmaFolder.rowType = TraceRow.ROW_TYPE_SIMILAR_CLOCK_GROUP;
+    similarDmaFolder.rowParentId = '';
+    similarDmaFolder.style.height = '40px';
+    similarDmaFolder.folder = true;
+    similarDmaFolder.name = 'hvgr_timeline';
+    similarDmaFolder.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    similarDmaFolder.selectChangeHandler = this.trace.selectChangeHandler;
+    similarDmaFolder.supplier = (): Promise<BaseStruct[]> => new Promise<Array<BaseStruct>>((resolve) => resolve([]));
+    similarDmaFolder.onThreadHandler = (useCache): void => {
+      let context: CanvasRenderingContext2D;
+      similarDmaFolder.canvasSave(this.trace.canvasPanelCtx!);
+      if (similarDmaFolder.expansion) {
+        // @ts-ignore
+        context?.clearRect(0, 0, sameThreadRow.frame.width, sameThreadRow.frame.height);
+      } else {
+        (renders.empty as EmptyRender).renderMainThread(
+          {
+            context: this.trace.canvasPanelCtx,
+            useCache: useCache,
+            type: '',
+          },
+          similarDmaFolder
+        );
+      }
+      similarDmaFolder.canvasRestore(this.trace.canvasPanelCtx!, this.trace);
+    };
+    this.similarDmaFolder = similarDmaFolder;
+    return this.similarDmaFolder;
+  }
 
   async initFolder(traceId?: string): Promise<TraceRow<BaseStruct>> {
     let clockFolder = TraceRow.skeleton(traceId);

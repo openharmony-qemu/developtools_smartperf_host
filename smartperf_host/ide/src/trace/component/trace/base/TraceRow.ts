@@ -102,6 +102,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_NETWORK_ABILITY = 'network-ability';
   static ROW_TYPE_DMA_ABILITY = 'dma-ability';
   static ROW_TYPE_DMA_FENCE = 'dma-fence';
+  static ROW_TYPE_SIMILAR_DMA_FENCE = 'same-dma-fence';
   static ROW_TYPE_GPU_MEMORY_ABILITY = 'gpu-memory-ability';
   static ROW_TYPE_SDK = 'sdk';
   static ROW_TYPE_SDK_COUNTER = 'sdk-counter';
@@ -124,6 +125,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_VMTRACKER_SHM = 'VmTracker-shm';
   static ROW_TYPE_HANG_GROUP = 'hang-group';
   static ROW_TYPE_CLOCK_GROUP = 'clock-group';
+  static ROW_TYPE_SIMILAR_CLOCK_GROUP = 'hvgr_timeline';
   static ROW_TYPE_COLLECT_GROUP = 'collect-group';
   static ROW_TYPE_HANG = 'hang';
   static ROW_TYPE_HANG_INNER = 'hang-inner';
