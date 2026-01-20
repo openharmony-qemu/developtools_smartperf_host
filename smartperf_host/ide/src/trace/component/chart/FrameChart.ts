@@ -35,8 +35,8 @@ const asyncStack = {
   'libworker.z.so': ['Worker::Worker'],
   'libffrt.so': ['ffrt_submit_base', 'ffrt::QueueHandler::Dispatch'],
   'libeventhandler.z.so': ['sendEvent', 'DistributeEvent'],
-  'libuv.so': ['uv_tiner_start', 'uv_queue_work'],
-  'libarkweb_engine.so': ['Runtime_DfxPrnoiseThen', 'Runtime_SetAsyncTraceOfMicrotask'],
+  'libuv.so': ['uv_timer_start', 'uv_queue_work'],
+  'libarkweb_engine.so': ['Runtime_DfxPromiseThen', 'Runtime_SetAsyncTraceOfMicrotask'],
 }
 
 
