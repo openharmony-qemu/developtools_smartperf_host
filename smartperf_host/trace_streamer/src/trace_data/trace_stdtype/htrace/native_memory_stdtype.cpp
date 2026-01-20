@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2026. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -109,10 +109,77 @@ size_t NativeHook::AppendNewNativeHookData(const NativeHookRow &context)
     } else if (context.eventType == GPU_CL_FREE_EVENT) {
         countGpuClSizes_ -= context.memSize;
         allMemSizes_.emplace_back(countGpuClSizes_);
+    } else if (context.eventType == OTHER_ALLOC_EVENT) {
+        countOtherSizes_ += context.memSize;
+        allMemSizes_.emplace_back(countOtherSizes_);
+    } else if (context.eventType == OTHER_FREE_EVENT) {
+        countOtherSizes_ -= context.memSize;
+        allMemSizes_.emplace_back(countOtherSizes_);
     }
+    AppendOtherNativeHookData(context);
     currentSizeDurs_.emplace_back(0);
     return Size() - 1;
 }
+
+void NativeHook::AppendOtherNativeHookData(const NativeHookRow &context)
+{
+    if (context.eventType == ARKTS_HEAP_ALLOC_EVENT) {
+        countArktsHeapSizes_ += context.memSize;
+        allMemSizes_.emplace_back(countArktsHeapSizes_);
+    } else if (context.eventType == ARKTS_HEAP_FREE_EVENT) {
+        countArktsHeapSizes_ -= context.memSize;
+        allMemSizes_.emplace_back(countArktsHeapSizes_);
+    } else if (context.eventType == JS_HEAP_ALLOC_EVENT) {
+        countJsHeapSizes_ += context.memSize;
+        allMemSizes_.emplace_back(countJsHeapSizes_);
+    } else if (context.eventType == JS_HEAP_FREE_EVENT) {
+        countJsHeapSizes_ -= context.memSize;
+        allMemSizes_.emplace_back(countJsHeapSizes_);
+    } else if (context.eventType == KMP_HEAP_ALLOC_EVENT) {
+        countKmpHeapSizes_ += context.memSize;
+        allMemSizes_.emplace_back(countKmpHeapSizes_);
+    } else if (context.eventType == KMP_HEAP_FREE_EVENT) {
+        countKmpHeapSizes_ -= context.memSize;
+        allMemSizes_.emplace_back(countKmpHeapSizes_);
+    } else if (context.eventType == ASHMEM_ALLOC_EVENT) {
+        countAshmemSizes_ += context.memSize;
+        allMemSizes_.emplace_back(countAshmemSizes_);
+    } else if (context.eventType == ASHMEM_FREE_EVENT) {
+        countAshmemSizes_ -= context.memSize;
+        allMemSizes_.emplace_back(countAshmemSizes_);
+    } else if (context.eventType == ION_ALLOC_EVENT) {
+        countIonSizes_ += context.memSize;
+        allMemSizes_.emplace_back(countIonSizes_);
+    } else if (context.eventType == ION_FREE_EVENT) {
+        countIonSizes_ -= context.memSize;
+        allMemSizes_.emplace_back(countIonSizes_);
+    } else if (context.eventType == SO_ALLOC_EVENT) {
+        countSoSizes_ += context.memSize;
+        allMemSizes_.emplace_back(countSoSizes_);
+    } else if (context.eventType == SO_FREE_EVENT) {
+        countSoSizes_ -= context.memSize;
+        allMemSizes_.emplace_back(countSoSizes_);
+    }
+    AppendMoreNativeHookData(context);
+}
+
+void NativeHook::AppendMoreNativeHookData(const NativeHookRow &context)
+{
+    if (context.eventType == FD_OPEN_EVENT) {
+        countFdSizes_ += context.memSize;
+        allMemSizes_.emplace_back(countFdSizes_);
+    } else if (context.eventType == FD_CLOSE_EVENT) {
+        countFdSizes_ -= context.memSize;
+        allMemSizes_.emplace_back(countFdSizes_);
+    } else if (context.eventType == THREAD_CREATE_EVENT) {
+        countThreadSizes_ += context.memSize;
+        allMemSizes_.emplace_back(countThreadSizes_);
+    } else if (context.eventType == THREAD_DESTROY_EVENT) {
+        countThreadSizes_ -= context.memSize;
+        allMemSizes_.emplace_back(countThreadSizes_);
+    }
+}
+
 void NativeHook::UpdateCallChainId(size_t row, uint32_t callChainId)
 {
     if (row < Size()) {
@@ -158,11 +225,11 @@ const std::deque<uint64_t> &NativeHook::Addrs() const
 {
     return addrs_;
 }
-const std::deque<int64_t> &NativeHook::MemSizes() const
+const std::deque<uint64_t> &NativeHook::MemSizes() const
 {
     return memSizes_;
 }
-const std::deque<int64_t> &NativeHook::AllMemSizes() const
+const std::deque<uint64_t> &NativeHook::AllMemSizes() const
 {
     return allMemSizes_;
 }
