@@ -33,7 +33,7 @@ public:
     ~PerfDataFilter() override;
 
 public:
-    size_t AppendPerfFiles(uint64_t fileId, uint32_t serial, DataIndex symbols, DataIndex filePath);
+    size_t AppendPerfFiles(uint64_t fileId, uint32_t serial, DataIndex symbols, DataIndex filePath, DataIndex soName);
     void AppendInvalidVaddrIpToFuncName(uint64_t ip, DataIndex nameIndex);
     void Finish();
     void BeforeReload();

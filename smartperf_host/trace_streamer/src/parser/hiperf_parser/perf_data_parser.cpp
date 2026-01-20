@@ -418,6 +418,9 @@ std::tuple<uint64_t, DataIndex> PerfDataParser::GetFileIdWithLikelyFilePath(cons
     auto perfFilesData = traceDataCache_->GetConstPerfFilesData();
     for (auto row = 0; row < perfFilesData.Size(); row++) {
         auto filePath = traceDataCache_->GetDataFromDict(perfFilesData.FilePaths()[row]);
+        if (filePath.find(":") != std::string::npos) {
+            filePath = filePath.substr(0, filePath.find(":"));
+        }
         if (EndsWith(filePath, inputFilePath)) {
             return std::make_tuple(perfFilesData.FileIds()[row], perfFilesData.FilePaths()[row]);
         }
@@ -437,11 +440,50 @@ bool PerfDataParser::ReloadPerfFile(const std::unique_ptr<SymbolsFile> &symbolsF
     if (!traceDataCache_->GetPerfFilesData()->EraseFileIdSameData(fileId)) {
         return false;
     }
+    auto soNameMap = report_->virtualRuntime_.GetSoMappingMap();
+    bool isFindSoNameMap = (soNameMap.find(symbolsFile->filePath_) != soNameMap.end());
     // add new symbol Data to PerfFile table
     for (auto dfxSymbol : symbolsFile->GetSymbols()) {
         auto symbolNameIndex = traceDataCache_->GetDataIndex(dfxSymbol.GetName());
+        DataIndex soNameIndex = INVALID_DATAINDEX;
+        if (isFindSoNameMap) {
+            auto soName = report_->virtualRuntime_.GetSoNameFromPc(dfxSymbol.funcVaddr_, symbolsFile->filePath_);
+            if (soName != "") {
+                soName = std::string(symbolsFile->filePath_) + ":" + soName;
+                soNameIndex = traceDataCache_->GetDataIndex(soName);
+            }
+        }
         traceDataCache_->GetPerfFilesData()->AppendNewPerfFiles(fileId, dfxSymbol.index_, symbolNameIndex,
-                                                                filePathIndex);
+                                                                filePathIndex, soNameIndex);
+    }
+    return true;
+}
+
+bool PerfDataParser::RefreshPerfFileSoNames()
+{
+    uint64_t fileId;
+    DataIndex filePathIndex;
+    std::vector<DataIndex> soNames;
+    auto soNameMap = report_->virtualRuntime_.GetSoMappingMap();
+
+    for (auto &symbolsFile : report_->virtualRuntime_.GetSymbolsFiles()) {
+        if (soNameMap.find(symbolsFile->filePath_) != soNameMap.end()) {
+            std::tie(fileId, filePathIndex) = GetFileIdWithLikelyFilePath(symbolsFile->filePath_);
+            if (fileId == INVALID_DATAINDEX) {
+                continue;
+            }
+            soNames.clear();
+            for (auto dfxSymbol : symbolsFile->GetSymbols()) {
+                auto soName = report_->virtualRuntime_.GetSoNameFromPc(dfxSymbol.funcVaddr_, symbolsFile->filePath_);
+                if (soName != "") {
+                    soName = std::string(symbolsFile->filePath_) + ":" + soName;
+                    soNames.push_back(traceDataCache_->GetDataIndex(soName));
+                } else {
+                    soNames.push_back(INVALID_DATAINDEX);
+                }
+            }
+            traceDataCache_->GetPerfFilesData()->RefreshFileIdSoNames(fileId, soNames);
+        }
     }
     return true;
 }
@@ -572,6 +614,8 @@ bool PerfDataParser::Reload()
     UpdateClockType();
     recordDataReader_->ReadDataSection(std::bind(&PerfDataParser::RecordCallBack, this, std::placeholders::_1));
     TS_LOGD("process record completed");
+    RefreshPerfFileSoNames();
+    TS_LOGD("process refresh symbol so name by smo info completed");
     TS_LOGI("load perf data done");
     return true;
 }
@@ -665,10 +709,10 @@ void PerfDataParser::UpdateSymbolAndFilesData()
         for (auto &symbol : symbolsFile->GetSymbols()) {
             auto symbolIndex = traceDataCache_->dataDict_.GetStringIndex(symbol.GetName());
             streamFilters_->statFilter_->IncreaseStat(TRACE_PERF, STAT_EVENT_RECEIVED);
-            streamFilters_->perfDataFilter_->AppendPerfFiles(fileId, serial++, symbolIndex, filePathIndex);
+            streamFilters_->perfDataFilter_->AppendPerfFiles(fileId, serial++, symbolIndex, filePathIndex, INVALID_DATAINDEX);
         }
         if (symbolsFile->GetSymbols().size() == 0) {
-            streamFilters_->perfDataFilter_->AppendPerfFiles(fileId, INVALID_UINT32, INVALID_DATAINDEX, filePathIndex);
+            streamFilters_->perfDataFilter_->AppendPerfFiles(fileId, INVALID_UINT32, INVALID_DATAINDEX, filePathIndex, INVALID_DATAINDEX);
         }
         fileDataDictIdToFileId_.insert(std::make_pair(filePathIndex, fileId));
         ++fileId;

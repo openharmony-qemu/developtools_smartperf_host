@@ -1,0 +1,901 @@
+diff --git a/include/perf_event_record.h b/include/perf_event_record.h
+index 11da0cc..bb6aea5 100644
+--- a/include/perf_event_record.h
++++ b/include/perf_event_record.h
+@@ -64,6 +64,7 @@ static constexpr char PERF_RECORD_TYPE_SWITCHCPUWIDE[] = "switchCpuWide";
+ static constexpr char PERF_RECORD_TYPE_AUXTRACEINFO[] = "auxtraceinfo";
+ static constexpr char PERF_RECORD_TYPE_TIMECONV[] = "timeconv";
+ static constexpr char PERF_RECORD_TYPE_CPUMAP[] = "cpumap";
++static constexpr char PERF_RECORD_TYPE_SMO[] = "smoRecord";
+ static constexpr char* PERF_RECORD_TYPE_NULL = nullptr;
+ 
+ enum perf_event_hiperf_ext_type {
+@@ -72,6 +73,7 @@ enum perf_event_hiperf_ext_type {
+     PERF_RECORD_CPU_MAP = 74,
+     PERF_RECORD_TIME_CONV = 79,
+     PERF_RECORD_HIPERF_CALLSTACK = UINT32_MAX / 2,
++    PERF_RECORD_TYPE_SMO_NUM = 82
+ };
+ 
+ struct AttrWithId {
+@@ -395,6 +397,20 @@ public:
+     void DumpData(const int indent) const override;
+ };
+ 
++class PerfRecordSmoDetachingEvent :  public PerfEventRecordTemplate<PerfRecordSmoDataFragment, PERF_RECORD_TYPE_SMO> {
++public:
++    PerfRecordSmoDetachingEvent() = default;
++    const static uint16_t fragmentLength_ = 10000;
++    PerfRecordSmoDetachingEvent(std::vector<uint8_t> binaryData, uint16_t allNum, uint16_t fNum);
++    bool GetBinary(std::vector<uint8_t> &buf) const override;
++    void DumpData(const int indent) const override;
++    size_t GetSize() const override;
++    void Init(uint8_t* p, const perf_event_attr& = {}) override;
++    std::vector<uint8_t> binaryData;
++    uint16_t fragmentNum_ = 0;
++    uint16_t allFragmentNum_ = 0;
++};
++
+ /*
+     This record indicates which process has initiated an
+     instruction trace event, allowing tools to properly
+diff --git a/include/perf_record_format.h b/include/perf_record_format.h
+index 60c962d..7afa55b 100644
+--- a/include/perf_record_format.h
++++ b/include/perf_record_format.h
+@@ -293,6 +293,40 @@ struct PerfRecordAuxData {
+     struct sample_id sample_id;
+ };
+ 
++struct SmoHeaderFragment {
++    u32 version = 0;
++    u32 soNumber = 0;
++};
++ 
++struct SmoMergeSoHeaderFragment {
++    u32 mapOffset = 0;
++    u32 mapSize = 0;
++    u32 strtabOffset = 0;
++    u32 strtabSize = 0;
++    u32 soOffset = 0;  // offset of the merged SO name
++};
++ 
++struct AdltMapFragment {
++    u32 pcBegin = 0;
++    u32 pcEnd = 0;
++    u32 psodIndex = 0;
++    u32 nameOffset = 0;
++};
++ 
++struct PerfRecordSmoDataFragment {
++    SmoHeaderFragment smoHeader;
++    std::vector<SmoMergeSoHeaderFragment> smoMergeSoHeaderList;
++    std::vector<AdltMapFragment> adltMapList;
++    std::string strtab;
++};
++ 
++struct AdltMapDataFragment {
++    u32 pcBegin = 0;
++    u32 pcEnd = 0;
++    u32 psodIndex = 0;
++    std::string originalSoName;
++};
++
+ /*
+     This record indicates a read event.
+ */
+diff --git a/include/report_json_file.h b/include/report_json_file.h
+index 632df66..841be06 100644
+--- a/include/report_json_file.h
++++ b/include/report_json_file.h
+@@ -187,6 +187,7 @@ struct ReportFuncMapItem {
+     int libId_ = -1;
+     std::string funcName_;
+     int reportFuncId_ = -1;
++    bool hiddenFlag = false;
+     void OutputJson(FILE *output) const
+     {
+         if (fprintf(output, "{") < 0) {
+@@ -374,7 +375,7 @@ public:
+                                const std::vector<DfxFrame> &frames);
+     void UpdateCallNodeEventCount();
+     void ProcessSymbolsFiles(const std::vector<std::unique_ptr<SymbolsFile>> &symbolsFiles);
+-
++    void SupplementSymbolsFiles(const std::vector<std::unique_ptr<SymbolsFile>> &symbolsFiles);
+     // json
+     bool OutputJson(FILE *output = nullptr);
+ 
+@@ -394,7 +395,8 @@ private:
+     uint32_t GetConfigIndex(const uint64_t id);
+ 
+     int GetFunctionID(const int libId, const std::string &function);
+-    int GetLibID(const std::string_view filepath);
++    void HiddenFunctionInLib(const int libId, const std::string &function);
++    int GetLibID(const std::string filepath, const std::string originSoName = "", const std::string funcName = "");
+ 
+     void OutputJsonFeatureString();
+     void OutputJsonRuntimeInfo();
+diff --git a/include/subcommand_record.h b/include/subcommand_record.h
+index e10944f..aeff1ee 100644
+--- a/include/subcommand_record.h
++++ b/include/subcommand_record.h
+@@ -180,6 +180,11 @@ public:
+         "         <millisec> is in range [1-200], default is 10.\n"
+         "   --data-limit <SIZE[K|M|G]>\n"
+         "         Stop recording after SIZE bytes of records. Default is unlimited.\n"
++        "   --append-smo-data\n"
++        "         Output information about the original shared libraries included in SOs\n"
++        "         that support the SMO(Shared library Merge Optimization) feature. \n"
++        "         The information mainly consists of a mapping table between the PC and\n"
++        "         the original shared library names.\n"
+         "   -o <output_file_name>\n"
+ #if defined(is_sandbox_mapping) && is_sandbox_mapping
+         "         Set output file name, default is " + GetDefaultPathByEnv("perf.data") + ".\n"
+@@ -247,6 +252,7 @@ private:
+     bool compressData_ = false;
+     bool noInherit_ = false;
+     bool excludeHiperf_ = false;
++    bool appendSmoData_ = false;
+     bool offCPU_ = false;
+     bool delayUnwind_ = false;
+     bool disableUnwind_ = false;
+diff --git a/include/symbols_file.h b/include/symbols_file.h
+index 0407997..be2257d 100644
+--- a/include/symbols_file.h
++++ b/include/symbols_file.h
+@@ -165,7 +165,7 @@ public:
+ 
+     // get vaddr(in symbol) from ip(real addr , after mmap reloc)
+     virtual uint64_t GetVaddrInSymbols(const uint64_t ip, const uint64_t mapStart, const uint64_t mapOffset) const;
+-
++    uint64_t GetVaddrByLoadBase(uint64_t ip, uint64_t loadBase) const;
+     // get symbols from vaddr
+     const DfxSymbol GetSymbolWithVaddr(uint64_t vaddrInFile);
+ 
+diff --git a/include/virtual_runtime.h b/include/virtual_runtime.h
+index d94a9a0..e2a08ce 100644
+--- a/include/virtual_runtime.h
++++ b/include/virtual_runtime.h
+@@ -56,6 +56,7 @@ public:
+ 
+     void SetRecordMode(const RecordCallBack &recordCallBack);
+     void SetCollectSymbolCallBack(const CollectSymbolCallBack &collectSymbolCallBack);
++    void SetSmoFlag(bool flag) { smoFlag_ = flag; }
+ 
+     // this both used in report and record follow
+     // it process the record, and rebuild the trhread maps
+@@ -86,6 +87,8 @@ public:
+ 
+     // any mode
+     static_assert(sizeof(pid_t) == sizeof(int));
++    std::string GetSoNameFromPc(uint64_t pc, std::string fileName);
++    std::map<std::string, std::vector<AdltMapDataFragment>> GetSoMappingMap();
+ 
+     const std::vector<std::unique_ptr<SymbolsFile>> &GetSymbolsFiles() const
+     {
+@@ -143,6 +146,7 @@ public:
+ 
+     // report use
+     void UpdateFromPerfData(const std::vector<SymbolFileStruct> &);
++    void UpdateFilesFromSmoRecordData();
+     void UnwindFromRecord(PerfRecordSample &recordSample);
+     std::string ReadThreadName(const pid_t tid, const bool isThread);
+     std::string ReadFromSavedCmdLines(const pid_t tid);
+@@ -194,7 +198,7 @@ private:
+     bool GetSymbolCache(const uint64_t fileVaddr, DfxSymbol &symbol,
+                         const perf_callchain_context &context);
+     // find synbols function name
+-    void MakeCallFrame(DfxSymbol &symbol, DfxFrame &callFrame);
++    void MakeCallFrame(const uint64_t ip, DfxSymbol &symbol, DfxFrame &callFrame);
+     void UpdateSymbols(std::shared_ptr<DfxMap> map, const pid_t pid);
+     // we don't know whether hap vma mapping is stand for a so
+     // thus we need try to parse it first
+@@ -205,6 +209,7 @@ private:
+     void UpdateFromRecord(PerfRecordComm &recordComm);
+     void DedupFromRecord(PerfRecordSample *recordSample);
+     void UpdateFromRecord(PerfRecordAuxtrace &recordAuxTrace);
++    void UpdateFromRecord(PerfRecordSmoDetachingEvent &record);
+     // threads
+     VirtualThread &UpdateThread(const pid_t pid, const pid_t tid, const std::string name = "");
+     VirtualThread &CreateThread(const pid_t pid, const pid_t tid, const std::string name = "");
+@@ -218,6 +223,8 @@ private:
+     const DfxSymbol GetKernelSymbol(const uint64_t ip, const std::vector<DfxMap> &memMaps,
+                                     const VirtualThread &thread);
+     const DfxSymbol GetUserSymbol(const uint64_t ip, const VirtualThread &thread);
++    std::string GetOriginSoName(const uint64_t ip, const VirtualThread &thread, DfxSymbol &vaddrSymbol,
++        std::shared_ptr<DfxMap> &map, SymbolsFile* symbolsFile);
+     const DfxSymbol GetKernelThreadSymbol(const uint64_t ip, const VirtualThread &thread);
+ #ifdef HIPERF_DEBUG
+     std::unordered_set<uint64_t> missedRuntimeVaddr_;
+@@ -233,6 +240,19 @@ private:
+     bool CheckValidSandBoxMmap(PerfRecordMmap2 &recordMmap2);
+     void ProcessKernelCallChain(PerfRecordSample &sample);
+     void AdjustCallChain(PerfRecordSample &sample);
++    void UpdateProcessSmoInfo(VirtualThread &thread);
++    void UpdateSmoList(VirtualThread &thread, std::vector<std::shared_ptr<DfxElf>> &elfList,
++        std::vector<std::string> &filePathList);
++    void PutSmoDataToRecord(PerfRecordSmoDataFragment &perfRecordSmoDataFragment, u32 mapOffset);
++    std::map<std::string, std::vector<AdltMapDataFragment>> soMappingMap;
++    // root or --append-smo-data
++    bool smoFlag_ = false;
++    // mapping merged so and its corresponding so before merging
++    std::map<std::string, std::unordered_set<std::string>> originSoMap;
++    std::map<uint16_t, std::vector<uint8_t>> binaryDataMap;
++    // every merged so shuould only be stored once, save the stored merged so path here
++    std::unordered_set<std::string> savedSmoPathList;
++
+ };
+ } // namespace HiPerf
+ } // namespace Developtools
+diff --git a/include/virtual_thread.h b/include/virtual_thread.h
+index 8206a63..7e023a7 100644
+--- a/include/virtual_thread.h
++++ b/include/virtual_thread.h
+@@ -113,6 +113,8 @@ private:
+     std::vector<int> processMemMapsIndexs_;
+     std::vector<int> &memMapsIndexs_;
+     VirtualThread &parent_;
++    uint64_t adltLoadBase = static_cast<uint64_t>(-1);
++    bool getLoadBaseFlag = false;
+ #ifdef HIPERF_DEBUG
+     mutable std::unordered_set<uint64_t> missedRuntimeVaddr_;
+ #endif
+diff --git a/src/perf_event_record.cpp b/src/perf_event_record.cpp
+index 232796c..d23cdce 100644
+--- a/src/perf_event_record.cpp
++++ b/src/perf_event_record.cpp
+@@ -15,11 +15,12 @@
+ #define HILOG_TAG "PerfRecord"
+ 
+ #include "perf_event_record.h"
+-#include "spe_decoder.h"
+ #include <cinttypes>
++#include "spe_decoder.h"
+ 
+ #include "utilities.h"
+ 
++
+ namespace OHOS {
+ namespace Developtools {
+ namespace HiPerf {
+@@ -71,6 +72,8 @@ static PerfEventRecord* CreatePerfEventRecord(PerfRecordType type)
+             return new PerfRecordSwitch();
+         case PERF_RECORD_SWITCH_CPU_WIDE:
+             return new PerfRecordSwitchCpuWide();
++        case PERF_RECORD_TYPE_SMO_NUM:
++            return new PerfRecordSmoDetachingEvent();
+         default:
+             HLOGE("unknown record type %d\n", type);
+             return new PerfRecordNull();
+@@ -1022,6 +1025,59 @@ void PerfRecordAux::DumpData(const int indent) const
+                  data_.sample_id.time);
+ }
+ 
++PerfRecordSmoDetachingEvent::PerfRecordSmoDetachingEvent(std::vector<uint8_t> binary, uint16_t allNum, uint16_t fNum)
++{
++    header_.type = PERF_RECORD_TYPE_SMO_NUM;
++    header_.size = binary.size() + sizeof(header_) + sizeof(fragmentNum_) + sizeof(allFragmentNum_);
++    binaryData = binary;
++    fragmentNum_ = fNum;
++    allFragmentNum_ = allNum;
++}
++
++bool PerfRecordSmoDetachingEvent::GetBinary(std::vector<uint8_t> &buf) const
++{
++    if (buf.size() < GetSize()) {
++        buf.resize(GetSize());
++    }
++    GetHeaderBinary(buf);
++    uint8_t *p = buf.data() + GetHeaderSize();
++    PushToBinary(true, p, fragmentNum_);
++    PushToBinary(true, p, allFragmentNum_);
++    std::copy(binaryData.begin(), binaryData.end(), p);
++    p += binaryData.size();
++    return true;
++}
++
++size_t PerfRecordSmoDetachingEvent::GetSize() const
++{
++    return header_.size;
++}
++
++void PerfRecordSmoDetachingEvent::DumpData(const int indent) const
++{
++    return;
++}
++
++void PerfRecordSmoDetachingEvent::Init(uint8_t* p, const perf_event_attr&)
++{
++    InitHeader(p);
++    if (p == nullptr) {
++        return;
++    }
++    if (header_.size < (sizeof(header_) + sizeof(fragmentNum_) + sizeof(allFragmentNum_))) {
++        return;
++    }
++    uint8_t* data = p + sizeof(header_);
++    if (memcpy_s(&fragmentNum_, sizeof(fragmentNum_), data, sizeof(uint16_t)) != 0) {
++        return;
++    }
++    if (memcpy_s(&allFragmentNum_, sizeof(allFragmentNum_), data + sizeof(fragmentNum_), sizeof(uint16_t)) != 0) {
++        return;
++    }
++    binaryData.resize(header_.size - sizeof(header_) - sizeof(fragmentNum_) - sizeof(allFragmentNum_));
++    std::copy(data + sizeof(fragmentNum_) + sizeof(allFragmentNum_), p + header_.size, binaryData.begin());
++}
++
+ bool PerfRecordAuxTraceInfo::GetBinary(std::vector<uint8_t> &buf) const
+ {
+     if (buf.size() < GetSize()) {
+diff --git a/src/report_json_file.cpp b/src/report_json_file.cpp
+index 1eb0d64..a782779 100644
+--- a/src/report_json_file.cpp
++++ b/src/report_json_file.cpp
+@@ -49,8 +49,10 @@ void ReportJsonFile::OutputJsonFunctionMap(FILE *output)
+ 
+         for (const auto& [libId, funcMap] : functionMap_) {
+             for (const auto& [_, reportFuncMapItem] : funcMap) {
+-                OutputJsonPair(output, reportFuncMapItem.reportFuncId_, reportFuncMapItem, first);
+-                first = false;
++                if (!reportFuncMapItem.hiddenFlag) {
++                    OutputJsonPair(output, reportFuncMapItem.reportFuncId_, reportFuncMapItem, first);
++                    first = false;
++                }
+             }
+         }
+ 
+@@ -75,6 +77,18 @@ void ReportJsonFile::ProcessSymbolsFiles(
+     }
+ }
+ 
++void ReportJsonFile::SupplementSymbolsFiles(
++    const std::vector<std::unique_ptr<SymbolsFile>> &symbolsFiles)
++{
++    HLOGV("libsize old %zu", libList_.size());
++    for (size_t i = libList_.size(); i < symbolsFiles.size(); ++i) {
++        size_t libId = libList_.size();
++        libList_.emplace_back(symbolsFiles[i]->filePath_);
++        HLOGV("add new id success %zu, path:%s", libId, libList_[libId].data());
++    }
++    HLOGV("libsize new %zu", libList_.size());
++}
++
+ void ReportJsonFile::UpdateCallNodeEventCount()
+ {
+     for (auto &config : reportConfigItems_) {
+@@ -117,6 +131,20 @@ int ReportJsonFile::GetFunctionID(const int libId, const std::string &function)
+     return funcMapIt->second.reportFuncId_;
+ }
+ 
++void ReportJsonFile::HiddenFunctionInLib(const int libId, const std::string &function)
++{
++    auto functionMapIt = functionMap_.find(libId);
++    if (functionMapIt == functionMap_.end()) {
++        return;
++    }
++    auto funcMapIt = functionMapIt->second.find(function);
++    if (funcMapIt == functionMapIt->second.end()) {
++        return;
++    }
++    funcMapIt->second.hiddenFlag = true;
++    HLOGV("hidden func'%s' in lib %d", function.c_str(), libId);
++}
++
+ void ReportJsonFile::UpdateReportSample(const uint64_t id, const pid_t pid,
+                                         const pid_t tid, const uint64_t eventCount)
+ {
+@@ -137,7 +165,7 @@ void ReportJsonFile::AddReportCallStack(const uint64_t eventCount, ReportCallNod
+     std::map<int, ReportCallNodeItem> *child = &callNode.childrenMap;
+     auto it = frames.begin();
+     while (it != frames.end()) {
+-        int libId = GetLibID(it->mapName);
++        int libId = GetLibID(it->mapName, it->originSoName, it->funcName);
+         if (libId >= 0) {
+             int funcId = GetFunctionID(libId, it->funcName);
+             // new children funid
+@@ -169,7 +197,7 @@ void ReportJsonFile::AddReportCallStackReverse(const uint64_t eventCount, Report
+     std::map<int, ReportCallNodeItem> *child = &callNode.childrenMap;
+     auto it = frames.rbegin();
+     while (it != frames.rend()) {
+-        int libId = GetLibID(it->mapName);
++        int libId = GetLibID(it->mapName, it->originSoName, it->funcName);
+         if (libId >= 0) {
+             int funcId = GetFunctionID(libId, it->funcName);
+             // new children funid
+@@ -206,13 +234,27 @@ std::string ReportJsonFile::GetConfigName(const uint64_t id)
+     return config.eventName_;
+ }
+ 
+-int ReportJsonFile::GetLibID(const std::string_view filepath)
++int ReportJsonFile::GetLibID(const std::string filepath, const std::string originSoName, const std::string funcName)
+ {
+-    auto it = find(libList_.begin(), libList_.end(), filepath);
++    std::string newFilePath = filepath;
++    if (filepath.find("libadlt") != std::string::npos && EndsWith(filepath.data(), ".so")) {
++        HLOGW("extendName: %s", originSoName.c_str());
++        if (!originSoName.empty()) {
++            newFilePath = filepath + ":" + originSoName;
++            auto oldIt = std::find(libList_.begin(), libList_.end(), std::string_view(filepath));
++            if (oldIt != libList_.end()) {
++                int oldLibId = oldIt - libList_.begin();
++                HiddenFunctionInLib(oldLibId, funcName);
++            }
++        } else {
++            HLOGW("Get extendName fail for nullptr");
++        }
++    }
++    auto it = std::find(libList_.begin(), libList_.end(), std::string_view(newFilePath));
+     if (it != libList_.end()) {
+         return it - libList_.begin();
+     } else {
+-        HLOGE("'%s' not found in lib list", filepath.data());
++        HLOGE("'%s' not found in lib list, liblist size: %zu", filepath.data(), libList_.size());
+         return -1;
+     }
+ }
+@@ -229,12 +271,13 @@ void ReportJsonFile::UpdateReportCallStack(const uint64_t id, const pid_t pid, c
+     bool jsFrame = StringEndsWith(it->mapName, "stub.an");
+     size_t skipFrame = 0;
+     while (it != frames.end()) {
+-        int libId = GetLibID(it->mapName);
++        int libId = GetLibID(it->mapName, it->originSoName, it->funcName);
+         if (libId < 0) {
+             HLOGW("not found lib path %s", it->mapName.data());
+             it++;
+             continue;
+         }
++        
+         ReportLibItem &lib = thread.libs_[libId];
+         lib.libId_ = libId;
+         int funcId = GetFunctionID(libId, it->funcName);
+diff --git a/src/subcommand_record.cpp b/src/subcommand_record.cpp
+index f242181..d4fffdb 100644
+--- a/src/subcommand_record.cpp
++++ b/src/subcommand_record.cpp
+@@ -340,6 +340,10 @@ bool SubCommandRecord::GetOptions(std::vector<std::string> &args)
+     if (!Option::GetOptionValue(args, "--call-stack", callStackType)) {
+         return false;
+     }
++    if (!Option::GetOptionValue(args, "--append-smo-data", appendSmoData_)) {
++        appendSmoData_ = true;
++        return false;
++    }
+     if (!callStackType_.empty()) {
+         if (!callStackType.empty()) {
+             printf("'-s %s --call-stack %s' option usage error, please check usage.\n",
+@@ -1175,6 +1179,7 @@ bool SubCommandRecord::PrepareVirtualRuntime()
+         return this->SaveRecord(record);
+     };
+     virtualRuntime_.SetRecordMode(saveRecord);
++    virtualRuntime_.SetSmoFlag(isRoot_ || appendSmoData_);
+ 
+     // do some config for virtualRuntime_
+     virtualRuntime_.SetCallStackExpend(disableCallstackExpend_ ? 0 : 1);
+diff --git a/src/subcommand_report.cpp b/src/subcommand_report.cpp
+index 4f29e25..35fd631 100644
+--- a/src/subcommand_report.cpp
++++ b/src/subcommand_report.cpp
+@@ -230,7 +230,10 @@ bool SubCommandReport::RecordCallBack(PerfEventRecord& record)
+ {
+     // tell process tree what happend for rebuild symbols
+     GetReport().virtualRuntime_.UpdateFromRecord(record);
+-
++    if (jsonFormat_ && record.GetType() == PERF_RECORD_TYPE_SMO_NUM) {
++        reportJsonFile_->SupplementSymbolsFiles(GetReport().virtualRuntime_.GetSymbolsFiles());
++    }
++    
+     if (record.GetType() == PERF_RECORD_SAMPLE) {
+         std::unique_ptr<PerfRecordSample> sample
+             = std::make_unique<PerfRecordSample>(static_cast<PerfRecordSample&>(record));
+diff --git a/src/symbols_file.cpp b/src/symbols_file.cpp
+index f0321b1..cea8fbb 100644
+--- a/src/symbols_file.cpp
++++ b/src/symbols_file.cpp
+@@ -1564,6 +1564,11 @@ uint64_t SymbolsFile::GetVaddrInSymbols(uint64_t ip, uint64_t mapStart, uint64_t
+     return ip;
+ }
+ 
++uint64_t SymbolsFile::GetVaddrByLoadBase(uint64_t ip, uint64_t loadBase) const
++{
++    return ip - loadBase;
++}
++
+ void SymbolsFile::AddSymbol(DfxSymbol symbol)
+ {
+     symbolsLoaded_ = true;
+diff --git a/src/virtual_runtime.cpp b/src/virtual_runtime.cpp
+index e5e1718..a89860a 100644
+--- a/src/virtual_runtime.cpp
++++ b/src/virtual_runtime.cpp
+@@ -30,14 +30,20 @@
+ #include "spe_decoder.h"
+ #include "symbols_file.h"
+ #include "utilities.h"
++#include "string_util.h"
+ 
+ using namespace std::chrono;
+ namespace OHOS {
+ namespace Developtools {
+ namespace HiPerf {
++static const std::unordered_set<std::string> MERGED_SO_NAMES = {
++    "libadlt_app.so",
++};
+ namespace {
+ // if ip is 0 , 1 both not useful
+ const uint64_t BAD_IP_ADDRESS = 2;
++const uint16_t RECORD_HEADER_SIZE = 8;
++const uint16_t SMO_MERGE_SO_HEADER_SIZE = 20;
+ }
+ // we unable to access 'swapper' from /proc/0/
+ VirtualRuntime::VirtualRuntime(const bool onDevice)
+@@ -114,6 +120,103 @@ VirtualThread &VirtualRuntime::UpdateThread(const pid_t pid, const pid_t tid, co
+     return thread;
+ }
+ 
++void VirtualRuntime::UpdateSmoList(VirtualThread &thread, std::vector<std::shared_ptr<DfxElf>> &elfList,
++    std::vector<std::string> &filePathList)
++{
++    for (auto &dfxMap : thread.GetMaps()) {
++        if (MERGED_SO_NAMES.find(dfxMap->name.substr(dfxMap->name.rfind('/') + 1)) != MERGED_SO_NAMES.end() &&
++            savedSmoPathList.find(dfxMap->name) == savedSmoPathList.end()) {
++                filePathList.push_back(dfxMap->name);
++                elfList.push_back(dfxMap->GetElf(0));
++                savedSmoPathList.insert(dfxMap->name);
++        }
++    }
++}
++
++
++void VirtualRuntime::UpdateProcessSmoInfo(VirtualThread &thread)
++{
++    std::vector<std::shared_ptr<DfxElf>> elfList;
++    std::vector<std::string> filePathList;
++    UpdateSmoList(thread, elfList, filePathList);
++    if (elfList.size() == 0) {
++        return;
++    }
++    SmoHeaderFragment smoHeader = {0, (u32)elfList.size()};
++    std::vector<SmoMergeSoHeaderFragment> smoMergeSoHeaderList;
++    std::vector<AdltMapFragment> adltMapList;
++    std::vector<std::string> strtabList;
++    std::vector<std::string> soNameList;
++    u32 mapOffset = RECORD_HEADER_SIZE + elfList.size() * SMO_MERGE_SO_HEADER_SIZE;
++    std::string strtab = "";
++    for (size_t i = 0; i < elfList.size(); i++) {
++        std::vector<AdltMapInfo> adltMap = elfList[i]->GetAdltMap();
++        std::string adltStrtab = elfList[i]->GetAdltStrtab();
++        if (!std::is_sorted(adltMap.begin(), adltMap.end(),
++            [](AdltMapInfo a, AdltMapInfo b) {return a.pcBegin < b.pcBegin;})) {
++            std::sort(adltMap.begin(), adltMap.end(), [](AdltMapInfo a, AdltMapInfo b) {return a.pcBegin < b.pcBegin;});
++        }
++        smoMergeSoHeaderList.push_back({mapOffset, (u32)(adltMap.size() * sizeof(AdltMapFragment)), 0, (u32)adltStrtab.size(), 0});
++        for (AdltMapInfo adMap : adltMap) {
++            adltMapList.push_back({adMap.pcBegin, adMap.pcEnd, adMap.psodIndex, adMap.nameOffset});
++        }
++        strtabList.push_back(adltStrtab);
++        soNameList.push_back(filePathList[i]);
++        mapOffset += adltMap.size() * sizeof(AdltMapFragment);
++    }
++    for (auto i = 0u; i < strtabList.size(); i++) {
++        strtab += strtabList[i];
++        smoMergeSoHeaderList[i].strtabOffset = mapOffset;
++        mapOffset += strtabList[i].size();
++    }
++    for (auto i = 0u; i < soNameList.size(); i++) {
++        strtab += (soNameList[i] + "\0");
++        smoMergeSoHeaderList[i].soOffset = mapOffset;
++        mapOffset += (soNameList[i].size() + 1);
++    }
++    PerfRecordSmoDataFragment perfRecordSmoDataFragment = {smoHeader, smoMergeSoHeaderList, adltMapList, strtab};
++    PutSmoDataToRecord(perfRecordSmoDataFragment, mapOffset);
++}
++
++void VirtualRuntime::PutSmoDataToRecord(PerfRecordSmoDataFragment &perfRecordSmoDataFragment, u32 mapOffset)
++{
++    std::vector<uint8_t> binaryData(mapOffset);
++    uint8_t* ptr = binaryData.data();
++    if (memcpy_s(ptr, sizeof(perfRecordSmoDataFragment.smoHeader), &(perfRecordSmoDataFragment.smoHeader),
++        sizeof(perfRecordSmoDataFragment.smoHeader)) != 0) {
++        HLOGE("memcpy_s return failed in PutSmoDataToRecord with smoHeader");
++        return;
++    }
++    ptr += sizeof(SmoHeaderFragment);
++    for (SmoMergeSoHeaderFragment smoMergeSoHeader : perfRecordSmoDataFragment.smoMergeSoHeaderList) {
++        if (memcpy_s(ptr, sizeof(smoMergeSoHeader), &(smoMergeSoHeader), sizeof(smoMergeSoHeader)) != 0) {
++            HLOGE("memcpy_s return failed in PutSmoDataToRecord with smoMergeSoHeader");
++            return;
++        }
++        ptr += sizeof(smoMergeSoHeader);
++    }
++    for (AdltMapFragment adltMap : perfRecordSmoDataFragment.adltMapList) {
++        if (memcpy_s(ptr, sizeof(adltMap), &(adltMap), sizeof(adltMap)) != 0) {
++            HLOGE("memcpy_s return failed in PutSmoDataToRecord with adltMap");
++            return;
++        }
++        ptr += sizeof(adltMap);
++    }
++    std::copy(perfRecordSmoDataFragment.strtab.begin(), perfRecordSmoDataFragment.strtab.end(), ptr);
++    ptr += perfRecordSmoDataFragment.strtab.size();
++    uint16_t fragmentLength_ = PerfRecordSmoDetachingEvent::fragmentLength_;
++    uint16_t fragmentNum_ = (mapOffset + fragmentLength_ - 1) / fragmentLength_;
++    for (uint16_t i = 0; i < fragmentNum_; i++) {
++        std::vector<uint8_t> subData(i == (fragmentNum_ - 1) ? mapOffset % fragmentLength_ : fragmentLength_);
++        std::copy(binaryData.begin() + i*fragmentLength_,
++            ((i == (fragmentNum_ - 1)) ? binaryData.end() : (binaryData.begin() + (i + 1) * fragmentLength_)),
++            subData.begin());
++        std::shared_ptr<PerfRecordSmoDetachingEvent> perfRecordSmo =
++            std::make_shared<PerfRecordSmoDetachingEvent>(subData, fragmentNum_, i);
++        recordCallBack_(*perfRecordSmo);
++    }
++}
++
+ VirtualThread &VirtualRuntime::CreateThread(const pid_t pid, const pid_t tid, const std::string name)
+ {
+     // make a new one
+@@ -176,6 +279,9 @@ VirtualThread &VirtualRuntime::CreateThread(const pid_t pid, const pid_t tid, co
+                 prevMap = map;
+             }
+         }
++        if (smoFlag_) {
++            UpdateProcessSmoInfo(thread);
++        }
+         HLOGV("thread created");
+ #ifdef HIPERF_DEBUG_TIME
+         threadCreateMmapTimes_ +=
+@@ -473,17 +579,28 @@ void VirtualRuntime::UpdateFromRecord(PerfEventRecord &record)
+ #ifdef HIPERF_DEBUG_TIME
+         processCommRecordTimes_ += duration_cast<microseconds>(steady_clock::now() - startTime);
+ #endif
++    } else if (record.GetType() == PERF_RECORD_TYPE_SMO_NUM) {
++        auto perfRecordSmo = static_cast<PerfRecordSmoDetachingEvent *>(&record);
++        UpdateFromRecord(*perfRecordSmo);
+     } else {
+         HLOGW("skip record type %d", record.GetType());
+     }
+ }
+ 
+-void VirtualRuntime::MakeCallFrame(DfxSymbol &symbol, DfxFrame &callFrame)
++void VirtualRuntime::MakeCallFrame(const uint64_t ip, DfxSymbol &symbol, DfxFrame &callFrame)
+ {
+     callFrame.funcOffset = symbol.funcVaddr_;
+     callFrame.mapOffset = symbol.offsetToVaddr_;
+     callFrame.symbolFileIndex = symbol.symbolFileIndex_;
+     callFrame.funcName = symbol.GetName();
++    callFrame.map = symbol.map;
++    callFrame.originSoName = symbol.originSoName_;
++    if (callFrame.map != nullptr &&
++        callFrame.map->name.find("libadlt") != std::string::npos && EndsWith(callFrame.map->name, ".so")) {
++        callFrame.relPc = ip - callFrame.map->GetAdltLoadBase();
++        HLOGV("Get relPc: 0x%" PRIx64 " mapBegin:0x%" PRIx64 " pc:0x%08" PRIx64 "",
++            callFrame.relPc, callFrame.map->begin, callFrame.pc);
++    }
+     if (callFrame.funcName.empty()) {
+         HLOGD("callFrame.funcName:%s, GetName:%s\n", callFrame.funcName.c_str(), symbol.GetName().data());
+     }
+@@ -502,7 +619,7 @@ void VirtualRuntime::SymbolicCallFrame(PerfRecordSample &recordSample, const uin
+         pid = tid = serverPid;
+     }
+     auto symbol = GetSymbol(ip, pid, tid, context);
+-    MakeCallFrame(symbol, recordSample.callFrames_.emplace_back(ip, 0));
++    MakeCallFrame(ip, symbol, recordSample.callFrames_.emplace_back(ip, 0));
+     HLOGV(" (%zu)unwind symbol: %*s%s", recordSample.callFrames_.size(),
+           static_cast<int>(recordSample.callFrames_.size()), "",
+           recordSample.callFrames_.back().ToSymbolString().c_str());
+@@ -837,6 +954,80 @@ void VirtualRuntime::UpdateFromRecord(PerfRecordComm &recordComm)
+     UpdateThread(recordComm.data_.pid, recordComm.data_.tid, recordComm.data_.comm);
+ }
+ 
++void VirtualRuntime::UpdateFromRecord(PerfRecordSmoDetachingEvent &record)
++{
++    binaryDataMap.emplace(record.fragmentNum_, record.binaryData);
++    if (binaryDataMap.size() != record.allFragmentNum_) {
++        return;
++    }
++    std::vector<uint8_t> binaryData;
++    for (uint16_t i = 0; i < binaryDataMap.size(); i++) {
++        if (binaryDataMap[i].empty()) {
++            return;
++        }
++        binaryData.insert(binaryData.end(), binaryDataMap[i].begin(), binaryDataMap[i].end());
++    }
++    uint8_t* data = binaryData.data();
++    SmoHeaderFragment* smoHeaderPtr = reinterpret_cast<SmoHeaderFragment*>(data);
++    for (uint32_t i = 0; i < smoHeaderPtr->soNumber; i++) {
++        std::vector<AdltMapDataFragment> adltMapDataList;
++        std::unordered_set<std::string> soNames;
++        if (RECORD_HEADER_SIZE + i * SMO_MERGE_SO_HEADER_SIZE > record.allFragmentNum_ * record.fragmentLength_) {
++            return;
++        }
++        SmoMergeSoHeaderFragment* smoMergeSoHeaderPtr =
++            reinterpret_cast<SmoMergeSoHeaderFragment*>(data + RECORD_HEADER_SIZE + i * SMO_MERGE_SO_HEADER_SIZE);
++        if (smoMergeSoHeaderPtr->mapOffset > record.allFragmentNum_ * record.fragmentLength_ ||
++            smoMergeSoHeaderPtr->soOffset > record.allFragmentNum_ * record.fragmentLength_) {
++            return;
++        }
++        AdltMapFragment* adltMapListPtr = reinterpret_cast<AdltMapFragment*>(data + smoMergeSoHeaderPtr->mapOffset);
++        for (uint32_t j = 0; j < smoMergeSoHeaderPtr->mapSize / sizeof(AdltMapFragment); j++) {
++            if (smoMergeSoHeaderPtr->strtabOffset + adltMapListPtr[j].nameOffset >
++                record.allFragmentNum_ * record.fragmentLength_) {
++                return;
++            }
++            std::string soName = std::string(reinterpret_cast<char *>(data) +
++                smoMergeSoHeaderPtr->strtabOffset + adltMapListPtr[j].nameOffset);
++            adltMapDataList.push_back({adltMapListPtr[j].pcBegin, adltMapListPtr[j].
++                pcEnd, adltMapListPtr[j].psodIndex, soName});
++            soNames.insert(soName);
++        }
++        std::sort(adltMapDataList.begin(), adltMapDataList.end(),
++            [](AdltMapDataFragment a, AdltMapDataFragment b) {
++                return a.pcBegin < b.pcBegin;
++            });
++        std::string filePath = std::string(reinterpret_cast<char *>(data) + smoMergeSoHeaderPtr->soOffset);
++        soMappingMap.emplace(filePath, adltMapDataList);
++        originSoMap.emplace(filePath, soNames);
++    }
++    UpdateFilesFromSmoRecordData();
++}
++
++std::map<std::string, std::vector<AdltMapDataFragment>> VirtualRuntime::GetSoMappingMap()
++{
++    return soMappingMap;
++}
++
++std::string VirtualRuntime::GetSoNameFromPc(uint64_t pc, std::string fileName)
++{
++    if (soMappingMap.empty()) {
++        return "";
++    }
++    auto soMapPairPtr = soMappingMap.find(fileName);
++    if (soMapPairPtr == soMappingMap.end()) {
++        return "";
++    }
++    auto soPtr = std::lower_bound(soMapPairPtr->second.begin(), soMapPairPtr->second.end(),
++        pc, [](const AdltMapDataFragment& a, uint64_t pc) {
++        return a.pcEnd <= pc;
++    });
++    if (soPtr == soMapPairPtr->second.end() || pc >= soPtr->pcEnd || pc < soPtr->pcBegin) {
++        return "";
++    }
++    return soPtr->originalSoName;
++}
++
+ void VirtualRuntime::UpdateFromRecord(PerfRecordAuxtrace &recordAuxTrace)
+ {
+     if (recordCallBack_ == nullptr) {
+@@ -1070,14 +1261,12 @@ const DfxSymbol VirtualRuntime::GetUserSymbol(const uint64_t ip, const VirtualTh
+         return vaddrSymbol;
+     }
+     auto map = thread.GetMaps()[mapIndex];
+-    SymbolsFile *symbolsFile = thread.FindSymbolsFileByMap(map);
++    SymbolsFile* symbolsFile = thread.FindSymbolsFileByMap(map);
+     if (symbolsFile == nullptr) {
+         HLOGW("addr 0x%" PRIx64 " in map but NOT found the symbol file %s", ip, map->name.c_str());
+         return vaddrSymbol;
+     }
+-    vaddrSymbol.symbolFileIndex_ = symbolsFile->id_;
+-    vaddrSymbol.module_ = map->name;
+-    vaddrSymbol.fileVaddr_ = symbolsFile->GetVaddrInSymbols(ip, map->begin, map->offset);
++    std::string originSoName = GetOriginSoName(ip, thread, vaddrSymbol, map, symbolsFile);
+     perf_callchain_context context = PERF_CONTEXT_USER;
+     if (GetSymbolCache(vaddrSymbol.fileVaddr_, vaddrSymbol, context)) {
+         return vaddrSymbol;
+@@ -1098,6 +1287,8 @@ const DfxSymbol VirtualRuntime::GetUserSymbol(const uint64_t ip, const VirtualTh
+     }
+ 
+     if (foundSymbols.IsValid()) {
++        foundSymbols.map = map;
++        foundSymbols.originSoName_ = originSoName;
+         return foundSymbols;
+     }
+     HLOGW("addr 0x%" PRIx64 " vaddr  0x%" PRIx64 " NOT found in symbol file %s", ip,
+@@ -1108,6 +1299,28 @@ const DfxSymbol VirtualRuntime::GetUserSymbol(const uint64_t ip, const VirtualTh
+     return vaddrSymbol;
+ }
+ 
++std::string VirtualRuntime::GetOriginSoName(const uint64_t ip, const VirtualThread &thread,
++    DfxSymbol &vaddrSymbol, std::shared_ptr<DfxMap> &map, SymbolsFile* symbolsFile)
++{
++    vaddrSymbol.symbolFileIndex_ = symbolsFile->id_;
++    vaddrSymbol.module_ = map->name;
++    vaddrSymbol.fileVaddr_ = symbolsFile->GetVaddrInSymbols(ip, map->begin, map->offset);
++    std::string originSoName = "";
++    if (map->name.find("libadlt") != std::string::npos && EndsWith(map->name, ".so")) {
++        vaddrSymbol.fileVaddr_ = symbolsFile->GetVaddrByLoadBase(ip, map->GetAdltLoadBase());
++        originSoName = GetSoNameFromPc(vaddrSymbol.fileVaddr_, map->name);
++        auto elf = map->GetElf(0);
++        if (originSoName.empty() && elf != nullptr && elf->IsAdlt()) {
++            originSoName = elf->GetAdltOriginSoNameByRelPc(vaddrSymbol.fileVaddr_);
++        }
++        HLOGV("Get new fileVaddr:0x%" PRIx64 " loadbase: 0x%" PRIx64 " ip:0x%" PRIx64 " originSo:'%s'",
++            vaddrSymbol.fileVaddr_, map->GetAdltLoadBase(), ip, originSoName.c_str());
++    }
++    vaddrSymbol.map = map;
++    vaddrSymbol.originSoName_ = originSoName;
++    return originSoName;
++}
++
+ bool VirtualRuntime::GetSymbolCache(const uint64_t fileVaddr, DfxSymbol &symbol,
+                                     const perf_callchain_context &context)
+ {
+@@ -1226,6 +1439,31 @@ void VirtualRuntime::UpdateFromPerfData(const std::vector<SymbolFileStruct> &sym
+     }
+ }
+ 
++void VirtualRuntime::UpdateFilesFromSmoRecordData()
++{
++    HLOGV("symbolsFiles_ origin size:%zu, mapsize:%zu", symbolsFiles_.size(), originSoMap.size());
++    for (const auto& mapEntry : originSoMap) {
++        const std::string& soName = mapEntry.first;
++        const std::unordered_set<std::string>& originSoList = mapEntry.second;
++        HLOGV("originSoList size:%zu", originSoList.size());
++        for (const auto& data : originSoList) {
++            std::string extendFilePath = soName + ":" + data;
++            auto it = std::find_if(symbolsFiles_.begin(), symbolsFiles_.end(),
++                [&extendFilePath](const std::unique_ptr<SymbolsFile>& file) {
++                return file->filePath_ == extendFilePath;
++            });
++            if (it != symbolsFiles_.end()) {
++                continue;
++            }
++            std::unique_ptr<SymbolsFile> symbolsFile = SymbolsFile::CreateSymbolsFile(extendFilePath);
++            symbolsFile->id_ = static_cast<int32_t>(symbolsFiles_.size());
++            symbolsFiles_.emplace_back(std::move(symbolsFile));
++            HLOGV("add new symbolsFile:%s", extendFilePath.c_str());
++        }
++    }
++    HLOGV("symbolsFiles_ new size:%zu", symbolsFiles_.size());
++}
++
+ void VirtualRuntime::ImportUniqueStackNodes(const std::vector<UniStackTableInfo>& uniStackTableInfos)
+ {
+     for (const UniStackTableInfo& item : uniStackTableInfos) {
+diff --git a/src/virtual_thread.cpp b/src/virtual_thread.cpp
+index ef65da8..667bb3a 100644
+--- a/src/virtual_thread.cpp
++++ b/src/virtual_thread.cpp
+@@ -23,6 +23,7 @@
+ #include <sys/mman.h>
+ #endif
+ 
++#include "string_util.h"
+ #include "symbols_file.h"
+ #include "utilities.h"
+ #include "virtual_runtime.h"
+@@ -397,6 +398,17 @@ std::shared_ptr<DfxMap> VirtualThread::CreateMapItem(const std::string &filename
+     std::shared_ptr<DfxMap> map = memMaps_.emplace_back(std::make_shared<DfxMap>(begin, begin + len, offset,
+         prot, filename));
+     memMapsIndexs_.emplace_back(memMaps_.size() >= 1 ? memMaps_.size() - 1 : 0);
++    if (map->name.find("libadlt") != std::string::npos && EndsWith(map->name, ".so")) {
++        if (!getLoadBaseFlag && offset == 0 && ((prot & PROT_EXEC) == 0)) {
++            HLOGD("Get adltloadbase 0x%" PRIx64, map->begin);
++            adltLoadBase = map->begin;
++            getLoadBaseFlag = true;
++        }
++        // update the loadbase
++        if (getLoadBaseFlag) {
++            map->SetAdltLoadBase(adltLoadBase);
++        }
++    }
+     HLOGD(" %u:%u create a new map(total %zu) at '%s' (0x%" PRIx64 "-0x%" PRIx64 ")@0x%" PRIx64 " ",
+           pid_, tid_, memMaps_.size(), map->name.c_str(), map->begin, map->end, map->offset);
+     SortMemMaps();
+diff --git a/test/unittest/common/native/symbols_file_test.cpp b/test/unittest/common/native/symbols_file_test.cpp
+index 503e8f9..afb80b8 100644
+--- a/test/unittest/common/native/symbols_file_test.cpp
++++ b/test/unittest/common/native/symbols_file_test.cpp
+@@ -132,6 +132,15 @@ HWTEST_F(SymbolsFileTest, setSymbolsFilePath, TestSize.Level2)
+     EXPECT_EQ(symbolsFile->setSymbolsFilePath(PATH_RESOURCE_TEST_DATA_NO_ENDPATH), true);
+ }
+ 
++HWTEST_F(SymbolsFileTest, GetVaddrByLoadBase, TestSize.Level2)
++{
++    std::unique_ptr<SymbolsFile> symbolsFile = SymbolsFile::CreateSymbolsFile(SYMBOL_UNKNOW_FILE);
++    uint64_t ip = 100;
++    uint64_t loadBase = 50;
++    uint64_t result = symbolsFile->GetVaddrByLoadBase(ip, loadBase);
++    EXPECT_EQ(result, 50);
++}
++
+ /**
+  * @tc.name: setSymbolsFilePath
+  * @tc.desc:
