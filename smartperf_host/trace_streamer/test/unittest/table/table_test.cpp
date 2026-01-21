@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2026. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -746,7 +746,7 @@ HWTEST_F(TableTest, NativeHookTableTest, TestSize.Level1)
     uint64_t endTimestamp = 1663869124360;
     uint64_t duration = 200;
     uint64_t addr = 1;
-    int64_t memSize = 1;
+    uint64_t memSize = 1;
     int64_t curMemSize = 1;
 
     uint32_t callChainId1 = 2;
@@ -758,7 +758,7 @@ HWTEST_F(TableTest, NativeHookTableTest, TestSize.Level1)
     uint64_t endTimestamp1 = 1663869224360;
     uint64_t duration1 = 200;
     uint64_t addr1 = 2;
-    int64_t memSize1 = 2;
+    uint64_t memSize1 = 2;
     int64_t curMemSize1 = 2;
 
     NativeHookRow nativeHookRow = {CALLCHAIN_ID, IPID,         ITID,     eventType, subType,
