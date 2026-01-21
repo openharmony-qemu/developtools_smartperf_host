@@ -96,7 +96,7 @@ public:
     {
         return &addrToMmapEventRow_;
     }
-    std::unordered_map<uint64_t, uint64_t> *GetAddrToTraceAllocEventRow()
+    std::map<uint64_t, uint64_t> *GetAddrToTraceAllocEventRow()
     {
         return &addrToTraceAllocEventRow_;
     }
@@ -215,7 +215,7 @@ private:
     const std::string THREAD_DESTROY_EVENT = "Thread_Destroy_Event";
     std::unordered_map<uint64_t, uint64_t> addrToAllocEventRow_ = {};
     std::unordered_map<uint64_t, uint64_t> addrToMmapEventRow_ = {};
-    std::unordered_map<uint64_t, uint64_t> addrToTraceAllocEventRow_ = {};
+    std::map<uint64_t, uint64_t> addrToTraceAllocEventRow_ = {};
     uint64_t lastMallocEventRaw_ = INVALID_UINT64;
     uint64_t lastMmapEventRaw_ = INVALID_UINT64;
     uint64_t lastGpuVkEventRaw_ = INVALID_UINT64;
