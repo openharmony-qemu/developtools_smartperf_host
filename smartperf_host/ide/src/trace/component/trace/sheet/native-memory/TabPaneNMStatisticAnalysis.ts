@@ -278,7 +278,7 @@ export class TabPaneNMStatisticAnalysis extends BaseElement implements AnalysisU
       );
       // 首次打开初始化数据 非首次初始化UI
       if (!InitAnalysis.getInstance().isInitAnalysis) {
-        treeTab?.initUI();
+        treeTab?.initUI(this.currentSelection!);
         treeTab?.filterByAnalysis();
       } else {
         treeTab!.initFromAnalysis = true;

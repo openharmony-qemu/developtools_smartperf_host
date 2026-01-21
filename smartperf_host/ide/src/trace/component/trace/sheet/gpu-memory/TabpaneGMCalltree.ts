@@ -24,14 +24,13 @@ import { MemoryBasicType, MemoryStatisticType, MemoryTableName, MemoryType } fro
 import { FilterByAnalysis, NativeMemoryExpression } from '../../../../bean/NativeHook';
 import { FileMerageBean } from '../../../../database/logic-worker/ProcedureLogicWorkerFileSystem';
 import { procedurePool } from '../../../../database/Procedure';
-import { queryNativeHookStatisticSubType, queryNativeHookSubType } from '../../../../database/sql/gpuMemory.sql';
 import { querySubType } from '../../../../database/sql/NativeHook.sql';
 import { FrameChart } from '../../../chart/FrameChart';
 import { ParseExpression } from '../SheetUtils';
 import { FilterData, TabPaneFilter } from '../TabPaneFilter';
 import { TabPaneGMCallTreeHtml } from './TabPaneGMCallTree.html';
 
-const InvertOpyionIndex: number = 0;
+const InvertOptionIndex: number = 0;
 const HideSystemSoOptionIndex: number = 1;
 const HideThreadOptionIndex: number = 3;
 
@@ -121,7 +120,13 @@ export class TabpaneGMCalltree extends BaseElement {
 
     private async init(gmCallTreeParam: SelectionParam): Promise<void> {
         // 初始化样式
-        this.initUI();
+        this.initUI(gmCallTreeParam);
+        // 根据 isStatistic 设置 isStatistics 属性
+        if (this.currentSelection!.gpuMemoryStatistic.length > 0) {
+            this.gmCallTreeFilter!.setAttribute('isStatistics', '');
+        } else {
+            this.gmCallTreeFilter!.removeAttribute('isStatistics');
+        }
         this.initTypes(gmCallTreeParam);
         // 初始化选择框内容
         await this.initFilterTypes(this.types);
@@ -150,7 +155,8 @@ export class TabpaneGMCalltree extends BaseElement {
         );
     }
 
-    initUI(): void {
+    initUI(gmCallTreeParam: SelectionParam): void {
+        this.currentSelection = gmCallTreeParam;
         this.headLine!.clear();
         this.isHideThread = false;
         this.searchValue = '';
@@ -355,13 +361,13 @@ export class TabpaneGMCalltree extends BaseElement {
             if (this.currentSelectedData && !this.currentSelectedData.canCharge) {
                 return gmCallTreeFuncArgs;
             } // @ts-ignore
-            if (this.currentSelectedData !== undefined && this.currentSelectedData.libName !== '') {
+            if (this.currentSelectedData !== undefined && this.currentSelectedData.lib !== '') {
                 // @ts-ignore
-                this.gmCallTreeFilter!.addDataMining({ name: this.currentSelectedData.libName }, gmCallTreeFuncData.item);
+                this.gmCallTreeFilter!.addDataMining({ name: this.currentSelectedData.lib }, gmCallTreeFuncData.item);
                 gmCallTreeFuncArgs.push({
                     funcName: 'splitTree',
                     // @ts-ignore
-                    funcArgs: [this.currentSelectedData.libName, false, false],
+                    funcArgs: [this.currentSelectedData.lib, false, false],
                 });
             } else {
                 return gmCallTreeFuncArgs;
@@ -409,7 +415,7 @@ export class TabpaneGMCalltree extends BaseElement {
 
     private getCallTreeByGMCallTreeFilter(callTreeData: unknown): void {
         // @ts-ignore
-        if ([InvertOpyionIndex, HideSystemSoOptionIndex, HideThreadOptionIndex].includes(callTreeData.value)) {
+        if ([InvertOptionIndex, HideSystemSoOptionIndex, HideThreadOptionIndex].includes(callTreeData.value)) {
             this.refreshAllNode({
                 ...this.gmCallTreeFilter!.getFilterTreeData(),
                 // @ts-ignore
@@ -562,7 +568,7 @@ export class TabpaneGMCalltree extends BaseElement {
         this.currentGMCallTreeFilter = this.shadowRoot?.querySelector<TabPaneFilter>('#gm-call-tree-filter');
         this.filterTypes = [...MemoryBasicType.GPU_MEMORY];
         const isStatisticMode = this.currentSelection!.gpuMemoryStatistic.length > 0;
-        const tableName =  isStatisticMode ? MemoryTableName.NATIVE_HOOK_STATISTIC : MemoryTableName.NATIVE_HOOK;
+        const tableName = isStatisticMode ? MemoryTableName.NATIVE_HOOK_STATISTIC : MemoryTableName.NATIVE_HOOK;
         await querySubType(this.currentSelection!.leftNs, this.currentSelection!.rightNs, this.currentSelectIPid,
             tableName, types).then((res: { subTypeId: number, subType: string, eventType: string }[]) => {
                 this.filterTypes.push(...res.map((item) => {

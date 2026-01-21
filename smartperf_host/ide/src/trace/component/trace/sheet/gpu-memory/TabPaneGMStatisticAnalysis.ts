@@ -248,7 +248,7 @@ export class TabPaneGMStatisticAnalysis extends BaseElement {
       );
       // 首次打开初始化数据 非首次初始化UI
       if (!InitAnalysis.getInstance().isInitGMAnalysis) {
-        treeTab?.initUI();
+        treeTab?.initUI(this.currentSelection!);
         treeTab?.filterByAnalysis(this.param!);
       } else {
         treeTab!.initFromAnalysis = true;

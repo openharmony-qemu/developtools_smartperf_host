@@ -113,9 +113,14 @@ export class TabpaneOSCalltree extends BaseElement {
 
   private async init(osCallTreeParam: SelectionParam): Promise<void> {
     // 初始化样式
-    this.initUI();
+    this.initUI(osCallTreeParam);
     // 初始化选择框内容
-
+    // 根据 isStatistic 设置 isStatistics 属性
+    if (this.isStatisticMode) {
+      this.osCallTreeFilter!.setAttribute('isStatistics', '');
+    } else {
+      this.osCallTreeFilter!.removeAttribute('isStatistics');
+    }
     let types: Array<string | number> = [];
     this.initTypes(osCallTreeParam, types);
     await this.initFilterTypes(osCallTreeParam, types);
@@ -144,7 +149,8 @@ export class TabpaneOSCalltree extends BaseElement {
     );
   }
 
-  initUI(): void {
+  initUI(osCallTreeParam: SelectionParam): void {
+    this.currentSelection = osCallTreeParam;
     this.headLine!.clear();
     this.isHideThread = false;
     this.searchValue = '';
@@ -472,13 +478,13 @@ export class TabpaneOSCalltree extends BaseElement {
       if (this.currentSelectedData && !this.currentSelectedData.canCharge) {
         return osCallTreeFuncArgs;
       } // @ts-ignore
-      if (this.currentSelectedData !== undefined && this.currentSelectedData.libName !== '') {
+      if (this.currentSelectedData !== undefined && this.currentSelectedData.lib !== '') {
         // @ts-ignore
-        this.osCallTreeFilter!.addDataMining({ name: this.currentSelectedData.libName }, osCallTreeFuncData.item);
+        this.osCallTreeFilter!.addDataMining({ name: this.currentSelectedData.lib }, osCallTreeFuncData.item);
         osCallTreeFuncArgs.push({
           funcName: 'splitTree',
           // @ts-ignore
-          funcArgs: [this.currentSelectedData.libName, false, false],
+          funcArgs: [this.currentSelectedData.lib, false, false],
         });
       } else {
         return osCallTreeFuncArgs;
@@ -727,7 +733,9 @@ export class TabpaneOSCalltree extends BaseElement {
       }
     );
     this.getDataByWorker(filterContent, (result: unknown[]) => {
-      this.setLTableData(result); 
+      this.setLTableData(result);
+      this.osCallTreeFrameChart!.totalRootData = this.osCallTreeSource as Array<ChartStruct>;
+
       this.osCallTreeFrameChart!.data = this.osCallTreeSource as Array<ChartStruct>;
       this.switchFlameChart();
       this.osCallTreeFilter!.icon = 'block';
