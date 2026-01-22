@@ -255,6 +255,13 @@ export class SpHelp extends BaseElement {
           },
         },
         {
+          title: 'FD & Thread抓取和展示说明',
+          icon: '',
+          clickHandler: function (item: MenuItem): void {
+            that.handleMemoryMenuItemClick(that, 'native', 'quickstart_fd', '32');
+          },
+        },
+        {
           title: '页内存抓取和展示说明',
           icon: '',
           clickHandler: function (item: MenuItem): void {
