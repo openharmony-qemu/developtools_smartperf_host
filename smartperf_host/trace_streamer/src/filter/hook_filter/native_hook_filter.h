@@ -215,7 +215,7 @@ private:
     std::unordered_map<uint32_t, uint32_t> stackIdToCallChainIdMap_ = {};
     std::unordered_map<uint64_t, uint64_t> *addrToAllocEventRow_ = nullptr;
     std::unordered_map<uint64_t, uint64_t> *addrToMmapEventRow_ = nullptr;
-    std::unordered_map<uint64_t, uint64_t> *addrToTraceAllocEventRow_ = nullptr;
+    std::map<uint64_t, uint64_t> *addrToTraceAllocEventRow_ = nullptr;
     std::set<DataIndex> invalidLibPathIndexs_ = {};
     std::deque<std::string> vaddrs_ = {};
     // munmap update anonymous or named memory tag always use the last addrToMmapTag_ value

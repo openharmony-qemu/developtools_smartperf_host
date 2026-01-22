@@ -632,21 +632,25 @@ void NativeHookFilter::ParseTraceFreeRegionEvent(uint64_t timeStamp, const Proto
         return;
     }
 
-    for (auto it = addrToTraceAllocEventRow_->begin(); it != addrToTraceAllocEventRow_->end();) {
-        if (it->second != INVALID_UINT64 &&
-            timeStamp >= traceDataCache_->GetNativeHookData()->TimeStampData()[it->second] &&
-            it->first >= traceFreeRegionAddr && it->first < traceFreeRegionAddr + traceFreeRegionSize) {
-            auto row = it->second;
-            traceDataCache_->GetNativeHookData()->UpdateEndTimeStampAndDuration(row, timeStamp);
-            NativeHookRow nativeHookRow = {
-                INVALID_UINT32, ipid, itid, traceType, GetTraceAllocSubTypeWithAddr(it->first),
-                timeStamp,      0,    0,    it->first, traceDataCache_->GetNativeHookData()->MemSizes()[row]};
-            traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(nativeHookRow);
-            addrToTraceAllocTag_.erase(it->first);
-            it = addrToTraceAllocEventRow_->erase(it);
-            MaybeUpdateCurrentSizeDur(row, timeStamp, nativeType);
-        } else {
-            ++it;
+    if (!addrToTraceAllocEventRow_->empty() && traceFreeRegionSize != 0) {
+        auto beginIt = addrToTraceAllocEventRow_->lower_bound(traceFreeRegionAddr);
+        auto endIt = addrToTraceAllocEventRow_->upper_bound(traceFreeRegionAddr + traceFreeRegionSize - 1);
+        // [begin, end)
+        for (auto it = beginIt; it != endIt;) {
+            if (it->second != INVALID_UINT64 &&
+                timeStamp >= traceDataCache_->GetNativeHookData()->TimeStampData()[it->second]) {
+                auto row = it->second;
+                traceDataCache_->GetNativeHookData()->UpdateEndTimeStampAndDuration(row, timeStamp);
+                NativeHookRow nativeHookRow = {
+                    INVALID_UINT32, ipid, itid, traceType, GetTraceAllocSubTypeWithAddr(it->first),
+                    timeStamp,      0,    0,    it->first, traceDataCache_->GetNativeHookData()->MemSizes()[row]};
+                traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(nativeHookRow);
+                addrToTraceAllocTag_.erase(it->first);
+                it = addrToTraceAllocEventRow_->erase(it);
+                MaybeUpdateCurrentSizeDur(row, timeStamp, nativeType);
+            } else {
+                ++it;
+            }
         }
     }
 }
