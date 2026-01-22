@@ -421,6 +421,179 @@ export class AnalysisTabDataLogic {
   }
 }
 
+// 辅助函数：获取子类型
+function getSubType(item: NativeHookStatistics | NativeMemory): string {
+  if (item.hasSubType) {
+    return DataCache.getInstance().dataDict.get(item.subTypeId) || '';
+  }
+  return '';
+}
+
+// 辅助函数：处理 "Other" 前缀的过滤类型
+function handleOtherFilterType(filterType: string, item: NativeHookStatistics | NativeMemory, subType: string): boolean | null {
+  if (filterType.startsWith('Other ')) {
+    const realType = filterType.replace('Other ', '');
+    return !subType && (item.eventType.startsWith(realType) || realType.startsWith(item.eventType));
+  }
+  return null;
+}
+
+// 辅助函数：处理从StatisticTab size行跳转的情况
+function handleStatisticTabJump(filterType: string, item: NativeHookStatistics | NativeMemory, statisticsSelection: StatisticsSelection[]): boolean | null {
+  // 子类型不按照Size统计
+  if (item.hasSubType) {
+    return null;
+  }
+  if (filterType.endsWith('GB') || filterType.endsWith('MB') || filterType.endsWith('KB') || filterType.endsWith('byte')) {
+    return statisticsSelection.some(selectionElement =>
+      selectionElement.memoryTap === filterType &&
+      selectionElement.max === item.heapSize &&
+      selectionElement.eventType === item.eventType
+    );
+  }
+  return null;
+}
+
+// 辅助函数：处理统计模式下的特殊事件类型
+function handleStatisticModeSpecialTypes(filterType: string, item: NativeHookStatistics | NativeMemory): boolean | null {
+  if (filterType === MemoryType.MEMORY_M_FILE_PAGE_MSG) {
+    return item.subTypeId === -1 && item.eventType === MemoryType.MEMORY_M_FILE_PAGE_MSG;
+  } else if (filterType === MemoryType.MEMORY_M_MEMORY_USING_MSG) {
+    return item.subTypeId === -1 && item.eventType === MemoryType.MEMORY_M_MEMORY_USING_MSG;
+  }
+  return null;
+}
+
+// 定义MemoryBasicType的索引常量，提高可读性
+const MEMORY_BASIC_TYPE = {
+  ALL: 0,
+  ALL_HEAP: 1,
+  NATIVE_HEAP: 2,
+  ARKTS_HEAP: 3,
+  JS_HEAP: 4,
+  KMP_HEAP: 5,
+  ALL_ANONYMOUS_VM: 6,
+  VM_ION: 7,
+  VM_ASHMEM: 8,
+  VM_SO: 9,
+  VM_OTHERS: 10
+};
+
+// 定义内存类型常量数组
+const MEMORY_TYPE_CONSTANTS = {
+  HEAP_EVENT_TYPES: [
+    MemoryType.MEMORY_M_ALLOC_NAME,
+    MemoryType.ARKTS_Alloc_NAME,
+    MemoryType.JS_Alloc_NAME,
+    MemoryType.KMP_Alloc_NAME
+  ],
+  HEAP_STATISTIC_TYPES: [
+    MemoryStatisticType.MALLOC,
+    MemoryStatisticType.ARKTS,
+    MemoryStatisticType.JS,
+    MemoryStatisticType.KMP
+  ],
+  VM_EVENT_TYPES: [
+    MemoryType.MEMORY_M_MAP_NAME,
+    MemoryType.ION_Alloc_NAME,
+    MemoryType.ASHMEM_Alloc_NAME,
+    MemoryType.SO_Alloc_NAME
+  ],
+  VM_STATISTIC_TYPES: [
+    MemoryStatisticType.MMAP,
+    MemoryStatisticType.FILE_PAGE_MSG,
+    MemoryStatisticType.MEMORY_USING_MSG,
+    MemoryStatisticType.DMA,
+    MemoryStatisticType.ASHMEM,
+    MemoryStatisticType.SO
+  ],
+  VM_OTHERS_STATISTIC_TYPES: [
+    MemoryStatisticType.MMAP,
+    MemoryStatisticType.FILE_PAGE_MSG,
+    MemoryStatisticType.MEMORY_USING_MSG
+  ]
+};
+
+// 辅助函数：处理全量内存类型过滤
+function handleAllMemoryType(filterType: string, memoryBasicType: readonly string[]): boolean {
+  return filterType === memoryBasicType[MEMORY_BASIC_TYPE.ALL];
+}
+
+// 辅助函数：处理内存类型映射
+function mapMemoryType(filterType: string, memoryBasicType: readonly string[]): string | null {
+  const typeMap = new Map<string, string>([
+    [memoryBasicType[MEMORY_BASIC_TYPE.NATIVE_HEAP], MemoryType.MEMORY_M_ALLOC_NAME],
+    [memoryBasicType[MEMORY_BASIC_TYPE.ARKTS_HEAP], MemoryType.ARKTS_Alloc_NAME],
+    [memoryBasicType[MEMORY_BASIC_TYPE.JS_HEAP], MemoryType.JS_Alloc_NAME],
+    [memoryBasicType[MEMORY_BASIC_TYPE.KMP_HEAP], MemoryType.KMP_Alloc_NAME],
+    [memoryBasicType[MEMORY_BASIC_TYPE.VM_ION], MemoryType.ION_Alloc_NAME],
+    [memoryBasicType[MEMORY_BASIC_TYPE.VM_ASHMEM], MemoryType.ASHMEM_Alloc_NAME],
+    [memoryBasicType[MEMORY_BASIC_TYPE.VM_SO], MemoryType.SO_Alloc_NAME]
+  ]);
+  
+  return typeMap.get(filterType) || null;
+}
+
+// 辅助函数：处理所有Heap类型
+function handleAllHeapType(filterType: string, item: NativeHookStatistics | NativeMemory, isStatisticMode: boolean): boolean | null {
+  if (filterType !== MemoryBasicType.NATIVE_MEMORY[MEMORY_BASIC_TYPE.ALL_HEAP]) {
+    return null;
+  }
+  
+  return MEMORY_TYPE_CONSTANTS.HEAP_EVENT_TYPES.includes(item.eventType) || 
+         (isStatisticMode && MEMORY_TYPE_CONSTANTS.HEAP_STATISTIC_TYPES.includes((item as any).type));
+}
+
+// 辅助函数：处理所有VM类型
+function handleAllVMType(filterType: string, item: NativeHookStatistics | NativeMemory, isStatisticMode: boolean): boolean | null {
+  if (filterType !== MemoryBasicType.NATIVE_MEMORY[MEMORY_BASIC_TYPE.ALL_ANONYMOUS_VM]) {
+    return null;
+  }
+  
+  return MEMORY_TYPE_CONSTANTS.VM_EVENT_TYPES.includes(item.eventType) || 
+         (isStatisticMode && MEMORY_TYPE_CONSTANTS.VM_STATISTIC_TYPES.includes((item as any).type));
+}
+
+// 辅助函数：处理VM Others类型
+function handleVMOthersType(filterType: string, item: NativeHookStatistics | NativeMemory, isStatisticMode: boolean): boolean | null {
+  if (filterType !== MemoryBasicType.NATIVE_MEMORY[MEMORY_BASIC_TYPE.VM_OTHERS]) {
+    return null;
+  }
+  
+  return item.eventType === MemoryType.MEMORY_M_MAP_NAME || 
+         (isStatisticMode && MEMORY_TYPE_CONSTANTS.VM_OTHERS_STATISTIC_TYPES.includes((item as any).type));
+}
+
+// 辅助函数：处理统计模式和跳转逻辑
+function handleStatisticAndJumpLogic(filterType: string, item: NativeHookStatistics | NativeMemory, statisticsSelection: StatisticsSelection[], isStatisticMode: boolean): boolean | null {
+  if (isStatisticMode) {
+    return handleStatisticModeSpecialTypes(filterType, item);
+  } else {
+    return handleStatisticTabJump(filterType, item, statisticsSelection);
+  }
+}
+
+// 辅助函数：处理GPU内存类型映射
+function handleGPUMemoryTypeMapping(filterType: string, isStatisticMode: boolean): string {
+  const gpuMemoryMap = new Map<string, string>([
+    [MemoryBasicType.GPU_MEMORY[1], isStatisticMode ? MemoryType.GPU_VK_SIMPLE_NAME : MemoryType.GPU_VK_Alloc_NAME],
+    [MemoryBasicType.GPU_MEMORY[2], isStatisticMode ? MemoryType.GPU_GLES_SIMPLE_NAME : MemoryType.GPU_GLES_Alloc_NAME],
+    [MemoryBasicType.GPU_MEMORY[3], isStatisticMode ? MemoryType.GPU_CL_SIMPLE_NAME : MemoryType.GPU_CL_Alloc_NAME]
+  ]);
+  
+  return gpuMemoryMap.get(filterType) || filterType;
+}
+
+// 辅助函数：处理其他来源内存类型映射
+function handleOtherSourceTypeMapping(filterType: string, isStatisticMode: boolean): string {
+  const otherSourceMap = new Map<string, string>([
+    [MemoryBasicType.OTHER_SOURCE[1], isStatisticMode ? MemoryType.FD_SIMPLE_NAME : MemoryType.FD_OPEN_NAME],
+    [MemoryBasicType.OTHER_SOURCE[2], isStatisticMode ? MemoryType.THREAD_SIMPLE_NAME : MemoryType.THREAD_CREATE_NAME]
+  ]);
+  
+  return otherSourceMap.get(filterType) || filterType;
+}
+
 export function getFilterType(
   filterType: string,
   item: NativeHookStatistics | NativeMemory,
@@ -428,17 +601,25 @@ export function getFilterType(
   memoryType: MemoryTraceRowType,
   isStatisticMode: boolean
 ): boolean {
-  if (filterType === undefined || filterType === '-1' || filterType === '') {
+  if (!filterType || filterType === '-1') {
     return false;
+  }
+
+  const subType = getSubType(item);
+  
+  // 处理 "Other" 前缀的通用逻辑
+  const otherResult = handleOtherFilterType(filterType, item, subType);
+  if (otherResult !== null) {
+    return otherResult;
   }
 
   switch (memoryType) {
     case MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY:
-      return handleNativeMemory(filterType, item, statisticsSelection, isStatisticMode);
+      return handleNativeMemory(filterType, item, statisticsSelection, isStatisticMode, subType);
     case MemoryTraceRowType.ROW_TYPE_GPU_MEMORY:
-      return handleGPUMemory(filterType, item, statisticsSelection, isStatisticMode);
+      return handleGPUMemory(filterType, item, statisticsSelection, isStatisticMode, subType);
     case MemoryTraceRowType.ROW_TYPE_OTHER_SOURCE:
-      return handleOtherSource(filterType, item, isStatisticMode);
+      return handleOtherSource(filterType, item, isStatisticMode, subType);
     default:
       return false;
   }
@@ -448,96 +629,36 @@ function handleNativeMemory(
   filterType: string,
   item: NativeHookStatistics | NativeMemory,
   statisticsSelection: StatisticsSelection[],
-  isStatisticMode: boolean
+  isStatisticMode: boolean,
+  subType: string
 ): boolean {
-  if (!filterType) {
-    return false;
-  }
-  if (filterType === MemoryBasicType.NATIVE_MEMORY[0]) {
-    // 全量数据，返回true
+  // 处理全量数据
+  if (handleAllMemoryType(filterType, MemoryBasicType.NATIVE_MEMORY)) {
     return true;
-  } else if (filterType === MemoryBasicType.NATIVE_MEMORY[1]) {
-    // All Heap 泳道组 - 包含所有 Heap 类型
-    return item.eventType === MemoryType.MEMORY_M_ALLOC_NAME ||
-      item.eventType === MemoryType.ARKTS_Alloc_NAME ||
-      item.eventType === MemoryType.JS_Alloc_NAME ||
-      item.eventType === MemoryType.KMP_Alloc_NAME ||
-      (isStatisticMode && (//@ts-ignore
-        item.type === MemoryStatisticType.MALLOC ||//@ts-ignore
-        item.type === MemoryStatisticType.ARKTS ||//@ts-ignore
-        item.type === MemoryStatisticType.JS ||//@ts-ignore
-        item.type === MemoryStatisticType.KMP
-      ));
-  } else if (filterType === MemoryBasicType.NATIVE_MEMORY[2]) {
-    // Native Heap
-    filterType = MemoryType.MEMORY_M_ALLOC_NAME;
-  } else if (filterType === MemoryBasicType.NATIVE_MEMORY[3]) {
-    // ArkTs Heap
-    filterType = MemoryType.ARKTS_Alloc_NAME;
-  } else if (filterType === MemoryBasicType.NATIVE_MEMORY[4]) {
-    // JS Heap
-    filterType = MemoryType.JS_Alloc_NAME;
-  } else if (filterType === MemoryBasicType.NATIVE_MEMORY[5]) {
-    // KMP Heap
-    filterType = MemoryType.KMP_Alloc_NAME;
-  } else if (filterType === MemoryBasicType.NATIVE_MEMORY[6]) {
-    // All Anonymous VM 泳道组 - 包含所有 VM 类型
-    return item.eventType === MemoryType.MEMORY_M_MAP_NAME ||
-      item.eventType === MemoryType.ION_Alloc_NAME ||
-      item.eventType === MemoryType.ASHMEM_Alloc_NAME ||
-      item.eventType === MemoryType.SO_Alloc_NAME ||
-      (isStatisticMode && (//@ts-ignore
-        item.type === MemoryStatisticType.MMAP ||//@ts-ignore
-        item.type === MemoryStatisticType.FILE_PAGE_MSG ||//@ts-ignore
-        item.type === MemoryStatisticType.MEMORY_USING_MSG ||//@ts-ignore
-        item.type === MemoryStatisticType.DMA ||//@ts-ignore
-        item.type === MemoryStatisticType.ASHMEM ||//@ts-ignore
-        item.type === MemoryStatisticType.SO
-      ));
-  } else if (filterType === MemoryBasicType.NATIVE_MEMORY[7]) {
-    // VM ION
-    filterType = MemoryType.ION_Alloc_NAME;
-  } else if (filterType === MemoryBasicType.NATIVE_MEMORY[8]) {
-    // VM Ashmem
-    filterType = MemoryType.ASHMEM_Alloc_NAME;
-  } else if (filterType === MemoryBasicType.NATIVE_MEMORY[9]) {
-    // VM SO
-    filterType = MemoryType.SO_Alloc_NAME;
-  } else if (filterType === MemoryBasicType.NATIVE_MEMORY[10]) {
-    // VM Others (原 All Anonymous VM)
-    return item.eventType === MemoryType.MEMORY_M_MAP_NAME ||
-      (isStatisticMode && (//@ts-ignore
-        item.type === MemoryStatisticType.MMAP ||//@ts-ignore
-        item.type === MemoryStatisticType.FILE_PAGE_MSG ||//@ts-ignore
-        item.type === MemoryStatisticType.MEMORY_USING_MSG
-      ));
   }
-
-  let subType = '';
-  if (item.hasSubType) {
-    subType = DataCache.getInstance().dataDict.get(item.subTypeId) || '';
+  
+  // 处理特殊内存类型组
+  const allHeapResult = handleAllHeapType(filterType, item, isStatisticMode);
+  if (allHeapResult !== null) return allHeapResult;
+  
+  const allVMResult = handleAllVMType(filterType, item, isStatisticMode);
+  if (allVMResult !== null) return allVMResult;
+  
+  const vmOthersResult = handleVMOthersType(filterType, item, isStatisticMode);
+  if (vmOthersResult !== null) return vmOthersResult;
+  
+  // 处理内存类型映射
+  const mappedType = mapMemoryType(filterType, MemoryBasicType.NATIVE_MEMORY);
+  if (mappedType) {
+    filterType = mappedType;
   }
-  if (filterType.startsWith('Other ')) {
-    const realType = filterType.replace('Other ', '');
-    return !subType && (item.eventType.startsWith(realType) || realType.startsWith(item.eventType));
+  
+  // 处理统计模式和跳转逻辑
+  const logicResult = handleStatisticAndJumpLogic(filterType, item, statisticsSelection, isStatisticMode);
+  if (logicResult !== null) {
+    return logicResult;
   }
-  if (isStatisticMode) {
-    // 处理FILE_PAGE_MSG,MEMORY_USING_MSG的情况
-    if (filterType === 'FILE_PAGE_MSG') {
-      return item.subTypeId === -1 && item.eventType === 'FILE_PAGE_MSG';
-    } else if (filterType === 'MEMORY_USING_MSG') {
-      return item.subTypeId === -1 && item.eventType === 'MEMORY_USING_MSG';
-    }
-  } else {
-    // 从StatisticTab size行跳转
-    if (filterType.endsWith('GB') || filterType.endsWith('MB') || filterType.endsWith('KB') || filterType.endsWith('byte')) {
-      return statisticsSelection.some(selectionElement =>
-        selectionElement.memoryTap === filterType &&
-        selectionElement.max === item.heapSize &&
-        selectionElement.eventType === item.eventType
-      );
-    }
-  }
+  
   return subType === filterType || item.eventType.startsWith(filterType);
 }
 
@@ -545,71 +666,39 @@ function handleGPUMemory(
   filterType: string,
   item: NativeHookStatistics | NativeMemory,
   statisticsSelection: StatisticsSelection[],
-  isStatisticMode: boolean
+  isStatisticMode: boolean,
+  subType: string
 ): boolean {
-  if (!filterType) {
-    return false;
-  }
-  // 固定4个选项
   if (filterType === MemoryBasicType.GPU_MEMORY[0]) {
-    // 全量数据，返回true
     return true;
-  } else if (filterType.includes(MemoryBasicType.GPU_MEMORY[1])) {
-    // 所有的VulKan 数据
-    filterType = isStatisticMode ? MemoryType.GPU_VK_SIMPLE_NAME : MemoryType.GPU_VK_Alloc_NAME;
-  } else if (filterType.includes(MemoryBasicType.GPU_MEMORY[2])) {
-    // 所有的GLES 数据
-    filterType = isStatisticMode ? MemoryType.GPU_GLES_SIMPLE_NAME : MemoryType.GPU_GLES_Alloc_NAME;
+  }
+  
+  // 处理GPU内存类型映射
+  filterType = handleGPUMemoryTypeMapping(filterType, isStatisticMode);
 
-  } else if (filterType.includes(MemoryBasicType.GPU_MEMORY[3])) {
-    // 所有的CL 数据
-    filterType = isStatisticMode ? MemoryType.GPU_CL_SIMPLE_NAME : MemoryType.GPU_CL_Alloc_NAME;
-  }
-
-  let subType = '';
-  if (item.hasSubType) {
-    subType = DataCache.getInstance().dataDict.get(item.subTypeId) || '';
-  }
-  if (filterType.startsWith('Other ')) {
-    const realType = filterType.replace('Other ', '');
-    return !subType && (item.eventType.startsWith(realType) || realType.startsWith(item.eventType));
-  }
+  // 处理从StatisticTab size行跳转
   if (!isStatisticMode) {
-    // 从StatisticTab size行跳转
-    if (filterType.endsWith('GB') || filterType.endsWith('MB') || filterType.endsWith('KB') || filterType.endsWith('byte')) {
-      return statisticsSelection.some(selectionElement =>
-        selectionElement.memoryTap === filterType &&
-        selectionElement.max === item.heapSize &&
-        selectionElement.eventType === item.eventType
-      );
+    const jumpResult = handleStatisticTabJump(filterType, item, statisticsSelection);
+    if (jumpResult !== null) {
+      return jumpResult;
     }
   }
-  return subType.startsWith(filterType) || item.eventType.startsWith(filterType);
+  
+  return subType === filterType || item.eventType.startsWith(filterType);
 }
 
 function handleOtherSource(
   filterType: string,
   item: NativeHookStatistics | NativeMemory,
-  isStatisticMode: boolean
+  isStatisticMode: boolean,
+  subType: string
 ): boolean {
   if (filterType === MemoryBasicType.OTHER_SOURCE[0]) {
-    // 全量数据，返回true
     return true;
-  } else if (filterType === MemoryBasicType.OTHER_SOURCE[1]) {
-    // 所有的FD数据
-    filterType = isStatisticMode ? MemoryType.FD_SIMPLE_NAME : MemoryType.FD_OPEN_NAME;
-  } else if (filterType === MemoryBasicType.OTHER_SOURCE[2]) {
-    // 所有的THREAD数据
-    filterType = isStatisticMode ? MemoryType.THREAD_SIMPLE_NAME : MemoryType.THREAD_CREATE_NAME;
   }
-  let subType = '';
-  if (item.hasSubType) {
-    subType = DataCache.getInstance().dataDict.get(item.subTypeId) || '';
-  }
-  if (filterType.startsWith('Other ')) {
-    const realType = filterType.replace('Other ', '');
-    return !subType && (item.eventType.startsWith(realType) || realType.startsWith(item.eventType));
-  }
-
-  return subType.startsWith(filterType) || item.eventType.startsWith(filterType);
+  
+  // 处理其他来源内存类型映射
+  filterType = handleOtherSourceTypeMapping(filterType, isStatisticMode);
+  
+  return subType === filterType || item.eventType.startsWith(filterType);
 }

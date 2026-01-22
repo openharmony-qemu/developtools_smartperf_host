@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2026. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -57,11 +57,13 @@ struct NativeHookRow {
     uint64_t endTimeStamp = INVALID_UINT64;
     uint64_t duration = INVALID_UINT64;
     uint64_t addr = INVALID_UINT64;
-    int64_t memSize = INVALID_UINT64;
+    uint64_t memSize = INVALID_UINT64;
 };
 class NativeHook : public NativeHookSampleBase {
 public:
     size_t AppendNewNativeHookData(const NativeHookRow &context);
+    void AppendOtherNativeHookData(const NativeHookRow &context);
+    void AppendMoreNativeHookData(const NativeHookRow &context);
     void UpdateCallChainId(size_t row, uint32_t callChainId);
     void UpdateEndTimeStampAndDuration(size_t row, uint64_t endTimeStamp);
     void UpdateCurrentSizeDur(size_t row, uint64_t timeStamp);
@@ -71,8 +73,8 @@ public:
     const std::deque<uint64_t> &EndTimeStamps() const;
     const std::deque<uint64_t> &Durations() const;
     const std::deque<uint64_t> &Addrs() const;
-    const std::deque<int64_t> &MemSizes() const;
-    const std::deque<int64_t> &AllMemSizes() const;
+    const std::deque<uint64_t> &MemSizes() const;
+    const std::deque<uint64_t> &AllMemSizes() const;
     const std::deque<uint64_t> &CurrentSizeDurs() const;
     void Clear() override
     {
@@ -94,7 +96,7 @@ public:
     {
         return &addrToMmapEventRow_;
     }
-    std::unordered_map<uint64_t, uint64_t> *GetAddrToTraceAllocEventRow()
+    std::map<uint64_t, uint64_t> *GetAddrToTraceAllocEventRow()
     {
         return &addrToTraceAllocEventRow_;
     }
@@ -117,10 +119,47 @@ public:
     {
         return lastGpuGlesEventRaw_;
     }
-    
+
     uint64_t &GetLastGpuClEventRaw()
     {
         return lastGpuClEventRaw_;
+    }
+
+    uint64_t &GetLastOtherAllocEventRaw()
+    {
+        return lastOtherAllocEventRaw_;
+    }
+    uint64_t &GetLastArktsHeapEventRaw()
+    {
+        return lastArktsHeapEventRaw_;
+    }
+    uint64_t &GetLastJsHeapEventRaw()
+    {
+        return lastJsHeapEventRaw_;
+    }
+    uint64_t &GetLastKmpHeapEventRaw()
+    {
+        return lastKmpHeapEventRaw_;
+    }
+    uint64_t &GetLastAshmemEventRaw()
+    {
+        return lastAshmemEventRaw_;
+    }
+    uint64_t &GetLastIonEventRaw()
+    {
+        return lastIonEventRaw_;
+    }
+    uint64_t &GetLastSoEventRaw()
+    {
+        return lastSoEventRaw_;
+    }
+    uint64_t &GetLastFdEventRaw()
+    {
+        return lastFdEventRaw_;
+    }
+    uint64_t &GetLastThreadEventRaw()
+    {
+        return lastThreadEventRaw_;
     }
 
 private:
@@ -129,14 +168,23 @@ private:
     std::deque<uint64_t> endTimeStamps_ = {};
     std::deque<uint64_t> durations_ = {};
     std::deque<uint64_t> addrs_ = {};
-    std::deque<int64_t> memSizes_ = {};
-    std::deque<int64_t> allMemSizes_ = {};
+    std::deque<uint64_t> memSizes_ = {};
+    std::deque<uint64_t> allMemSizes_ = {};
     std::deque<uint64_t> currentSizeDurs_ = {};
     int64_t countHeapSizes_ = 0;
     int64_t countMmapSizes_ = 0;
     int64_t countGpuVkSizes_ = 0;
     int64_t countGpuGlesSizes_ = 0;
     int64_t countGpuClSizes_ = 0;
+    int64_t countOtherSizes_ = 0;
+    int64_t countArktsHeapSizes_ = 0;
+    int64_t countJsHeapSizes_ = 0;
+    int64_t countKmpHeapSizes_ = 0;
+    int64_t countAshmemSizes_ = 0;
+    int64_t countIonSizes_ = 0;
+    int64_t countSoSizes_ = 0;
+    int64_t countFdSizes_ = 0;
+    int64_t countThreadSizes_ = 0;
     const std::string ALLOC_EVET = "AllocEvent";
     const std::string FREE_EVENT = "FreeEvent";
     const std::string MMAP_EVENT = "MmapEvent";
@@ -147,14 +195,41 @@ private:
     const std::string GPU_GLES_FREE_EVENT = "GPU_GLES_Free_Event";
     const std::string GPU_CL_ALLOC_EVENT = "GPU_CL_Alloc_Event";
     const std::string GPU_CL_FREE_EVENT = "GPU_CL_Free_Event";
+    const std::string OTHER_ALLOC_EVENT = "OTHER_Alloc_Event";
+    const std::string OTHER_FREE_EVENT = "OTHER_Free_Event";
+    const std::string ARKTS_HEAP_ALLOC_EVENT = "ARKTS_HEAP_Alloc_Event";
+    const std::string ARKTS_HEAP_FREE_EVENT = "ARKTS_HEAP_Free_Event";
+    const std::string JS_HEAP_ALLOC_EVENT = "JS_HEAP_Alloc_Event";
+    const std::string JS_HEAP_FREE_EVENT = "JS_HEAP_Free_Event";
+    const std::string KMP_HEAP_ALLOC_EVENT = "KMP_HEAP_Alloc_Event";
+    const std::string KMP_HEAP_FREE_EVENT = "KMP_HEAP_Free_Event";
+    const std::string ASHMEM_ALLOC_EVENT = "ASHMEM_Alloc_Event";
+    const std::string ASHMEM_FREE_EVENT = "ASHMEM_Free_Event";
+    const std::string ION_ALLOC_EVENT = "ION_Alloc_Event";
+    const std::string ION_FREE_EVENT = "ION_Free_Event";
+    const std::string SO_ALLOC_EVENT = "SO_Alloc_Event";
+    const std::string SO_FREE_EVENT = "SO_Free_Event";
+    const std::string FD_OPEN_EVENT = "FD_Open_Event";
+    const std::string FD_CLOSE_EVENT = "FD_Close_Event";
+    const std::string THREAD_CREATE_EVENT = "Thread_Create_Event";
+    const std::string THREAD_DESTROY_EVENT = "Thread_Destroy_Event";
     std::unordered_map<uint64_t, uint64_t> addrToAllocEventRow_ = {};
     std::unordered_map<uint64_t, uint64_t> addrToMmapEventRow_ = {};
-    std::unordered_map<uint64_t, uint64_t> addrToTraceAllocEventRow_ = {};
+    std::map<uint64_t, uint64_t> addrToTraceAllocEventRow_ = {};
     uint64_t lastMallocEventRaw_ = INVALID_UINT64;
     uint64_t lastMmapEventRaw_ = INVALID_UINT64;
     uint64_t lastGpuVkEventRaw_ = INVALID_UINT64;
     uint64_t lastGpuGlesEventRaw_ = INVALID_UINT64;
     uint64_t lastGpuClEventRaw_ = INVALID_UINT64;
+    uint64_t lastOtherAllocEventRaw_ = INVALID_UINT64;
+    uint64_t lastArktsHeapEventRaw_ = INVALID_UINT64;
+    uint64_t lastJsHeapEventRaw_ = INVALID_UINT64;
+    uint64_t lastKmpHeapEventRaw_ = INVALID_UINT64;
+    uint64_t lastAshmemEventRaw_ = INVALID_UINT64;
+    uint64_t lastIonEventRaw_ = INVALID_UINT64;
+    uint64_t lastSoEventRaw_ = INVALID_UINT64;
+    uint64_t lastFdEventRaw_ = INVALID_UINT64;
+    uint64_t lastThreadEventRaw_ = INVALID_UINT64;
 };
 
 struct NativeHookFrameRow {

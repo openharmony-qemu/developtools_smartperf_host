@@ -111,16 +111,16 @@ margin-left: 15px;
 :host([fileSystem]) .popover .tree-check:nth-child(6){
     display: none;
   }
-:host([nativeMemory]) .popover .tree-check:nth-child(3){
+:host([basicMemory]) .popover .tree-check:nth-child(3){
   display:none;
 }
-:host([nativeMemory]) .popover .tree-check:nth-child(5){
+:host([basicMemory]) .popover .tree-check:nth-child(5){
   display:none;
 }
-:host([nativeMemory]) .popover .tree-check:nth-child(6){
+:host([basicMemory]) .popover .tree-check:nth-child(6){
     display:none;
   }
-:host([isStatisticsMemory]) .popover .tree-check:nth-child(4){
+:host([isStatistics]) .popover .tree-check:nth-child(4){
   display:none;
 }
 :host(:not([mark])) #mark{

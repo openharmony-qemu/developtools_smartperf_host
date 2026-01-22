@@ -15,7 +15,7 @@
 
 import { BaseElement, element } from '../../../base-ui/BaseElement';
 import { Rect } from '../trace/timer-shaft/Rect';
-import { ChartMode, ChartStruct, draw, setFuncFrame } from '../../bean/FrameChartStruct';
+import { ChartMode, ChartStruct, draw, setFuncFrame, splitSymbol } from '../../bean/FrameChartStruct';
 import { SpApplication } from '../../SpApplication';
 import { Utils } from '../trace/base/Utils';
 import { TabPaneFilter } from '../trace/sheet/TabPaneFilter';
@@ -29,6 +29,16 @@ const ms10 = 10_000_000;
 const jsHapKeys = ['.hap', '.hsp', '.har'];
 const jsStackPath = ['.ts', '.ets', '.js'];
 const textStyle = '12px bold';
+const asyncStack = {
+  'libark_jsruntime.so': ['AsyncStackTraceManager::SavePromiseNode'],
+  'libtaskpool.z.so': ['Task::Task'],
+  'libworker.z.so': ['Worker::Worker'],
+  'libffrt.so': ['ffrt_submit_base', 'ffrt::QueueHandler::Dispatch'],
+  'libeventhandler.z.so': ['sendEvent', 'DistributeEvent'],
+  'libuv.so': ['uv_timer_start', 'uv_queue_work'],
+  'libarkweb_engine.so': ['Runtime_DfxPromiseThen', 'Runtime_SetAsyncTraceOfMicrotask'],
+}
+
 
 class NodeValue {
   size: number;
@@ -289,6 +299,23 @@ export class FrameChart extends BaseElement {
     return false;
   }
 
+  /**
+   * 判断lib中是否具体so文件
+   * @param str node.lib
+   * @param symbol node.symbol
+   * @returns 是否包含
+   */
+  private isExpectedFunction(str: string, symbol: string): boolean {
+    const keyList = Object.keys(asyncStack);
+    if (keyList.includes(str)) {
+      const funcList = (asyncStack as Record<string, string[]>)[str];
+      if (funcList.includes(symbol)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   private clearSuperfluousParams(node: ChartStruct): void {
     node.id = undefined;
     node.eventType = undefined;
@@ -320,6 +347,8 @@ export class FrameChart extends BaseElement {
     } else {
       node.isJsStack = false;
     }
+    node.isAsyncStack = this.isExpectedFunction(node.lib, splitSymbol(node))
+
 
     //设置搜索以及点选的显示值，将点击/搜索的值设置为父节点的显示值,或者反选有子节点并且只有一个子节点
     this.clearDisplayInfo(node);

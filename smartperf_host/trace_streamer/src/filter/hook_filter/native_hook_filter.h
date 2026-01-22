@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2026. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,7 +29,23 @@ namespace TraceStreamer {
 constexpr uint64_t IP_BIT_OPERATION = 0xFFFFFFFFFF;
 using namespace OHOS::Developtools::HiPerf;
 
-enum class NativeType { MALLOC = 0, MMAP, FD, THREAD, GPU_VK, GPU_GLES, GPU_CL, OTHER };
+enum class NativeType {
+    MALLOC = 0,
+    MMAP,
+    FD,
+    THREAD,
+    GPU_VK,
+    GPU_GLES,
+    GPU_CL,
+    OTHER,
+    ARKTS_HEAP,
+    JS_HEAP,
+    KMP_HEAP,
+    RN_HEAP,
+    ASHMEM,
+    DMA,
+    SO
+};
 
 class NativeHookFrameInfo {
 public:
@@ -64,6 +80,15 @@ struct CommHookData {
     size_t size = 0;
     std::unique_ptr<BatchNativeHookData> datas = nullptr;
 };
+
+struct TraceTypeAndNativeType {
+    TraceTypeAndNativeType() {}
+    explicit TraceTypeAndNativeType(bool invalidValue) : flag(invalidValue) {}
+    bool flag = false;
+    std::string traceType;
+    NativeType nativeType;
+};
+
 class NativeHookFilter : public OfflineSymbolizationFilter {
 public:
     NativeHookFilter(TraceDataCache *, const TraceStreamerFilters *);
@@ -109,23 +134,19 @@ private:
     void UpdateMap(std::unordered_map<T1, T2> &sourceMap, T1 key, T2 value);
     void ParseAllocEvent(uint64_t timeStamp, const ProtoReader::BytesView &bytesView);
     void ParseFreeEvent(uint64_t timeStamp, const ProtoReader::BytesView &bytesView);
-    void SetFreeEventCallChainId(uint32_t &callChainId,
-                                 uint32_t ipid,
-                                 uint32_t itid,
-                                 const ProtoReader::FreeEvent_Reader &freeEventReader);
+    void SetAnyEventCallChainId(uint32_t &callChainId,
+                                uint32_t ipid,
+                                uint32_t itid,
+                                uint32_t threadNameId,
+                                uint32_t stackId);
     void ParseMmapEvent(uint64_t timeStamp, const ProtoReader::BytesView &bytesView);
-    void SetMmapEventCallChainId(uint32_t &callChainId,
-                                 uint32_t ipid,
-                                 uint32_t itid,
-                                 const ProtoReader::MmapEvent_Reader &mMapEventReader);
     void ParseMunmapEvent(uint64_t timeStamp, const ProtoReader::BytesView &bytesView);
-    void SetMunmapEventCallChainId(uint32_t &callChainId,
-                                   uint32_t ipid,
-                                   uint32_t itid,
-                                   const ProtoReader::MunmapEvent_Reader &mUnmapEventReader);
     void ParseTraceAllocEvent(uint64_t timeStamp, const ProtoReader::BytesView &bytesView);
     void ParseTraceFreeEvent(uint64_t timeStamp, const ProtoReader::BytesView &bytesView);
+    void ParseTraceMoveEvent(uint64_t timeStamp, const ProtoReader::BytesView &bytesView);
+    void ParseTraceFreeRegionEvent(uint64_t timeStamp, const ProtoReader::BytesView &bytesView);
     void MaybeUpdateCurrentSizeDur(uint64_t row, uint64_t timeStamp, NativeType type);
+    uint64_t *GetLastEventRaw(NativeType type);
     void UpdateThreadNameWithNativeHookData() const;
     void GetCallIdToLastLibId();
     void GetNativeHookFrameVaddrs();
@@ -154,6 +175,7 @@ private:
     void UpdateFilePathIdAndStValueToSymAddrMap(T *firstSymbolAddr, const int size, uint32_t filePathId);
     uint64_t GetMemMapSubTypeWithAddr(uint64_t addr);
     uint64_t GetTraceAllocSubTypeWithAddr(uint64_t addr);
+    void GetTraceMoveSubTypeWithAddr(uint64_t oldAddr, uint64_t newAddr);
     void UpdateAnonMmapDataDbIndex(uint64_t addr, uint64_t size, uint64_t row);
     void UpdateLastCallerPathAndSymbolIndexs();
     void UpdateFilePathIndexToCallStackRowMap(size_t row, DataIndex filePathIndex);
@@ -161,6 +183,12 @@ private:
                            std::shared_ptr<ProtoReader::SymbolTable_Reader> reader2);
     bool AreBytesViewsEqual(const ProtoReader::BytesView &view1, const ProtoReader::BytesView &view2);
     uint64_t GetSubFilePathIndex(uint64_t adltBase, FrameInfo *frameInfo);
+    void InitTraceTypeMaps();
+    bool GetTraceTypeAndNativeType(bool isAlloc,
+                                   int32_t protoTraceType,
+                                   std::string &traceType,
+                                   NativeType &nativeType);
+    TraceTypeAndNativeType MakeTypeValue(const std::string &traceType, NativeType nativeType);
 
 private:
     // first key is addr, second key is size, value is set<row> in db
@@ -170,7 +198,7 @@ private:
     DoubleMap<uint32_t, uint32_t, uint64_t> ipidToSymIdToSymIndex_;
     std::unordered_map<std::shared_ptr<std::tuple<uint64_t, uint64_t>>, uint32_t> addrToSoIdx_ = {};
     DoubleMap<uint32_t, uint64_t, std::shared_ptr<const ProtoReader::BytesView>> ipidToFrameIdToFrameBytes_;
-    std::map<uint32_t/* soIndex */, uint64_t/* subNameIndex */> soIdxToSubFileIndex_ = {};
+    std::map<uint32_t /* soIndex */, uint64_t /* subNameIndex */> soIdxToSubFileIndex_ = {};
     std::unordered_map<DataIndex, std::shared_ptr<std::set<size_t>>> filePathIndexToFrameTableRowMap_ = {};
     std::multimap<uint64_t, std::unique_ptr<NativeHookMetaData>> tsToMainEventsMap_ = {};
     std::map<uint64_t, std::shared_ptr<std::vector<uint64_t>>> reparseStackIdToFramesMap_ = {};
@@ -187,7 +215,7 @@ private:
     std::unordered_map<uint32_t, uint32_t> stackIdToCallChainIdMap_ = {};
     std::unordered_map<uint64_t, uint64_t> *addrToAllocEventRow_ = nullptr;
     std::unordered_map<uint64_t, uint64_t> *addrToMmapEventRow_ = nullptr;
-    std::unordered_map<uint64_t, uint64_t> *addrToTraceAllocEventRow_ = nullptr;
+    std::map<uint64_t, uint64_t> *addrToTraceAllocEventRow_ = nullptr;
     std::set<DataIndex> invalidLibPathIndexs_ = {};
     std::deque<std::string> vaddrs_ = {};
     // munmap update anonymous or named memory tag always use the last addrToMmapTag_ value
@@ -202,6 +230,9 @@ private:
     uint32_t callChainId_ = 0;
     CommHookData commHookData_;
     std::unordered_set<uint32_t> callChainIdsSet_;
+
+    // <protoTraceType, isAlloc, <traceType, NativeType>>
+    DoubleMap<int32_t, bool, TraceTypeAndNativeType> traceTypeToTraceTypeAndNativeType_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

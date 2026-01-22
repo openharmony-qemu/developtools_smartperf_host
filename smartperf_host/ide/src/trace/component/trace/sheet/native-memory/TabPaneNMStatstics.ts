@@ -61,6 +61,7 @@ export class TabPaneNMStatstics extends BaseElement {
     this.allMax = 0;
     TabPaneNMSampleList.clearData();
     this.recordEventHeap(nativeStatisticsParam.nativeMemoryCurrentIPid);
+    this.dataLogic.init(MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY, false);
     this.dataLogic.setCurrentSelectIPid(nativeStatisticsParam.nativeMemoryCurrentIPid);
     this.dataLogic.initResponseTypeList(nativeStatisticsParam);
     if (this.nativeStatisticsTbl) {
