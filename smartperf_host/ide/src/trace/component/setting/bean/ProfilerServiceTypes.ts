@@ -460,6 +460,7 @@ export interface NativeHookConfig {
   expandPids?: number[];
   responseLibraryMode?: boolean;
   jsStackReport?: number;
+  asyncStackEnable?: boolean;
   maxJsStackDepth?: number;
   filterNapiName?: string;
   restrace_tag?: string[];

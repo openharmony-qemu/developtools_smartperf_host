@@ -309,3 +309,19 @@ export const resGpuGlesBuffer = 'RES_GPU_GLES_BUFFER';
 export const resGpuClImage = 'RES_GPU_CL_IMAGE';
 export const resGpuClBuffer = 'RES_GPU_CL_BUFFER';
 export const gpuTypeAll = [resGpuVk, resGpuGlesImage, resGpuGlesBuffer, resGpuClImage, resGpuClBuffer];
+
+export interface TypeOption {
+  value: string;
+  label: string;
+}
+
+export const MEMORY_TYPE_OPTIONS: TypeOption[] = [
+  { value: 'RES_SO_MASK', label: 'SO' },
+  { value: 'RES_ASHMEM_MASK', label: 'ASHMEM' },
+  { value: 'RES_DMABUF_MASK', label: 'DMA' },
+  { value: 'RES_ARKTS_HEAP_MASK', label: 'ARKTS_HEAP' },
+  { value: 'RES_JS_HEAP_MASK', label: 'JS_HEAP' },
+  { value: 'RES_KMP_HEAP_MASK', label: 'KMP_HEAP' },
+  { value: 'RES_FD_ALL', label: 'FD' },
+  { value: 'RES_THREAD_ALL', label: 'THREAD' },
+];
