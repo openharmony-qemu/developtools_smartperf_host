@@ -48,6 +48,7 @@ import { SpStatisticsHttpUtil } from '../../statistics/util/SpStatisticsHttpUtil
 import { SpArkTs } from './setting/SpArkTs';
 import { SpWebHdcShell } from './setting/SpWebHdcShell';
 import { SpHilogRecord } from './setting/SpHilogRecord';
+import { SpGpuCountersRecord } from './setting/SpGpuCountersRecord'
 import { SpXPowerRecord } from './setting/SpXPowerRecord';
 import { LongTraceDBUtils } from '../database/LongTraceDBUtils';
 import {
@@ -108,6 +109,7 @@ export class SpRecordTrace extends BaseElement {
   private spRecordTemplate: SpRecordTemplate | undefined;
   private spArkTs: SpArkTs | undefined;
   private spHiLog: SpHilogRecord | undefined;
+  private spGpuCounters: SpGpuCountersRecord | undefined;
   private spXPower: SpXPowerRecord | undefined;
   private spFFRTConfig: SpFFRTConfig | undefined;
   private ftraceSlider: LitSlider | undefined | null;
@@ -861,22 +863,22 @@ export class SpRecordTrace extends BaseElement {
             this.useExtentTip!.style.display = 'block';
             this.useExtentTip!.innerHTML = '手机连接有问题，请重新插拔一下手机，或者请使用系统管理员权限打开cmd窗口，并执行hdc shell';
             return;
-          }else{
+          } else {
             this.usbGetVersion(this.usbSerialNum[0]);
           }
-        }else if(this.usbSerialNum.length > 1 && usbDevices.serialNumber === ''){
+        } else if (this.usbSerialNum.length > 1 && usbDevices.serialNumber === '') {
           this.usbSerialNum.shift();
-            this.recordButton!.hidden = true;
-            this.disconnectButton!.hidden = true;
-            this.cancelButton!.hidden = true;
-            this.devicePrompt!.innerText = 'Device not connected';
-            this.deviceSelect!.style!.border = '2px solid red';
-            setTimeout(() => {
-              this.deviceSelect!.style!.border = '1px solid #4D4D4D';
-            }, 3000);
-            this.useExtentTip!.style.display = 'block';
-            this.useExtentTip!.innerHTML = '加密设备仅限连接一台';
-            return;
+          this.recordButton!.hidden = true;
+          this.disconnectButton!.hidden = true;
+          this.cancelButton!.hidden = true;
+          this.devicePrompt!.innerText = 'Device not connected';
+          this.deviceSelect!.style!.border = '2px solid red';
+          setTimeout(() => {
+            this.deviceSelect!.style!.border = '1px solid #4D4D4D';
+          }, 3000);
+          this.useExtentTip!.style.display = 'block';
+          this.useExtentTip!.innerHTML = '加密设备仅限连接一台';
+          return;
         }
         // @ts-ignore
         while (this.deviceSelect!.firstChild) {
@@ -1042,6 +1044,7 @@ export class SpRecordTrace extends BaseElement {
     this.spHiSysEvent = new SpHisysEvent();
     this.spArkTs = new SpArkTs();
     this.spHiLog = new SpHilogRecord();
+    this.spGpuCounters = new SpGpuCountersRecord();
     this.spXPower = new SpXPowerRecord();
     this.spFFRTConfig = new SpFFRTConfig();
     this.spWebShell = new SpWebHdcShell();
@@ -1345,6 +1348,7 @@ export class SpRecordTrace extends BaseElement {
       this.buildMenuItem('FFRT', 'file-config', this.spFFRTConfig!),
       this.buildMenuItem('Hilog', 'realIntentionBulb', this.spHiLog!),
       this.buildMenuItem('Xpower', 'externaltools', this.spXPower!),
+      this.buildMenuItem('GpuCounters', 'externaltools', this.spGpuCounters!)
     ];
   }
 
@@ -1588,6 +1592,15 @@ export class SpRecordTrace extends BaseElement {
         this.refreshDisableStyle(false, true, 'Tracing htrace failed, please check your config ', -2);
       }
     });
+    if (this.spGpuCounters?.recordCpuCounters) {
+      setTimeout(() => {
+        let period = this.spGpuCounters?.periodCurrentValue;
+        if (Number(period) > 1000 || period === '') {
+          period = '100';
+        }
+        HdcDeviceManager.shellResultAsString(CmdConstant.CMD_SHELL + 'counters_gather -p ' + period, false).then((): void => { });
+      }, 1);
+    }
   }
 
   private recordLongTraceCmd(traceCommandStr: string): void {
