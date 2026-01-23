@@ -124,6 +124,7 @@ export class SpHelp extends BaseElement {
           this.setupAnalysisTemplateMenu(that),
           this.setupFileMenu(that),
           this.setupOtherMenu(that),
+          this.setupGPUCountersMenu(that)
         ],
       },
       {
@@ -456,6 +457,25 @@ export class SpHelp extends BaseElement {
             that.handleMemoryMenuItemClick(that, 'bio', 'quickstart_bio', '16');
           },
         },
+      ],
+    };
+  }
+
+  private setupGPUCountersMenu(that: this): MenuGroup {
+    return {
+      collapsed: false,
+      title: 'GPU Counters',
+      describe: '',
+      second: true,
+      icon: 'caret-down',
+      children: [
+        {
+          title: 'GPU Counters抓取和展示说明',
+          icon: '',
+          clickHandler: function (item: MenuItem): void {
+            that.handleMemoryMenuItemClick(that, 'file_system', 'quickstart_gpu_counters', '32');
+          },
+        }
       ],
     };
   }
