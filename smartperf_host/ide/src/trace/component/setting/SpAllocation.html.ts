@@ -308,6 +308,70 @@ input:disabled {
   width: 92%;
 }
 
+.more_type {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  grid-column: 1 / 3;
+  width: 92%;
+  margin-top: 40px;
+}
+
+.more-type-header {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin-bottom: 15px;
+  width: 100%;
+}
+
+.more-type-checkbox {
+  width: 16px;
+  height: 16px;
+  margin-right: 10px;
+  cursor: pointer;
+}
+
+.more-type-title {
+  font-family: Helvetica-Bold;
+  font-size: 18px;
+  color: var(--dark-color1,#000000);
+  line-height: 40px;
+  font-weight: 700;
+  margin-right: 10px;
+  opacity: 0.9;
+}
+
+.type-options-container {
+  width: 100%;
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px 0;
+}
+
+.type-option {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.type-checkbox {
+  width: 16px;
+  height: 16px;
+  margin-right: 5px;
+  cursor: pointer;
+}
+
+.type-label {
+  font-family: Helvetica;
+  font-size: 14px;
+  color: var(--dark-color1,#212121);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 </style>
 <div class="root">
   <div class = "title" style="width: 92%;">
@@ -328,6 +392,14 @@ input:disabled {
           <span class="config-title-des">Record GpuType</span>
       </div>
   </div>
+  <div class="more_type" id="more_type">
+  <div class="more-type-header" id="all_type_header">
+    <input type="checkbox" class="more-type-checkbox" id="all_type_checkbox">
+    <span class="more-type-title" id="moreType">More Type</span>
+  </div>
+  <div class="type-options-container" id="type_options_container">
+  </div>
+</div>
   <!-- ProcessId or ProcessName(default) -->
   <div class="allocation-application" style="grid-column: 1 / 3;">
     <div>
@@ -345,6 +417,11 @@ input:disabled {
   <div class="allocation-switchstyle" id="max_stack_depth_div" style="align-items: center;grid-column: 1 / 3;">
     <span class="allocation-inner-font-style" id="fp-unwind">Use Fp Unwind</span>
     <lit-switch class="lts" id="use_fp_unwind" title="fp unwind model" checked="true"></lit-switch>
+  </div>
+  <!-- Use Record Async Stack(default) -->
+  <div class="allocation-switchstyle" id="record-async-stack" style="align-items: center;grid-column: 1 / 3;">
+    <span class="allocation-inner-font-style" id="record-async-stack">Use Record Async Stack</span>
+    <lit-switch class="lts" id="use_async-stack" title="async stack model"></lit-switch>
   </div>
   <!-- Use Record Js Stack(default) -->
   <div class="allocation-switchstyle" style="align-items: center;grid-column: 1 / 3;">

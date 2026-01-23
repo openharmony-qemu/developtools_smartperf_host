@@ -23,7 +23,7 @@ import { LitSelectV } from '../../../base-ui/select/LitSelectV';
 import { SpAllocationHtml } from './SpAllocation.html';
 import { NUM_16384, NUM_1800, NUM_30, NUM_300, NUM_3600, NUM_450, NUM_60, NUM_600 } from '../../bean/NumBean';
 import { LitSelect } from '../../../base-ui/select/LitSelect';
-import { gpuTypeAll, resGpuVk, resGpuGlesImage, resGpuGlesBuffer, resGpuClImage, resGpuClBuffer } from './utils/PluginConvertUtils';
+import { gpuTypeAll, resGpuVk, resGpuGlesImage, resGpuGlesBuffer, resGpuClImage, resGpuClBuffer, MEMORY_TYPE_OPTIONS, TypeOption } from './utils/PluginConvertUtils';
 
 @element('sp-allocations')
 export class SpAllocations extends BaseElement {
@@ -57,6 +57,7 @@ export class SpAllocations extends BaseElement {
   private offlineSymbol: LitSwitch | null | undefined;
   private startupMode: LitSwitch | null | undefined;
   private jsStackModel: LitSwitch | null | undefined;
+  private asyncStackModel: LitSwitch | null | undefined;
   private responseLibMode: LitSwitch | null | undefined;
   private napiName: HTMLInputElement | null | undefined;
   private jsStackDepth: HTMLInputElement | null | undefined;
@@ -68,6 +69,10 @@ export class SpAllocations extends BaseElement {
   private configType: HTMLDivElement | undefined | null;
   private typeSelect: LitSelectV | undefined | null;
   private typeInput: HTMLInputElement | undefined;
+  private allTypeCheckbox: HTMLInputElement | null | undefined;
+  private typeOptionsContainer: HTMLDivElement | null | undefined;
+  private selectedTypes: Set<string> = new Set();
+  private typeOptions: TypeOption[] = [];
 
   set startSamp(allocationStart: boolean) {
     if (allocationStart) {
@@ -191,6 +196,20 @@ export class SpAllocations extends BaseElement {
     }
   }
 
+  get recordAsyncStack(): boolean {
+    let value = this.asyncStackModel?.checked;
+    if (value !== undefined) {
+      return value;
+    }
+    return false;
+  }
+
+  set recordAsyncStack(value: boolean) {
+    if (this.asyncStackModel) {
+      this.asyncStackModel.checked = value;
+    }
+  }
+
   get expandPids(): number[] {
     let allPidList: number[] = [];
     const processIdValue = this.processId?.value;
@@ -231,6 +250,22 @@ export class SpAllocations extends BaseElement {
     return 0;
   }
 
+  public setTypeOptions(options: TypeOption[]): void {
+    if (!options || !Array.isArray(options)) {
+      return;
+    }
+    this.typeOptions = [...options];
+    if (!this.selectedTypes) {
+      this.selectedTypes = new Set<string>();
+    }
+    setTimeout(() => {
+      this.renderTypeOptions();
+    }, 0);
+  }
+  get selectedTypeValues(): string[] {
+    return Array.from(this.selectedTypes);
+  }
+
   initElements(): void {
     this.initRecordGpuConfig();
     // normal option
@@ -262,6 +297,7 @@ export class SpAllocations extends BaseElement {
     this.offlineSymbol = this.shadowRoot?.getElementById('use_offline_symbolization') as LitSwitch;
     this.startupMode = this.shadowRoot?.getElementById('use_startup_mode') as LitSwitch;
     this.jsStackModel = this.shadowRoot?.getElementById('use_js-stack') as LitSwitch;
+    this.asyncStackModel = this.shadowRoot?.getElementById('use_async-stack') as LitSwitch;
     this.responseLibMode = this.shadowRoot?.getElementById('response_lib_mode') as LitSwitch;
     this.useStatisticsEl = this.shadowRoot?.getElementById('use_statistics') as LitSwitch;
     this.statisticsIntervalInput = this.shadowRoot?.getElementById('statistics-interval-input') as HTMLInputElement;
@@ -275,6 +311,14 @@ export class SpAllocations extends BaseElement {
     this.typeSelect = this.shadowRoot?.querySelector<LitSelectV>("lit-select-v[title='Gpu Type']");
     this.typeSelect!.showItems = [resGpuVk, resGpuGlesImage, resGpuGlesBuffer, resGpuClImage, resGpuClBuffer];
     this.typeInput = this.typeSelect!.shadowRoot?.querySelector('input') as HTMLInputElement;
+    this.allTypeCheckbox = this.shadowRoot?.querySelector('#all_type_checkbox') as HTMLInputElement;
+    this.typeOptionsContainer = this.shadowRoot?.querySelector('#type_options_container') as HTMLDivElement;
+    setTimeout(() => {
+      if (MEMORY_TYPE_OPTIONS && MEMORY_TYPE_OPTIONS.length > 0) {
+        this.setTypeOptions(MEMORY_TYPE_OPTIONS);
+      }
+    }, 100);
+    this.allTypeCheckbox?.addEventListener('change', this.allTypeCheckboxChangeHandler);
 
     this.gpuMemorySwitch.addEventListener('change', () => {
       let configVisibility = 'none';
@@ -331,6 +375,10 @@ export class SpAllocations extends BaseElement {
     this.statisticsIntervalInput?.addEventListener('keyup', this.statisticsIntervalKeyUpEvent);
     this.typeInput?.addEventListener('mousedown', this.typeSelectMousedownHandler);
     this.typeInput?.addEventListener('click', this.typeSelectClickHandler);
+    this.allTypeCheckbox?.addEventListener('change', this.allTypeCheckboxChangeHandler);
+    setTimeout(() => {
+      this.ensureRendered();
+    }, 200);
   }
 
   disconnectedCallback(): void {
@@ -354,6 +402,100 @@ export class SpAllocations extends BaseElement {
     this.statisticsIntervalInput?.removeEventListener('keyup', this.statisticsIntervalKeyUpEvent);
     this.typeInput?.removeEventListener('mousedown', this.typeSelectMousedownHandler);
     this.typeInput?.removeEventListener('click', this.typeSelectClickHandler);
+    this.allTypeCheckbox?.removeEventListener('change', this.allTypeCheckboxChangeHandler);
+  }
+
+  private ensureRendered(): void {
+    if (this.typeOptionsContainer &&
+      this.typeOptionsContainer.children.length === 0 &&
+      this.typeOptions.length > 0) {
+      this.renderTypeOptions();
+    }
+  }
+  private renderTypeOptions(): void {
+    if (!this.typeOptionsContainer) {
+      this.typeOptionsContainer = this.shadowRoot?.querySelector('#type_options_container') as HTMLDivElement;
+      if (!this.typeOptionsContainer) {
+        console.error('Still cannot find typeOptionsContainer');
+        return;
+      }
+    }
+    if (!this.selectedTypes) {
+      this.selectedTypes = new Set<string>();
+    }
+    this.typeOptionsContainer.innerHTML = '';
+    if (!this.typeOptions || this.typeOptions.length === 0) {
+      this.typeOptionsContainer.style.display = 'none';
+      return;
+    }
+    this.typeOptionsContainer.style.display = 'grid';
+    const rows = Math.ceil(this.typeOptions.length / 4);
+    this.typeOptionsContainer.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+    this.typeOptionsContainer.style.minHeight = `${rows * 30}px`;
+    this.typeOptions.forEach((option) => {
+      const optionDiv = document.createElement('div');
+      optionDiv.className = 'type-option';
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.className = 'type-checkbox';
+      checkbox.value = option.value;
+      checkbox.checked = this.selectedTypes ? this.selectedTypes.has(option.value) : false;
+      checkbox.name = 'type';
+      checkbox.addEventListener('change', (e) => {
+        this.typeOptionChangeHandler(e, option.value);
+      });
+      const label = document.createElement('span');
+      label.className = 'type-label';
+      label.textContent = option.label;
+      optionDiv.appendChild(checkbox);
+      optionDiv.appendChild(label);
+      if (this.typeOptionsContainer) {
+        this.typeOptionsContainer.appendChild(optionDiv);
+      }
+    });
+    this.updateAllTypeCheckbox();
+    this.disableTypeCheckboxes();
+  }
+
+  private allTypeCheckboxChangeHandler = (): void => {
+    const isChecked = this.allTypeCheckbox!.checked;
+    const checkboxes = this.typeOptionsContainer?.querySelectorAll<HTMLInputElement>('.type-checkbox');
+    if (isChecked) {
+      checkboxes?.forEach(checkbox => {
+        if (!checkbox.checked) {
+          checkbox.checked = true;
+          this.selectedTypes.add(checkbox.value);
+        }
+      });
+    } else {
+      checkboxes?.forEach(checkbox => {
+        if (checkbox.checked) {
+          checkbox.checked = false;
+          this.selectedTypes.delete(checkbox.value);
+        }
+      });
+    }
+  };
+
+  private typeOptionChangeHandler = (event: Event, value: string): void => {
+    const checkbox = event.target as HTMLInputElement;
+    if (checkbox.checked) {
+      this.selectedTypes.add(value);
+    } else {
+      this.selectedTypes.delete(value);
+    }
+    this.updateAllTypeCheckbox();
+  };
+
+  private updateAllTypeCheckbox(): void {
+    if (!this.allTypeCheckbox) return;
+    const checkboxes = this.typeOptionsContainer?.querySelectorAll<HTMLInputElement>('.type-checkbox');
+    if (!checkboxes || checkboxes.length === 0) {
+      this.allTypeCheckbox.checked = false;
+      return;
+    }
+    const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+    this.allTypeCheckbox.checked = checkedCount > 0;
   }
 
   handleInputChangeEvent = (ev: KeyboardEvent): void => {
@@ -753,8 +895,28 @@ export class SpAllocations extends BaseElement {
     }
   }
 
+  private enableTypeCheckboxes(): void {
+    if (!this.typeOptionsContainer) return;
+    const checkboxes = this.typeOptionsContainer.querySelectorAll<HTMLInputElement>('.type-checkbox');
+    checkboxes.forEach(checkbox => {
+      checkbox.disabled = false;
+    });
+  }
+
+  private disableTypeCheckboxes(): void {
+    if (!this.typeOptionsContainer) return;
+    const checkboxes = this.typeOptionsContainer.querySelectorAll<HTMLInputElement>('.type-checkbox');
+    checkboxes.forEach(checkbox => {
+      checkbox.disabled = true;
+    });
+  }
+
   private unDisable(): void {
     this.startSamp = true;
+    if (this.allTypeCheckbox) {
+      this.allTypeCheckbox.disabled = false;
+    }
+    this.enableTypeCheckboxes();
     if (this.fpUnWind) {
       this.fpUnWind.disabled = false;
     }
@@ -769,6 +931,9 @@ export class SpAllocations extends BaseElement {
     }
     if (this.jsStackModel) {
       this.jsStackModel.disabled = false;
+    }
+    if (this.asyncStackModel) {
+      this.asyncStackModel.disabled = false;
     }
     if (this.responseLibMode) {
       this.responseLibMode.disabled = false;
@@ -804,6 +969,10 @@ export class SpAllocations extends BaseElement {
   private disable(): void {
     this.startSamp = false;
     this.advanceOptionHandle('Normal Options');
+    if (this.allTypeCheckbox) {
+      this.allTypeCheckbox.disabled = true;
+    }
+    this.disableTypeCheckboxes();
     if (this.fpUnWind) {
       this.fpUnWind.disabled = true;
     }
@@ -815,6 +984,9 @@ export class SpAllocations extends BaseElement {
     }
     if (this.jsStackModel) {
       this.jsStackModel.disabled = true;
+    }
+    if (this.asyncStackModel) {
+      this.asyncStackModel.disabled = true;
     }
     if (this.offlineSymbol) {
       this.offlineSymbol.disabled = true;

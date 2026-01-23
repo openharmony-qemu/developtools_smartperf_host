@@ -44,6 +44,7 @@ const events = {
   LIMIT_EVENT: 'limit',
   TRACE_STREAMER_EXPLAIN_EVENT: 'trace_streamer_explain',
   GPU_EVENT:'gpu',
+  FD_EVENT:'FD',
 };
 
 export interface EventDefinition {
@@ -207,5 +208,10 @@ export const eventDefinitions: { [key: string]: EventDefinition } = {
     event: events.GPU_EVENT,
     name: 'quickstart_gpu_memory',
     index: 31,
+  },
+  quickstart_fd: {
+    event: events.FD_EVENT,
+    name: 'quickstart_fd',
+    index: 32,
   },
 };

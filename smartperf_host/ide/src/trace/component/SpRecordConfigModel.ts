@@ -533,7 +533,7 @@ export function createNativePluginConfig(
         }
       }
       nativeConfig.jsStackReport = spAllocations!.recordJsStack ? 1 : 0;
-
+      nativeConfig.asyncStackEnable = spAllocations!.recordAsyncStack ? true : false;
       if (spAllocations!.recordGpuMemory) {
         let type = spAllocations.getGpuConfig();
         let typeList: Array<string> = [];
@@ -546,7 +546,18 @@ export function createNativePluginConfig(
           nativeConfig.mmap_disable = true;
         }
         nativeConfig.memtrace_enable = true;
-        nativeConfig.restrace_tag = typeList;
+        if(nativeConfig.restrace_tag){
+          nativeConfig.restrace_tag.push(...typeList);
+        } else {
+          nativeConfig.restrace_tag = typeList;
+        }
+      }
+      if (spAllocations.selectedTypeValues.length) {
+        if(nativeConfig.restrace_tag){
+          nativeConfig.restrace_tag.push(...spAllocations.selectedTypeValues);
+        } else {
+          nativeConfig.restrace_tag = spAllocations.selectedTypeValues;
+        }
       }
     }
     if (spAllocations!.expandPids.length > 1) {
