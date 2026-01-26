@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023-2026. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,6 +31,7 @@
 #include "callstack_stdtype.h"
 #include "common_stdtype.h"
 #include "ebpf_stdtype.h"
+#include "filesystem_io_stdtype.h"
 #include "hilog_stdtype.h"
 #include "hiperf_stdtype.h"
 #include "hisysevent_stdtype.h"
@@ -206,6 +207,7 @@ public:
     XPowerAppDetailDisplay xPowerAppDetailDisplayInfo_;
     XPowerComponentTop xPowerComponentTopInfo_;
     TimerfdWakeup timerfdWakeupData_;
+    FileSystemIo fileSystemIoData_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

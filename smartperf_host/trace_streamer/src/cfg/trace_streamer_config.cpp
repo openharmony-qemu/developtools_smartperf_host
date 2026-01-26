@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023-2026. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -215,6 +215,10 @@ void TraceStreamerConfig::InitOtherEventNameMap()
     eventNameMap_.emplace(TRACE_ON_DO_COMPOSITION, TRACE_ACTION_ON_DO_COMPOSITION);
     eventNameMap_.emplace(TRACE_FRAMEQUEUE, TRACE_ACTION_FRAMEQUEUE);
     eventNameMap_.emplace(TRACE_EVENT_TIMERFD_WAKEUP, TRACE_ACTION_TIMERFD_WAKEUP);
+    eventNameMap_.emplace(TRACE_EVENT_HMFS_READ_ENTER, TRACE_ACTION_HMFS_READ_ENTER);
+    eventNameMap_.emplace(TRACE_EVENT_HMFS_READ_EXIT, TRACE_ACTION_HMFS_READ_EXIT);
+    eventNameMap_.emplace(TRACE_EVENT_HMFS_WRITE_ENTER, TRACE_ACTION_HMFS_WRITE_ENTER);
+    eventNameMap_.emplace(TRACE_EVENT_HMFS_WRITE_EXIT, TRACE_ACTION_HMFS_WRITE_EXIT);
 }
 void TraceStreamerConfig::InitEbpfEventNameMap()
 {

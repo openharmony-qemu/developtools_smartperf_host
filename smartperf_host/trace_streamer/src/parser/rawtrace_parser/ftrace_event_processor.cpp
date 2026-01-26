@@ -60,6 +60,8 @@ FtraceEventProcessor::FtraceEventProcessor()
     StackEventsInitialization();
     VoltageEventInitialization();
     TaskEventInitialization();
+    HmfsEventInitialization();
+    BlockEventInitialization();
 }
 
 void FtraceEventProcessor::SchedEventInitialization()
@@ -221,6 +223,32 @@ void FtraceEventProcessor::TaskEventInitialization()
 {
     eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_TIMERFD_WAKEUP),
                                   std::bind(&FtraceEventProcessor::TimerfdWakeup, this, std::placeholders::_1,
+                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+}
+
+void FtraceEventProcessor::HmfsEventInitialization()
+{
+    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_HMFS_READ_ENTER),
+                                  std::bind(&FtraceEventProcessor::HmfsReadEnter, this, std::placeholders::_1,
+                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_HMFS_READ_EXIT),
+                                  std::bind(&FtraceEventProcessor::HmfsReadExit, this, std::placeholders::_1,
+                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_HMFS_WRITE_ENTER),
+                                  std::bind(&FtraceEventProcessor::HmfsWriteEnter, this, std::placeholders::_1,
+                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_HMFS_WRITE_EXIT),
+                                  std::bind(&FtraceEventProcessor::HmfsWriteExit, this, std::placeholders::_1,
+                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+}
+
+void FtraceEventProcessor::BlockEventInitialization()
+{
+    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_BLOCK_RQ_ISSUE),
+                                  std::bind(&FtraceEventProcessor::BlockRqIssue, this, std::placeholders::_1,
+                                            std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    eventNameToFunctions_.emplace(config_.eventNameMap_.at(TRACE_EVENT_BLOCK_RQ_COMPLETE),
+                                  std::bind(&FtraceEventProcessor::BlockRqComplete, this, std::placeholders::_1,
                                             std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
 }
 
@@ -827,6 +855,101 @@ bool FtraceEventProcessor::TimerfdWakeup(FtraceEvent &ftraceEvent,
     timerfdWakeupMsg->set_curr_mono(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
     timerfdWakeupMsg->set_expire_mono(
         FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+    return true;
+}
+
+bool FtraceEventProcessor::BlockRqIssue(FtraceEvent &ftraceEvent,
+                                        uint8_t data[],
+                                        size_t size,
+                                        const EventFormat &format)
+{
+    uint8_t index = 0;
+    auto msg = ftraceEvent.mutable_block_rq_issue_format();
+    msg->set_dev(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+    msg->set_sector(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+    msg->set_nr_sector(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
+    msg->set_bytes(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
+    msg->set_rwbs(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    msg->set_comm(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    msg->set_cmd(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    return true;
+}
+
+bool FtraceEventProcessor::BlockRqComplete(FtraceEvent &ftraceEvent,
+                                           uint8_t data[],
+                                           size_t size,
+                                           const EventFormat &format)
+{
+    uint8_t index = 0;
+    auto msg = ftraceEvent.mutable_block_rq_complete_format();
+    msg->set_dev(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+    msg->set_sector(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+    msg->set_nr_sector(FtraceFieldProcessor::HandleIntField<uint32_t>(format.fields, index++, data, size));
+    msg->set_error(FtraceFieldProcessor::HandleIntField<int32_t>(format.fields, index++, data, size));
+    msg->set_rwbs(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    msg->set_cmd(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    return true;
+}
+
+bool FtraceEventProcessor::HmfsReadEnter(FtraceEvent &ftraceEvent,
+                                         uint8_t data[],
+                                         size_t size,
+                                         const EventFormat &format)
+{
+    uint8_t index = 0;
+    auto msg = ftraceEvent.mutable_hmfs_read_enter_format();
+    msg->set_dev(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+    msg->set_ino(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+    msg->set_off(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+    msg->set_size(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+    msg->set_i_size(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+    msg->set_name(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    return true;
+}
+
+bool FtraceEventProcessor::HmfsReadExit(FtraceEvent &ftraceEvent,
+                                        uint8_t data[],
+                                        size_t size,
+                                        const EventFormat &format)
+{
+    uint8_t index = 0;
+    auto msg = ftraceEvent.mutable_hmfs_read_exit_format();
+    msg->set_dev(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+    msg->set_ino(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+    msg->set_off(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+    msg->set_size(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+    msg->set_res(FtraceFieldProcessor::HandleIntField<int64_t>(format.fields, index++, data, size));
+    return true;
+}
+
+bool FtraceEventProcessor::HmfsWriteEnter(FtraceEvent &ftraceEvent,
+                                          uint8_t data[],
+                                          size_t size,
+                                          const EventFormat &format)
+{
+    uint8_t index = 0;
+    auto msg = ftraceEvent.mutable_hmfs_write_enter_format();
+    msg->set_dev(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+    msg->set_ino(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+    msg->set_off(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+    msg->set_size(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+    msg->set_i_size(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+    msg->set_name(FtraceFieldProcessor::HandleStrField(format.fields, index++, data, size));
+    return true;
+}
+
+bool FtraceEventProcessor::HmfsWriteExit(FtraceEvent &ftraceEvent,
+                                         uint8_t data[],
+                                         size_t size,
+                                         const EventFormat &format)
+{
+    uint8_t index = 0;
+    auto msg = ftraceEvent.mutable_hmfs_write_exit_format();
+    msg->set_dev(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+    msg->set_ino(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+    msg->set_off(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+    msg->set_size(FtraceFieldProcessor::HandleIntField<uint64_t>(format.fields, index++, data, size));
+    msg->set_res(FtraceFieldProcessor::HandleIntField<int64_t>(format.fields, index++, data, size));
     return true;
 }
 

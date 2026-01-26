@@ -23,6 +23,8 @@
 namespace SysTuning {
 namespace TraceStreamer {
 constexpr uint32_t CPU_CORE_MAX = 30;
+constexpr uint32_t DEV_MAJOR_SHIFT = 20;
+constexpr uint64_t DEV_MINOR_MASK = 0xfffff;
 struct RawTraceEventInfo {
     uint8_t cpuId = INVALID_UINT8;
     uint32_t eventId = INVALID_UINT32;
@@ -85,6 +87,13 @@ private:
     bool RegulatorDisableEvent(const RawTraceEventInfo &event) const;
     bool RegulatorDisableCompleteEvent(const RawTraceEventInfo &event) const;
     bool TimerfdWakeupEvent(const RawTraceEventInfo &event) const;
+    bool BlockRqIssueEvent(const RawTraceEventInfo &event) const;
+    bool BlockRqCompleteEvent(const RawTraceEventInfo &event) const;
+    bool HmfsReadEnterEvent(const RawTraceEventInfo &event) const;
+    bool HmfsReadExitEvent(const RawTraceEventInfo &event) const;
+    bool HmfsWriteEnterEvent(const RawTraceEventInfo &event) const;
+    bool HmfsWriteExitEvent(const RawTraceEventInfo &event) const;
+    void ParseDev(uint64_t dev, uint32_t &mainDev, uint32_t &subDev) const;
 
     void InterruptEventInitialization();
     void ClockEventInitialization();
@@ -94,6 +103,8 @@ private:
     void StackEventsInitialization();
     void VoltageEventInitialization();
     void TaskEventInitialization();
+    void HmfsEventInitialization();
+    void BlockEventInitialization();
     void SchedEventInitialization();
 
 public:
