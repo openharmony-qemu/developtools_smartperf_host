@@ -11,12 +11,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { 
-  handlerConfig, 
-  memoryConfig, 
-  MemoryTableName, 
-  MemoryTraceRowType, 
-  MemoryType, 
+import {
+  handlerConfig,
+  memoryConfig,
+  MemoryTableName,
+  MemoryTraceRowType,
+  MemoryType,
   statisticTypeMap,
   NATIVE_MEMORY_HEAP_INDICES,
   NATIVE_MEMORY_ANONYMOUS_VM_INDICES,
@@ -257,7 +257,6 @@ function saveStatisticsCacheMapValue(
   obj: Map<number, NativeMemoryChartDataType>,
   timeArr: number[]
 ): void {
-  let source = Array.from(obj.values());
   let arr: NativeMemoryChartDataType[] = [];
   let cache = {
     maxSize: 0,
@@ -266,22 +265,48 @@ function saveStatisticsCacheMapValue(
     minDensity: 0,
     dataList: arr,
   };
-  for (let i = 0, len = source.length; i < len; i++) {
-    let startTsIndex = timeArr.findIndex((time) => source[i].startTime === time);
-    let realStartTs = startTsIndex > 0 ? timeArr[startTsIndex - 1] : 0;
-    let item = {
-      startTime: realStartTs,
-      heapSize: i > 0 ? source[i].heapSize + arr[i - 1].heapSize : source[i].heapSize,
-      density: i > 0 ? source[i].density + arr[i - 1].density : source[i].density,
-      dur: source[i].startTime - realStartTs,
-    };
+  let lastHeapSize = 0;
+  let lastDensity = 0;
+  for (let i = 0; i < timeArr.length; i++) {
+    const currentTime = timeArr[i];
+    const prevTime = i > 0 ? timeArr[i - 1] : 0;
+    const sourceItem = obj.get(currentTime);
+    let item: NativeMemoryChartDataType;
+    if (sourceItem) {
+      item = {
+        startTime: prevTime,
+        heapSize: sourceItem.heapSize + lastHeapSize,
+        density: sourceItem.density + lastDensity,
+        dur: sourceItem.startTime - prevTime,
+      };
+      lastHeapSize = item.heapSize;
+      lastDensity = item.density;
+    } else if (i > 0) {
+      item = {
+        startTime: prevTime,
+        heapSize: lastHeapSize,
+        density: lastDensity,
+        dur: currentTime - prevTime,
+      };
+    } else {
+      item = {
+        startTime: 0,
+        heapSize: 0,
+        density: 0,
+        dur: currentTime,
+      };
+    }
     arr.push(item);
     cache.maxSize = Math.max(cache.maxSize, item.heapSize);
     cache.maxDensity = Math.max(cache.maxDensity, item.density);
-    cache.minSize = Math.min(cache.minSize, item.heapSize);
-    cache.minDensity = Math.min(cache.minDensity, item.density);
+    if (i === 0) {
+      cache.minSize = item.heapSize;
+      cache.minDensity = item.density;
+    } else {
+      cache.minSize = Math.min(cache.minSize, item.heapSize);
+      cache.minDensity = Math.min(cache.minDensity, item.density);
+    }
   }
-  source.length = 0;
   dataCache.statisticsCache.set(key, cache);
 }
 
@@ -454,7 +479,7 @@ function cacheNormalSumRowData(
       let left = 0;
       let right = sortedData.length - 1;
       let bestIndex = -1;
-      
+
       while (left <= right) {
         const mid = Math.floor((left + right) / 2);
         if (sortedData[mid].startTime <= time) {
@@ -464,7 +489,7 @@ function cacheNormalSumRowData(
           right = mid - 1;
         }
       }
-      
+
       if (bestIndex >= 0) {
         heapSize += sortedData[bestIndex].heapSize;
         density += sortedData[bestIndex].density;
@@ -608,7 +633,7 @@ export function nativeMemoryDataHandler(data: SenderParam, proc: Function): void
     dataCache.statisticsCache.clear();
     let arr: NMData[] = [];
     let tableName = '';
-    switch (data.params.memoryType){
+    switch (data.params.memoryType) {
       case MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY:
       case MemoryTraceRowType.ROW_TYPE_GPU_MEMORY:
       case MemoryTraceRowType.ROW_TYPE_OTHER_SOURCE:
