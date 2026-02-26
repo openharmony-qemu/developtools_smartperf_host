@@ -177,6 +177,12 @@ void NativeHook::AppendMoreNativeHookData(const NativeHookRow &context)
     } else if (context.eventType == THREAD_DESTROY_EVENT) {
         countThreadSizes_ -= context.memSize;
         allMemSizes_.emplace_back(countThreadSizes_);
+    } else if (context.eventType == ARK_GLOBAL_HANDLE_ALLOC_EVENT) {
+        countArkGlobalHandleSizes_ += context.memSize;
+        allMemSizes_.emplace_back(countArkGlobalHandleSizes_);
+    } else if (context.eventType == ARK_GLOBAL_HANDLE_FREE_EVENT) {
+        countArkGlobalHandleSizes_ -= context.memSize;
+        allMemSizes_.emplace_back(countArkGlobalHandleSizes_);
     }
 }
 
