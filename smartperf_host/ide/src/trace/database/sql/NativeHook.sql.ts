@@ -161,24 +161,25 @@ export const queryNativeHookStatisticSubType = (
   query(
     'queryNativeHookStatisticSubType',
     `SELECT DISTINCT
-      IFNULL(NHS.sub_type_id, -1) AS subTypeId,
-      CASE
-        WHEN NHS.sub_type_id IS NULL AND NHS.type = 0 THEN 'allocevent'
-        WHEN NHS.sub_type_id IS NULL AND NHS.type = 1 THEN 'mmapevent'
-        WHEN NHS.sub_type_id IS NULL AND NHS.type = 2 THEN 'FILE_PAGE_MSG'
-        WHEN NHS.sub_type_id IS NULL AND NHS.type = 3 THEN 'MEMORY_USING_MSG'
-        WHEN type = 3 AND sub_type_id NOT NULL THEN D.data
-        WHEN NHS.sub_type_id IS NOT NULL THEN D.data
-      END AS subType
-      FROM
-        native_hook_statistic NHS
-        LEFT JOIN data_dict D ON NHS.sub_type_id = D.id,
-        trace_range TR
-      WHERE
-        NHS.type in (${types.map(type => `${type}`).join(',')})
-        AND (NHS.ts - TR.start_ts) between ${leftNs} and ${rightNs}
-        AND ipid = ${ipid}
-      `,
+        IFNULL(NHS.sub_type_id, -1) AS subTypeId,
+        CASE
+          WHEN NHS.sub_type_id IS NULL AND NHS.type = 0 THEN 'allocevent'
+          WHEN NHS.sub_type_id IS NULL AND NHS.type = 1 THEN 'mmapevent'
+          WHEN NHS.sub_type_id IS NULL AND NHS.type = 2 THEN 'FILE_PAGE_MSG'
+          WHEN NHS.sub_type_id IS NULL AND NHS.type = 3 THEN 'MEMORY_USING_MSG'
+          WHEN NHS.sub_type_id IS NULL AND NHS.type = 17 THEN 'ARK_GLOBAL_HANDLE_Alloc_Event'
+          WHEN type = 3 AND sub_type_id NOT NULL THEN D.data
+          WHEN NHS.sub_type_id IS NOT NULL THEN D.data
+        END AS subType
+        FROM
+          native_hook_statistic NHS
+          LEFT JOIN data_dict D ON NHS.sub_type_id = D.id,
+          trace_range TR
+        WHERE
+          NHS.type in (${types.map(type => `${type}`).join(',')})
+          AND (NHS.ts - TR.start_ts) between ${leftNs} and ${rightNs}
+          AND ipid = ${ipid}
+        `,
     { $leftNs: leftNs, $rightNs: rightNs }
   );
 
