@@ -16,15 +16,17 @@ import { lostFrameList } from './utils/AllMemoryCache';
 
 export const queryPresentInfo = (args: any): string => {
   return `SELECT ts,dur,name FROM callstack WHERE callid in (SELECT id FROM "thread" WHERE name LIKE('${args.threadName}'))
-    AND (name LIKE('${args.funcName}') OR name LIKE('H:Waiting for PresentFence_%'))`;
+    AND (name LIKE('${args.funcName}') OR name LIKE('H:Waiting for PresentFence_%') OR name LIKE ('H:PresentFence_%'))
+    AND name NOT LIKE ('H:PresentFenceTime error_%')
+    AND name NOT LIKE ('H:presentFenceIndex_%')`;
 };
 
 export function lostFrameReceiver(data: any, proc: Function): void {
   if (data.params.trafic === TraficEnum.Memory) {
-    if (!lostFrameList.has(data.params.pid)) {
-      lostFrameList.set(data.params.pid, proc(queryPresentInfo(data.params)));
+    if (!lostFrameList.has(data.params.threadName)) {
+      lostFrameList.set(data.params.threadName, proc(queryPresentInfo(data.params)));
     }
-    let res = lostFrameList.get(data.params.pid)!;
+    let res = lostFrameList.get(data.params.threadName)!;
     arrayBufferHandler(data, res, true);
   } else {
     let res = proc(queryPresentInfo(data.params));
@@ -53,11 +55,11 @@ function arrayBufferHandler(data: any, res: any[], transfer: boolean): void {
       action: data.action,
       results: transfer
         ? {
-            startTime: startTime.buffer,
-            dur: dur.buffer,
-            argSetID: argSetId.buffer,
-            presentId: presentId.buffer,
-          }
+          startTime: startTime.buffer,
+          dur: dur.buffer,
+          argSetID: argSetId.buffer,
+          presentId: presentId.buffer,
+        }
         : {},
       len: res.length,
       transfer: transfer,

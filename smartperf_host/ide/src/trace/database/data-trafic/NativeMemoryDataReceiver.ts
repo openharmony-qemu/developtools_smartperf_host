@@ -393,7 +393,9 @@ function cacheNormalChartData(
 
     chartConfigs.forEach(({ filter, suffix }) => {
       const data = filter
-        ? currentTypeData.filter((ne) => ne.eventTypeName === filter)
+        ? Array.isArray(filter)
+          ? currentTypeData.filter((ne) => filter.includes(ne.eventTypeName))
+          : currentTypeData.filter((ne) => ne.eventTypeName === filter)
         : currentTypeData;
 
       normalChartDataHandler(data, `${memoryType}-${ipid}-${suffix}`, totalNS);
@@ -535,6 +537,7 @@ function cacheStatisticChartData(processData: Array<NMData>, ipid: number): void
     so: [],
     ashmem: [],
     ion: [],
+    arkGlobalHandle: [],
   };
 
   processData.forEach((item) => {
@@ -547,14 +550,24 @@ function cacheStatisticChartData(processData: Array<NMData>, ipid: number): void
 
   const timeArr = Array.from(timeSet).sort((a, b) => a - b);
 
-  handlerConfig.forEach(({ rowType, suffixes, sum }) => {
+  const suffixDataMap = new Map<string, NMData[]>();
+  handlerConfig.forEach(({ rowType, suffixes }) => {
     suffixes.forEach(({ key, suffix }) => {
-      statisticChartHandler(buckets[key], `${rowType}-${ipid}-${suffix}`, timeArr);
+      const cacheKey = `${rowType}-${ipid}-${suffix}`;
+      if (!suffixDataMap.has(cacheKey)) {
+        suffixDataMap.set(cacheKey, []);
+      }
+      suffixDataMap.get(cacheKey)!.push(...buckets[key]);
     });
+  });
+  suffixDataMap.forEach((data, cacheKey) => {
+    statisticChartHandler(data, cacheKey, timeArr);
+  });
 
+  handlerConfig.forEach(({ rowType, suffixes, sum }) => {
     // 若 sum 存在，则从 suffixes 提取
     if (sum) {
-      const allSuffixes = suffixes.map(s => s.suffix);
+      const allSuffixes = Array.from(new Set(suffixes.map(s => s.suffix)));
       const selected = sum === true ? allSuffixes : sum.filter(s => allSuffixes.includes(s));
       if (selected.length > 0) {
         const dataListArray: NativeMemoryChartDataType[][] = selected.map(dataKey =>

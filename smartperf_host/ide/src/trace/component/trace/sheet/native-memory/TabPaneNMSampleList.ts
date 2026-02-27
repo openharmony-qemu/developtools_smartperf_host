@@ -344,7 +344,8 @@ export class TabPaneNMSampleList extends BaseElement {
           break;
         case '2':
           childrenToShow = nmRootSample.tempList.filter(
-            parentSample => parentSample.snapshot === MemoryType.MEMORY_M_ALLOC_NAME
+            parentSample => parentSample.snapshot === MemoryType.MEMORY_M_ALLOC_NAME ||
+                          parentSample.snapshot === MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME
           );
           break;
         case '3':
