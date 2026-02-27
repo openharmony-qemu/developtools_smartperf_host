@@ -161,6 +161,10 @@ public:
     {
         return lastThreadEventRaw_;
     }
+    uint64_t &GetLastArkGlobalHandleEventRaw()
+    {
+        return lastArkGlobalHandleEventRaw_;
+    }
 
 private:
     std::deque<std::string> eventTypes_ = {};
@@ -185,6 +189,7 @@ private:
     int64_t countSoSizes_ = 0;
     int64_t countFdSizes_ = 0;
     int64_t countThreadSizes_ = 0;
+    int64_t countArkGlobalHandleSizes_ = 0;
     const std::string ALLOC_EVET = "AllocEvent";
     const std::string FREE_EVENT = "FreeEvent";
     const std::string MMAP_EVENT = "MmapEvent";
@@ -213,6 +218,8 @@ private:
     const std::string FD_CLOSE_EVENT = "FD_Close_Event";
     const std::string THREAD_CREATE_EVENT = "Thread_Create_Event";
     const std::string THREAD_DESTROY_EVENT = "Thread_Destroy_Event";
+    const std::string ARK_GLOBAL_HANDLE_ALLOC_EVENT = "ARK_GLOBAL_HANDLE_Alloc_Event";
+    const std::string ARK_GLOBAL_HANDLE_FREE_EVENT = "ARK_GLOBAL_HANDLE_Free_Event";
     std::unordered_map<uint64_t, uint64_t> addrToAllocEventRow_ = {};
     std::unordered_map<uint64_t, uint64_t> addrToMmapEventRow_ = {};
     std::map<uint64_t, uint64_t> addrToTraceAllocEventRow_ = {};
@@ -230,6 +237,7 @@ private:
     uint64_t lastSoEventRaw_ = INVALID_UINT64;
     uint64_t lastFdEventRaw_ = INVALID_UINT64;
     uint64_t lastThreadEventRaw_ = INVALID_UINT64;
+    uint64_t lastArkGlobalHandleEventRaw_ = INVALID_UINT64;
 };
 
 struct NativeHookFrameRow {
