@@ -327,7 +327,7 @@ export class SpAllocations extends BaseElement {
         this.offlineSymbol!.checked = false;
         this.offlineSymbol!.disabled = true;
       } else {
-        if (!this.cpuMemorySwitch?.checked) {
+        if (!this.cpuMemorySwitch?.checked && !this.allTypeCheckbox!.checked) {
           this.nativeStartSwitch!.checked = false;
           this.disable();
         }
@@ -342,7 +342,7 @@ export class SpAllocations extends BaseElement {
     });
 
     this.cpuMemorySwitch.addEventListener('change', () => {
-      if (!this.cpuMemorySwitch?.checked && !this.gpuMemorySwitch?.checked) {
+      if (!this.cpuMemorySwitch?.checked && !this.gpuMemorySwitch?.checked && !this.allTypeCheckbox!.checked) {
         this.nativeStartSwitch!.checked = false;
         this.disable();
       }
@@ -474,6 +474,10 @@ export class SpAllocations extends BaseElement {
           this.selectedTypes.delete(checkbox.value);
         }
       });
+      if (!this.cpuMemorySwitch?.checked && !this.gpuMemorySwitch?.checked) {
+        this.nativeStartSwitch!.checked = false;
+        this.disable();
+      }
     }
   };
 
@@ -496,6 +500,12 @@ export class SpAllocations extends BaseElement {
     }
     const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
     this.allTypeCheckbox.checked = checkedCount > 0;
+    if(!this.allTypeCheckbox!.checked){
+      if (!this.cpuMemorySwitch?.checked && !this.gpuMemorySwitch?.checked) {
+        this.nativeStartSwitch!.checked = false;
+        this.disable();
+      }
+    }
   }
 
   handleInputChangeEvent = (ev: KeyboardEvent): void => {
@@ -652,13 +662,24 @@ export class SpAllocations extends BaseElement {
   startupModeChangeEvent = (): void => {
     let process = this.processId?.shadowRoot?.querySelector('input') as HTMLInputElement;
     let processDiv = this.processId?.shadowRoot?.querySelector('.root') as HTMLDivElement;
-    process.value = '';
     let packageInput = this.packageName?.shadowRoot?.querySelector('input') as HTMLInputElement;
     let packageDiv = this.packageName?.shadowRoot?.querySelector('.root') as HTMLDivElement;
     packageInput.value = '';
+    this.packageName!.value = '';
+    let processId = '';
     if (this.startup_mode) {
       this.packageName!.showItem = '';
       this.packageName!.style.display = 'block';
+      if (process.value.indexOf('(') !== -1) {
+        processId = process.value.slice(process.value.lastIndexOf('(') + 1, process.value.lastIndexOf(')'));
+      } else {
+        processId = process.value;
+      }
+      if (!/^[0-9]+.?[0-9]*/.test(processId)) {
+        packageInput!.value = process.value;
+        this.packageName!.value = packageInput!.value;
+      }
+      process.value = '';
       this.processId!.style.display = 'none';
       packageDiv.style.width = 'auto';
       packageInput!.placeholder = 'please select package';

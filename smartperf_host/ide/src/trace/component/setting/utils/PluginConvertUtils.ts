@@ -324,4 +324,5 @@ export const MEMORY_TYPE_OPTIONS: TypeOption[] = [
   { value: 'RES_KMP_HEAP_MASK', label: 'KMP_HEAP' },
   { value: 'RES_FD_ALL', label: 'FD' },
   { value: 'RES_THREAD_ALL', label: 'THREAD' },
+  { value: 'RES_ARK_GLOBAL_HANDLE', label: 'ARK_GLOBAL_HANDLE' },
 ];

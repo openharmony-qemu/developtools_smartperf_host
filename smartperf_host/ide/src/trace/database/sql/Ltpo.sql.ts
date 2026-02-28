@@ -28,25 +28,25 @@ export const queryFanceNameList = (): Promise<Array<LtpoStruct>> =>
     `SELECT ts,dur,name FROM "callstack" WHERE callid in (SELECT id FROM "thread" WHERE name LIKE('RSHardwareThrea%') OR name LIKE('CompThread_%'))
   AND (name LIKE('H:Present Fence%') OR name LIKE('H:PresentFence_%'))
   AND name NOT LIKE ('H:PresentFenceTime error_%')
-  AND name NOT LIKE ('H:PresentFenceIndex_%')`
+  AND name NOT LIKE ('H:presentFenceIndex_%')`
   );
 
-export const queryFpsNameList = (): Promise<Array<LtpoStruct>> =>
+export const queryFpsNameList = (tppe: string): Promise<Array<LtpoStruct>> =>
   query(
     'queryFpsNameList',
-    `SELECT ts,dur,name FROM "callstack" WHERE callid in (SELECT id FROM "thread" WHERE name LIKE('RSHardwareThrea%') OR name LIKE('CompThread_%'))
+    `SELECT ts,dur,name FROM "callstack" WHERE callid in (SELECT id FROM "thread" WHERE name LIKE('RSHardwareThrea%') OR name LIKE('${tppe}%'))
   AND (name LIKE('%Layers rate%') OR name LIKE('H:CommitLayers screenId:%'))`
   );
-export const queryRealFpsList = (): Promise<Array<LtpoStruct>> =>
+export const queryRealFpsList = (tppe: string): Promise<Array<LtpoStruct>> =>
   query(
     'queryRealFpsList',
-    `SELECT ts,dur,name FROM "callstack" WHERE callid in (SELECT id FROM "thread" WHERE name LIKE('RSHardwareThrea%') OR name LIKE('CompThread_%'))
+    `SELECT ts,dur,name FROM "callstack" WHERE callid in (SELECT id FROM "thread" WHERE name LIKE('RSHardwareThrea%') OR name LIKE('${tppe}%'))
   AND name LIKE('H:RSHardwareThread::PerformSetActiveMode%')`
   );
-export const querySignaledList = (): Promise<Array<LtpoStruct>> =>
+export const querySignaledList = (tppe: string): Promise<Array<LtpoStruct>> =>
   query(
     'querySignaledList',
-    `SELECT ts,dur,name FROM "callstack" WHERE callid in (SELECT id FROM "thread" WHERE name LIKE('RSHardwareThrea%') OR name LIKE('CompThread_%'))
+    `SELECT ts,dur,name FROM "callstack" WHERE callid in (SELECT id FROM "thread" WHERE name LIKE('RSHardwareThrea%') OR name LIKE('${tppe}%'))
     AND name LIKE('%has signaled')`
   );
 export const queryRSNowTimeList = (): Promise<Array<LtpoStruct>> =>
