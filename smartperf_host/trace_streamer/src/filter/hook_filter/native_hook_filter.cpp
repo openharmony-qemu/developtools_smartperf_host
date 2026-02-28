@@ -79,7 +79,9 @@ void NativeHookFilter::InitTraceTypeMaps()
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::THREAD, true,
                                               MakeTypeValue("THREAD_Create_Event", NativeType::THREAD));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::ARK_GLOBAL_HANDLE, true,
-                                              MakeTypeValue("ARK_GLOBAL_HANDLE_Alloc_Event", NativeType::ARK_GLOBAL_HANDLE));
+                                               MakeTypeValue("ARK_GLOBAL_HANDLE_Alloc_Event", NativeType::ARK_GLOBAL_HANDLE));
+    traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::JS_STATISTIC, true,
+                                               MakeTypeValue("JS_STATISTIC_Alloc_Event", NativeType::JS_STATISTIC));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::GPU_VK, false,
                                               MakeTypeValue("GPU_VK_Free_Event", NativeType::GPU_VK));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::GPU_GLES, false,
@@ -105,7 +107,9 @@ void NativeHookFilter::InitTraceTypeMaps()
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::THREAD, false,
                                               MakeTypeValue("THREAD_Destroy_Event", NativeType::THREAD));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::ARK_GLOBAL_HANDLE, false,
-                                              MakeTypeValue("ARK_GLOBAL_HANDLE_Free_Event", NativeType::ARK_GLOBAL_HANDLE));
+                                               MakeTypeValue("ARK_GLOBAL_HANDLE_Free_Event", NativeType::ARK_GLOBAL_HANDLE));
+    traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::JS_STATISTIC, false,
+                                               MakeTypeValue("JS_STATISTIC_Free_Event", NativeType::JS_STATISTIC));
 }
 
 void NativeHookFilter::ParseConfigInfo(ProtoReader::BytesView &protoData, uint64_t &statisticsInterval)
@@ -1200,6 +1204,8 @@ uint64_t *NativeHookFilter::GetLastEventRaw(NativeType type)
             return &traceDataCache_->GetNativeHookData()->GetLastGpuClEventRaw();
         case NativeType::ARK_GLOBAL_HANDLE:
             return &traceDataCache_->GetNativeHookData()->GetLastArkGlobalHandleEventRaw();
+        case NativeType::JS_STATISTIC:
+            return &traceDataCache_->GetNativeHookData()->GetLastJsStatisticEventRaw();
         case NativeType::OTHER:
             return &traceDataCache_->GetNativeHookData()->GetLastOtherAllocEventRaw();
         default:
