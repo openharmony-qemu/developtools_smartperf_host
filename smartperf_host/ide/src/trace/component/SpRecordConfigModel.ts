@@ -553,6 +553,7 @@ export function createNativePluginConfig(
         }
       }
       if (spAllocations.selectedTypeValues.length) {
+        nativeConfig.memtrace_enable = true;
         if(nativeConfig.restrace_tag){
           nativeConfig.restrace_tag.push(...spAllocations.selectedTypeValues);
         } else {

@@ -32,6 +32,7 @@ interface TypeConfig {
 // 内存类型 对应显示名称
 const typeConfigs: TypeConfig[] = [
   { eventId: MemoryStatisticType.MALLOC, eventType: MemoryType.MEMORY_M_ALLOC_NAME, hasSubType: true },
+  { eventId: MemoryStatisticType.ARK_GLOBAL_HANDLE, eventType: MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME, hasSubType: true },
   { eventId: MemoryStatisticType.MMAP, eventType: MemoryType.MEMORY_M_MAP_NAME, hasSubType: true },
   { eventId: MemoryStatisticType.FILE_PAGE_MSG, eventType: MemoryType.MEMORY_M_FILE_PAGE_MSG, hasSubType: true },
   { eventId: MemoryStatisticType.MEMORY_USING_MSG, eventType: MemoryType.MEMORY_M_MEMORY_USING_MSG, hasSubType: true },
@@ -173,6 +174,7 @@ export class MemoryAnalysisDataLogic {
           selectionKey: MemoryBasicType.NATIVE_MEMORY[0], // All Heap & Anonymous VM
           statisticTypes: [
             MemoryStatisticType.MALLOC,
+            MemoryStatisticType.ARK_GLOBAL_HANDLE,
             MemoryStatisticType.MMAP,
             MemoryStatisticType.FILE_PAGE_MSG,
             MemoryStatisticType.MEMORY_USING_MSG,
@@ -185,6 +187,7 @@ export class MemoryAnalysisDataLogic {
           ],
           normalTypes: [
             `'${MemoryType.MEMORY_M_ALLOC_NAME}'`,
+            `'${MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME}'`,
             `'${MemoryType.MEMORY_M_MAP_NAME}'`,
             `'${MemoryType.ARKTS_Alloc_NAME}'`,
             `'${MemoryType.JS_Alloc_NAME}'`,
@@ -198,12 +201,14 @@ export class MemoryAnalysisDataLogic {
           selectionKey: MemoryBasicType.NATIVE_MEMORY[1], // All Heap (泳道组)
           statisticTypes: [
             MemoryStatisticType.MALLOC,
+            MemoryStatisticType.ARK_GLOBAL_HANDLE,
             MemoryStatisticType.ARKTS,
             MemoryStatisticType.JS,
             MemoryStatisticType.KMP
           ],
           normalTypes: [
             `'${MemoryType.MEMORY_M_ALLOC_NAME}'`,
+            `'${MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME}'`,
             `'${MemoryType.ARKTS_Alloc_NAME}'`,
             `'${MemoryType.JS_Alloc_NAME}'`,
             `'${MemoryType.KMP_Alloc_NAME}'`
@@ -211,8 +216,8 @@ export class MemoryAnalysisDataLogic {
         },
         {
           selectionKey: MemoryBasicType.NATIVE_MEMORY[2], // Native Heap
-          statisticTypes: [MemoryStatisticType.MALLOC],
-          normalTypes: [`'${MemoryType.MEMORY_M_ALLOC_NAME}'`]
+          statisticTypes: [MemoryStatisticType.MALLOC, MemoryStatisticType.ARK_GLOBAL_HANDLE],
+          normalTypes: [`'${MemoryType.MEMORY_M_ALLOC_NAME}'`, `'${MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME}'`]
         },
         {
           selectionKey: MemoryBasicType.NATIVE_MEMORY[3], // ArkTs Heap
@@ -480,7 +485,7 @@ export class MemoryAnalysisDataLogic {
           // 子类型需要特殊处理
          
           // 有子类型的类型：ARKTS, ARKWEB, RN, KMP, ION, ASHMEM, SO, MMAP
-          if ([MemoryStatisticType.MALLOC, MemoryStatisticType.MMAP, MemoryStatisticType.FILE_PAGE_MSG, MemoryStatisticType.MEMORY_USING_MSG, MemoryStatisticType.ARKTS, MemoryStatisticType.JS,
+          if ([MemoryStatisticType.MALLOC, MemoryStatisticType.ARK_GLOBAL_HANDLE, MemoryStatisticType.MMAP, MemoryStatisticType.FILE_PAGE_MSG, MemoryStatisticType.MEMORY_USING_MSG, MemoryStatisticType.ARKTS, MemoryStatisticType.JS,
           MemoryStatisticType.KMP, MemoryStatisticType.DMA, MemoryStatisticType.ASHMEM,
           MemoryStatisticType.SO].includes(tyeId)) {
             condition = (applySample.subType && applySample.subType === typeName) || // 有子类型且与当前类型一致

@@ -44,7 +44,8 @@ enum class NativeType {
     RN_HEAP,
     ASHMEM,
     DMA,
-    SO
+    SO,
+    ARK_GLOBAL_HANDLE
 };
 
 class NativeHookFrameInfo {

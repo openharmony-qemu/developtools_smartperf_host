@@ -604,22 +604,7 @@ export class TabpaneNMCalltree extends BaseElement {
 
   private initGetFilterByNMCallTreeFilter(nmCallTreeData: FilterData): void {
     const typeName = this.typeIndexToTypeName(nmCallTreeData.secondSelect)
-    if (
-      this.filterAllocationType !== nmCallTreeData.firstSelect ||
-      this.filterNativeType !== typeName ||
-      this.filterResponseSelect !== nmCallTreeData.thirdSelect
-    ) {
-      this.filterAllocationType = nmCallTreeData.firstSelect || '0';
-      this.filterNativeType = typeName;
-      this.filterResponseSelect = nmCallTreeData.thirdSelect || '0';
-      let thirdIndex = parseInt(nmCallTreeData.thirdSelect || '0');
-      if (this.responseTypes.length > thirdIndex) {
-        this.filterResponseType = this.responseTypes[thirdIndex].key || -1;
-      }
-      this.searchValue = this.nmCallTreeFilter!.filterValue;
-      this.expressionStruct = new ParseExpression(this.searchValue).parse();
-      this.refreshAllNode(this.nmCallTreeFilter!.getFilterTreeData());
-    } else if (this.searchValue !== this.nmCallTreeFilter!.filterValue) {
+    if (this.searchValue !== this.nmCallTreeFilter!.filterValue) {
       this.searchValue = this.nmCallTreeFilter!.filterValue;
       this.expressionStruct = new ParseExpression(this.searchValue).parse();
       let nmArgs = [];
@@ -645,6 +630,21 @@ export class TabpaneNMCalltree extends BaseElement {
         this.switchFlameChart(nmCallTreeData);
         result = [];
       });
+    } else if (
+      this.filterAllocationType !== nmCallTreeData.firstSelect ||
+      this.filterNativeType !== typeName ||
+      this.filterResponseSelect !== nmCallTreeData.thirdSelect
+    ) {
+      this.filterAllocationType = nmCallTreeData.firstSelect || '0';
+      this.filterNativeType = typeName;
+      this.filterResponseSelect = nmCallTreeData.thirdSelect || '0';
+      let thirdIndex = parseInt(nmCallTreeData.thirdSelect || '0');
+      if (this.responseTypes.length > thirdIndex) {
+        this.filterResponseType = this.responseTypes[thirdIndex].key || -1;
+      }
+      this.searchValue = this.nmCallTreeFilter!.filterValue;
+      this.expressionStruct = new ParseExpression(this.searchValue).parse();
+      this.refreshAllNode(this.nmCallTreeFilter!.getFilterTreeData());
     } else {
       this.nmCallTreeTbl!.setStatus(this.nmCallTreeSource, true);
       this.setLTableData(this.nmCallTreeSource);

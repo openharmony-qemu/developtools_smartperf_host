@@ -48,6 +48,7 @@ export enum MemoryStatisticType {
   ASHMEM = 14,      // VM Ashmem
   DMA = 15,         // VM ION
   OTHER = 16,       // Other
+  ARK_GLOBAL_HANDLE = 17, // Ark Global Handle
 };
 
 export class MemoryType {
@@ -85,18 +86,20 @@ export class MemoryType {
   static readonly SO_Free_NAME = 'SO_Free_Event';
   static readonly ASHMEM_Alloc_NAME = 'ASHMEM_Alloc_Event';
   static readonly ASHMEM_Free_NAME = 'ASHMEM_Free_Event';
+  static readonly ARK_GLOBAL_HANDLE_Alloc_NAME = 'ARK_GLOBAL_HANDLE_Alloc_Event';
+  static readonly ARK_GLOBAL_HANDLE_Free_NAME = 'ARK_GLOBAL_HANDLE_Free_Event';
   // 数据库中所有的申请事件集合
   static readonly APPLY_EVENTS = [MemoryType.MEMORY_M_ALLOC_NAME, MemoryType.MEMORY_M_MAP_NAME,
   MemoryType.FD_OPEN_NAME, MemoryType.THREAD_CREATE_NAME,
   MemoryType.GPU_VK_Alloc_NAME, MemoryType.GPU_GLES_Alloc_NAME, MemoryType.GPU_CL_Alloc_NAME,
   MemoryType.ARKTS_Alloc_NAME, MemoryType.JS_Alloc_NAME,
   MemoryType.KMP_Alloc_NAME, MemoryType.SO_Alloc_NAME, MemoryType.ASHMEM_Alloc_NAME,
-  MemoryType.ION_Alloc_NAME];
+  MemoryType.ION_Alloc_NAME, MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME];
 
   static readonly APPLY_NM_EVENTS = [MemoryType.MEMORY_M_ALLOC_NAME, MemoryType.MEMORY_M_MAP_NAME,
-  MemoryType.ARKTS_Alloc_NAME, MemoryType.JS_Alloc_NAME, MemoryType.KMP_Alloc_NAME, MemoryType.ION_Alloc_NAME, MemoryType.SO_Alloc_NAME, MemoryType.ASHMEM_Alloc_NAME];
+  MemoryType.ARKTS_Alloc_NAME, MemoryType.JS_Alloc_NAME, MemoryType.KMP_Alloc_NAME, MemoryType.ION_Alloc_NAME, MemoryType.SO_Alloc_NAME, MemoryType.ASHMEM_Alloc_NAME, MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME];
 
-  static readonly ALL_HEAP_EVENTS = [MemoryType.MEMORY_M_ALLOC_NAME, MemoryType.ARKTS_Alloc_NAME, MemoryType.JS_Alloc_NAME, MemoryType.KMP_Alloc_NAME];
+  static readonly ALL_HEAP_EVENTS = [MemoryType.MEMORY_M_ALLOC_NAME, MemoryType.ARKTS_Alloc_NAME, MemoryType.JS_Alloc_NAME, MemoryType.KMP_Alloc_NAME, MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME];
   static readonly ALL_ANONYMOUS_EVENTS = [MemoryType.MEMORY_M_MAP_NAME, MemoryType.ION_Alloc_NAME, MemoryType.SO_Alloc_NAME, MemoryType.ASHMEM_Alloc_NAME];
 
 };
@@ -152,12 +155,12 @@ export const memoryConfig: Record<
   MemoryTraceRowType,// 每类内存泳道图
   {
     filters: Array<MemoryType>; // 需要从native_hook表中取得event_type数据
-    chartConfigs: Array<{ filter?: MemoryType; suffix: number; }>; //泳道图顺序
+    chartConfigs: Array<{ filter?: MemoryType | MemoryType[]; suffix: number; }>; //泳道图顺序
   }
 > = {
   [MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY]: {
     filters: [
-      MemoryType.MEMORY_M_ALLOC_NAME, MemoryType.MEMORY_M_MAP_NAME,
+      MemoryType.MEMORY_M_ALLOC_NAME, MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME, MemoryType.MEMORY_M_MAP_NAME,
       MemoryType.ARKTS_Alloc_NAME, MemoryType.JS_Alloc_NAME,
       MemoryType.KMP_Alloc_NAME,
       MemoryType.SO_Alloc_NAME, MemoryType.ASHMEM_Alloc_NAME,
@@ -165,7 +168,7 @@ export const memoryConfig: Record<
     ],
     chartConfigs: [
       { suffix: 0 }, // NativeMemory 总和泳道 (All Heap & Anonymous VM)
-      { filter: MemoryType.MEMORY_M_ALLOC_NAME, suffix: 2 }, // Native Heap (原 All Heap)
+      { filter: [MemoryType.MEMORY_M_ALLOC_NAME, MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME], suffix: 2 }, // Native Heap (原 All Heap)
       { filter: MemoryType.ARKTS_Alloc_NAME, suffix: 3 }, // ArkTs Heap
       { filter: MemoryType.JS_Alloc_NAME, suffix: 4 }, // JS Heap
       { filter: MemoryType.KMP_Alloc_NAME, suffix: 5 }, // KMP Heap
@@ -213,6 +216,7 @@ export const statisticTypeMap: Record<number, string> = {
   14: "ashmem",     // MemoryStatisticType.ASHMEM (VM Ashmem)
   15: "ion",       // MemoryStatisticType.DMA (VM ION)
   16: "other",     // MemoryStatisticType.OTHER (Other)
+  17: "arkGlobalHandle",  // MemoryStatisticType.ARK_GLOBAL_HANDLE (Native Heap)
 };
 
 //统计模式泳道图配置：
@@ -226,14 +230,15 @@ export const handlerConfig: HandlerItem[] = [
   {
     rowType: MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY,
     suffixes: [
-      { key: "alloc", suffix: "2" },      // Native Heap
-      { key: "arkts", suffix: "3" },      // ArkTs Heap
-      { key: "js", suffix: "4" },     // JS Heap
-      { key: "kmp", suffix: "5" },       // KMP Heap
-      { key: "ion", suffix: "7" },       // VM ION
-      { key: "ashmem", suffix: "8" },   // VM Ashmem
-      { key: "so", suffix: "9" },      // VM SO
-      { key: "mmap", suffix: "10" },    // VM Others
+      { key: "alloc", suffix: "2" },           // Native Heap
+      { key: "arkGlobalHandle", suffix: "2" },  // Ark Global Handle (Native Heap)
+      { key: "arkts", suffix: "3" },           // ArkTs Heap
+      { key: "js", suffix: "4" },              // JS Heap
+      { key: "kmp", suffix: "5" },             // KMP Heap
+      { key: "ion", suffix: "7" },             // VM ION
+      { key: "ashmem", suffix: "8" },          // VM Ashmem
+      { key: "so", suffix: "9" },              // VM SO
+      { key: "mmap", suffix: "10" },           // VM Others
     ],
     sum: true,
   },
@@ -266,7 +271,8 @@ function mapTypeToFilters(type: string, isStat: boolean, needFree: boolean): Arr
           MemoryStatisticType.MALLOC, MemoryStatisticType.MMAP,
           MemoryStatisticType.FILE_PAGE_MSG, MemoryStatisticType.MEMORY_USING_MSG,
           MemoryStatisticType.ARKTS, MemoryStatisticType.JS, MemoryStatisticType.KMP,
-          MemoryStatisticType.SO, MemoryStatisticType.ASHMEM, MemoryStatisticType.DMA
+          MemoryStatisticType.SO, MemoryStatisticType.ASHMEM, MemoryStatisticType.DMA,
+          MemoryStatisticType.ARK_GLOBAL_HANDLE
         ]
         : needFree
           ? [
@@ -277,38 +283,41 @@ function mapTypeToFilters(type: string, isStat: boolean, needFree: boolean): Arr
             `${MemoryType.KMP_Alloc_NAME}`, `${MemoryType.KMP_Free_NAME}`,
             `${MemoryType.SO_Alloc_NAME}`, `${MemoryType.SO_Free_NAME}`,
             `${MemoryType.ASHMEM_Alloc_NAME}`, `${MemoryType.ASHMEM_Free_NAME}`,
-            `${MemoryType.ION_Alloc_NAME}`, `${MemoryType.ION_Free_NAME}`
+            `${MemoryType.ION_Alloc_NAME}`, `${MemoryType.ION_Free_NAME}`,
+            `${MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME}`, `${MemoryType.ARK_GLOBAL_HANDLE_Free_NAME}`
           ]
           : [
             `${MemoryType.MEMORY_M_ALLOC_NAME}`, `${MemoryType.MEMORY_M_MAP_NAME}`,
             `${MemoryType.ARKTS_Alloc_NAME}`, `${MemoryType.JS_Alloc_NAME}`,
             `${MemoryType.SO_Alloc_NAME}`, `${MemoryType.ASHMEM_Alloc_NAME}`,
-            `${MemoryType.ION_Alloc_NAME}`, `${MemoryType.KMP_Alloc_NAME}`
+            `${MemoryType.ION_Alloc_NAME}`, `${MemoryType.KMP_Alloc_NAME}`,
+            `${MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME}`
           ];
     //NativeMemory 第二行All Heap泳道组
     case MemoryBasicType.NATIVE_MEMORY[1]:
       return isStat
         ? [MemoryStatisticType.MALLOC, MemoryStatisticType.ARKTS,
-          MemoryStatisticType.JS, MemoryStatisticType.KMP]
+          MemoryStatisticType.JS, MemoryStatisticType.KMP, MemoryStatisticType.ARK_GLOBAL_HANDLE]
         : needFree
           ? [
             `${MemoryType.MEMORY_M_ALLOC_NAME}`, `${MemoryType.MEMORY_M_FREE_NAME}`,
             `${MemoryType.ARKTS_Alloc_NAME}`, `${MemoryType.ARKTS_Free_NAME}`,
             `${MemoryType.JS_Alloc_NAME}`, `${MemoryType.JS_Free_NAME}`,
-            `${MemoryType.KMP_Alloc_NAME}`, `${MemoryType.KMP_Free_NAME}`
+            `${MemoryType.KMP_Alloc_NAME}`, `${MemoryType.KMP_Free_NAME}`,
+            `${MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME}`, `${MemoryType.ARK_GLOBAL_HANDLE_Free_NAME}`
           ]
           : [
             `${MemoryType.MEMORY_M_ALLOC_NAME}`,
             `${MemoryType.ARKTS_Alloc_NAME}`, `${MemoryType.JS_Alloc_NAME}`,
-            `${MemoryType.KMP_Alloc_NAME}`
+            `${MemoryType.KMP_Alloc_NAME}`, `${MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME}`
           ];
     //NativeMemory Native Heap (原 All Heap)
     case MemoryBasicType.NATIVE_MEMORY[2]:
       return isStat
-        ? [MemoryStatisticType.MALLOC]
+        ? [MemoryStatisticType.MALLOC, MemoryStatisticType.ARK_GLOBAL_HANDLE]
         : needFree
-          ? [`${MemoryType.MEMORY_M_ALLOC_NAME}`, `${MemoryType.MEMORY_M_FREE_NAME}`]
-          : [`${MemoryType.MEMORY_M_ALLOC_NAME}`];
+          ? [`${MemoryType.MEMORY_M_ALLOC_NAME}`, `${MemoryType.MEMORY_M_FREE_NAME}`, `${MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME}`, `${MemoryType.ARK_GLOBAL_HANDLE_Free_NAME}`]
+          : [`${MemoryType.MEMORY_M_ALLOC_NAME}`, `${MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME}`];
     //NativeMemory ArkTs Heap
     case MemoryBasicType.NATIVE_MEMORY[3]:
       return isStat
@@ -465,6 +474,8 @@ export function getEventTypeNameFromTypeId(type: number): string {
       return MemoryType.ASHMEM_Alloc_NAME;
     case MemoryStatisticType.DMA:
       return MemoryType.ION_Alloc_NAME;
+    case MemoryStatisticType.ARK_GLOBAL_HANDLE:
+      return MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME;
     default:
       return '';
   }

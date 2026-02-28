@@ -466,9 +466,9 @@ export class SpApplication extends BaseElement {
         specialNames: Array<string>
       ): Promise<unknown> => {
         const promises = Array.from(files).map((file) => {
-          if (normalNames.indexOf(file.name.toLowerCase()) >= 0) {
+          if (normalNames.indexOf(file.name) >= 0) {
             return this.longTraceFileRead(file, true, traceTypePage, readSize, timStamp, allFileSize);
-          } else if (specialNames.indexOf(file.name.toLowerCase()) >= 0) {
+          } else if (specialNames.indexOf(file.name) >= 0) {
             return this.longTraceFileRead(file, false, traceTypePage, readSize, timStamp, allFileSize);
           } else {
             return;
@@ -604,7 +604,7 @@ export class SpApplication extends BaseElement {
         let normalMatch = fileName.match(/_\d{8}_\d{6}_\d+\.htrace$/);
         if (normalMatch) {
           normalTraceNames.push(fileName);
-          let fileNameStr = fileName.split('.')[0];
+          let fileNameStr = fileName.split('.')[fileName.split('.').length - 2];
           let pageMatch = fileNameStr.match(/\d+$/);
           if (pageMatch) {
             traceTypePage.push(Number(pageMatch[0]));

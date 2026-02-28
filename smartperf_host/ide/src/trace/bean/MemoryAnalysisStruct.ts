@@ -123,6 +123,12 @@ export class AnalysisSample {
         this.typeName = MemoryType.MEMORY_M_ALLOC_NAME;
         this.isRelease = false;
         break;
+      case MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME:
+      case MemoryStatisticType.ARK_GLOBAL_HANDLE:
+        this.type = 17;
+        this.typeName = MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME;
+        this.isRelease = false;
+        break;
       case MemoryType.MEMORY_M_MAP_NAME:
       case MemoryStatisticType.MMAP:
         this.isRelease = false;
@@ -144,12 +150,12 @@ export class AnalysisSample {
       case MemoryType.MEMORY_M_FREE_NAME:
         this.isRelease = true;
         this.typeName = MemoryType.MEMORY_M_FREE_NAME;
-        this.type = 2;
+        this.type = 0;
         break;
       case MemoryType.MEMORY_M_UNMAP_NAME:
         this.isRelease = true;
         this.typeName = MemoryType.MEMORY_M_UNMAP_NAME;
-        this.type = 3;
+        this.type = 1;
         break;
       case MemoryType.ARKTS_Alloc_NAME:
       case MemoryStatisticType.ARKTS:
@@ -190,32 +196,37 @@ export class AnalysisSample {
       case MemoryType.ARKTS_Free_NAME:
         this.isRelease = true;
         this.typeName = MemoryType.ARKTS_Free_NAME;
-        this.type = 17;
+        this.type = 10;
         break;
       case MemoryType.JS_Free_NAME:
         this.isRelease = true;
         this.typeName = MemoryType.JS_Free_NAME;
-        this.type = 18;
+        this.type = 11;
         break;
       case MemoryType.KMP_Free_NAME:
         this.isRelease = true;
         this.typeName = MemoryType.KMP_Free_NAME;
-        this.type = 19;
+        this.type = 12;
         break;
       case MemoryType.ION_Free_NAME:
         this.isRelease = true;
         this.typeName = MemoryType.ION_Free_NAME;
-        this.type = 20;
+        this.type = 15;
         break;
       case MemoryType.SO_Free_NAME:
         this.isRelease = true;
         this.typeName = MemoryType.SO_Free_NAME;
-        this.type = 21;
+        this.type = 9;
         break;
       case MemoryType.ASHMEM_Free_NAME:
         this.isRelease = true;
         this.typeName = MemoryType.ASHMEM_Free_NAME;
-        this.type = 22;
+        this.type = 14;
+        break;
+      case MemoryType.ARK_GLOBAL_HANDLE_Free_NAME:
+        this.isRelease = true;
+        this.typeName = MemoryType.ARK_GLOBAL_HANDLE_Free_NAME;
+        this.type = 17;
         break;
       default:
         this.isRelease = false;
