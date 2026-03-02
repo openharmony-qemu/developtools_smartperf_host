@@ -29,6 +29,7 @@ ohos_static_library("pbreader_arkts_parser") {
     "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/services:ts_all_type_cpp",
     "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/js_memory:js_memory_data_reader",
     "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/types/plugins/js_memory:ts_js_memory_data_cpp",
+    "../../../filter/js_heap_snapshot_filter:js_heap_snapshot_filter",
   ]
   public_configs = [
     ":arkts_parser_cfg",

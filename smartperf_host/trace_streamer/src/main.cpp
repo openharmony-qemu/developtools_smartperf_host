@@ -494,6 +494,7 @@ bool ParseOtherArgs(int argc, char **argv, TraceExportOption &traceExportOption,
         return false;
     } else if (!strcmp(argv[i], "-s") || !strcmp(argv[i], "--s")) {
         traceExportOption.separateFile = true;
+        i++;  // consume option
         return true;
     } else if (!strcmp(argv[i], "-tn") || !strcmp(argv[i], "--threadnum")) {
         TS_CHECK_TRUE_RET(CheckAndSetThreadNum(traceExportOption, argc, argv, i), false);

@@ -40,6 +40,10 @@ PtreaderParser::PtreaderParser(TraceDataCache *dataCache, const TraceStreamerFil
 #ifdef ENABLE_HISYSEVENT
       hiSysEventParser_(std::make_unique<PtreaderHiSysEventParser>(dataCache, filters)),
 #endif
+#ifdef ENABLE_ARKTS
+      jsMemoryParser_((fileType == TRACE_FILETYPE_HEAP) ? std::make_unique<PtreaderJsMemoryParser>(dataCache, filters)
+                                                        : nullptr),
+#endif
       fileType_(fileType)
 {
     if (traceDataCache_->supportThread_) {
@@ -69,7 +73,13 @@ void PtreaderParser::WaitForParserEnd()
 #ifdef ENABLE_HISYSEVENT
     hiSysEventParser_->Finish();
 #endif
-    traceDataCache_->MixTraceTime(traceDataCache_->traceStartTime_, traceDataCache_->traceEndTime_);
+#ifdef ENABLE_ARKTS
+    // Heap time already mixed in ParseHeapFromBuffer.
+    if (fileType_ != TRACE_FILETYPE_HEAP)
+#endif // ENABLE_ARKTS
+    {
+        traceDataCache_->MixTraceTime(traceDataCache_->traceStartTime_, traceDataCache_->traceEndTime_);
+    }
     dataSegArray_.reset();
     ClearPtreaderSplitData();
 }
@@ -167,12 +177,22 @@ int32_t PtreaderParser::GotoDetermine(std::string &bufferLine, bool &haveSplitSe
     return DETERMINE_RETURN;
 }
 
-void PtreaderParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, size_t size, bool isFinish)
+#ifdef ENABLE_ARKTS
+// Accumulate raw bytes; parse full JSON only when segment is complete.
+void PtreaderParser::ParseHeapSegment(const uint8_t *data, size_t size, bool isFinish)
 {
-    if (isParsingOver_) {
-        return;
+    jsMemoryBuffer_.append(reinterpret_cast<const char *>(data), size);
+    if (isFinish) {
+        jsMemoryParser_->ParseHeapFromBuffer(jsMemoryBuffer_);
+        jsMemoryBuffer_.clear();
+        isParsingOver_ = true;
     }
-    packagesBuffer_.insert(packagesBuffer_.end(), &bufferStr[0], &bufferStr[size]);
+}
+#endif // ENABLE_ARKTS
+
+// Process buffer line-by-line for bytrace/hilog/hisysevent.
+void PtreaderParser::ProcessPackagesByLines(bool isFinish)
+{
     auto packagesBegin = packagesBuffer_.begin();
     while (true) {
         auto packagesLine = std::find(packagesBegin, packagesBuffer_.end(), '\n');
@@ -211,7 +231,22 @@ void PtreaderParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr,
     } else {
         packagesBuffer_.erase(packagesBuffer_.begin(), packagesBegin);
     }
-    return;
+}
+
+void PtreaderParser::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, size_t size, bool isFinish)
+{
+    if (isParsingOver_) {
+        return;
+    }
+#ifdef ENABLE_ARKTS
+    // Heap JSON is streamed then parsed once; others are line-based.
+    if (fileType_ == TRACE_FILETYPE_HEAP) {
+        ParseHeapSegment(bufferStr.get(), size, isFinish);
+        return;
+    }
+#endif // ENABLE_ARKTS
+    packagesBuffer_.insert(packagesBuffer_.end(), &bufferStr[0], &bufferStr[size]);
+    ProcessPackagesByLines(isFinish);
 }
 
 void PtreaderParser::ParseTraceDataItem(const std::string &buffer)

@@ -55,6 +55,13 @@
 namespace {
 const uint32_t CHUNK_SIZE = 1024 * 1024;
 constexpr uint16_t RAW_TRACE_MAGIC_NUMBER = 57161;
+// UTF-8 BOM and heap JSON type-detection
+constexpr size_t UTF8_BOM_SIZE = 3;
+constexpr uint8_t UTF8_BOM_INDEX2 = 2;
+constexpr uint8_t UTF8_BOM_BYTE0 = 0xEF;
+constexpr uint8_t UTF8_BOM_BYTE1 = 0xBB;
+constexpr uint8_t UTF8_BOM_BYTE2 = 0xBF;
+constexpr size_t HEAP_JSON_PREFIX_SCAN_LEN = 8192;
 } // namespace
 using namespace SysTuning::base;
 namespace SysTuning {
@@ -77,11 +84,8 @@ bool IsHisysEventData(const std::string &bytraceMode)
     }
     return true;
 }
-TraceFileType GuessFileType(const uint8_t *data, size_t size)
+TraceFileType GuessFileTypeFromHeader(const uint8_t *data, size_t size)
 {
-    if (size == 0) {
-        return TRACE_FILETYPE_UN_KNOW;
-    }
     std::string start(reinterpret_cast<const char *>(data), std::min<size_t>(size, 20));
     if (start.find("# tracer") != std::string::npos || start.find("# TRACE") != std::string::npos) {
         return TRACE_FILETYPE_BY_TRACE;
@@ -100,9 +104,6 @@ TraceFileType GuessFileType(const uint8_t *data, size_t size)
         (lowerStart.compare(0, std::string("<html>").length(), "<html>") == 0)) {
         return TRACE_FILETYPE_BY_TRACE;
     }
-    if (start.compare(0, std::string("\x0a").length(), "\x0a") == 0) {
-        return TRACE_FILETYPE_UN_KNOW;
-    }
     if (start.compare(0, std::string("OHOSPROF").length(), "OHOSPROF") == 0) {
         return TRACE_FILETYPE_H_TRACE;
     }
@@ -111,6 +112,39 @@ TraceFileType GuessFileType(const uint8_t *data, size_t size)
         return TRACE_FILETYPE_PERF;
     }
 #endif
+    return TRACE_FILETYPE_UN_KNOW;
+}
+
+#ifdef ENABLE_ARKTS
+TraceFileType GuessFileTypeFromArkTsHeap(const uint8_t *data, size_t size)
+{
+    size_t jsonStart = 0;
+    // Skip leading whitespace (space, tab, newline, carriage return) before the JSON object.
+    while (jsonStart < size &&
+           (data[jsonStart] == ' ' || data[jsonStart] == '\t' || data[jsonStart] == '\n' || data[jsonStart] == '\r')) {
+        jsonStart++;
+    }
+    // Scan prefix for heap snapshot/timeline keys to distinguish from other JSON.
+    if (jsonStart < size && data[jsonStart] == '{') {
+        const size_t scanLen =
+            (size - jsonStart) > HEAP_JSON_PREFIX_SCAN_LEN ? HEAP_JSON_PREFIX_SCAN_LEN : (size - jsonStart);
+        std::string prefix(reinterpret_cast<const char *>(data + jsonStart), scanLen);
+        bool hasSnapshot = (prefix.find("\"snapshot\"") != std::string::npos);
+        bool hasSamples = (prefix.find("\"samples\"") != std::string::npos);
+        if (hasSnapshot || hasSamples) {
+            return TRACE_FILETYPE_HEAP;
+        }
+    }
+    return TRACE_FILETYPE_UN_KNOW;
+}
+#endif // ENABLE_ARKTS
+
+TraceFileType GuessFileTypeFromTextPatterns(const uint8_t *data, size_t size)
+{
+    std::string start(reinterpret_cast<const char *>(data), std::min<size_t>(size, 20));
+    if (start.compare(0, std::string("\x0a").length(), "\x0a") == 0) {
+        return TRACE_FILETYPE_UN_KNOW;
+    }
     const std::regex bytraceMatcher = std::regex(R"(-(\d+)\s+\(?\s*(\d+|-+)?\)?\s?\[(\d+)\]\s*)"
                                                  R"([a-zA-Z0-9.]{0,5}\s+(\d+\.\d+):\s+(\S+):)");
     std::smatch matcheLine;
@@ -128,6 +162,24 @@ TraceFileType GuessFileType(const uint8_t *data, size_t size)
         return TRACE_FILETYPE_HI_SYSEVENT;
     }
     return TRACE_FILETYPE_UN_KNOW;
+}
+
+TraceFileType GuessFileType(const uint8_t *data, size_t size)
+{
+    if (size == 0) {
+        return TRACE_FILETYPE_UN_KNOW;
+    }
+    TraceFileType type = GuessFileTypeFromHeader(data, size);
+    if (type != TRACE_FILETYPE_UN_KNOW) {
+        return type;
+    }
+#ifdef ENABLE_ARKTS
+    type = GuessFileTypeFromArkTsHeap(data, size);
+    if (type != TRACE_FILETYPE_UN_KNOW) {
+        return type;
+    }
+#endif // ENABLE_ARKTS
+    return GuessFileTypeFromTextPatterns(data, size);
 }
 } // namespace
 
@@ -190,7 +242,7 @@ void TraceStreamerSelector::WaitForParserEnd()
         pbreaderParser_->WaitForParserEnd();
     }
     if (fileType_ == TRACE_FILETYPE_BY_TRACE || fileType_ == TRACE_FILETYPE_HILOG ||
-        fileType_ == TRACE_FILETYPE_HI_SYSEVENT) {
+        fileType_ == TRACE_FILETYPE_HI_SYSEVENT || fileType_ == TRACE_FILETYPE_HEAP) {
         ptreaderParser_->WaitForParserEnd();
     }
 #ifdef ENABLE_HIPERF
@@ -298,7 +350,7 @@ void TraceStreamerSelector::InitializeParser()
         pbreaderParser_->EnableFileSeparate(enableFileSeparate_);
 #endif
     } else if (fileType_ == TRACE_FILETYPE_BY_TRACE || fileType_ == TRACE_FILETYPE_HI_SYSEVENT ||
-               fileType_ == TRACE_FILETYPE_HILOG) {
+               fileType_ == TRACE_FILETYPE_HILOG || fileType_ == TRACE_FILETYPE_HEAP) {
         ptreaderParser_ = std::make_unique<PtreaderParser>(traceDataCache_.get(), streamFilters_.get(), fileType_);
 #ifdef ENABLE_BYTRACE
         ptreaderParser_->EnableBytrace(fileType_ == TRACE_FILETYPE_BY_TRACE);
@@ -318,7 +370,7 @@ void TraceStreamerSelector::ProcessTraceData(std::unique_ptr<uint8_t[]> data,
     if (fileType_ == TRACE_FILETYPE_H_TRACE) {
         pbreaderParser_->ParseTraceDataSegment(std::move(data), size);
     } else if (fileType_ == TRACE_FILETYPE_BY_TRACE || fileType_ == TRACE_FILETYPE_HI_SYSEVENT ||
-               fileType_ == TRACE_FILETYPE_HILOG) {
+               fileType_ == TRACE_FILETYPE_HILOG || fileType_ == TRACE_FILETYPE_HEAP) {
         ptreaderParser_->ParseTraceDataSegment(std::move(data), size, isFinish);
         return;
     } else if (fileType_ == TRACE_FILETYPE_PERF) {

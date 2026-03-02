@@ -15,6 +15,7 @@
 #ifndef HTRACE_JS_MEMORY_PARSER_H
 #define HTRACE_JS_MEMORY_PARSER_H
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
 #include "common_types.h"
@@ -25,6 +26,7 @@
 #include "htrace_plugin_time_parser.h"
 #include "js_heap_result.pb.h"
 #include "json.hpp"
+#include "js_heap_snapshot_filter.h"
 #include "trace_streamer_config.h"
 #include "trace_streamer_filters.h"
 using json = nlohmann::json;
@@ -75,15 +77,6 @@ private:
                                     ProfilerPluginDataHeader &profilerPluginData,
                                     uint64_t ts);
     void ParseJsCpuProfiler(const std::string &result, ProfilerPluginDataHeader &profilerPluginData, uint64_t ts);
-    void ParserJSSnapInfo(int32_t fileId, const json &jMessage);
-    void ParseNodes(int32_t fileId, const json &jMessage, uint64_t endTime, bool isSplitFile);
-    void ParseEdges(int32_t fileId, const json &jMessage);
-    void ParseLocation(int32_t fileId, const json &jMessage);
-    void ParseSample(int32_t fileId, const json &jMessage, uint64_t startTime, uint64_t endTime, bool isSplitFile);
-    void ParseString(int32_t fileId, const json &jMessage);
-    void ParseTraceFuncInfo(int32_t fileId, const json &jMessage);
-    void ParseTraceNode(int32_t fileId, const json &jMessage);
-    void ParserSnapInfo(int32_t fileId, const std::string &key, const std::vector<std::vector<std::string>> &types);
     void SerializeToString(const ProfilerPluginDataHeader &profilerPluginData, uint64_t startTime, uint64_t endTime);
     void SerializeSnapshotData(ProfilerPluginData &profilerPluginDataResult, ArkTSResult &jsHeapResult);
     void SerializeTimelineData(uint64_t startTime,
@@ -124,6 +117,7 @@ private:
     bool hasCpuProfiler_ = false;
     SnapShotData snapShotData_ = {};
     bool curTypeIsCpuProfile_ = false;
+    std::unique_ptr<JsHeapSnapshotFilter> jsHeapSnapshotFilter_;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning
