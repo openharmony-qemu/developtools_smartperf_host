@@ -569,7 +569,10 @@ function cacheStatisticChartData(processData: Array<NMData>, ipid: number): void
       if (!suffixDataMap.has(cacheKey)) {
         suffixDataMap.set(cacheKey, []);
       }
-      suffixDataMap.get(cacheKey)!.push(...buckets[key]);
+      const targetArray = suffixDataMap.get(cacheKey)!;
+      for (let i = 0; i < buckets[key].length; i++) {
+        targetArray.push(buckets[key][i]);
+      }
     });
   });
   suffixDataMap.forEach((data, cacheKey) => {
