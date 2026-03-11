@@ -408,7 +408,12 @@ diff --git a/interfaces/innerkits/unwinder/include/dfx_map.h b/interfaces/innerk
 index f220f4a..336cb3d 100644
 --- a/interfaces/innerkits/unwinder/include/dfx_map.h
 +++ b/interfaces/innerkits/unwinder/include/dfx_map.h
-@@ -52,6 +52,8 @@ public:
+@@ -48,10 +48,12 @@ public:
+     bool IsJsvmExecutable();
+     bool IsVdsoMap();
+     const std::shared_ptr<DfxHap> GetHap();
+-    const std::shared_ptr<DfxElf> GetElf(pid_t pid = 0);
++    const std::shared_ptr<DfxElf> GetElf(int pid = 0);
      std::string GetElfName();
      uint64_t GetRelPc(uint64_t pc);
      std::string ToString() const;
@@ -693,6 +698,15 @@ diff --git a/interfaces/innerkits/unwinder/src/maps/dfx_map.cpp b/interfaces/inn
 index b42df4f..e4b7e7c 100644
 --- a/interfaces/innerkits/unwinder/src/maps/dfx_map.cpp
 +++ b/interfaces/innerkits/unwinder/src/maps/dfx_map.cpp
+@@ -364,7 +364,7 @@ const std::shared_ptr<DfxHap> DfxMap::GetHap()
+     return hap;
+ }
+
+-const std::shared_ptr<DfxElf> DfxMap::GetElf(pid_t pid)
++const std::shared_ptr<DfxElf> DfxMap::GetElf(int pid)
+ {
+     if (elf == nullptr) {
+         if (name.empty()) {
 @@ -378,6 +378,10 @@ const std::shared_ptr<DfxElf> DfxMap::GetElf(pid_t pid)
          if (elf != nullptr && !elf->IsValid()) {
              elf = nullptr;
