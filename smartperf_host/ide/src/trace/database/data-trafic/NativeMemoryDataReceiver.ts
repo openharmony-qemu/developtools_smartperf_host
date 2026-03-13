@@ -265,6 +265,10 @@ function saveStatisticsCacheMapValue(
     minDensity: 0,
     dataList: arr,
   };
+  if (obj.size === 0 || timeArr.length === 0) {
+    dataCache.statisticsCache.set(key, cache);
+    return;
+  }
   let lastHeapSize = 0;
   let lastDensity = 0;
   for (let i = 0; i < timeArr.length; i++) {
@@ -277,7 +281,7 @@ function saveStatisticsCacheMapValue(
         startTime: prevTime,
         heapSize: sourceItem.heapSize + lastHeapSize,
         density: sourceItem.density + lastDensity,
-        dur: sourceItem.startTime - prevTime,
+        dur: currentTime - prevTime,
       };
       lastHeapSize = item.heapSize;
       lastDensity = item.density;
@@ -337,6 +341,13 @@ function cacheSumRowData(
   };
 
   timeArr.unshift(0);
+  const timeToIndexMaps = dataListArray.map(dataList => {
+    const map = new Map<number, number>();
+    dataList.forEach((item, index) => {
+      map.set(item.startTime, index);
+    });
+    return map;
+  });
 
   timeArr.forEach((time) => {
     const item: NativeMemoryChartDataType = {
@@ -347,9 +358,10 @@ function cacheSumRowData(
     };
 
     // 遍历所有数据列表，累加对应时间点的数据
-    dataListArray.forEach(dataList => {
-      const dataItem = dataList.find((it) => it.startTime === time);
-      if (dataItem) {
+    dataListArray.forEach((dataList, listIndex) => {
+      const dataIndex = timeToIndexMaps[listIndex].get(time);
+      if (dataIndex !== undefined) {
+        const dataItem = dataList[dataIndex];
         item.heapSize += dataItem.heapSize;
         item.density += dataItem.density;
         // 如果当前项目还没有设置dur，或者找到的项目的dur更大，则更新dur
@@ -557,7 +569,10 @@ function cacheStatisticChartData(processData: Array<NMData>, ipid: number): void
       if (!suffixDataMap.has(cacheKey)) {
         suffixDataMap.set(cacheKey, []);
       }
-      suffixDataMap.get(cacheKey)!.push(...buckets[key]);
+      const targetArray = suffixDataMap.get(cacheKey)!;
+      for (let i = 0; i < buckets[key].length; i++) {
+        targetArray.push(buckets[key][i]);
+      }
     });
   });
   suffixDataMap.forEach((data, cacheKey) => {
