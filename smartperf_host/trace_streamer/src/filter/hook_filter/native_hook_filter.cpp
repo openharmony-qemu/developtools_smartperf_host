@@ -595,7 +595,6 @@ void NativeHookFilter::ParseTraceFreeEvent(uint64_t timeStamp, const ProtoReader
 void NativeHookFilter::ParseTraceMoveEvent(uint64_t timeStamp, const ProtoReader::BytesView &bytesView)
 {
     ProtoReader::TraceMoveEvent_Reader traceMoveEventReader(bytesView);
-    uint32_t callChainId = INVALID_UINT32;
     auto itid = streamFilters_->processFilter_->GetOrCreateThreadWithPid(traceMoveEventReader.tid(),
                                                                          traceMoveEventReader.pid());
     auto ipid = traceDataCache_->GetConstThreadData(itid).internalPid_;
@@ -611,6 +610,7 @@ void NativeHookFilter::ParseTraceMoveEvent(uint64_t timeStamp, const ProtoReader
     }
     if (addrToTraceAllocEventRow_->count(traceMoveAddr)) {
         uint64_t allocRow = addrToTraceAllocEventRow_->at(traceMoveAddr);
+        uint32_t moveCallChainId = traceDataCache_->GetNativeHookData()->CallChainIds()[allocRow];
         uint64_t originalSize = traceDataCache_->GetNativeHookData()->MemSizes()[allocRow];
         traceDataCache_->GetNativeHookData()->UpdateEndTimeStampAndDuration(allocRow, timeStamp);
         addrToTraceAllocEventRow_->erase(traceMoveAddr);
@@ -620,15 +620,15 @@ void NativeHookFilter::ParseTraceMoveEvent(uint64_t timeStamp, const ProtoReader
             return;
         }
         NativeHookRow freeHookRow = {
-            callChainId, ipid, itid, freeEventType, GetTraceAllocSubTypeWithAddr(traceMoveAddr),
-            timeStamp,   0,    0,    traceMoveAddr, originalSize};
+            INVALID_UINT32, ipid, itid, freeEventType, GetTraceAllocSubTypeWithAddr(traceMoveAddr),
+            timeStamp,      0,    0,    traceMoveAddr, originalSize};
         uint64_t newFreeRow = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(freeHookRow);
         if (originalSize != 0) {
             MaybeUpdateCurrentSizeDur(newFreeRow, timeStamp, nativeType);
         }
         NativeHookRow allocHookRow = {
-            callChainId, ipid, itid, traceType,        GetTraceAllocSubTypeWithAddr(traceMoveNewAddr),
-            timeStamp,   0,    0,    traceMoveNewAddr, traceMoveSize};
+            moveCallChainId, ipid, itid, traceType,        GetTraceAllocSubTypeWithAddr(traceMoveNewAddr),
+            timeStamp,       0,    0,    traceMoveNewAddr, traceMoveSize};
         uint64_t newAllocRow = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(allocHookRow);
         if (traceMoveSize != 0) {
             MaybeUpdateCurrentSizeDur(newAllocRow, timeStamp, nativeType);
