@@ -54,58 +54,76 @@ TraceTypeAndNativeType NativeHookFilter::MakeTypeValue(const std::string &traceT
 
 void NativeHookFilter::InitTraceTypeMaps()
 {
+    InitAllocTraceTypeMaps();
+    InitFreeTraceTypeMaps();
+}
+
+void NativeHookFilter::InitAllocTraceTypeMaps()
+{
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::GPU_VK, true,
-                                              MakeTypeValue("GPU_VK_Alloc_Event", NativeType::GPU_VK));
+        MakeTypeValue("GPU_VK_Alloc_Event", NativeType::GPU_VK));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::GPU_GLES, true,
-                                              MakeTypeValue("GPU_GLES_Alloc_Event", NativeType::GPU_GLES));
+        MakeTypeValue("GPU_GLES_Alloc_Event", NativeType::GPU_GLES));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::GPU_CL, true,
-                                              MakeTypeValue("GPU_CL_Alloc_Event", NativeType::GPU_CL));
+        MakeTypeValue("GPU_CL_Alloc_Event", NativeType::GPU_CL));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::OTHER, true,
-                                              MakeTypeValue("OTHER_Alloc_Event", NativeType::OTHER));
+        MakeTypeValue("OTHER_Alloc_Event", NativeType::OTHER));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::ARKTS_HEAP, true,
-                                              MakeTypeValue("ARKTS_HEAP_Alloc_Event", NativeType::ARKTS_HEAP));
+        MakeTypeValue("ARKTS_HEAP_Alloc_Event", NativeType::ARKTS_HEAP));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::JS_HEAP, true,
-                                              MakeTypeValue("JS_HEAP_Alloc_Event", NativeType::JS_HEAP));
+        MakeTypeValue("JS_HEAP_Alloc_Event", NativeType::JS_HEAP));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::KMP_HEAP, true,
-                                              MakeTypeValue("KMP_HEAP_Alloc_Event", NativeType::KMP_HEAP));
+        MakeTypeValue("KMP_HEAP_Alloc_Event", NativeType::KMP_HEAP));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::ASHMEM, true,
-                                              MakeTypeValue("ASHMEM_Alloc_Event", NativeType::ASHMEM));
+        MakeTypeValue("ASHMEM_Alloc_Event", NativeType::ASHMEM));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::DMA, true,
-                                              MakeTypeValue("ION_Alloc_Event", NativeType::DMA));
+        MakeTypeValue("ION_Alloc_Event", NativeType::DMA));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::SO, true,
-                                              MakeTypeValue("SO_Alloc_Event", NativeType::SO));
+        MakeTypeValue("SO_Alloc_Event", NativeType::SO));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::FD, true,
-                                              MakeTypeValue("FD_Open_Event", NativeType::FD));
+        MakeTypeValue("FD_Open_Event", NativeType::FD));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::THREAD, true,
-                                              MakeTypeValue("THREAD_Create_Event", NativeType::THREAD));
+        MakeTypeValue("THREAD_Create_Event", NativeType::THREAD));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::ARK_GLOBAL_HANDLE, true,
-                                              MakeTypeValue("ARK_GLOBAL_HANDLE_Alloc_Event", NativeType::ARK_GLOBAL_HANDLE));
+        MakeTypeValue("ARK_GLOBAL_HANDLE_Alloc_Event", NativeType::ARK_GLOBAL_HANDLE));
+    traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::ARK_LOCAL_HANDLE, true,
+        MakeTypeValue("ARK_LOCAL_HANDLE_Alloc_Event", NativeType::ARK_LOCAL_HANDLE));
+    traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::JS_STATISTIC, true,
+        MakeTypeValue("JS_STATISTIC_Alloc_Event", NativeType::JS_STATISTIC));
+}
+
+void NativeHookFilter::InitFreeTraceTypeMaps()
+{
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::GPU_VK, false,
-                                              MakeTypeValue("GPU_VK_Free_Event", NativeType::GPU_VK));
+        MakeTypeValue("GPU_VK_Free_Event", NativeType::GPU_VK));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::GPU_GLES, false,
-                                              MakeTypeValue("GPU_GLES_Free_Event", NativeType::GPU_GLES));
+        MakeTypeValue("GPU_GLES_Free_Event", NativeType::GPU_GLES));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::GPU_CL, false,
-                                              MakeTypeValue("GPU_CL_Free_Event", NativeType::GPU_CL));
+        MakeTypeValue("GPU_CL_Free_Event", NativeType::GPU_CL));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::OTHER, false,
-                                              MakeTypeValue("OTHER_Free_Event", NativeType::OTHER));
+        MakeTypeValue("OTHER_Free_Event", NativeType::OTHER));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::ARKTS_HEAP, false,
-                                              MakeTypeValue("ARKTS_HEAP_Free_Event", NativeType::ARKTS_HEAP));
+        MakeTypeValue("ARKTS_HEAP_Free_Event", NativeType::ARKTS_HEAP));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::JS_HEAP, false,
-                                              MakeTypeValue("JS_HEAP_Free_Event", NativeType::JS_HEAP));
+        MakeTypeValue("JS_HEAP_Free_Event", NativeType::JS_HEAP));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::KMP_HEAP, false,
-                                              MakeTypeValue("KMP_HEAP_Free_Event", NativeType::KMP_HEAP));
+        MakeTypeValue("KMP_HEAP_Free_Event", NativeType::KMP_HEAP));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::ASHMEM, false,
-                                              MakeTypeValue("ASHMEM_Free_Event", NativeType::ASHMEM));
+        MakeTypeValue("ASHMEM_Free_Event", NativeType::ASHMEM));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::DMA, false,
-                                              MakeTypeValue("ION_Free_Event", NativeType::DMA));
+        MakeTypeValue("ION_Free_Event", NativeType::DMA));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::SO, false,
-                                              MakeTypeValue("SO_Free_Event", NativeType::SO));
+        MakeTypeValue("SO_Free_Event", NativeType::SO));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::FD, false,
-                                              MakeTypeValue("FD_Close_Event", NativeType::FD));
+        MakeTypeValue("FD_Close_Event", NativeType::FD));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::THREAD, false,
-                                              MakeTypeValue("THREAD_Destroy_Event", NativeType::THREAD));
+        MakeTypeValue("THREAD_Destroy_Event", NativeType::THREAD));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::ARK_GLOBAL_HANDLE, false,
-                                              MakeTypeValue("ARK_GLOBAL_HANDLE_Free_Event", NativeType::ARK_GLOBAL_HANDLE));
+        MakeTypeValue("ARK_GLOBAL_HANDLE_Free_Event", NativeType::ARK_GLOBAL_HANDLE));
+    traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::ARK_LOCAL_HANDLE, false,
+        MakeTypeValue("ARK_LOCAL_HANDLE_Free_Event", NativeType::ARK_LOCAL_HANDLE));
+    traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::JS_STATISTIC, false,
+        MakeTypeValue("JS_STATISTIC_Free_Event", NativeType::JS_STATISTIC));
 }
 
 void NativeHookFilter::ParseConfigInfo(ProtoReader::BytesView &protoData, uint64_t &statisticsInterval)
@@ -577,7 +595,6 @@ void NativeHookFilter::ParseTraceFreeEvent(uint64_t timeStamp, const ProtoReader
 void NativeHookFilter::ParseTraceMoveEvent(uint64_t timeStamp, const ProtoReader::BytesView &bytesView)
 {
     ProtoReader::TraceMoveEvent_Reader traceMoveEventReader(bytesView);
-    uint32_t callChainId = INVALID_UINT32;
     auto itid = streamFilters_->processFilter_->GetOrCreateThreadWithPid(traceMoveEventReader.tid(),
                                                                          traceMoveEventReader.pid());
     auto ipid = traceDataCache_->GetConstThreadData(itid).internalPid_;
@@ -593,6 +610,7 @@ void NativeHookFilter::ParseTraceMoveEvent(uint64_t timeStamp, const ProtoReader
     }
     if (addrToTraceAllocEventRow_->count(traceMoveAddr)) {
         uint64_t allocRow = addrToTraceAllocEventRow_->at(traceMoveAddr);
+        uint32_t moveCallChainId = traceDataCache_->GetNativeHookData()->CallChainIds()[allocRow];
         uint64_t originalSize = traceDataCache_->GetNativeHookData()->MemSizes()[allocRow];
         traceDataCache_->GetNativeHookData()->UpdateEndTimeStampAndDuration(allocRow, timeStamp);
         addrToTraceAllocEventRow_->erase(traceMoveAddr);
@@ -602,15 +620,15 @@ void NativeHookFilter::ParseTraceMoveEvent(uint64_t timeStamp, const ProtoReader
             return;
         }
         NativeHookRow freeHookRow = {
-            callChainId, ipid, itid, freeEventType, GetTraceAllocSubTypeWithAddr(traceMoveAddr),
-            timeStamp,   0,    0,    traceMoveAddr, originalSize};
+            INVALID_UINT32, ipid, itid, freeEventType, GetTraceAllocSubTypeWithAddr(traceMoveAddr),
+            timeStamp,      0,    0,    traceMoveAddr, originalSize};
         uint64_t newFreeRow = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(freeHookRow);
         if (originalSize != 0) {
             MaybeUpdateCurrentSizeDur(newFreeRow, timeStamp, nativeType);
         }
         NativeHookRow allocHookRow = {
-            callChainId, ipid, itid, traceType,        GetTraceAllocSubTypeWithAddr(traceMoveNewAddr),
-            timeStamp,   0,    0,    traceMoveNewAddr, traceMoveSize};
+            moveCallChainId, ipid, itid, traceType,        GetTraceAllocSubTypeWithAddr(traceMoveNewAddr),
+            timeStamp,       0,    0,    traceMoveNewAddr, traceMoveSize};
         uint64_t newAllocRow = traceDataCache_->GetNativeHookData()->AppendNewNativeHookData(allocHookRow);
         if (traceMoveSize != 0) {
             MaybeUpdateCurrentSizeDur(newAllocRow, timeStamp, nativeType);
@@ -1200,6 +1218,10 @@ uint64_t *NativeHookFilter::GetLastEventRaw(NativeType type)
             return &traceDataCache_->GetNativeHookData()->GetLastGpuClEventRaw();
         case NativeType::ARK_GLOBAL_HANDLE:
             return &traceDataCache_->GetNativeHookData()->GetLastArkGlobalHandleEventRaw();
+        case NativeType::ARK_LOCAL_HANDLE:
+            return &traceDataCache_->GetNativeHookData()->GetLastArkLocalHandleEventRaw();
+        case NativeType::JS_STATISTIC:
+            return &traceDataCache_->GetNativeHookData()->GetLastJsStatisticEventRaw();
         case NativeType::OTHER:
             return &traceDataCache_->GetNativeHookData()->GetLastOtherAllocEventRaw();
         default:
