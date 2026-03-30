@@ -9,7 +9,7 @@ FD & Thread 是查看fd、thrad的分配和释放等情况。
 ![GitHub Logo](../../figures/fd/fdmemoryset.png)
 配置参数说明：
 
-- More Type：抓取更多内存类型(SO、ASHMEM、DMA、ARKTS_HEAP、JS_HEAP、KMP_HEAP、FD、THREAD、 ARK_GLOBAL_HANDLE)。
+- More Type：抓取更多内存类型(SO、ASHMEM、DMA、ARKTS_HEAP、JS_HEAP、KMP_HEAP、FD、THREAD、 ARK_GLOBAL_HANDLE、ARK_LOCAL_HANDLE)。
 
 fd & thread抓取：
 - 打开Start Native Memory Record开关。

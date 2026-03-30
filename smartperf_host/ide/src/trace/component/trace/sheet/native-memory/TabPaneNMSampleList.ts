@@ -52,7 +52,7 @@ export class TabPaneNMSampleList extends BaseElement {
   set data(sampleParam: SelectionParam) {
     if (sampleParam === this.currentSelection) {
       return;
-    } 
+    }
     this.currentSelection = sampleParam;
     TabPaneNMSampleList.serSelection(sampleParam);
     this.filterAllList();
@@ -178,7 +178,7 @@ export class TabPaneNMSampleList extends BaseElement {
       });
     } else {
       copyTypes.forEach((item: NativeHookSampleQueryInfo) => {
-       
+
         item.current = item.growth;
       });
     }
@@ -208,7 +208,7 @@ export class TabPaneNMSampleList extends BaseElement {
             childSample.children.push(...child.children);
             parentSample.children.push(childSample);
           } else {
-           
+
             parentSample.children.push(...child.children);
           }
         });
@@ -345,7 +345,8 @@ export class TabPaneNMSampleList extends BaseElement {
         case '2':
           childrenToShow = nmRootSample.tempList.filter(
             parentSample => parentSample.snapshot === MemoryType.MEMORY_M_ALLOC_NAME ||
-                          parentSample.snapshot === MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME
+              parentSample.snapshot === MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME ||
+              parentSample.snapshot === MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME
           );
           break;
         case '3':
