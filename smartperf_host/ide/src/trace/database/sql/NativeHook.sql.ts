@@ -161,19 +161,20 @@ export const queryNativeHookStatisticSubType = (
   query(
     'queryNativeHookStatisticSubType',
     `SELECT DISTINCT
-        IFNULL(NHS.sub_type_id, -1) AS subTypeId,
-        CASE
-          WHEN NHS.sub_type_id IS NULL AND NHS.type = 0 THEN 'allocevent'
-          WHEN NHS.sub_type_id IS NULL AND NHS.type = 1 THEN 'mmapevent'
-          WHEN NHS.sub_type_id IS NULL AND NHS.type = 2 THEN 'FILE_PAGE_MSG'
-          WHEN NHS.sub_type_id IS NULL AND NHS.type = 3 THEN 'MEMORY_USING_MSG'
-          WHEN NHS.sub_type_id IS NULL AND NHS.type = 17 THEN 'ARK_GLOBAL_HANDLE_Alloc_Event'
-          WHEN type = 3 AND sub_type_id NOT NULL THEN D.data
-          WHEN NHS.sub_type_id IS NOT NULL THEN D.data
-        END AS subType
-        FROM
-          native_hook_statistic NHS
-          LEFT JOIN data_dict D ON NHS.sub_type_id = D.id,
+ 	  	   IFNULL(NHS.sub_type_id, -1) AS subTypeId,
+ 	   	   CASE
+ 	   	     WHEN NHS.sub_type_id IS NULL AND NHS.type = 0 THEN 'allocevent'
+ 	   	     WHEN NHS.sub_type_id IS NULL AND NHS.type = 1 THEN 'mmapevent'
+ 	   	     WHEN NHS.sub_type_id IS NULL AND NHS.type = 2 THEN 'FILE_PAGE_MSG'
+ 	   	     WHEN NHS.sub_type_id IS NULL AND NHS.type = 3 THEN 'MEMORY_USING_MSG'
+ 	   	     WHEN NHS.sub_type_id IS NULL AND NHS.type = 17 THEN 'ARK_GLOBAL_HANDLE_Alloc_Event'
+ 	   	     WHEN NHS.sub_type_id IS NULL AND NHS.type = 18 THEN 'ARK_LOCAL_HANDLE_Alloc_Event'
+ 	   	     WHEN type = 3 AND sub_type_id NOT NULL THEN D.data
+ 	   	     WHEN NHS.sub_type_id IS NOT NULL THEN D.data
+ 	   	   END AS subType
+ 	  	   FROM
+ 	  	     native_hook_statistic NHS
+ 	  	     LEFT JOIN data_dict D ON NHS.sub_type_id = D.id,
           trace_range TR
         WHERE
           NHS.type in (${types.map(type => `${type}`).join(',')})
@@ -242,22 +243,22 @@ export const queryAllHookData = (rightNs: number, ipid: number): Promise<Array<N
     { $rightNs: rightNs }
   );
 
-  export const querySubType = (
-    leftNs: number,
-    rightNs: number,
-    ipid: number,
-    tableName: string,
-    eventTypes: Array<string | number>
-  ): Promise<Array<{ subTypeId: number, subType: string, eventType: string }>> => {
-    let eventTypeFiled = 'event_type';
-    let timestampFiled = 'start_ts';
-    if (tableName.includes('statistic')) {
-      eventTypeFiled = 'type';
-      timestampFiled = 'ts';
-    }
-    return query(
-      'querySubType',
-      `select distinct
+export const querySubType = (
+  leftNs: number,
+  rightNs: number,
+  ipid: number,
+  tableName: string,
+  eventTypes: Array<string | number>
+): Promise<Array<{ subTypeId: number, subType: string, eventType: string }>> => {
+  let eventTypeFiled = 'event_type';
+  let timestampFiled = 'start_ts';
+  if (tableName.includes('statistic')) {
+    eventTypeFiled = 'type';
+    timestampFiled = 'ts';
+  }
+  return query(
+    'querySubType',
+    `select distinct
           case when NH.sub_type_id is null then -1 else NH.sub_type_id end as subTypeId,
           case when NH.sub_type_id is null then 'Other ' || NH.${eventTypeFiled} else DD.data end as subType,
           NH.${eventTypeFiled} as eventType
@@ -269,6 +270,6 @@ export const queryAllHookData = (rightNs: number, ipid: number): Promise<Array<N
             and (NH.${timestampFiled} - TR.start_ts) between ${leftNs} and ${rightNs}
             and NH.ipid = ${ipid}
             group by subType`,
-      { $leftNs: leftNs, $rightNs: rightNs }
-    );
-  }
+    { $leftNs: leftNs, $rightNs: rightNs }
+  );
+}

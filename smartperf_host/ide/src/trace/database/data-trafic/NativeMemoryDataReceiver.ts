@@ -550,6 +550,7 @@ function cacheStatisticChartData(processData: Array<NMData>, ipid: number): void
     ashmem: [],
     ion: [],
     arkGlobalHandle: [],
+    arkLocalHandle: [],
   };
 
   processData.forEach((item) => {
