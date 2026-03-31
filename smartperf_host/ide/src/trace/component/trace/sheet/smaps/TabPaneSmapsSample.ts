@@ -130,7 +130,7 @@ export class TabPaneSmapsSample extends BaseElement {
       this.allSmaps = new Smaps();
       this.allSmaps.typeName = '*All*';
       this.allSmaps.address = '';
-      this.allSmaps.path = '< multiple >';
+      this.allSmaps.path = '';
       this.allSmaps.permission = '';
       this.allSmaps.time = '';
       this.allSmaps.size = 0;
