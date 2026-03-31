@@ -347,7 +347,7 @@ export class FrameChart extends BaseElement {
     } else {
       node.isJsStack = false;
     }
-    node.isAsyncStack = this.isExpectedFunction(node.lib, splitSymbol(node))
+    node.isAsyncStack = this.isExpectedFunction(node.lib, splitSymbol(node));
 
 
     //设置搜索以及点选的显示值，将点击/搜索的值设置为父节点的显示值,或者反选有子节点并且只有一个子节点
@@ -948,7 +948,7 @@ export class FrameChart extends BaseElement {
       const threadPercent = this.getCurrentPercentOfThread(hoverNode);
       const processPercent = this.getCurrentPercentOfProcess(hoverNode);
       switch (this._mode) {
-        case ChartMode.Byte:
+        case ChartMode.Byte: {
           const size = Utils.getByteWithUnit(this.getNodeValue(hoverNode));
           const countPercent = ((this.getNodeValue(hoverNode) / this.total) * 100).toFixed(2);
           const counters = hoverNode.drawCount || hoverNode.count;
@@ -959,7 +959,8 @@ export class FrameChart extends BaseElement {
                     <span class="bold">Size: </span> <span>${size} (${percent}%) </span> <br>
                     <span class="bold">Count: </span> <span>${counters} (${countPercent}%)</span>`;
           break;
-        case ChartMode.Duration:
+        }
+        case ChartMode.Duration: {
           const duration = Utils.getProbablyTime(this.getNodeValue(hoverNode));
           this.hintContent = `
                     <span class="bold">Name: </span> <span class="text">${name} </span> <br>
@@ -967,8 +968,9 @@ export class FrameChart extends BaseElement {
                     <span class="bold">Addr: </span> <span>${hoverNode?.addr}</span> <br>
                     <span class="bold">Duration: </span> <span>${duration}</span>`;
           break;
+        }
         case ChartMode.EventCount:
-        case ChartMode.Count:
+        case ChartMode.Count: {
           const label = ChartMode.Count === this._mode ? 'Count' : 'EventCount';
           const count = this.getNodeValue(hoverNode);
           let sourceHint = '';
@@ -981,8 +983,9 @@ export class FrameChart extends BaseElement {
                       <span class="bold">Lib: </span> <span class="text">${hoverNode?.lib}</span> <br>
                       <span class="bold">Addr: </span> <span>${hoverNode?.addr}</span> <br>
                       ${sourceHint}
-                      <span class="bold">${label}: </span> <span class="count" jump> ${count}</span>`;
+                      <span class="bold">${label}: </span> <span class="count" jump> ${(count).toLocaleString()}</span>`;
           break;
+        }
       }
       if (this._mode !== ChartMode.Byte) {
         if (threadPercent) {

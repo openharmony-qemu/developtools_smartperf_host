@@ -11,7 +11,7 @@ Native Memory 是查看内存的分配和释放等情况。
 
 - Record Cpu Memory：抓取cpu内存。
 - Record Gpu Memory：抓取gpu内存。
-- More Type：抓取更多内存类型(SO、ASHMEM、DMA、ARKTS_HEAP、JS_HEAP、KMP_HEAP、FD、THREAD、ARK_GLOBAL_HANDLE)。
+- More Type：抓取更多内存类型(SO、ASHMEM、DMA、ARKTS_HEAP、JS_HEAP、KMP_HEAP、FD、THREAD、ARK_GLOBAL_HANDLE、ARK_LOCAL_HANDLE)。
 - Process：设置抓取的进程 ID 或者进程名，此处以输入 com.ohos.mms 进程名为例。
 - Use Fp Unwind：是否Fp 回栈。
 - Use Record Statistics：统计数据上报时间间隔设置。
@@ -69,10 +69,10 @@ Native Memory 是查看内存的分配和释放等情况。
 
 -     Current Bytes：以申请内存的size绘制泳道图。
 -     Native Memory Density：以申请内存的数量绘制泳道图。
--     All Heap&Anonymous VM：malloc、globalhandle、arktsHeap、jsHeap、kmpHeap分配和mmap、dma、so、ashmem分配的总量。
--     All Heap：malloc、globalhandle、arktsHeap、jsHeap、kmpHeap分配的内存。
+-     All Heap&Anonymous VM：malloc、globalhandle、localhandle、arktsHeap、jsHeap、kmpHeap分配和mmap、dma、so、ashmem分配的总量。
+-     All Heap：malloc、globalhandle、localhandle、arktsHeap、jsHeap、kmpHeap分配的内存。
 -     All Anonymous VM：mmap、dma、so、ashmem分配的内存。
--     Native Heap：malloc、globalhandle分配的内存。
+-     Native Heap：malloc、globalhandle、localhandle分配的内存。
 
 ### Native Memory 泳道图的框选功能
 
