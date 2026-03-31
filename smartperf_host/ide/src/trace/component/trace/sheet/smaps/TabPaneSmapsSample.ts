@@ -28,6 +28,8 @@ export class TabPaneSmapsSample extends BaseElement {
   private querySmapsSampleResult: Array<Smaps> = [];
   private isClick = false;
   private tabTitle: HTMLDivElement | undefined | null;
+  private searchCount: Element | undefined | null;
+  private allSmaps: Smaps | undefined | null;
   set data(valSmapsSample: SelectionParam) {
     this.parentElement!.style.overflow = 'unset';
     this.isClick = valSmapsSample.smapsType.length === 0;
@@ -44,9 +46,15 @@ export class TabPaneSmapsSample extends BaseElement {
   initElements(): void {
     this.tblSmapsSample = this.shadowRoot?.querySelector<LitTable>('#tb-smaps-record');
     this.tabTitle = this.tblSmapsSample!.shadowRoot?.querySelector('.thead') as HTMLDivElement;
+    this.searchCount = this.shadowRoot?.querySelector('#search-count');
     this.tblSmapsSample!.addEventListener('column-click', (evt) => {
       // @ts-ignore
       this.sortByColumn(evt.detail);
+    });
+    let filterInput = this.shadowRoot?.querySelector('#filterName');
+    filterInput?.addEventListener('input', (e) => {
+      // @ts-ignore
+      this.findPath(e.target.value);
     });
   }
   connectedCallback(): void {
@@ -118,13 +126,137 @@ export class TabPaneSmapsSample extends BaseElement {
       this.sourceSmapsSample = result;
       // @ts-ignore
       this.querySmapsSampleResult = result;
-      this.tblSmapsSample!.recycleDataSource = this.sourceSmapsSample;
+      
+      this.allSmaps = new Smaps();
+      this.allSmaps.typeName = '*All*';
+      this.allSmaps.address = '';
+      this.allSmaps.path = '< multiple >';
+      this.allSmaps.permission = '';
+      this.allSmaps.time = '';
+      this.allSmaps.size = 0;
+      this.allSmaps.rss = 0;
+      this.allSmaps.pss = 0;
+      this.allSmaps.sharedClean = 0;
+      this.allSmaps.sharedDirty = 0;
+      this.allSmaps.privateClean = 0;
+      this.allSmaps.privateDirty = 0;
+      this.allSmaps.swap = 0;
+      this.allSmaps.swapPss = 0;
+      this.allSmaps.reside = 0;
+      
+      // @ts-ignore
+      this.sourceSmapsSample.forEach((item) => {
+        this.allSmaps!.size += item.size;
+        this.allSmaps!.rss += item.rss;
+        this.allSmaps!.pss += item.pss;
+        this.allSmaps!.sharedClean += item.sharedClean;
+        this.allSmaps!.sharedDirty += item.sharedDirty;
+        this.allSmaps!.privateClean += item.privateClean;
+        this.allSmaps!.privateDirty += item.privateDirty;
+        this.allSmaps!.swap += item.swap;
+        this.allSmaps!.swapPss += item.swapPss;
+      });
+      
+      this.allSmaps.sizeStr = Utils.getBinaryByteWithUnit(this.allSmaps.size);
+      this.allSmaps.rssStr = Utils.getBinaryByteWithUnit(this.allSmaps.rss);
+      this.allSmaps.pssStr = Utils.getBinaryByteWithUnit(this.allSmaps.pss);
+      this.allSmaps.sharedCleanStr = Utils.getBinaryByteWithUnit(this.allSmaps.sharedClean);
+      this.allSmaps.sharedDirtyStr = Utils.getBinaryByteWithUnit(this.allSmaps.sharedDirty);
+      this.allSmaps.privateCleanStr = Utils.getBinaryByteWithUnit(this.allSmaps.privateClean);
+      this.allSmaps.privateDirtyStr = Utils.getBinaryByteWithUnit(this.allSmaps.privateDirty);
+      this.allSmaps.swapStr = Utils.getBinaryByteWithUnit(this.allSmaps.swap);
+      this.allSmaps.swapPssStr = Utils.getBinaryByteWithUnit(this.allSmaps.swapPss);
+      
+      let displayData = Array.from(this.sourceSmapsSample);
+      displayData.unshift(this.allSmaps);
+      this.tblSmapsSample!.recycleDataSource = displayData;
+      let filterInput = this.shadowRoot?.querySelector('#filterName') as HTMLInputElement;
+      if (filterInput && filterInput.value.trim() !== '') {
+        this.findPath(filterInput.value);
+      }
     } else {
       this.sourceSmapsSample = [];
       this.querySmapsSampleResult = [];
+      this.allSmaps = undefined;
       this.tblSmapsSample!.recycleDataSource = [];
     }
   }
+
+  findPath(str: string): void {
+    let searchData: Array<Smaps> = [];
+    if (str === '') {
+      let displayData = Array.from(this.sourceSmapsSample);
+      if (this.allSmaps) {
+        displayData.unshift(this.allSmaps);
+      }
+      this.tblSmapsSample!.recycleDataSource = displayData;
+      this.searchCount!.textContent = this.sourceSmapsSample.length + '';
+    } else {
+      this.sourceSmapsSample.forEach((item) => {
+        // @ts-ignore
+        let pathValue = item.path;
+        let match = false;
+        
+        if (Array.isArray(pathValue)) {
+          let pathStr = pathValue.join(',');
+          match = pathStr.toLowerCase().indexOf(str.toLowerCase()) !== -1;
+        } else if (typeof pathValue === 'string') {
+          match = pathValue.toLowerCase().indexOf(str.toLowerCase()) !== -1;
+        }
+        
+        if (match) {
+          searchData.push(item);
+        }
+      });
+      
+      if (searchData.length > 0 && this.allSmaps) {
+        let allSmapsCopy = new Smaps();
+        allSmapsCopy.typeName = this.allSmaps.typeName;
+        allSmapsCopy.address = this.allSmaps.address;
+        allSmapsCopy.path = this.allSmaps.path;
+        allSmapsCopy.permission = this.allSmaps.permission;
+        allSmapsCopy.time = this.allSmaps.time;
+        allSmapsCopy.size = 0;
+        allSmapsCopy.rss = 0;
+        allSmapsCopy.pss = 0;
+        allSmapsCopy.sharedClean = 0;
+        allSmapsCopy.sharedDirty = 0;
+        allSmapsCopy.privateClean = 0;
+        allSmapsCopy.privateDirty = 0;
+        allSmapsCopy.swap = 0;
+        allSmapsCopy.swapPss = 0;
+        allSmapsCopy.reside = 0;
+        
+        searchData.forEach((item) => {
+          allSmapsCopy.size += item.size;
+          allSmapsCopy.rss += item.rss;
+          allSmapsCopy.pss += item.pss;
+          allSmapsCopy.sharedClean += item.sharedClean;
+          allSmapsCopy.sharedDirty += item.sharedDirty;
+          allSmapsCopy.privateClean += item.privateClean;
+          allSmapsCopy.privateDirty += item.privateDirty;
+          allSmapsCopy.swap += item.swap;
+          allSmapsCopy.swapPss += item.swapPss;
+        });
+        
+        allSmapsCopy.sizeStr = Utils.getBinaryByteWithUnit(allSmapsCopy.size);
+        allSmapsCopy.rssStr = Utils.getBinaryByteWithUnit(allSmapsCopy.rss);
+        allSmapsCopy.pssStr = Utils.getBinaryByteWithUnit(allSmapsCopy.pss);
+        allSmapsCopy.sharedCleanStr = Utils.getBinaryByteWithUnit(allSmapsCopy.sharedClean);
+        allSmapsCopy.sharedDirtyStr = Utils.getBinaryByteWithUnit(allSmapsCopy.sharedDirty);
+        allSmapsCopy.privateCleanStr = Utils.getBinaryByteWithUnit(allSmapsCopy.privateClean);
+        allSmapsCopy.privateDirtyStr = Utils.getBinaryByteWithUnit(allSmapsCopy.privateDirty);
+        allSmapsCopy.swapStr = Utils.getBinaryByteWithUnit(allSmapsCopy.swap);
+        allSmapsCopy.swapPssStr = Utils.getBinaryByteWithUnit(allSmapsCopy.swapPss);
+        
+        searchData.unshift(allSmapsCopy);
+      }
+      
+      this.tblSmapsSample!.recycleDataSource = searchData;
+      this.searchCount!.textContent = searchData.length - (searchData.length > 0 && this.allSmaps ? 1 : 0) + '';
+    }
+  }
+
   initHtml(): string {
     return `
         <style>
@@ -136,7 +268,16 @@ export class TabPaneSmapsSample extends BaseElement {
         .smaps-record-table{
             height: auto;
         }
+        #filterName:focus{
+          outline: none;
+        }
         </style>
+        <div style="display:flex; justify-content:space-between;">
+        <div style="width: 40%;">
+          <input id="filterName" type="text" style="width:60%;height:18px;border:1px solid #c3c3c3;border-radius:9px" placeholder="Search" value="" />
+          &nbsp;&nbsp;<span style="font-size: 10pt;margin-bottom: 5px">Count:&nbsp;<span id="search-count">0<span></span>
+        </div>
+        </div>
         <lit-table id="tb-smaps-record" class="smaps-record-table" style="overflow: auto">
             <lit-table-column order width="100px" title="TimeStamp" data-index="time" key="time" align="flex-start" >
             </lit-table-column>

@@ -29,11 +29,19 @@ export class Smaps {
   pss: number = 0;
   pssStr: string = '';
   sharedClean: number = 0;
+  sharedCleanStr: string = '';
   sharedDirty: number = 0;
+  sharedDirtyStr: string = '';
   privateClean: number = 0;
+  privateCleanStr: string = '';
   privateDirty: number = 0;
+  privateDirtyStr: string = '';
   swap: number = 0;
+  swapStr: string = '';
   swapPss: number = 0;
+  swapPssStr: string = '';
+  time: string = '';
+  reside: number = 0;
   resideStr: string = '';
 }
 export class SmapsTreeObj {

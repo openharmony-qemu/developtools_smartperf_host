@@ -36,13 +36,21 @@ export class TabPaneSmapsStatistics extends BaseElement {
   private totalTree: Array<SmapsTreeObj> = [];
   public tabTitle: HTMLDivElement | undefined | null;
   private allTree: SmapsTreeObj | undefined | null;
+  private searchCount: Element | undefined | null;
+  private sourceData: Array<SmapsTreeObj> = [];
 
   public initElements(): void {
     this.tblSmapsStatistics = this.shadowRoot?.querySelector<LitTable>('lit-table');
     this.tabTitle = this.tblSmapsStatistics!.shadowRoot?.querySelector('.thead') as HTMLDivElement;
+    this.searchCount = this.shadowRoot?.querySelector('#search-count');
     this.tblSmapsStatistics!.addEventListener('column-click', (evt) => {
       //   @ts-ignore
       this.sortByColumn(evt.detail.key, evt.detail.sort, this.tblSmapsStatistics);
+    });
+    let filterInput = this.shadowRoot?.querySelector('#filterName');
+    filterInput?.addEventListener('input', (e) => {
+      // @ts-ignore
+      this.findPath(e.target.value);
     });
   }
 
@@ -301,9 +309,15 @@ export class TabPaneSmapsStatistics extends BaseElement {
       table.recycleDataSource = copyTotalTree;
       this.totalTree.shift();
       table.reMeauseHeight();
+      this.sourceData = Array.from(this.totalTree);
+      let filterInput = this.shadowRoot?.querySelector('#filterName') as HTMLInputElement;
+      if (filterInput && filterInput.value.trim() !== '') {
+        this.findPath(filterInput.value);
+      }
     } else {
       table.recycleDataSource = [];
       table.reMeauseHeight();
+      this.sourceData = [];
     }
   }
 
@@ -392,6 +406,263 @@ export class TabPaneSmapsStatistics extends BaseElement {
     }
   }
 
+  private checkPathMatch(pathValue: unknown, searchStr: string): boolean {
+    if (Array.isArray(pathValue)) {
+      let pathStr = pathValue.join(',');
+      return pathStr.toLowerCase().indexOf(searchStr.toLowerCase()) !== -1;
+    } else if (typeof pathValue === 'string') {
+      return pathValue.toLowerCase().indexOf(searchStr.toLowerCase()) !== -1;
+    }
+    return false;
+  }
+
+  private filterTree(item: SmapsTreeObj, searchStr: string): SmapsTreeObj | null {
+    let matchedChildren: Array<SmapsTreeObj> = [];
+    let selfMatched = this.checkPathMatch(item.path, searchStr);
+    
+    if (item.children && item.children.length > 0) {
+      item.children.forEach((child) => {
+        let filteredChild = this.filterTree(child, searchStr);
+        if (filteredChild) {
+          matchedChildren.push(filteredChild);
+        }
+      });
+    }
+    
+    if (selfMatched || matchedChildren.length > 0) {
+      let filteredItem = new SmapsTreeObj(item.id, item.pid, item.typeName);
+      filteredItem.path = item.path;
+      filteredItem.children = matchedChildren;
+      
+      if (selfMatched && matchedChildren.length === 0) {
+        filteredItem.size = item.size;
+        filteredItem.sizeStr = item.sizeStr;
+        filteredItem.sizePro = item.sizePro;
+        filteredItem.sizeProStr = item.sizeProStr;
+        filteredItem.count = 1;
+        filteredItem.rss = item.rss;
+        filteredItem.rssStr = item.rssStr;
+        filteredItem.pss = item.pss;
+        filteredItem.pssStr = item.pssStr;
+        filteredItem.sharedClean = item.sharedClean;
+        filteredItem.sharedCleanStr = item.sharedCleanStr;
+        filteredItem.sharedDirty = item.sharedDirty;
+        filteredItem.sharedDirtyStr = item.sharedDirtyStr;
+        filteredItem.privateClean = item.privateClean;
+        filteredItem.privateCleanStr = item.privateCleanStr;
+;
+        filteredItem.privateDirty = item.privateDirty;
+        filteredItem.privateDirtyStr = item.privateDirtyStr;
+        filteredItem.swap = item.swap;
+        filteredItem.swapStr = item.swapStr;
+        filteredItem.swapPss = item.swapPss;
+        filteredItem.swapPssStr = item.swapPssStr;
+      } else {
+        filteredItem.size = 0;
+        filteredItem.count = 0;
+        filteredItem.rss = 0;
+        filteredItem.pss = 0;
+        filteredItem.sharedClean = 0;
+        filteredItem.sharedDirty = 0;
+        filteredItem.privateClean = 0;
+        filteredItem.privateDirty = 0;
+        filteredItem.swap = 0;
+        filteredItem.swapPss = 0;
+        
+        matchedChildren.forEach((child) => {
+          filteredItem.size += child.size;
+          filteredItem.count += child.count;
+          filteredItem.rss += child.rss;
+          filteredItem.pss += child.pss;
+          filteredItem.sharedClean += child.sharedClean;
+          filteredItem.sharedDirty += child.sharedDirty;
+          filteredItem.privateClean += child.privateClean;
+          filteredItem.privateDirty += child.privateDirty;
+          filteredItem.swap += child.swap;
+          filteredItem.swapPss += child.swapPss;
+        });
+        
+        if (selfMatched) {
+          filteredItem.count += 1;
+          filteredItem.size += item.size;
+          filteredItem.rss += item.rss;
+          filteredItem.pss += item.pss;
+          filteredItem.sharedClean += item.sharedClean;
+          filteredItem.sharedDirty += item.sharedDirty;
+          filteredItem.privateClean += item.privateClean;
+          filteredItem.privateDirty += item.privateDirty;
+          filteredItem.swap += item.swap;
+          filteredItem.swapPss += item.swapPss;
+        }
+        
+        filteredItem.sizeStr = Utils.getBinaryByteWithUnit(filteredItem.size);
+        filteredItem.sizePro = this.calculatePercentage(filteredItem.size, this.sumSize);
+        filteredItem.sizeProStr = filteredItem.sizePro.toFixed(2) + '%' === '0.00%' ? '0%' : filteredItem.sizePro.toFixed(2) + '%';
+        filteredItem.rssStr = Utils.getBinaryByteWithUnit(filteredItem.rss);
+        filteredItem.pssStr = Utils.getBinaryByteWithUnit(filteredItem.pss);
+        filteredItem.sharedCleanStr = Utils.getBinaryByteWithUnit(filteredItem.sharedClean);
+        filteredItem.sharedDirtyStr = Utils.getBinaryByteWithUnit(filteredItem.sharedDirty);
+        filteredItem.privateCleanStr = Utils.getBinaryByteWithUnit(filteredItem.privateClean);
+        filteredItem.privateDirtyStr = Utils.getBinaryByteWithUnit(filteredItem.privateDirty);
+        filteredItem.swapStr = Utils.getBinaryByteWithUnit(filteredItem.swap);
+        filteredItem.swapPssStr = Utils.getBinaryByteWithUnit(filteredItem.swapPss);
+      }
+      
+      return filteredItem;
+    }
+    return null;
+  }
+
+  private calculateTreeSum(item: SmapsTreeObj): number {
+    let sum = item.size;
+    if (item.children && item.children.length > 0) {
+      item.children.forEach((child) => {
+        sum += this.calculateTreeSum(child);
+      });
+    }
+    return sum;
+  }
+
+  private updateSizePro(item: SmapsTreeObj, totalSize: number): void {
+    item.sizePro = this.calculatePercentage(item.size, totalSize);
+    item.sizeProStr = item.sizePro.toFixed(2) + '%' === '0.00%' ? '0%' : item.sizePro.toFixed(2) + '%';
+    if (item.children && item.children.length > 0) {
+      item.children.forEach((child) => {
+        this.updateSizePro(child, totalSize);
+      });
+    }
+  }
+
+  private calculateLeafCount(item: SmapsTreeObj): number {
+    if (!item.children || item.children.length === 0) {
+      return 1;
+    }
+    let count = 0;
+    item.children.forEach((child) => {
+      count += this.calculateLeafCount(child);
+    });
+    return count;
+  }
+
+  private updateCount(item: SmapsTreeObj): void {
+    if (item.children && item.children.length > 0) {
+      item.count = 0;
+      item.children.forEach((child) => {
+        this.updateCount(child);
+        item.count += child.count;
+      });
+    }
+  }
+
+  private calculateTotalNodeCount(items: Array<SmapsTreeObj>): number {
+    let count = 0;
+    items.forEach((item) => {
+      count += 1;
+      if (item.children && item.children.length > 0) {
+        count += this.calculateTotalNodeCount(item.children);
+      }
+    });
+    return count;
+  }
+
+  findPath(str: string): void {
+    if (str === '') {
+      let displayData = Array.from(this.sourceData);
+      if (this.allTree) {
+        let allTreeCopy = new SmapsTreeObj(this.allTree.id, this.allTree.pid, this.allTree.typeName);
+        allTreeCopy.path = this.allTree.path;
+        allTreeCopy.size = this.allTree.size;
+        allTreeCopy.sizeStr = this.allTree.sizeStr;
+        allTreeCopy.sizePro = this.allTree.sizePro;
+        allTreeCopy.sizeProStr = this.allTree.sizeProStr;
+        allTreeCopy.count = this.allTree.count;
+        allTreeCopy.rss = this.allTree.rss;
+        allTreeCopy.rssStr = this.allTree.rssStr;
+        allTreeCopy.pss = this.allTree.pss;
+        allTreeCopy.pssStr = this.allTree.pssStr;
+        allTreeCopy.sharedClean = this.allTree.sharedClean;
+        allTreeCopy.sharedCleanStr = this.allTree.sharedCleanStr;
+        allTreeCopy.sharedDirty = this.allTree.sharedDirty;
+        allTreeCopy.sharedDirtyStr = this.allTree.sharedDirtyStr;
+        allTreeCopy.privateClean = this.allTree.privateClean;
+        allTreeCopy.privateCleanStr = this.allTree.privateCleanStr;
+        allTreeCopy.privateDirty = this.allTree.privateDirty;
+        allTreeCopy.privateDirtyStr = this.allTree.privateDirtyStr;
+        allTreeCopy.swap = this.allTree.swap;
+        allTreeCopy.swapStr = this.allTree.swapStr;
+        allTreeCopy.swapPss = this.allTree.swapPss;
+        allTreeCopy.swapPssStr = this.allTree.swapPssStr;
+        allTreeCopy.children = [];
+        displayData.unshift(allTreeCopy);
+      }
+      this.tblSmapsStatistics!.recycleDataSource = displayData;
+      let totalCount = this.calculateTotalNodeCount(this.sourceData);
+      this.searchCount!.textContent = totalCount + '';
+    } else {
+      let searchData: Array<SmapsTreeObj> = [];
+      
+      this.sourceData.forEach((item) => {
+        let filteredItem = this.filterTree(item, str);
+        if (filteredItem) {
+          searchData.push(filteredItem);
+        }
+      });
+      
+      let matchedCount = 0;
+      if (searchData.length > 0 && this.allTree) {
+        let allTreeCopy = new SmapsTreeObj(this.allTree.id, this.allTree.pid, this.allTree.typeName);
+        allTreeCopy.path = this.allTree.path;
+        allTreeCopy.size = 0;
+        allTreeCopy.count = 0;
+        allTreeCopy.rss = 0;
+        allTreeCopy.pss = 0;
+        allTreeCopy.sharedClean = 0;
+        allTreeCopy.sharedDirty = 0;
+        allTreeCopy.privateClean = 0;
+        allTreeCopy.privateDirty = 0;
+        allTreeCopy.swap = 0;
+        allTreeCopy.swapPss = 0;
+        allTreeCopy.children = [];
+        
+        searchData.forEach((item) => {
+          allTreeCopy.size += item.size;
+          allTreeCopy.count += item.count;
+          allTreeCopy.rss += item.rss;
+          allTreeCopy.pss += item.pss;
+          allTreeCopy.sharedClean += item.sharedClean;
+          allTreeCopy.sharedDirty += item.sharedDirty;
+          allTreeCopy.privateClean += item.privateClean;
+          allTreeCopy.privateDirty += item.privateDirty;
+          allTreeCopy.swap += item.swap;
+          allTreeCopy.swapPss += item.swapPss;
+        });
+        
+        allTreeCopy.sizeStr = Utils.getBinaryByteWithUnit(allTreeCopy.size);
+        allTreeCopy.sizePro = 100;
+        allTreeCopy.sizeProStr = '100%';
+        allTreeCopy.rssStr = Utils.getBinaryByteWithUnit(allTreeCopy.rss);
+        allTreeCopy.pssStr = Utils.getBinaryByteWithUnit(allTreeCopy.pss);
+        allTreeCopy.sharedCleanStr = Utils.getBinaryByteWithUnit(allTreeCopy.sharedClean);
+        allTreeCopy.sharedDirtyStr = Utils.getBinaryByteWithUnit(allTreeCopy.sharedDirty);
+        allTreeCopy.privateCleanStr = Utils.getBinaryByteWithUnit(allTreeCopy.privateClean);
+        allTreeCopy.privateDirtyStr = Utils.getBinaryByteWithUnit(allTreeCopy.privateDirty);
+        allTreeCopy.swapStr = Utils.getBinaryByteWithUnit(allTreeCopy.swap);
+        allTreeCopy.swapPssStr = Utils.getBinaryByteWithUnit(allTreeCopy.swapPss);
+        
+        searchData.forEach((item) => {
+          this.updateSizePro(item, allTreeCopy.size);
+          this.updateCount(item);
+        });
+        
+        searchData.unshift(allTreeCopy);
+        matchedCount = allTreeCopy.count;
+      }
+      
+      this.tblSmapsStatistics!.recycleDataSource = searchData;
+      this.searchCount!.textContent = matchedCount + '';
+    }
+  }
+
   public initHtml(): string {
     return `
         <style>
@@ -400,7 +671,16 @@ export class TabPaneSmapsStatistics extends BaseElement {
             flex-direction: column;
             padding: 10px 10px;
         }
+        #filterName:focus{
+          outline: none;
+        }
         </style>
+        <div style="display:flex; justify-content:space-between;">
+        <div style="width: 40%;">
+          <input id="filterName" type="text" style="width:60%;height:18px;border:1px solid #c3c3c3;border-radius:9px" placeholder="Search" value="" />
+          &nbsp;&nbsp;<span style="font-size: 10pt;margin-bottom: 5px">Count:&nbsp;<span id="search-count">0</span></span>
+        </div>
+        </div>
         <div style="overflow: auto;" class="d-box">
             <lit-table id="tb-smaps-statistics" class="smaps-statistics-table" style="height: auto;" tree>
                 <lit-table-column width="250px" title="Type" data-index="typeName" key="typeName" align="flex-start" order retract>
