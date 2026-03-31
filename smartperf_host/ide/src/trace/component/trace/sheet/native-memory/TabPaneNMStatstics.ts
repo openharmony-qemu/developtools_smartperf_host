@@ -174,6 +174,8 @@ export class TabPaneNMStatstics extends BaseElement {
         data.memoryTap = `Ashmem ${Utils.getByteWithUnit(malloc.heapSize)}`;
       } else if (malloc.eventType === MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME) {
         data.memoryTap = `Global ${Utils.getByteWithUnit(malloc.heapSize)}`;
+      } else if (malloc.eventType === MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME) {
+        data.memoryTap = `Local ${Utils.getByteWithUnit(malloc.heapSize)}`;
       }
       data.eventType = malloc.eventType;
       data.existing = malloc.allocByte - malloc.freeByte;
@@ -190,7 +192,7 @@ export class TabPaneNMStatstics extends BaseElement {
       data.existingValue = [data.existing, data.totalBytes, this.allMax];
       if (MemoryType.APPLY_NM_EVENTS.every(item => types.includes(item))) {
         arr.push(data);
-      } else if ((types.includes(MemoryType.MEMORY_M_ALLOC_NAME) && malloc.eventType === MemoryType.MEMORY_M_ALLOC_NAME) || (types.includes(MemoryType.ARKTS_Alloc_NAME) && malloc.eventType === MemoryType.ARKTS_Alloc_NAME) || (types.includes(MemoryType.JS_Alloc_NAME) && malloc.eventType === MemoryType.JS_Alloc_NAME) || (types.includes(MemoryType.KMP_Alloc_NAME) && malloc.eventType === MemoryType.KMP_Alloc_NAME) || (types.includes(MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME) && malloc.eventType === MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME)) {
+      } else if ((types.includes(MemoryType.MEMORY_M_ALLOC_NAME) && malloc.eventType === MemoryType.MEMORY_M_ALLOC_NAME) || (types.includes(MemoryType.ARKTS_Alloc_NAME) && malloc.eventType === MemoryType.ARKTS_Alloc_NAME) || (types.includes(MemoryType.JS_Alloc_NAME) && malloc.eventType === MemoryType.JS_Alloc_NAME) || (types.includes(MemoryType.KMP_Alloc_NAME) && malloc.eventType === MemoryType.KMP_Alloc_NAME) || (types.includes(MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME) && malloc.eventType === MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME) || (types.includes(MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME) && malloc.eventType === MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME)) {
         arr.push(data);
       } else if (types.includes(MemoryType.MEMORY_M_ALLOC_NAME) && malloc.eventType === MemoryType.MEMORY_M_ALLOC_NAME) {
         arr.push(data);
@@ -201,6 +203,8 @@ export class TabPaneNMStatstics extends BaseElement {
       } else if (types.includes(MemoryType.KMP_Alloc_NAME) && malloc.eventType === MemoryType.KMP_Alloc_NAME) {
         arr.push(data);
       } else if (types.includes(MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME) && malloc.eventType === MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME) {
+        arr.push(data);
+      } else if (types.includes(MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME) && malloc.eventType === MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME) {
         arr.push(data);
       } else if ((types.includes(MemoryType.ION_Alloc_NAME) && malloc.eventType === MemoryType.ION_Alloc_NAME) || (types.includes(MemoryType.SO_Alloc_NAME) && malloc.eventType === MemoryType.SO_Alloc_NAME) || (types.includes(MemoryType.ASHMEM_Alloc_NAME) && malloc.eventType === MemoryType.ASHMEM_Alloc_NAME) || (types.includes(MemoryType.MEMORY_M_MAP_NAME) && malloc.eventType === MemoryType.MEMORY_M_MAP_NAME)) {
         arr.push(data);
@@ -237,7 +241,7 @@ export class TabPaneNMStatstics extends BaseElement {
         data.existingValue = [data.existing, data.totalBytes, this.allMax];
         if (MemoryType.APPLY_NM_EVENTS.every(item => types.includes(item))) {
           arr.push(data);
-        } else if ((types.includes(MemoryType.MEMORY_M_ALLOC_NAME) && sub.eventType === MemoryType.MEMORY_M_ALLOC_NAME) || (types.includes(MemoryType.ARKTS_Alloc_NAME) && sub.eventType === MemoryType.ARKTS_Alloc_NAME) || (types.includes(MemoryType.JS_Alloc_NAME) && sub.eventType === MemoryType.JS_Alloc_NAME) || (types.includes(MemoryType.KMP_Alloc_NAME) && sub.eventType === MemoryType.KMP_Alloc_NAME) || (types.includes(MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME) && sub.eventType === MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME)) {
+        } else if ((types.includes(MemoryType.MEMORY_M_ALLOC_NAME) && sub.eventType === MemoryType.MEMORY_M_ALLOC_NAME) || (types.includes(MemoryType.ARKTS_Alloc_NAME) && sub.eventType === MemoryType.ARKTS_Alloc_NAME) || (types.includes(MemoryType.JS_Alloc_NAME) && sub.eventType === MemoryType.JS_Alloc_NAME) || (types.includes(MemoryType.KMP_Alloc_NAME) && sub.eventType === MemoryType.KMP_Alloc_NAME) || (types.includes(MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME) && sub.eventType === MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME) || (types.includes(MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME) && sub.eventType === MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME)) {
           arr.push(data);
         } else if (types.includes(MemoryType.MEMORY_M_ALLOC_NAME) && sub.eventType === MemoryType.MEMORY_M_ALLOC_NAME) {
           arr.push(data);
@@ -248,6 +252,8 @@ export class TabPaneNMStatstics extends BaseElement {
         } else if (types.includes(MemoryType.KMP_Alloc_NAME) && sub.eventType === MemoryType.KMP_Alloc_NAME) {
           arr.push(data);
         } else if (types.includes(MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME) && sub.eventType === MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME) {
+          arr.push(data);
+        } else if (types.includes(MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME) && sub.eventType === MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME) {
           arr.push(data);
         } else if ((types.includes(MemoryType.ION_Alloc_NAME) && sub.eventType === MemoryType.ION_Alloc_NAME) || (types.includes(MemoryType.SO_Alloc_NAME) && sub.eventType === MemoryType.SO_Alloc_NAME) || (types.includes(MemoryType.ASHMEM_Alloc_NAME) && sub.eventType === MemoryType.ASHMEM_Alloc_NAME) || (types.includes(MemoryType.MEMORY_M_MAP_NAME) && sub.eventType === MemoryType.MEMORY_M_MAP_NAME)) {
           arr.push(data);
@@ -328,10 +334,10 @@ export class TabPaneNMStatstics extends BaseElement {
       if (all !== null) {
         this.processHookData(hook, all);
       }
-      if (allHeap !== null && (hook.eventType === MemoryType.MEMORY_M_ALLOC_NAME || hook.eventType === MemoryType.ARKTS_Alloc_NAME || hook.eventType === MemoryType.JS_Alloc_NAME || hook.eventType === MemoryType.KMP_Alloc_NAME || hook.eventType === MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME)) {
+      if (allHeap !== null && (hook.eventType === MemoryType.MEMORY_M_ALLOC_NAME || hook.eventType === MemoryType.ARKTS_Alloc_NAME || hook.eventType === MemoryType.JS_Alloc_NAME || hook.eventType === MemoryType.KMP_Alloc_NAME || hook.eventType === MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME || hook.eventType === MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME)) {
         this.processHookData(hook, allHeap);
       }
-      if (nativeHeap !== null && (hook.eventType === MemoryType.MEMORY_M_ALLOC_NAME || hook.eventType === MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME)) {
+      if (nativeHeap !== null && (hook.eventType === MemoryType.MEMORY_M_ALLOC_NAME || hook.eventType === MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME || hook.eventType === MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME)) {
         this.processHookData(hook, nativeHeap);
       }
       if (arktsHeap !== null && hook.eventType === MemoryType.ARKTS_Alloc_NAME) {

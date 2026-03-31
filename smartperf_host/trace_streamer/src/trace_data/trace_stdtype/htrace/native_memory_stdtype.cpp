@@ -183,6 +183,18 @@ void NativeHook::AppendMoreNativeHookData(const NativeHookRow &context)
     } else if (context.eventType == ARK_GLOBAL_HANDLE_FREE_EVENT) {
         countArkGlobalHandleSizes_ -= context.memSize;
         allMemSizes_.emplace_back(countArkGlobalHandleSizes_);
+    } else if (context.eventType == ARK_LOCAL_HANDLE_ALLOC_EVENT) {
+        countArkLocalHandleSizes_ += context.memSize;
+        allMemSizes_.emplace_back(countArkLocalHandleSizes_);
+    } else if (context.eventType == ARK_LOCAL_HANDLE_FREE_EVENT) {
+        countArkLocalHandleSizes_ -= context.memSize;
+        allMemSizes_.emplace_back(countArkLocalHandleSizes_);
+    } else if (context.eventType == JS_STATISTIC_ALLOC_EVENT) {
+        countJsStatisticSizes_ += context.memSize;
+        allMemSizes_.emplace_back(countJsStatisticSizes_);
+    } else if (context.eventType == JS_STATISTIC_FREE_EVENT) {
+        countJsStatisticSizes_ -= context.memSize;
+        allMemSizes_.emplace_back(countJsStatisticSizes_);
     }
 }
 

@@ -129,6 +129,12 @@ export class AnalysisSample {
         this.typeName = MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME;
         this.isRelease = false;
         break;
+      case MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME:
+      case MemoryStatisticType.ARK_LOCAL_HANDLE:
+        this.type = 18;
+        this.typeName = MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME;
+        this.isRelease = false;
+        break;
       case MemoryType.MEMORY_M_MAP_NAME:
       case MemoryStatisticType.MMAP:
         this.isRelease = false;
@@ -227,6 +233,11 @@ export class AnalysisSample {
         this.isRelease = true;
         this.typeName = MemoryType.ARK_GLOBAL_HANDLE_Free_NAME;
         this.type = 17;
+        break;
+      case MemoryType.ARK_LOCAL_HANDLE_Free_NAME:
+        this.isRelease = true;
+        this.typeName = MemoryType.ARK_LOCAL_HANDLE_Free_NAME;
+        this.type = 18;
         break;
       default:
         this.isRelease = false;

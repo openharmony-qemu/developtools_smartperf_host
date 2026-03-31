@@ -133,6 +133,7 @@ export const statisticCallChainsSamplesConfig: ConfigMap = {
     caseStatement: `(case 
             when type = ${MemoryStatisticType.MALLOC} then '${MemoryType.MEMORY_M_ALLOC_NAME}' 
             when type = ${MemoryStatisticType.ARK_GLOBAL_HANDLE} then '${MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME}'
+            when type = ${MemoryStatisticType.ARK_LOCAL_HANDLE} then '${MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME}'
             when type = ${MemoryStatisticType.ARKTS} then '${MemoryType.ARKTS_Alloc_NAME}'
             when type = ${MemoryStatisticType.JS} then '${MemoryType.JS_Alloc_NAME}'
             when type = ${MemoryStatisticType.KMP} then '${MemoryType.KMP_Alloc_NAME}'
@@ -172,8 +173,8 @@ export function queryStatisticCallChainsSamplesSql(leftNs: number,
                 (case when sub_type_id not null then 1 else 0 end) as hasSubType,
                 max(apply_size) as heapSize,
                 max(release_size) as freeSize,
-                apply_count as count,
-                release_count as freeCount,
+                max(apply_count) as count,
+                max(release_count) as freeCount,
                 (max(A.ts) - B.start_ts) as startTs,
                 ifnull(last_lib_id,0) as lastLibId,
                 ifnull(last_symbol_id,0) as lastSymbolId
@@ -233,6 +234,11 @@ export class AnalysisTabDataLogic {
           {
             applyEventType: MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME,
             releaseEventType: MemoryType.ARK_GLOBAL_HANDLE_Free_NAME,
+            sampleArray: []
+          },
+          {
+            applyEventType: MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME,
+            releaseEventType: MemoryType.ARK_LOCAL_HANDLE_Free_NAME,
             sampleArray: []
           },
           {
@@ -492,14 +498,16 @@ const MEMORY_TYPE_CONSTANTS = {
     MemoryType.ARKTS_Alloc_NAME,
     MemoryType.JS_Alloc_NAME,
     MemoryType.KMP_Alloc_NAME,
-    MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME
+    MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME,
+    MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME
   ],
   HEAP_STATISTIC_TYPES: [
     MemoryStatisticType.MALLOC,
     MemoryStatisticType.ARKTS,
     MemoryStatisticType.JS,
     MemoryStatisticType.KMP,
-    MemoryStatisticType.ARK_GLOBAL_HANDLE
+    MemoryStatisticType.ARK_GLOBAL_HANDLE,
+    MemoryStatisticType.ARK_LOCAL_HANDLE
   ],
   VM_EVENT_TYPES: [
     MemoryType.MEMORY_M_MAP_NAME,
@@ -668,8 +676,7 @@ function handleNativeMemory(
   }
   
   // Native Heap 需要包含 ARK_GLOBAL_HANDLE_Alloc_Event
-  if (filterType === MemoryType.MEMORY_M_ALLOC_NAME && 
-      item.eventType === MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME) {
+  if ((filterType === MemoryType.MEMORY_M_ALLOC_NAME && item.eventType === MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME) || (filterType === MemoryType.MEMORY_M_ALLOC_NAME && item.eventType === MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME)) {
     return true;
   }
   

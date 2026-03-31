@@ -45,7 +45,9 @@ enum class NativeType {
     ASHMEM,
     DMA,
     SO,
-    ARK_GLOBAL_HANDLE
+    ARK_GLOBAL_HANDLE,
+    ARK_LOCAL_HANDLE,
+    JS_STATISTIC
 };
 
 class NativeHookFrameInfo {
@@ -185,6 +187,8 @@ private:
     bool AreBytesViewsEqual(const ProtoReader::BytesView &view1, const ProtoReader::BytesView &view2);
     uint64_t GetSubFilePathIndex(uint64_t adltBase, FrameInfo *frameInfo);
     void InitTraceTypeMaps();
+    void InitAllocTraceTypeMaps();
+    void InitFreeTraceTypeMaps();
     bool GetTraceTypeAndNativeType(bool isAlloc,
                                    int32_t protoTraceType,
                                    std::string &traceType,
