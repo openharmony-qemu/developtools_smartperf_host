@@ -46,8 +46,7 @@ enum class NativeType {
     DMA,
     SO,
     ARK_GLOBAL_HANDLE,
-    ARK_LOCAL_HANDLE,
-    JS_STATISTIC
+    ARK_LOCAL_HANDLE
 };
 
 class NativeHookFrameInfo {
