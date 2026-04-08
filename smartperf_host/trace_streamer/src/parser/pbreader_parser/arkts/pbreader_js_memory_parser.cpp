@@ -21,258 +21,12 @@
 #include "file.h"
 #include "js_heap_config.pbreader.h"
 #include "js_heap_result.pbreader.h"
+#include "js_heap_snapshot_types.h"
 #include "process_filter.h"
 #include "stat_filter.h"
 #include "unistd.h"
 namespace SysTuning {
 namespace TraceStreamer {
-namespace jsonns {
-const int32_t OFFSET_FIRST = 1;
-const int32_t OFFSET_SECOND = 2;
-const int32_t OFFSET_THIRD = 3;
-const int32_t OFFSET_FOURTH = 4;
-const int32_t OFFSET_FIFTH = 5;
-const int32_t OFFSET_SIXTH = 6;
-struct Meta {
-    std::vector<std::string> nodeFields;
-    std::vector<std::vector<std::string>> nodeTypes;
-    std::vector<std::string> edgeFields;
-    std::vector<std::vector<std::string>> edgeTypes;
-    std::vector<std::string> traceFunctionInfoFields;
-    std::vector<std::string> traceNodeFields;
-    std::vector<std::string> sampleFields;
-    std::vector<std::string> locationFields;
-};
-struct Snapshot {
-    Meta meta;
-    int32_t nodeCount;
-    int32_t edgeCount;
-    int32_t traceFunctionCount;
-};
-int32_t g_nodesSingleLength = 0;
-void from_json(const json &j, Meta &v)
-{
-    for (size_t i = 0; i < j["node_fields"].size(); i++) {
-        v.nodeFields.emplace_back(j["node_fields"][i]);
-    }
-    g_nodesSingleLength = j["node_fields"].size();
-    for (size_t i = 0; i < j["node_types"].size(); i++) {
-        std::vector<std::string> nodeTypes;
-        if (j["node_types"][i].is_array()) {
-            for (size_t m = 0; m < j["node_types"][i].size(); m++) {
-                nodeTypes.emplace_back(j["node_types"][i][m]);
-            }
-            v.nodeTypes.emplace_back(nodeTypes);
-        } else {
-            nodeTypes.emplace_back(j["node_types"][i]);
-            v.nodeTypes.emplace_back(nodeTypes);
-        }
-    }
-    for (size_t i = 0; i < j["edge_fields"].size(); i++) {
-        v.edgeFields.emplace_back(j["edge_fields"][i]);
-    }
-    for (size_t i = 0; i < j["edge_types"].size(); i++) {
-        std::vector<std::string> edgeTypes;
-        if (j["edge_types"][i].is_array()) {
-            for (size_t m = 0; m < j["edge_types"][i].size(); m++) {
-                edgeTypes.emplace_back(j["edge_types"][i][m]);
-            }
-            v.edgeTypes.emplace_back(edgeTypes);
-        } else {
-            edgeTypes.emplace_back(j["edge_types"][i]);
-            v.edgeTypes.emplace_back(edgeTypes);
-        }
-    }
-    for (size_t i = 0; i < j["trace_function_info_fields"].size(); i++) {
-        v.traceFunctionInfoFields.emplace_back(j["trace_function_info_fields"][i]);
-    }
-    for (size_t i = 0; i < j["trace_node_fields"].size(); i++) {
-        v.traceNodeFields.emplace_back(j["trace_node_fields"][i]);
-    }
-    for (size_t i = 0; i < j["sample_fields"].size(); i++) {
-        v.sampleFields.emplace_back(j["sample_fields"][i]);
-    }
-    for (size_t i = 0; i < j["location_fields"].size(); i++) {
-        v.locationFields.emplace_back(j["location_fields"][i]);
-    }
-    return;
-}
-void from_json(const json &j, Snapshot &v)
-{
-    j.at("meta").get_to(v.meta);
-    j.at("node_count").get_to(v.nodeCount);
-    j.at("edge_count").get_to(v.edgeCount);
-    j.at("trace_function_count").get_to(v.traceFunctionCount);
-    return;
-}
-struct Nodes {
-    std::vector<uint32_t> types;
-    std::vector<uint32_t> names;
-    std::vector<uint32_t> ids;
-    std::vector<uint32_t> selfSizes;
-    std::vector<uint32_t> edgeCounts;
-    std::vector<uint32_t> traceNodeIds;
-    std::vector<uint32_t> detachedness;
-};
-std::vector<uint32_t> g_fromNodeIds;
-std::vector<uint32_t> g_ids;
-void from_json(const json &j, Nodes &v)
-{
-    int32_t edgeIndex = 0;
-    for (size_t i = 0; i < j.size() / g_nodesSingleLength; i++) {
-        v.types.emplace_back(j[i * g_nodesSingleLength]);
-        v.names.emplace_back(j[i * g_nodesSingleLength + OFFSET_FIRST]);
-        v.ids.emplace_back(j[i * g_nodesSingleLength + OFFSET_SECOND]);
-        v.selfSizes.emplace_back(j[i * g_nodesSingleLength + OFFSET_THIRD]);
-        v.edgeCounts.emplace_back(j[i * g_nodesSingleLength + OFFSET_FOURTH]);
-        for (size_t m = edgeIndex; m < edgeIndex + v.edgeCounts.at(i); m++) {
-            g_fromNodeIds.emplace_back(j[i * g_nodesSingleLength + OFFSET_SECOND]);
-        }
-        edgeIndex += v.edgeCounts.at(i);
-        v.traceNodeIds.emplace_back(j[i * g_nodesSingleLength + OFFSET_FIFTH]);
-        v.detachedness.emplace_back(j[i * g_nodesSingleLength + OFFSET_SIXTH]);
-    }
-    for (size_t m = 0; m < j.size(); m++) {
-        g_ids.emplace_back(j[m]);
-    }
-}
-struct Edges {
-    std::vector<uint32_t> types;
-    std::vector<uint32_t> nameOrIndexes;
-    std::vector<uint32_t> toNodes;
-    std::vector<uint32_t> fromNodeIds;
-    std::vector<uint32_t> toNodeIds;
-};
-const int32_t EDGES_SINGLE_LENGTH = 3;
-void from_json(const json &j, Edges &v)
-{
-    v.fromNodeIds = g_fromNodeIds;
-    for (size_t i = 0; i < j.size() / EDGES_SINGLE_LENGTH; i++) {
-        v.types.emplace_back(j[i * EDGES_SINGLE_LENGTH]);
-        v.nameOrIndexes.emplace_back(j[i * EDGES_SINGLE_LENGTH + OFFSET_FIRST]);
-        v.toNodes.emplace_back(j[i * EDGES_SINGLE_LENGTH + OFFSET_SECOND]);
-        v.toNodeIds.emplace_back(g_ids[v.toNodes[i] + OFFSET_SECOND]);
-    }
-    return;
-}
-struct Location {
-    std::vector<uint32_t> objectIndexes;
-    std::vector<uint32_t> scriptIds;
-    std::vector<uint32_t> lines;
-    std::vector<uint32_t> columns;
-};
-const int32_t LOCATION_SINGLE_LENGTH = 4;
-void from_json(const json &j, Location &v)
-{
-    for (size_t i = 0; i < j.size() / LOCATION_SINGLE_LENGTH; i++) {
-        v.objectIndexes.emplace_back(j[i * LOCATION_SINGLE_LENGTH]);
-        v.scriptIds.emplace_back(j[i * LOCATION_SINGLE_LENGTH + OFFSET_FIRST]);
-        v.lines.emplace_back(j[i * LOCATION_SINGLE_LENGTH + OFFSET_SECOND]);
-        v.columns.emplace_back(j[i * LOCATION_SINGLE_LENGTH + OFFSET_THIRD]);
-    }
-}
-struct Sample {
-    std::vector<uint32_t> timestampUs;
-    std::vector<uint32_t> lastAssignedIds;
-};
-const int32_t SAMPLE_SINGLE_LENGTH = 2;
-void from_json(const json &j, Sample &v)
-{
-    for (size_t i = 0; i < j.size() / SAMPLE_SINGLE_LENGTH; i++) {
-        v.timestampUs.emplace_back(j[i * SAMPLE_SINGLE_LENGTH]);
-        v.lastAssignedIds.emplace_back(j[i * SAMPLE_SINGLE_LENGTH + OFFSET_FIRST]);
-    }
-}
-struct Strings {
-    std::vector<std::string> strings;
-};
-void from_json(const json &j, Strings &v)
-{
-    for (size_t i = 0; i < j.size(); i++) {
-        v.strings.emplace_back(j[i]);
-    }
-}
-struct TraceFuncInfo {
-    std::vector<uint32_t> functionIds;
-    std::vector<uint32_t> names;
-    std::vector<uint32_t> scriptNames;
-    std::vector<uint32_t> scriptIds;
-    std::vector<uint32_t> lines;
-    std::vector<uint32_t> columns;
-};
-const int32_t TRACE_FUNC_INFO_SINGLE_LENGTH = 6;
-void from_json(const json &j, TraceFuncInfo &v)
-{
-    for (size_t i = 0; i < j.size() / TRACE_FUNC_INFO_SINGLE_LENGTH; i++) {
-        v.functionIds.emplace_back(j[i * TRACE_FUNC_INFO_SINGLE_LENGTH]);
-        v.names.emplace_back(j[i * TRACE_FUNC_INFO_SINGLE_LENGTH + OFFSET_FIRST]);
-        v.scriptNames.emplace_back(j[i * TRACE_FUNC_INFO_SINGLE_LENGTH + OFFSET_SECOND]);
-        v.scriptIds.emplace_back(j[i * TRACE_FUNC_INFO_SINGLE_LENGTH + OFFSET_THIRD]);
-        v.lines.emplace_back(j[i * TRACE_FUNC_INFO_SINGLE_LENGTH + OFFSET_FOURTH]);
-        v.columns.emplace_back(j[i * TRACE_FUNC_INFO_SINGLE_LENGTH + OFFSET_FIFTH]);
-    }
-}
-struct TraceTree {
-    std::vector<uint32_t> ids;
-    std::vector<uint32_t> functionInfoIndexes;
-    std::vector<uint32_t> counts;
-    std::vector<uint32_t> sizes;
-    std::vector<uint32_t> parentIds;
-};
-struct ParentFunc {
-    uint32_t id;
-    uint32_t functionInfoIndex;
-    uint32_t count;
-    uint32_t size;
-    std::vector<std::unique_ptr<ParentFunc>> children;
-    ParentFunc *parent = nullptr;
-    ParentFunc()
-    {
-        id = 0;
-        functionInfoIndex = 0;
-        count = 0;
-        size = 0;
-    }
-};
-class TraceParser {
-public:
-    void parse_trace_node(const json &array,
-                          std::vector<std::unique_ptr<ParentFunc>> &funcList,
-                          ParentFunc *parent = nullptr)
-    {
-        int32_t singleLength = 5;
-        int32_t functionCount = array.size() / singleLength;
-        for (int32_t i = 0; i < functionCount; ++i) {
-            auto item = std::make_unique<ParentFunc>();
-            if (parent != nullptr) {
-                item->parent = parent;
-            }
-            item->id = array[i * singleLength];
-            item->functionInfoIndex = array[i * singleLength + OFFSET_FIRST];
-            item->count = array[i * singleLength + OFFSET_SECOND];
-            item->size = array[i * singleLength + OFFSET_THIRD];
-            auto childrenArray = array[i * singleLength + OFFSET_FOURTH];
-            funcList.push_back(std::move(item));
-            if (!childrenArray.empty()) {
-                parse_trace_node(childrenArray, funcList, funcList.back().get());
-            }
-        }
-    }
-};
-void from_json(const json &j, TraceTree &v)
-{
-    std::vector<std::unique_ptr<ParentFunc>> funcList;
-    TraceParser parser;
-    parser.parse_trace_node(j, funcList);
-    for (auto &func : funcList) {
-        v.ids.emplace_back(func->id);
-        v.functionInfoIndexes.emplace_back(func->functionInfoIndex);
-        v.counts.emplace_back(func->count);
-        v.sizes.emplace_back(func->size);
-        v.parentIds.emplace_back(func->parent ? func->parent->id : std::numeric_limits<uint32_t>::max());
-    }
-}
-} // namespace jsonns
 const int32_t END_POS = 3;
 const int32_t CHUNK_POS = 8;
 const int32_t PROFILE_POS = 9;
@@ -282,7 +36,9 @@ const int32_t TIME_MICRO_SECOND = 1000 * 1000;
 const std::string JS_MEMORY_INDEX = "{\"params\":{\"chunk\":";
 const std::string ARKTS_INDEX = "{\"id\":3, \"result\":{\"profile\":";
 PbreaderJSMemoryParser::PbreaderJSMemoryParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx)
-    : EventParserBase(dataCache, ctx), jsCpuProfilerParser_(std::make_unique<HtraceJsCpuProfilerParser>(dataCache, ctx))
+    : EventParserBase(dataCache, ctx),
+      jsCpuProfilerParser_(std::make_unique<HtraceJsCpuProfilerParser>(dataCache, ctx)),
+      jsHeapSnapshotFilter_(std::make_unique<JsHeapSnapshotFilter>(dataCache, ctx))
 {
     // Delete files in the executable file path that fileName contain the string "ts_tmp. jsmemory_snapshot"
     DIR *dir = opendir(".");
@@ -569,209 +325,52 @@ void PbreaderJSMemoryParser::ParseTimeLine(ProfilerPluginDataHeader &profilerPlu
                 updatedJson_[item.key()] = item.value();
             }
         }
-    }
-    ParserJSSnapInfo(fileId_, jMessage);
-    ParseSample(fileId_, jMessage, traceDataCache_->SplitFileMinTime(), traceDataCache_->SplitFileMaxTime(),
-                traceDataCache_->isSplitFile_);
-    ParseNodes(fileId_, jMessage, traceDataCache_->SplitFileMinTime(), traceDataCache_->isSplitFile_);
-    ParseEdges(fileId_, jMessage);
-    ParseLocation(fileId_, jMessage);
-    ParseString(fileId_, jMessage);
-    ParseTraceFuncInfo(fileId_, jMessage);
-    ParseTraceNode(fileId_, jMessage);
-    if (traceDataCache_->isSplitFile_) {
+        jsonns::Sample sample = jMessage.at("samples");
+        json filteredSamples = json::array();
+        uint32_t firstTimeStamp = INVALID_UINT32;
+        uint64_t startTime = traceDataCache_->SplitFileMinTime();
+        uint64_t endTime = traceDataCache_->SplitFileMaxTime();
+        uint64_t pluginStart = GetPluginStartTime();
+        for (size_t i = 0; i < sample.timestampUs.size(); ++i) {
+            uint32_t timestampUs = sample.timestampUs[i];
+            uint32_t lastAssignedId = sample.lastAssignedIds[i];
+            uint64_t timestampNs = static_cast<uint64_t>(timestampUs) * TIME_MILLI_SECOND;
+            if (startTime <= (pluginStart + timestampNs) && endTime >= (pluginStart + timestampNs)) {
+                if (firstTimeStamp == INVALID_UINT32) {
+                    firstTimeStamp = timestampUs;
+                }
+                filteredSamples.push_back(timestampUs - firstTimeStamp);
+                filteredSamples.push_back(lastAssignedId);
+                nodeFileId_ = lastAssignedId;
+            }
+        }
+        updatedJson_["samples"] = filteredSamples;
+        jsonns::Nodes node = jMessage.at("nodes");
+        json filteredNodes = json::array();
+        for (size_t i = 0; i < node.names.size(); ++i) {
+            selfSizeCount_ += node.selfSizes[i];
+            if (nodeFileId_ != INVALID_UINT32 && node.ids[i] <= nodeFileId_) {
+                filteredNodes.push_back(node.types[i]);
+                filteredNodes.push_back(node.names[i]);
+                filteredNodes.push_back(node.ids[i]);
+                filteredNodes.push_back(node.selfSizes[i]);
+                filteredNodes.push_back(node.edgeCounts[i]);
+                filteredNodes.push_back(node.traceNodeIds[i]);
+                filteredNodes.push_back(node.detachedness[i]);
+                nodeCount_++;
+            }
+        }
+        updatedJson_["nodes"] = filteredNodes;
         updatedJson_["snapshot"]["node_count"] = nodeCount_;
         jsMemorySplitFileData_ = updatedJson_.dump();
         SerializeToString(profilerPluginData, traceDataCache_->SplitFileMinTime(), traceDataCache_->SplitFileMaxTime());
         nodeCount_ = 0;
+        streamFilters_->statFilter_->IncreaseStat(SysTuning::TraceCfg::TRACE_JS_MEMORY,
+                                                  SysTuning::TraceCfg::STAT_EVENT_RECEIVED);
+    } else {
+        selfSizeCount_ += jsHeapSnapshotFilter_->ParseTimeline(fileId_, jMessage);
     }
     jsMemoryString_ = "";
-    streamFilters_->statFilter_->IncreaseStat(TRACE_JS_MEMORY, STAT_EVENT_RECEIVED);
-    return;
-}
-void PbreaderJSMemoryParser::ParserSnapInfo(int32_t fileId,
-                                            const std::string &key,
-                                            const std::vector<std::vector<std::string>> &types)
-{
-    if (traceDataCache_->isSplitFile_) {
-        return;
-    }
-    for (size_t m = 0; m < types[0].size(); ++m) {
-        (void)traceDataCache_->GetJsHeapInfoData()->AppendNewData(fileId, key, 0, std::numeric_limits<uint32_t>::max(),
-                                                                  types[0][m]);
-    }
-    for (size_t i = 1; i < types.size(); ++i) {
-        (void)traceDataCache_->GetJsHeapInfoData()->AppendNewData(fileId, key, 1, std::numeric_limits<uint32_t>::max(),
-                                                                  types[i][0]);
-    }
-    return;
-}
-const std::string NODE_TYPES = "node_types";
-const std::string EDGE_TYPES = "edge_types";
-void PbreaderJSMemoryParser::ParserJSSnapInfo(int32_t fileId, const json &jMessage)
-{
-    jsonns::Snapshot snapshot = jMessage.at("snapshot");
-    ParserSnapInfo(fileId, NODE_TYPES, snapshot.meta.nodeTypes);
-    ParserSnapInfo(fileId, EDGE_TYPES, snapshot.meta.edgeTypes);
-    // Ensure successful update of g_nodesSingleLength
-    if (traceDataCache_->isSplitFile_) {
-        return;
-    }
-    auto nodeCount = snapshot.nodeCount;
-    auto edgeCount = snapshot.edgeCount;
-    auto traceFuncCount = snapshot.traceFunctionCount;
-    (void)traceDataCache_->GetJsHeapInfoData()->AppendNewData(fileId, "node_count", 0, nodeCount, "");
-    (void)traceDataCache_->GetJsHeapInfoData()->AppendNewData(fileId, "edge_count", 0, edgeCount, "");
-    (void)traceDataCache_->GetJsHeapInfoData()->AppendNewData(fileId, "trace_function_count", 0, traceFuncCount, "");
-    return;
-}
-void PbreaderJSMemoryParser::ParseNodes(int32_t fileId, const json &jMessage, uint64_t endTime, bool isSplitFile)
-{
-    json filteredNodes = nlohmann::json::array();
-    jsonns::Nodes node = jMessage.at("nodes");
-    for (size_t i = 0; i < node.names.size(); ++i) {
-        if (!isSplitFile) {
-            JsHeapNodesRow row;
-            row.fileId = fileId;
-            row.nodeIndex = i;
-            row.type = node.types[i];
-            row.name = node.names[i];
-            row.id = node.ids[i];
-            row.selfSize = node.selfSizes[i];
-            row.edgeCount = node.edgeCounts[i];
-            row.traceNodeId = node.traceNodeIds[i];
-            row.detachedNess = node.detachedness[i];
-            (void)traceDataCache_->GetJsHeapNodesData()->AppendNewData(row);
-        }
-        selfSizeCount_ += node.selfSizes[i];
-        if (isSplitFile && nodeFileId_ != INVALID_UINT32 && node.ids[i] <= nodeFileId_) {
-            filteredNodes.push_back(node.types[i]);
-            filteredNodes.push_back(node.names[i]);
-            filteredNodes.push_back(node.ids[i]);
-            filteredNodes.push_back(node.selfSizes[i]);
-            filteredNodes.push_back(node.edgeCounts[i]);
-            filteredNodes.push_back(node.traceNodeIds[i]);
-            filteredNodes.push_back(node.detachedness[i]);
-            nodeCount_++;
-        }
-    }
-    if (isSplitFile) {
-        updatedJson_["nodes"] = filteredNodes;
-    }
-    return;
-}
-void PbreaderJSMemoryParser::ParseEdges(int32_t fileId, const json &jMessage)
-{
-    if (traceDataCache_->isSplitFile_) {
-        return;
-    }
-    jsonns::Edges edge = jMessage.at("edges");
-    JsHeapEdgesRow row;
-    row.fileId = fileId;
-    for (size_t i = 0; i < edge.types.size(); ++i) {
-        row.edgeIndex = i;
-        row.type = edge.types[i];
-        row.nameOrIndex = edge.nameOrIndexes[i];
-        row.toNode = edge.toNodes[i];
-        row.fromNodeId = edge.fromNodeIds[i];
-        row.toNodeId = edge.toNodeIds[i];
-        (void)traceDataCache_->GetJsHeapEdgesData()->AppendNewData(row);
-    }
-    return;
-}
-void PbreaderJSMemoryParser::ParseLocation(int32_t fileId, const json &jMessage)
-{
-    if (traceDataCache_->isSplitFile_) {
-        return;
-    }
-    jsonns::Location location = jMessage.at("locations");
-    for (size_t i = 0; i < location.columns.size(); ++i) {
-        auto objectIndex = location.objectIndexes[i];
-        auto scriptId = location.scriptIds[i];
-        auto line = location.lines[i];
-        auto column = location.columns[i];
-        (void)traceDataCache_->GetJsHeapLocationData()->AppendNewData(fileId, objectIndex, scriptId, line, column);
-    }
-    return;
-}
-void PbreaderJSMemoryParser::ParseSample(int32_t fileId,
-                                         const json &jMessage,
-                                         uint64_t startTime,
-                                         uint64_t endTime,
-                                         bool isSplitFile)
-{
-    json filteredSamples = nlohmann::json::array();
-    jsonns::Sample sample = jMessage.at("samples");
-    uint32_t firstTimeStamp = INVALID_UINT32;
-    for (size_t i = 0; i < sample.timestampUs.size(); ++i) {
-        auto timestampUs = sample.timestampUs[i];
-        auto lastAssignedId = sample.lastAssignedIds[i];
-        if (!isSplitFile) {
-            (void)traceDataCache_->GetJsHeapSampleData()->AppendNewData(fileId, timestampUs, lastAssignedId);
-        }
-        uint64_t timestampNs = (uint64_t)timestampUs * 1000;
-        if (isSplitFile && startTime <= (GetPluginStartTime() + timestampNs) &&
-            endTime >= (GetPluginStartTime() + timestampNs)) {
-            if (firstTimeStamp == INVALID_UINT32) {
-                firstTimeStamp = timestampUs;
-            }
-            filteredSamples.push_back(timestampUs - firstTimeStamp);
-            filteredSamples.push_back(lastAssignedId);
-            nodeFileId_ = lastAssignedId;
-        }
-    }
-    if (isSplitFile) {
-        updatedJson_["samples"] = filteredSamples;
-    }
-    return;
-}
-void PbreaderJSMemoryParser::ParseString(int32_t fileId, const json &jMessage)
-{
-    if (traceDataCache_->isSplitFile_) {
-        return;
-    }
-    jsonns::Strings string = jMessage.at("strings");
-    for (size_t i = 0; i < string.strings.size(); ++i) {
-        (void)traceDataCache_->GetJsHeapStringData()->AppendNewData(fileId, i, string.strings[i]);
-    }
-    return;
-}
-void PbreaderJSMemoryParser::ParseTraceFuncInfo(int32_t fileId, const json &jMessage)
-{
-    if (traceDataCache_->isSplitFile_) {
-        return;
-    }
-    jsonns::TraceFuncInfo traceFuncInfo = jMessage.at("trace_function_infos");
-    JsHeapTraceFuncRow row;
-    row.fileId = fileId;
-    for (size_t i = 0; i < traceFuncInfo.functionIds.size(); ++i) {
-        row.functionIndex = i;
-        row.functionId = traceFuncInfo.functionIds[i];
-        row.name = traceFuncInfo.names[i];
-        row.scriptName = traceFuncInfo.scriptNames[i];
-        row.scriptId = traceFuncInfo.scriptIds[i];
-        row.line = traceFuncInfo.lines[i];
-        row.column = traceFuncInfo.columns[i];
-        (void)traceDataCache_->GetJsHeapTraceFuncInfoData()->AppendNewData(row);
-    }
-    return;
-}
-void PbreaderJSMemoryParser::ParseTraceNode(int32_t fileId, const json &jMessage)
-{
-    if (traceDataCache_->isSplitFile_) {
-        return;
-    }
-    JsHeapTraceNodeRow row;
-    row.fileId = fileId;
-    jsonns::TraceTree traceTree = jMessage.at("trace_tree");
-    for (size_t i = 0; i < traceTree.ids.size(); ++i) {
-        row.traceNodeId = traceTree.ids[i];
-        row.functionInfoIndex = traceTree.functionInfoIndexes[i];
-        row.count = traceTree.counts[i];
-        row.size = traceTree.sizes[i];
-        row.parentId = traceTree.parentIds[i];
-        (void)traceDataCache_->GetJsHeapTraceNodeData()->AppendNewData(row);
-    }
     return;
 }
 void PbreaderJSMemoryParser::ParseSnapshot(ProtoReader::BytesView &tracePacket,
@@ -800,14 +399,7 @@ void PbreaderJSMemoryParser::ParseSnapshot(ProtoReader::BytesView &tracePacket,
         return;
     }
     json jMessage = json::parse(jsonString);
-    ParserJSSnapInfo(fileId_, jMessage);
-    ParseNodes(fileId_, jMessage, INVALID_UINT64, false);
-    ParseEdges(fileId_, jMessage);
-    ParseLocation(fileId_, jMessage);
-    ParseSample(fileId_, jMessage, INVALID_UINT64, INVALID_UINT64, false);
-    ParseString(fileId_, jMessage);
-    ParseTraceFuncInfo(fileId_, jMessage);
-    ParseTraceNode(fileId_, jMessage);
+    selfSizeCount_ += jsHeapSnapshotFilter_->ParseSnapshot(fileId_, jMessage);
     if (traceDataCache_->isSplitFile_) {
         ts = streamFilters_->clockFilter_->ToPrimaryTraceTime(TS_CLOCK_REALTIME, ts);
         if (startTime_ >= traceDataCache_->SplitFileMinTime() && ts <= traceDataCache_->SplitFileMaxTime()) {
@@ -820,7 +412,6 @@ void PbreaderJSMemoryParser::ParseSnapshot(ProtoReader::BytesView &tracePacket,
         }
     }
     jsMemoryString_ = "";
-    streamFilters_->statFilter_->IncreaseStat(TRACE_JS_MEMORY, STAT_EVENT_RECEIVED);
     return;
 }
 void PbreaderJSMemoryParser::EnableSaveFile(bool enable)

@@ -115,15 +115,19 @@ export class SpArkTsChart implements ParseListener {
     let jsCpu = await queryJsCpuProfilerData();
     let jsMemory = await queryJsMemoryData();
     if (jsMemory.length > 0 || jsCpu.length > 0) {
+      //@ts-ignore
+      const pid = jsConfig[0].pid;
       this.folderRow = TraceRow.skeleton();
       //@ts-ignore
-      this.process = jsConfig[0].pid;
+      this.process = pid;
       this.folderRow.rowId = this.process;
       this.folderRow.rowType = TraceRow.ROW_TYPE_ARK_TS;
       this.folderRow.style.height = '40px';
       this.folderRow.rowParentId = '';
       this.folderRow.folder = true;
-      this.folderRow.name = `Ark Ts ${this.process}`;
+      // Omit pid in folder name when not available (e.g. heap-only).
+      const pidText = pid === null || pid === undefined ? '' : ` ${pid}`;
+      this.folderRow.name = `Ark Ts${pidText}`;
       this.folderRow.addTemplateTypes('ArkTs');
       this.folderRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
       this.folderRow.selectChangeHandler = this.trace.selectChangeHandler;

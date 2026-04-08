@@ -31,6 +31,7 @@ config("parser_base_cfg") {
     "${SRC}",
     ".",
     "ptreader_parser",
+    "ptreader_parser/js_parser",
     "pbreader_parser",
     "pbreader_parser/htrace_parser",
     "rawtrace_parser",

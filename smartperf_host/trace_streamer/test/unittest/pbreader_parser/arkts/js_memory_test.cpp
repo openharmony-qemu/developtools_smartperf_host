@@ -33,6 +33,66 @@
 using namespace testing::ext;
 using namespace SysTuning;
 using namespace SysTuning::TraceStreamer;
+
+namespace {
+constexpr int32_t TEST_PID = 1734;
+constexpr size_t EXPECTED_CHUNK_COUNT = 4;
+constexpr int64_t PARSE_TS_CHUNK1 = 10000;
+constexpr int64_t PARSE_TS_CHUNK2 = 11000;
+constexpr int64_t PARSE_TS_CHUNK3 = 12000;
+constexpr int64_t PARSE_TS_CHUNK4 = 13000;
+constexpr int32_t DEFAULT_PARSE_OFFSET = 0;
+constexpr size_t EXPECTED_JS_HEAP_FILE_COUNT = 1;
+constexpr int HEAP_TYPE_SNAPSHOT = 0;
+constexpr int HEAP_TYPE_TIMELINE = 1;
+constexpr uint32_t EXPECTED_NODE0_TYPE = 9;
+constexpr uint32_t EXPECTED_NODE0_NAME_INDEX = 25571;
+constexpr uint32_t EXPECTED_NODE0_NODE_ID = 1;
+constexpr uint32_t EXPECTED_NODE0_SELF_SIZE = 0;
+constexpr uint32_t EXPECTED_NODE0_EDGE_COUNT = 3575;
+constexpr uint32_t EXPECTED_NODE0_TRACE_NODE_ID = 0;
+constexpr uint32_t EXPECTED_NODE0_DETACHEDNESS = 0;
+constexpr uint32_t EXPECTED_EDGE0_TYPE = 5;
+constexpr uint32_t EXPECTED_EDGE0_NAME_OR_INDEX = 25572;
+constexpr uint32_t EXPECTED_EDGE0_TO_NODE = 1;
+constexpr uint32_t EXPECTED_EDGE_FROM_NODE_ID_0 = 1;
+constexpr uint32_t EXPECTED_EDGE_FROM_NODE_ID_1 = 3;
+constexpr uint32_t EXPECTED_EDGE_FROM_NODE_ID_4 = 9949;
+constexpr uint32_t EXPECTED_SAMPLE0_TIMESTAMP_US = 0;
+constexpr uint32_t EXPECTED_SAMPLE0_LAST_ASSIGNED_ID = 42570;
+constexpr uint32_t EXPECTED_SAMPLE1_TIMESTAMP_US = 200631;
+constexpr uint32_t EXPECTED_SAMPLE1_LAST_ASSIGNED_ID = 42571;
+constexpr uint32_t EXPECTED_SAMPLE2_TIMESTAMP_US = 401040;
+constexpr uint32_t EXPECTED_SAMPLE2_LAST_ASSIGNED_ID = 42572;
+constexpr uint32_t EXPECTED_SAMPLE3_TIMESTAMP_US = 601899;
+constexpr uint32_t EXPECTED_SAMPLE3_LAST_ASSIGNED_ID = 42573;
+constexpr uint32_t EXPECTED_TRACE_FUNC_FUNCTION_ID = 0;
+constexpr uint32_t EXPECTED_TRACE_FUNC_NAME = 181;
+constexpr uint32_t EXPECTED_TRACE_FUNC_SCRIPT_NAME = 1601;
+constexpr uint32_t EXPECTED_TRACE_FUNC_SCRIPT_ID = 0;
+constexpr uint32_t EXPECTED_TRACE_FUNC_LINE = 0;
+constexpr uint32_t EXPECTED_TRACE_FUNC_COLUMN = 0;
+constexpr int32_t EXPECTED_PARENT_ID_ROOT = -1;
+constexpr uint32_t EXPECTED_TRACE_NODE0_FUNC_INFO_IDX = 0;
+constexpr uint32_t EXPECTED_TRACE_NODE0_COUNT = 53;
+constexpr uint32_t EXPECTED_TRACE_NODE0_SIZE = 996;
+constexpr uint32_t EXPECTED_TRACE_NODE1_FUNC_INFO_IDX = 1;
+constexpr uint32_t EXPECTED_TRACE_NODE1_COUNT = 571;
+constexpr uint32_t EXPECTED_TRACE_NODE1_SIZE = 26580;
+constexpr uint32_t EXPECTED_TRACE_NODE2_FUNC_INFO_IDX = 2;
+constexpr uint32_t EXPECTED_TRACE_NODE2_COUNT = 5;
+constexpr uint32_t EXPECTED_TRACE_NODE2_SIZE = 248;
+constexpr uint32_t EXPECTED_TRACE_NODE10_FUNC_INFO_IDX = 10;
+constexpr uint32_t EXPECTED_TRACE_NODE10_COUNT = 10;
+constexpr uint32_t EXPECTED_TRACE_NODE10_SIZE = 348;
+constexpr size_t INDEX_0 = 0;
+constexpr size_t INDEX_1 = 1;
+constexpr size_t INDEX_2 = 2;
+constexpr size_t INDEX_3 = 3;
+constexpr size_t INDEX_4 = 4;
+constexpr size_t INDEX_10 = 10;
+} // namespace
+
 namespace SysTuning {
 namespace TraceStreamer {
 class JsMemoryTest : public ::testing::Test {
@@ -46,7 +106,7 @@ public:
 
     void SerializeConfig(ArkTSConfig_HeapType type)
     {
-        const int32_t pid = 1734;
+        const int32_t pid = TEST_PID;
         ArkTSConfig arkTSConfig;
         arkTSConfig.set_pid(pid);
         arkTSConfig.set_type(type);
@@ -394,51 +454,55 @@ public:
 HWTEST_F(JsMemoryTest, snapshotParserNodesByJsmemory, TestSize.Level1)
 {
     TS_LOGI("test35-1");
-    SerializeConfig(ArkTSConfig_HeapType(0));
+    SerializeConfig(ArkTSConfig_HeapType(HEAP_TYPE_SNAPSHOT));
     PbreaderJSMemoryParser htraceJSMemoryParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     ProtoReader::BytesView tracePacket(reinterpret_cast<const uint8_t *>(strConfig_.data()), strConfig_.size());
     htraceJSMemoryParser.ParseJSMemoryConfig(tracePacket);
 
     std::vector<std::string> strResultVec;
     SetSnapshotParserNodesByJsmemory(strResultVec);
-    ASSERT_EQ(4, strResultVec.size());
+    ASSERT_EQ(EXPECTED_CHUNK_COUNT, strResultVec.size());
     std::string strResult1 = strResultVec[0];
     std::string strResult2 = strResultVec[1];
     std::string strResult3 = strResultVec[2];
     std::string strResult4 = strResultVec[3];
     ProtoReader::BytesView tracePacket1(reinterpret_cast<const uint8_t *>(strResult1.data()), strResult1.size());
     ProfilerPluginDataHeader profilerPluginData;
-    htraceJSMemoryParser.Parse(tracePacket1, 10000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket1, PARSE_TS_CHUNK1, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
 
     ProtoReader::BytesView tracePacket2(reinterpret_cast<const uint8_t *>(strResult2.data()), strResult2.size());
-    htraceJSMemoryParser.Parse(tracePacket2, 11000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket2, PARSE_TS_CHUNK2, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
 
     ProtoReader::BytesView tracePacket3(reinterpret_cast<const uint8_t *>(strResult3.data()), strResult3.size());
-    htraceJSMemoryParser.Parse(tracePacket3, 12000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket3, PARSE_TS_CHUNK3, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
 
     ProtoReader::BytesView tracePacket4(reinterpret_cast<const uint8_t *>(strResult4.data()), strResult4.size());
-    htraceJSMemoryParser.Parse(tracePacket4, 13000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket4, PARSE_TS_CHUNK4, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
     htraceJSMemoryParser.Finish();
 
     auto jsHeapFilesData = stream_.traceDataCache_->GetConstJsHeapFilesData();
-    ASSERT_EQ(1, jsHeapFilesData.Size());
-    EXPECT_EQ("Snapshot0", jsHeapFilesData.FilePaths()[0]);
-    EXPECT_EQ(11000, jsHeapFilesData.StartTimes()[0]);
-    EXPECT_EQ(13000, jsHeapFilesData.EndTimes()[0]);
+    ASSERT_EQ(EXPECTED_JS_HEAP_FILE_COUNT, jsHeapFilesData.Size());
+    EXPECT_EQ("Snapshot0", jsHeapFilesData.FilePaths()[INDEX_0]);
+    EXPECT_EQ(PARSE_TS_CHUNK2, jsHeapFilesData.StartTimes()[INDEX_0]);
+    EXPECT_EQ(PARSE_TS_CHUNK4, jsHeapFilesData.EndTimes()[INDEX_0]);
     auto jsHeapNodesData = stream_.traceDataCache_->GetConstJsHeapNodesData();
-    EXPECT_EQ(9, jsHeapNodesData.Types()[0]);
-    EXPECT_EQ(25571, jsHeapNodesData.Names()[0]);
-    EXPECT_EQ(1, jsHeapNodesData.NodeIds()[0]);
-    EXPECT_EQ(0, jsHeapNodesData.SelfSizes()[0]);
-    EXPECT_EQ(3575, jsHeapNodesData.EdgeCounts()[0]);
-    EXPECT_EQ(0, jsHeapNodesData.TraceNodeIds()[0]);
-    EXPECT_EQ(0, jsHeapNodesData.DetachedNess()[0]);
+    EXPECT_EQ(EXPECTED_NODE0_TYPE, jsHeapNodesData.Types()[INDEX_0]);
+    EXPECT_EQ(EXPECTED_NODE0_NAME_INDEX, jsHeapNodesData.Names()[INDEX_0]);
+    EXPECT_EQ(EXPECTED_NODE0_NODE_ID, jsHeapNodesData.NodeIds()[INDEX_0]);
+    EXPECT_EQ(EXPECTED_NODE0_SELF_SIZE, jsHeapNodesData.SelfSizes()[INDEX_0]);
+    EXPECT_EQ(EXPECTED_NODE0_EDGE_COUNT, jsHeapNodesData.EdgeCounts()[INDEX_0]);
+    EXPECT_EQ(EXPECTED_NODE0_TRACE_NODE_ID, jsHeapNodesData.TraceNodeIds()[INDEX_0]);
+    EXPECT_EQ(EXPECTED_NODE0_DETACHEDNESS, jsHeapNodesData.DetachedNess()[INDEX_0]);
 }
 
 HWTEST_F(JsMemoryTest, snapshotParserEdgesByJsmemory, TestSize.Level1)
 {
     TS_LOGI("test35-2");
-    SerializeConfig(ArkTSConfig_HeapType(0));
+    SerializeConfig(ArkTSConfig_HeapType(HEAP_TYPE_SNAPSHOT));
     PbreaderJSMemoryParser htraceJSMemoryParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     ProtoReader::BytesView tracePacket(reinterpret_cast<const uint8_t *>(strConfig_.data()), strConfig_.size());
     htraceJSMemoryParser.ParseJSMemoryConfig(tracePacket);
@@ -451,33 +515,38 @@ HWTEST_F(JsMemoryTest, snapshotParserEdgesByJsmemory, TestSize.Level1)
     std::string strResult4 = strResultVec[3];
     ProtoReader::BytesView tracePacket1(reinterpret_cast<const uint8_t *>(strResult1.data()), strResult1.size());
     ProfilerPluginDataHeader profilerPluginData;
-    htraceJSMemoryParser.Parse(tracePacket1, 10000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket1, PARSE_TS_CHUNK1, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
 
     ProtoReader::BytesView tracePacket2(reinterpret_cast<const uint8_t *>(strResult2.data()), strResult2.size());
-    htraceJSMemoryParser.Parse(tracePacket2, 11000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket2, PARSE_TS_CHUNK2, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
 
     ProtoReader::BytesView tracePacket3(reinterpret_cast<const uint8_t *>(strResult3.data()), strResult3.size());
-    htraceJSMemoryParser.Parse(tracePacket3, 12000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket3, PARSE_TS_CHUNK3, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
 
     ProtoReader::BytesView tracePacket4(reinterpret_cast<const uint8_t *>(strResult4.data()), strResult4.size());
-    htraceJSMemoryParser.Parse(tracePacket4, 13000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket4, PARSE_TS_CHUNK4, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
     htraceJSMemoryParser.Finish();
 
     auto jsHeapEdgesData = stream_.traceDataCache_->GetConstJsHeapEdgesData();
-    EXPECT_EQ(5, jsHeapEdgesData.Types()[0]);
-    EXPECT_EQ(25572, jsHeapEdgesData.NameOrIndexs()[0]);
-    EXPECT_EQ(1, jsHeapEdgesData.ToNodes()[0]);
-    EXPECT_EQ(1, jsHeapEdgesData.FromNodeIds()[0]);
-    EXPECT_EQ(1, jsHeapEdgesData.FromNodeIds()[1]);
-    EXPECT_EQ(1, jsHeapEdgesData.FromNodeIds()[2]);
-    EXPECT_EQ(1, jsHeapEdgesData.FromNodeIds()[3]);
-    EXPECT_EQ(1, jsHeapEdgesData.FromNodeIds()[4]);
+    EXPECT_EQ(EXPECTED_EDGE0_TYPE, jsHeapEdgesData.Types()[INDEX_0]);
+    EXPECT_EQ(EXPECTED_EDGE0_NAME_OR_INDEX, jsHeapEdgesData.NameOrIndexs()[INDEX_0]);
+    EXPECT_EQ(EXPECTED_EDGE0_TO_NODE, jsHeapEdgesData.ToNodes()[INDEX_0]);
+
+    EXPECT_EQ(EXPECTED_EDGE_FROM_NODE_ID_0, jsHeapEdgesData.FromNodeIds()[INDEX_0]);
+    EXPECT_EQ(EXPECTED_EDGE_FROM_NODE_ID_1, jsHeapEdgesData.FromNodeIds()[INDEX_1]);
+    EXPECT_EQ(EXPECTED_EDGE_FROM_NODE_ID_1, jsHeapEdgesData.FromNodeIds()[INDEX_2]);
+    EXPECT_EQ(EXPECTED_EDGE_FROM_NODE_ID_1, jsHeapEdgesData.FromNodeIds()[INDEX_3]);
+    EXPECT_EQ(EXPECTED_EDGE_FROM_NODE_ID_4, jsHeapEdgesData.FromNodeIds()[INDEX_4]);
 }
 
 HWTEST_F(JsMemoryTest, timelineParserNodesByJsmemory, TestSize.Level1)
 {
     TS_LOGI("test35-3");
-    SerializeConfig(ArkTSConfig_HeapType(1));
+    SerializeConfig(ArkTSConfig_HeapType(HEAP_TYPE_TIMELINE));
     PbreaderJSMemoryParser htraceJSMemoryParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     ProtoReader::BytesView tracePacket(reinterpret_cast<const uint8_t *>(strConfig_.data()), strConfig_.size());
     htraceJSMemoryParser.ParseJSMemoryConfig(tracePacket);
@@ -490,37 +559,41 @@ HWTEST_F(JsMemoryTest, timelineParserNodesByJsmemory, TestSize.Level1)
     std::string strResult4 = strResultVec[3];
     ProtoReader::BytesView tracePacket1(reinterpret_cast<const uint8_t *>(strResult1.data()), strResult1.size());
     ProfilerPluginDataHeader profilerPluginData;
-    htraceJSMemoryParser.Parse(tracePacket1, 10000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket1, PARSE_TS_CHUNK1, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
 
     ProtoReader::BytesView tracePacket2(reinterpret_cast<const uint8_t *>(strResult2.data()), strResult2.size());
-    htraceJSMemoryParser.Parse(tracePacket2, 11000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket2, PARSE_TS_CHUNK2, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
 
     ProtoReader::BytesView tracePacket3(reinterpret_cast<const uint8_t *>(strResult3.data()), strResult3.size());
-    htraceJSMemoryParser.Parse(tracePacket3, 12000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket3, PARSE_TS_CHUNK3, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
 
     ProtoReader::BytesView tracePacket4(reinterpret_cast<const uint8_t *>(strResult4.data()), strResult4.size());
-    htraceJSMemoryParser.Parse(tracePacket4, 13000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket4, PARSE_TS_CHUNK4, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
     htraceJSMemoryParser.Finish();
 
     auto jsHeapFilesData = stream_.traceDataCache_->GetConstJsHeapFilesData();
-    ASSERT_EQ(1, jsHeapFilesData.Size());
-    EXPECT_EQ("Timeline", jsHeapFilesData.FilePaths()[0]);
-    EXPECT_EQ(10000, jsHeapFilesData.StartTimes()[0]);
-    EXPECT_EQ(13000, jsHeapFilesData.EndTimes()[0]);
+    ASSERT_EQ(EXPECTED_JS_HEAP_FILE_COUNT, jsHeapFilesData.Size());
+    EXPECT_EQ("Timeline", jsHeapFilesData.FilePaths()[INDEX_0]);
+    EXPECT_EQ(PARSE_TS_CHUNK1, jsHeapFilesData.StartTimes()[INDEX_0]);
+    EXPECT_EQ(PARSE_TS_CHUNK4, jsHeapFilesData.EndTimes()[INDEX_0]);
     auto jsHeapNodesData = stream_.traceDataCache_->GetConstJsHeapNodesData();
-    EXPECT_EQ(9, jsHeapNodesData.Types()[0]);
-    EXPECT_EQ(25571, jsHeapNodesData.Names()[0]);
-    EXPECT_EQ(1, jsHeapNodesData.NodeIds()[0]);
-    EXPECT_EQ(0, jsHeapNodesData.SelfSizes()[0]);
-    EXPECT_EQ(3575, jsHeapNodesData.EdgeCounts()[0]);
-    EXPECT_EQ(0, jsHeapNodesData.TraceNodeIds()[0]);
-    EXPECT_EQ(0, jsHeapNodesData.DetachedNess()[0]);
+    EXPECT_EQ(EXPECTED_NODE0_TYPE, jsHeapNodesData.Types()[INDEX_0]);
+    EXPECT_EQ(EXPECTED_NODE0_NAME_INDEX, jsHeapNodesData.Names()[INDEX_0]);
+    EXPECT_EQ(EXPECTED_NODE0_NODE_ID, jsHeapNodesData.NodeIds()[INDEX_0]);
+    EXPECT_EQ(EXPECTED_NODE0_SELF_SIZE, jsHeapNodesData.SelfSizes()[INDEX_0]);
+    EXPECT_EQ(EXPECTED_NODE0_EDGE_COUNT, jsHeapNodesData.EdgeCounts()[INDEX_0]);
+    EXPECT_EQ(EXPECTED_NODE0_TRACE_NODE_ID, jsHeapNodesData.TraceNodeIds()[INDEX_0]);
+    EXPECT_EQ(EXPECTED_NODE0_DETACHEDNESS, jsHeapNodesData.DetachedNess()[INDEX_0]);
 }
 
 HWTEST_F(JsMemoryTest, timelineParserEdgesByJsmemory, TestSize.Level1)
 {
     TS_LOGI("test35-4");
-    SerializeConfig(ArkTSConfig_HeapType(1));
+    SerializeConfig(ArkTSConfig_HeapType(HEAP_TYPE_TIMELINE));
     PbreaderJSMemoryParser htraceJSMemoryParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     ProtoReader::BytesView tracePacket(reinterpret_cast<const uint8_t *>(strConfig_.data()), strConfig_.size());
     htraceJSMemoryParser.ParseJSMemoryConfig(tracePacket);
@@ -533,33 +606,38 @@ HWTEST_F(JsMemoryTest, timelineParserEdgesByJsmemory, TestSize.Level1)
     std::string strResult4 = strResultVec[3];
     ProtoReader::BytesView tracePacket1(reinterpret_cast<const uint8_t *>(strResult1.data()), strResult1.size());
     ProfilerPluginDataHeader profilerPluginData;
-    htraceJSMemoryParser.Parse(tracePacket1, 10000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket1, PARSE_TS_CHUNK1, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
 
     ProtoReader::BytesView tracePacket2(reinterpret_cast<const uint8_t *>(strResult2.data()), strResult2.size());
-    htraceJSMemoryParser.Parse(tracePacket2, 11000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket2, PARSE_TS_CHUNK2, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
 
     ProtoReader::BytesView tracePacket3(reinterpret_cast<const uint8_t *>(strResult3.data()), strResult3.size());
-    htraceJSMemoryParser.Parse(tracePacket3, 12000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket3, PARSE_TS_CHUNK3, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
 
     ProtoReader::BytesView tracePacket4(reinterpret_cast<const uint8_t *>(strResult4.data()), strResult4.size());
-    htraceJSMemoryParser.Parse(tracePacket4, 13000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket4, PARSE_TS_CHUNK4, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
     htraceJSMemoryParser.Finish();
 
     auto jsHeapEdgesData = stream_.traceDataCache_->GetConstJsHeapEdgesData();
-    EXPECT_EQ(5, jsHeapEdgesData.Types()[0]);
-    EXPECT_EQ(25572, jsHeapEdgesData.NameOrIndexs()[0]);
-    EXPECT_EQ(1, jsHeapEdgesData.ToNodes()[0]);
-    EXPECT_EQ(1, jsHeapEdgesData.FromNodeIds()[0]);
-    EXPECT_EQ(1, jsHeapEdgesData.FromNodeIds()[1]);
-    EXPECT_EQ(1, jsHeapEdgesData.FromNodeIds()[2]);
-    EXPECT_EQ(1, jsHeapEdgesData.FromNodeIds()[3]);
-    EXPECT_EQ(1, jsHeapEdgesData.FromNodeIds()[4]);
+    EXPECT_EQ(EXPECTED_EDGE0_TYPE, jsHeapEdgesData.Types()[INDEX_0]);
+    EXPECT_EQ(EXPECTED_EDGE0_NAME_OR_INDEX, jsHeapEdgesData.NameOrIndexs()[INDEX_0]);
+    EXPECT_EQ(EXPECTED_EDGE0_TO_NODE, jsHeapEdgesData.ToNodes()[INDEX_0]);
+
+    EXPECT_EQ(EXPECTED_EDGE_FROM_NODE_ID_0, jsHeapEdgesData.FromNodeIds()[INDEX_0]);
+    EXPECT_EQ(EXPECTED_EDGE_FROM_NODE_ID_1, jsHeapEdgesData.FromNodeIds()[INDEX_1]);
+    EXPECT_EQ(EXPECTED_EDGE_FROM_NODE_ID_1, jsHeapEdgesData.FromNodeIds()[INDEX_2]);
+    EXPECT_EQ(EXPECTED_EDGE_FROM_NODE_ID_1, jsHeapEdgesData.FromNodeIds()[INDEX_3]);
+    EXPECT_EQ(EXPECTED_EDGE_FROM_NODE_ID_4, jsHeapEdgesData.FromNodeIds()[INDEX_4]);
 }
 
 HWTEST_F(JsMemoryTest, timelineParserSamplesByJsmemory, TestSize.Level1)
 {
     TS_LOGI("test35-5");
-    SerializeConfig(ArkTSConfig_HeapType(1));
+    SerializeConfig(ArkTSConfig_HeapType(HEAP_TYPE_TIMELINE));
     PbreaderJSMemoryParser htraceJSMemoryParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     ProtoReader::BytesView tracePacket(reinterpret_cast<const uint8_t *>(strConfig_.data()), strConfig_.size());
     htraceJSMemoryParser.ParseJSMemoryConfig(tracePacket);
@@ -572,33 +650,37 @@ HWTEST_F(JsMemoryTest, timelineParserSamplesByJsmemory, TestSize.Level1)
     std::string strResult4 = strResultVec[3];
     ProtoReader::BytesView tracePacket1(reinterpret_cast<const uint8_t *>(strResult1.data()), strResult1.size());
     ProfilerPluginDataHeader profilerPluginData;
-    htraceJSMemoryParser.Parse(tracePacket1, 10000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket1, PARSE_TS_CHUNK1, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
 
     ProtoReader::BytesView tracePacket2(reinterpret_cast<const uint8_t *>(strResult2.data()), strResult2.size());
-    htraceJSMemoryParser.Parse(tracePacket2, 11000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket2, PARSE_TS_CHUNK2, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
 
     ProtoReader::BytesView tracePacket3(reinterpret_cast<const uint8_t *>(strResult3.data()), strResult3.size());
-    htraceJSMemoryParser.Parse(tracePacket3, 12000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket3, PARSE_TS_CHUNK3, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
 
     ProtoReader::BytesView tracePacket4(reinterpret_cast<const uint8_t *>(strResult4.data()), strResult4.size());
-    htraceJSMemoryParser.Parse(tracePacket4, 13000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket4, PARSE_TS_CHUNK4, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
     htraceJSMemoryParser.Finish();
 
     auto jsHeapSampleData = stream_.traceDataCache_->GetConstJsHeapSampleData();
-    EXPECT_EQ(0, jsHeapSampleData.TimeStampUs()[0]);
-    EXPECT_EQ(42570, jsHeapSampleData.LastAssignedIds()[0]);
-    EXPECT_EQ(200631, jsHeapSampleData.TimeStampUs()[1]);
-    EXPECT_EQ(42571, jsHeapSampleData.LastAssignedIds()[1]);
-    EXPECT_EQ(401040, jsHeapSampleData.TimeStampUs()[2]);
-    EXPECT_EQ(42572, jsHeapSampleData.LastAssignedIds()[2]);
-    EXPECT_EQ(601899, jsHeapSampleData.TimeStampUs()[3]);
-    EXPECT_EQ(42573, jsHeapSampleData.LastAssignedIds()[3]);
+    EXPECT_EQ(EXPECTED_SAMPLE0_TIMESTAMP_US, jsHeapSampleData.TimeStampUs()[INDEX_0]);
+    EXPECT_EQ(EXPECTED_SAMPLE0_LAST_ASSIGNED_ID, jsHeapSampleData.LastAssignedIds()[INDEX_0]);
+    EXPECT_EQ(EXPECTED_SAMPLE1_TIMESTAMP_US, jsHeapSampleData.TimeStampUs()[INDEX_1]);
+    EXPECT_EQ(EXPECTED_SAMPLE1_LAST_ASSIGNED_ID, jsHeapSampleData.LastAssignedIds()[INDEX_1]);
+    EXPECT_EQ(EXPECTED_SAMPLE2_TIMESTAMP_US, jsHeapSampleData.TimeStampUs()[INDEX_2]);
+    EXPECT_EQ(EXPECTED_SAMPLE2_LAST_ASSIGNED_ID, jsHeapSampleData.LastAssignedIds()[INDEX_2]);
+    EXPECT_EQ(EXPECTED_SAMPLE3_TIMESTAMP_US, jsHeapSampleData.TimeStampUs()[INDEX_3]);
+    EXPECT_EQ(EXPECTED_SAMPLE3_LAST_ASSIGNED_ID, jsHeapSampleData.LastAssignedIds()[INDEX_3]);
 }
 
 HWTEST_F(JsMemoryTest, timelineParserStringsByJsmemory, TestSize.Level1)
 {
     TS_LOGI("test35-6");
-    SerializeConfig(ArkTSConfig_HeapType(1));
+    SerializeConfig(ArkTSConfig_HeapType(HEAP_TYPE_TIMELINE));
     PbreaderJSMemoryParser htraceJSMemoryParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     ProtoReader::BytesView tracePacket(reinterpret_cast<const uint8_t *>(strConfig_.data()), strConfig_.size());
     htraceJSMemoryParser.ParseJSMemoryConfig(tracePacket);
@@ -611,30 +693,34 @@ HWTEST_F(JsMemoryTest, timelineParserStringsByJsmemory, TestSize.Level1)
     std::string strResult4 = strResultVec[3];
     ProtoReader::BytesView tracePacket1(reinterpret_cast<const uint8_t *>(strResult1.data()), strResult1.size());
     ProfilerPluginDataHeader profilerPluginData;
-    htraceJSMemoryParser.Parse(tracePacket1, 10000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket1, PARSE_TS_CHUNK1, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
 
     ProtoReader::BytesView tracePacket2(reinterpret_cast<const uint8_t *>(strResult2.data()), strResult2.size());
-    htraceJSMemoryParser.Parse(tracePacket2, 11000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket2, PARSE_TS_CHUNK2, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
 
     ProtoReader::BytesView tracePacket3(reinterpret_cast<const uint8_t *>(strResult3.data()), strResult3.size());
-    htraceJSMemoryParser.Parse(tracePacket3, 12000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket3, PARSE_TS_CHUNK3, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
 
     ProtoReader::BytesView tracePacket4(reinterpret_cast<const uint8_t *>(strResult4.data()), strResult4.size());
-    htraceJSMemoryParser.Parse(tracePacket4, 13000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket4, PARSE_TS_CHUNK4, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
     htraceJSMemoryParser.Finish();
 
     auto jsHeapStringData = stream_.traceDataCache_->GetConstJsHeapStringData();
-    EXPECT_EQ("<dummy>", jsHeapStringData.Strings()[0]);
-    EXPECT_EQ("", jsHeapStringData.Strings()[1]);
-    EXPECT_EQ("GC roots", jsHeapStringData.Strings()[2]);
-    EXPECT_EQ("TaggedDict[52]", jsHeapStringData.Strings()[3]);
-    EXPECT_EQ("JSFunction", jsHeapStringData.Strings()[4]);
+    EXPECT_EQ("<dummy>", jsHeapStringData.Strings()[INDEX_0]);
+    EXPECT_EQ("", jsHeapStringData.Strings()[INDEX_1]);
+    EXPECT_EQ("GC roots", jsHeapStringData.Strings()[INDEX_2]);
+    EXPECT_EQ("TaggedDict[52]", jsHeapStringData.Strings()[INDEX_3]);
+    EXPECT_EQ("JSFunction", jsHeapStringData.Strings()[INDEX_4]);
 }
 
 HWTEST_F(JsMemoryTest, timelineParserTraceFuncInfoByJsmemory, TestSize.Level1)
 {
     TS_LOGI("test35-7");
-    SerializeConfig(ArkTSConfig_HeapType(1));
+    SerializeConfig(ArkTSConfig_HeapType(HEAP_TYPE_TIMELINE));
     PbreaderJSMemoryParser htraceJSMemoryParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     ProtoReader::BytesView tracePacket(reinterpret_cast<const uint8_t *>(strConfig_.data()), strConfig_.size());
     htraceJSMemoryParser.ParseJSMemoryConfig(tracePacket);
@@ -647,31 +733,35 @@ HWTEST_F(JsMemoryTest, timelineParserTraceFuncInfoByJsmemory, TestSize.Level1)
     std::string strResult4 = strResultVec[3];
     ProtoReader::BytesView tracePacket1(reinterpret_cast<const uint8_t *>(strResult1.data()), strResult1.size());
     ProfilerPluginDataHeader profilerPluginData;
-    htraceJSMemoryParser.Parse(tracePacket1, 10000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket1, PARSE_TS_CHUNK1, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
 
     ProtoReader::BytesView tracePacket2(reinterpret_cast<const uint8_t *>(strResult2.data()), strResult2.size());
-    htraceJSMemoryParser.Parse(tracePacket2, 11000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket2, PARSE_TS_CHUNK2, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
 
     ProtoReader::BytesView tracePacket3(reinterpret_cast<const uint8_t *>(strResult3.data()), strResult3.size());
-    htraceJSMemoryParser.Parse(tracePacket3, 12000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket3, PARSE_TS_CHUNK3, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
 
     ProtoReader::BytesView tracePacket4(reinterpret_cast<const uint8_t *>(strResult4.data()), strResult4.size());
-    htraceJSMemoryParser.Parse(tracePacket4, 13000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket4, PARSE_TS_CHUNK4, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
     htraceJSMemoryParser.Finish();
 
     auto jsHeapTraceFuncInfoData = stream_.traceDataCache_->GetConstJsHeapTraceFuncInfoData();
-    EXPECT_EQ(0, jsHeapTraceFuncInfoData.FunctionIds()[0]);
-    EXPECT_EQ(181, jsHeapTraceFuncInfoData.Names()[0]);
-    EXPECT_EQ(1601, jsHeapTraceFuncInfoData.ScriptNames()[0]);
-    EXPECT_EQ(0, jsHeapTraceFuncInfoData.ScriptIds()[0]);
-    EXPECT_EQ(0, jsHeapTraceFuncInfoData.Lines()[0]);
-    EXPECT_EQ(0, jsHeapTraceFuncInfoData.Columns()[0]);
+    EXPECT_EQ(EXPECTED_TRACE_FUNC_FUNCTION_ID, jsHeapTraceFuncInfoData.FunctionIds()[INDEX_0]);
+    EXPECT_EQ(EXPECTED_TRACE_FUNC_NAME, jsHeapTraceFuncInfoData.Names()[INDEX_0]);
+    EXPECT_EQ(EXPECTED_TRACE_FUNC_SCRIPT_NAME, jsHeapTraceFuncInfoData.ScriptNames()[INDEX_0]);
+    EXPECT_EQ(EXPECTED_TRACE_FUNC_SCRIPT_ID, jsHeapTraceFuncInfoData.ScriptIds()[INDEX_0]);
+    EXPECT_EQ(EXPECTED_TRACE_FUNC_LINE, jsHeapTraceFuncInfoData.Lines()[INDEX_0]);
+    EXPECT_EQ(EXPECTED_TRACE_FUNC_COLUMN, jsHeapTraceFuncInfoData.Columns()[INDEX_0]);
 }
 
 HWTEST_F(JsMemoryTest, timelineParserTraceTreeByJsmemory, TestSize.Level1)
 {
     TS_LOGI("test35-8");
-    SerializeConfig(ArkTSConfig_HeapType(1));
+    SerializeConfig(ArkTSConfig_HeapType(HEAP_TYPE_TIMELINE));
     PbreaderJSMemoryParser htraceJSMemoryParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
     ProtoReader::BytesView tracePacket(reinterpret_cast<const uint8_t *>(strConfig_.data()), strConfig_.size());
     htraceJSMemoryParser.ParseJSMemoryConfig(tracePacket);
@@ -684,37 +774,41 @@ HWTEST_F(JsMemoryTest, timelineParserTraceTreeByJsmemory, TestSize.Level1)
     std::string strResult4 = strResultVec[3];
     ProtoReader::BytesView tracePacket1(reinterpret_cast<const uint8_t *>(strResult1.data()), strResult1.size());
     ProfilerPluginDataHeader profilerPluginData;
-    htraceJSMemoryParser.Parse(tracePacket1, 10000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket1, PARSE_TS_CHUNK1, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
 
     ProtoReader::BytesView tracePacket2(reinterpret_cast<const uint8_t *>(strResult2.data()), strResult2.size());
-    htraceJSMemoryParser.Parse(tracePacket2, 11000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket2, PARSE_TS_CHUNK2, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
 
     ProtoReader::BytesView tracePacket3(reinterpret_cast<const uint8_t *>(strResult3.data()), strResult3.size());
-    htraceJSMemoryParser.Parse(tracePacket3, 12000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket3, PARSE_TS_CHUNK3, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
 
     ProtoReader::BytesView tracePacket4(reinterpret_cast<const uint8_t *>(strResult4.data()), strResult4.size());
-    htraceJSMemoryParser.Parse(tracePacket4, 13000, 0, 0, profilerPluginData);
+    htraceJSMemoryParser.Parse(tracePacket4, PARSE_TS_CHUNK4, DEFAULT_PARSE_OFFSET, DEFAULT_PARSE_OFFSET,
+                               profilerPluginData);
     htraceJSMemoryParser.Finish();
 
     auto jsHeapTraceNodeData = stream_.traceDataCache_->GetConstJsHeapTraceNodeData();
-    EXPECT_EQ(0, jsHeapTraceNodeData.FunctionInfoIndexs()[0]);
-    EXPECT_EQ(53, jsHeapTraceNodeData.Counts()[0]);
-    EXPECT_EQ(996, jsHeapTraceNodeData.NodeSizes()[0]);
-    EXPECT_EQ(-1, jsHeapTraceNodeData.ParentIds()[0]);
-    EXPECT_EQ(1, jsHeapTraceNodeData.FunctionInfoIndexs()[1]);
-    EXPECT_EQ(571, jsHeapTraceNodeData.Counts()[1]);
-    EXPECT_EQ(26580, jsHeapTraceNodeData.NodeSizes()[1]);
-    EXPECT_EQ(1, jsHeapTraceNodeData.ParentIds()[1]);
-    EXPECT_EQ(2, jsHeapTraceNodeData.FunctionInfoIndexs()[2]);
-    EXPECT_EQ(5, jsHeapTraceNodeData.Counts()[2]);
-    EXPECT_EQ(248, jsHeapTraceNodeData.NodeSizes()[2]);
-    EXPECT_EQ(1, jsHeapTraceNodeData.ParentIds()[2]);
-    EXPECT_EQ(3, jsHeapTraceNodeData.ParentIds()[3]);
-    EXPECT_EQ(4, jsHeapTraceNodeData.ParentIds()[4]);
-    EXPECT_EQ(10, jsHeapTraceNodeData.FunctionInfoIndexs()[10]);
-    EXPECT_EQ(10, jsHeapTraceNodeData.Counts()[10]);
-    EXPECT_EQ(348, jsHeapTraceNodeData.NodeSizes()[10]);
-    EXPECT_EQ(1, jsHeapTraceNodeData.ParentIds()[10]);
+    EXPECT_EQ(EXPECTED_TRACE_NODE0_FUNC_INFO_IDX, jsHeapTraceNodeData.FunctionInfoIndexs()[INDEX_0]);
+    EXPECT_EQ(EXPECTED_TRACE_NODE0_COUNT, jsHeapTraceNodeData.Counts()[INDEX_0]);
+    EXPECT_EQ(EXPECTED_TRACE_NODE0_SIZE, jsHeapTraceNodeData.NodeSizes()[INDEX_0]);
+    EXPECT_EQ(EXPECTED_PARENT_ID_ROOT, jsHeapTraceNodeData.ParentIds()[INDEX_0]);
+    EXPECT_EQ(EXPECTED_TRACE_NODE1_FUNC_INFO_IDX, jsHeapTraceNodeData.FunctionInfoIndexs()[INDEX_1]);
+    EXPECT_EQ(EXPECTED_TRACE_NODE1_COUNT, jsHeapTraceNodeData.Counts()[INDEX_1]);
+    EXPECT_EQ(EXPECTED_TRACE_NODE1_SIZE, jsHeapTraceNodeData.NodeSizes()[INDEX_1]);
+    EXPECT_EQ(INDEX_1, jsHeapTraceNodeData.ParentIds()[INDEX_1]);
+    EXPECT_EQ(EXPECTED_TRACE_NODE2_FUNC_INFO_IDX, jsHeapTraceNodeData.FunctionInfoIndexs()[INDEX_2]);
+    EXPECT_EQ(EXPECTED_TRACE_NODE2_COUNT, jsHeapTraceNodeData.Counts()[INDEX_2]);
+    EXPECT_EQ(EXPECTED_TRACE_NODE2_SIZE, jsHeapTraceNodeData.NodeSizes()[INDEX_2]);
+    EXPECT_EQ(INDEX_1, jsHeapTraceNodeData.ParentIds()[INDEX_2]);
+    EXPECT_EQ(INDEX_3, jsHeapTraceNodeData.ParentIds()[INDEX_3]);
+    EXPECT_EQ(INDEX_4, jsHeapTraceNodeData.ParentIds()[INDEX_4]);
+    EXPECT_EQ(EXPECTED_TRACE_NODE10_FUNC_INFO_IDX, jsHeapTraceNodeData.FunctionInfoIndexs()[INDEX_10]);
+    EXPECT_EQ(EXPECTED_TRACE_NODE10_COUNT, jsHeapTraceNodeData.Counts()[INDEX_10]);
+    EXPECT_EQ(EXPECTED_TRACE_NODE10_SIZE, jsHeapTraceNodeData.NodeSizes()[INDEX_10]);
+    EXPECT_EQ(INDEX_1, jsHeapTraceNodeData.ParentIds()[INDEX_10]);
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

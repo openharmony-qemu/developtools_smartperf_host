@@ -25,6 +25,9 @@ ohos_source_set("ptreader_parser_src") {
   if (enable_hisysevent) {
     public_deps += [ "hisysevent_parser:ptreader_hisysevent_parser" ]
   }
+  if (enable_arkts) {
+    public_deps += [ "js_parser:ptreader_js_memory_parser" ]
+  }
   if (enable_bytrace) {
     public_deps += [ "bytrace_parser:ptreader_bytrace_parser" ]
   }
