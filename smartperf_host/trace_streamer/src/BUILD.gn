@@ -105,6 +105,7 @@ ohos_source_set("trace_streamer_source") {
     ":ts_sqlite",
     "base:base",
     "filter:filter",
+    "filter/js_heap_snapshot_filter:js_heap_snapshot_filter",
     "metrics:metrics_parser",
     "parser:parser",
     "parser/hiperf_parser:libsec_static",

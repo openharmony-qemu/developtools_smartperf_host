@@ -104,7 +104,9 @@ const initHtmlStyle = `
             /*margin: 0px 10px;*/
             padding-left: 10px;
             padding-right: 10px;
-            pointer-events: none    ;
+            overflow: hidden;
+            align-content: start;
+            pointer-events: none;
         }
         .name{
             flex: 1;
@@ -149,6 +151,62 @@ export class LitChartPie extends BaseElement {
   data: Sector[] = [];
   radius: number | undefined;
   private textRects: Rectangle[] = [];
+
+  /**
+   * 更新饼图的几何布局参数
+   * 计算并设置饼图的半径、中心坐标以及标签区域的高度
+   * 根据容器尺寸动态调整图表布局以适应不同屏幕尺寸
+   */
+  private updateGeometry(): void {
+    // 获取图表容器的尺寸
+    const chartWidth = this.clientWidth;
+    const chartHeight = this.clientHeight;
+    
+    // 定义标签布局相关常量
+    const labelColumns = 5;
+    const labelRowHeight = 20;
+    const labelPadding = 6;
+    const baseLabelRows = 4;
+    const minLabelHeight = 52;
+    const chartTopPadding = 4;
+    const chartBottomPadding = 0;
+    
+    // 计算基础标签区域高度，不超过图表高度的55%
+    const baseLabelsHeight = Math.min(
+      baseLabelRows * labelRowHeight + labelPadding,
+      Math.floor(chartHeight * 0.55)
+    );
+    
+    // 计算图表主体区域高度
+    const baseChartBodyHeight = Math.max(chartHeight - baseLabelsHeight - chartTopPadding - chartBottomPadding, 0);
+    
+    // 确定饼图的最小边长并计算半径
+    const pieMinEdge = Math.min(chartWidth, baseChartBodyHeight);
+    this.radius = (pieMinEdge * 0.92) / 2 - 2;
+    
+    // 计算饼图中心坐标位置
+    this.centerX = chartWidth / 2 + Math.min(Math.max(Math.floor(chartWidth * 0.02), 6), 12);
+    this.centerY = chartTopPadding + baseChartBodyHeight / 2;
+    
+    // 动态调整标签区域高度
+    if (this.labelsEL) {
+      const labelRows = Math.max(Math.ceil((this.litChartPieConfig?.data.length || 0) / labelColumns), 1);
+      const labelsHeight = Math.min(
+        Math.max(labelRows * labelRowHeight + labelPadding, minLabelHeight),
+        Math.floor(chartHeight * 0.45)
+      );
+      this.labelsEL.style.height = `${labelsHeight}px`;
+    }
+  }
+
+  private updateCanvasTransform(): void {
+    if (!this.ctx) {
+      return;
+    }
+    const dpr = window.devicePixelRatio || 1;
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    this.ctx.translate(this.centerX || 0, this.centerY || 0);
+  }
 
   set config(litChartPieCfg: LitChartPieConfig | null | undefined) {
     if (!litChartPieCfg) {
@@ -196,7 +254,7 @@ export class LitChartPie extends BaseElement {
 
   measureInitialize(): void {
     this.data = [];
-    this.radius = (Math.min(this.clientHeight, this.clientWidth) * 0.65) / 2 - 10;
+    this.updateGeometry();
     this.labelsEL!.textContent = '';
   }
 
@@ -298,10 +356,8 @@ export class LitChartPie extends BaseElement {
     this.canvas = this.shadowRoot!.querySelector<HTMLCanvasElement>('#canvas');
     this.ctx = this.canvas!.getContext('2d', { alpha: true });
     resizeCanvas(this.canvas!);
-    this.radius = (Math.min(this.clientHeight, this.clientWidth) * 0.65) / 2 - 10;
-    this.centerX = this.clientWidth / 2;
-    this.centerY = this.clientHeight / 2 - 40;
-    this.ctx?.translate(this.centerX, this.centerY);
+    this.updateGeometry();
+    this.updateCanvasTransform();
     this.canvas!.onmouseout = (e): void => {
       this.hideTip();
       this.data.forEach((it) => {
@@ -356,9 +412,8 @@ export class LitChartPie extends BaseElement {
     new ResizeObserver((entries, observer) => {
       entries.forEach((it) => {
         resizeCanvas(this.canvas!);
-        this.centerX = this.clientWidth / 2;
-        this.centerY = this.clientHeight / 2 - 40;
-        this.ctx?.translate(this.centerX, this.centerY);
+        this.updateGeometry();
+        this.updateCanvasTransform();
         this.measure();
         this.render();
       });

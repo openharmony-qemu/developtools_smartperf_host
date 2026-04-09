@@ -663,6 +663,7 @@ export class MemoryAnalysisDataLogic {
     if (res.length > PIE_CHART_LIMIT) {
       let pieChartArr: AnalysisObj[] = [];
       let other: AnalysisObj = new AnalysisObj(0, 0, 0, 0);
+      other.tableName = 'other';
       for (let i = 0; i < res.length; i++) {
         if (i < PIE_CHART_LIMIT - 1) {
           pieChartArr.push(res[i]);

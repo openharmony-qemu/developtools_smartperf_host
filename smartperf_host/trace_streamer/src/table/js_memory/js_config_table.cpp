@@ -55,27 +55,28 @@ JsConfigTable::Cursor::~Cursor() {}
 
 int32_t JsConfigTable::Cursor::Column(int32_t col) const
 {
+    // INVALID_UINT32 yields SQL NULL for optional config (e.g. heap-only has no pid).
     switch (static_cast<Index>(col)) {
         case Index::PID:
-            sqlite3_result_int64(context_, static_cast<int64_t>(jsConfig_.Pids()[CurrentRow()]));
+            SetTypeColumnInt64(jsConfig_.Pids()[CurrentRow()], INVALID_UINT32);
             break;
         case Index::TYPE:
             sqlite3_result_int64(context_, static_cast<int64_t>(jsConfig_.Types()[CurrentRow()]));
             break;
         case Index::INTERVAL:
-            sqlite3_result_int64(context_, static_cast<int64_t>(jsConfig_.Intervals()[CurrentRow()]));
+            SetTypeColumnInt64(jsConfig_.Intervals()[CurrentRow()], INVALID_UINT32);
             break;
         case Index::CAPTURE_NUMERIC_VALUE:
-            sqlite3_result_int64(context_, static_cast<int64_t>(jsConfig_.CaptureNumericValue()[CurrentRow()]));
+            SetTypeColumnInt64(jsConfig_.CaptureNumericValue()[CurrentRow()], INVALID_UINT32);
             break;
         case Index::TRACK_ALLOCATION:
-            sqlite3_result_int64(context_, static_cast<int64_t>(jsConfig_.TrackAllocations()[CurrentRow()]));
+            SetTypeColumnInt64(jsConfig_.TrackAllocations()[CurrentRow()], INVALID_UINT32);
             break;
         case Index::CPU_PROFILER:
-            sqlite3_result_int64(context_, static_cast<int64_t>(jsConfig_.CpuProfiler()[CurrentRow()]));
+            SetTypeColumnInt64(jsConfig_.CpuProfiler()[CurrentRow()], INVALID_UINT32);
             break;
         case Index::CPU_PROFILER_INTERVAL:
-            sqlite3_result_int64(context_, static_cast<int64_t>(jsConfig_.CpuProfilerInterval()[CurrentRow()]));
+            SetTypeColumnInt64(jsConfig_.CpuProfilerInterval()[CurrentRow()], INVALID_UINT32);
             break;
         default:
             TS_LOGF("Unregistered column : %d", col);

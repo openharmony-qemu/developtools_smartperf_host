@@ -31,6 +31,9 @@
 #ifdef ENABLE_HISYSEVENT
 #include "ptreader_hisysevent_parser.h"
 #endif
+#ifdef ENABLE_ARKTS
+#include "ptreader_js_memory_parser.h"
+#endif // ENABLE_ARKTS
 #include "parser_base.h"
 #include "string_to_numerical.h"
 #include "trace_data_cache.h"
@@ -97,6 +100,10 @@ public:
 private:
     bool UpdateSplitPos();
     void ParseTraceDataItem(const std::string &buffer) override;
+#ifdef ENABLE_ARKTS
+    void ParseHeapSegment(const uint8_t *data, size_t size, bool isFinish);
+#endif
+    void ProcessPackagesByLines(bool isFinish);
 #ifdef ENABLE_BYTRACE
     int32_t GetNextSegment();
     void GetDataSegAttr(DataSegment &seg, const std::smatch &matcheLine) const;
@@ -140,6 +147,10 @@ private:
 #ifdef ENABLE_HISYSEVENT
     std::unique_ptr<PtreaderHiSysEventParser> hiSysEventParser_;
 #endif
+#ifdef ENABLE_ARKTS
+    std::unique_ptr<PtreaderJsMemoryParser> jsMemoryParser_;
+    std::string jsMemoryBuffer_;
+#endif // ENABLE_ARKTS
     bool isParsingOver_ = false;
     const std::string script_ = R"(</script>)";
     size_t parsedTraceValidLines_ = 0;
