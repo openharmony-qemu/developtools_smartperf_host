@@ -142,7 +142,7 @@ func genSSL() {
 		IPAddresses:  []net.IP{net.ParseIP("127.0.0.1")},
 	}
 	chekDir("cert")
-	pk, _ := rsa.GenerateKey(rand.Reader, 1024)
+	pk, _ := rsa.GenerateKey(rand.Reader, 3072)
 	derBytes, _ := x509.CreateCertificate(rand.Reader, &certificate509, &certificate509, &pk.PublicKey, pk)
 	certOut, _ := os.Create("cert/certFile.pem")
 	pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
