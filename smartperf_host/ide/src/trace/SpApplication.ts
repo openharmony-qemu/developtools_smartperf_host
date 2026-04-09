@@ -88,6 +88,25 @@ import { cancelCurrentTraceRowHighlight } from './component/SpSystemTrace.init';
 import './component/SpAiAnalysisPage';
 import './component/SpSnapShotView';
 import { WebSocketManager } from '../webSocket/WebSocketManager';
+import { LongTraceFilter } from './longtrace/LongTraceFilter';
+import {
+  buildLongTracePageNotReadyMessage,
+  LONG_TRACE_FIRST_PAGE_NUMBER,
+  LONG_TRACE_HEADER_SIZE_BYTES,
+  LONG_TRACE_MAX_FILE_LENGTH_BYTES,
+  LONG_TRACE_PAGE_LOCKED_OPACITY,
+  LONG_TRACE_PAGE_READY_OPACITY,
+  LONG_TRACE_POINTER_EVENTS_AUTO,
+  LONG_TRACE_POINTER_EVENTS_NONE,
+  LONG_TRACE_PROGRESS_PERCENT_DECIMALS,
+  LONG_TRACE_STATUS_PATCH_READY,
+  LONG_TRACE_TOTAL_LENGTH_OFFSET_BYTES,
+  LONG_TRACE_UINT32_BYTES,
+  LONG_TRACE_UINT32_MASK,
+  LONG_TRACE_UINT32_SHIFT_BITS,
+  LONG_TRACE_WASM_READ_CHUNK_BYTES,
+} from './longtrace/LongTraceConstants';
+import { LongTracePreprocessResult, LongTraceTransfer } from './longtrace/LongTraceTransfer';
 import { SpAiAnalysisPage } from './component/SpAiAnalysisPage';
 import './component/SpAdvertisement';
 import { ShadowRootInput } from './component/trace/base/ShadowRootInput';
@@ -124,6 +143,13 @@ export class SpApplication extends BaseElement {
     >
     | undefined
     | null;
+  private longTraceSequenceNumbers: number[] = [];
+  private longTraceSequenceToPageNum: Map<number, number> = new Map<number, number>();
+  private longTraceReadyPageNums: Set<number> = new Set<number>();
+  private longTracePatchPayloadByPageNum: Map<number, Uint8Array> = new Map<number, Uint8Array>();
+  private longTracePreprocessEnabled: boolean = false;
+  private longTracePreprocessTotalFiles: number = 0;
+  private longTracePreprocessDoneFiles: number = 0;
   static skinChange: Function | null | undefined = null;
   static skinChange2: Function | null | undefined = null;
   static isTraceLoaded: Boolean = false;
@@ -446,42 +472,242 @@ export class SpApplication extends BaseElement {
     ];
   }
 
+  /**
+   * 打开 LongTrace 文件入口
+   * @param ev - 自定义事件，携带文件列表
+   * @param isRecordTrace - 是否为录制模式产生的 trace（默认 false）
+   */
   private openLongTraceFile(ev: CustomEvent, isRecordTrace: boolean = false): void {
+    // 将 URL 恢复为初始状态，避免残留参数干扰
     this.returnOriginalUrl();
+    // 强制使用 wasm 模式解析
     this.wasm = true;
+    // 初始化文件打开相关状态与 UI
     this.openFileInit(true);
-    let detail = ev.detail;
-    let initRes = this.longTraceFileInit(isRecordTrace, detail);
-    if (!isRecordTrace && initRes) {
-      let readSize = 0;
-      let timStamp = new Date().getTime();
-      const { traceTypePage, allFileSize, normalTraceNames, specialTraceNames } = initRes;
-      if (normalTraceNames.length <= 0) {
-        return;
-      }
-      const readFiles = async (
-        files: FileList,
-        traceTypePage: Array<number>,
-        normalNames: Array<string>,
-        specialNames: Array<string>
-      ): Promise<unknown> => {
-        const promises = Array.from(files).map((file) => {
-          if (normalNames.indexOf(file.name) >= 0) {
-            return this.longTraceFileRead(file, true, traceTypePage, readSize, timStamp, allFileSize);
-          } else if (specialNames.indexOf(file.name) >= 0) {
-            return this.longTraceFileRead(file, false, traceTypePage, readSize, timStamp, allFileSize);
-          } else {
+    const detail = ev.detail;
+    // 非录制模式：走预处理流程（多文件合并、后台转码等）
+    if (!isRecordTrace) {
+      this.preprocessAndOpenLongTrace(detail as FileList).catch((e: unknown) => {
+        const message = e instanceof Error ? e.message : 'LongTrace preprocessing failed';
+        this.traceFileLoadFailedHandler(message);
+      });
+      return;
+    }
+    // 录制模式：跳过预处理，直接读取
+    this.openLongTraceFromDetail(detail, isRecordTrace);
+  }
+
+  private openLongTraceFromDetail(detail: unknown, isRecordTrace: boolean): void {
+    const initRes = this.longTraceFileInit(isRecordTrace, detail);
+    if (isRecordTrace || !initRes) {
+      return;
+    }
+    let readSize = 0;
+    let timStamp = new Date().getTime();
+    const { traceTypePage, allFileSize, normalTraceNames, specialTraceNames } = initRes;
+    if (normalTraceNames.length <= 0) {
+      return;
+    }
+    const readFiles = async (
+      files: ArrayLike<File>,
+      traceTypePage: Array<number>,
+      normalNames: Array<string>,
+      specialNames: Array<string>
+    ): Promise<unknown> => {
+      const promises = Array.from(files).map((file) => {
+        if (normalNames.indexOf(file.name) >= 0) {
+          return this.longTraceFileRead(file, true, traceTypePage, readSize, timStamp, allFileSize);
+        } else if (specialNames.indexOf(file.name) >= 0) {
+          return this.longTraceFileRead(file, false, traceTypePage, readSize, timStamp, allFileSize);
+        } else {
+          return;
+        }
+      });
+      return Promise.all(promises);
+    };
+    this.litSearch!.setPercent('Read in file: ', 1);
+    readFiles(detail as ArrayLike<File>, traceTypePage, normalTraceNames, specialTraceNames).then(() => {
+      this.litSearch!.setPercent('Cut in file: ', 1);
+      this.sendCutFileMessage(timStamp);
+    });
+  }
+  /**
+   * 预处理并打开 LongTrace 文件
+   * 1. 过滤文件列表，区分普通分片与特殊类型（arkts/ebpf/hiperf）
+   * 2. 若存在多个普通分片，启用后台预处理（合并、转码等）
+   * 3. 预处理完成后通过回调解锁对应页面，否则降级为本地直接解析
+   */
+  private async preprocessAndOpenLongTrace(fileList: FileList): Promise<void> {
+    // 将 FileList 转为数组，便于后续处理
+    const allFiles = Array.from(fileList ?? []);
+    // 使用过滤器分类文件并收集日志
+    const { normalFiles, specialFiles, logs } = LongTraceFilter.filter(allFiles);
+    // 打印过滤日志
+    for (const l of logs) {
+      info(l.message);
+    }
+    // 若无普通分片文件，直接报错并终止
+    if (normalFiles.length <= 0) {
+      this.traceFileLoadFailedHandler('No available LongTrace slice files found in the current directory');
+      return;
+    }
+    // 合并待处理的文件列表
+    const selectedFiles = [...normalFiles, ...specialFiles];
+
+    // 只有普通分片数量 > 1 时才启用预处理
+    this.longTracePreprocessEnabled = normalFiles.length > 1;
+    // 记录预处理总文件数与已完成的文件数
+    this.longTracePreprocessTotalFiles = normalFiles.length;
+    this.longTracePreprocessDoneFiles = 0;
+    // 初始化补丁数据与页面就绪状态
+    this.longTracePatchPayloadByPageNum = new Map<number, Uint8Array>();
+    this.longTraceReadyPageNums = new Set<number>();
+    // 默认第一页始终就绪
+    this.longTraceReadyPageNums.add(LONG_TRACE_FIRST_PAGE_NUMBER);
+    // 先走常规文件读取流程（不等待预处理完成）
+    this.openLongTraceFromDetail(selectedFiles, false);
+    // 若无需预处理，直接返回
+    this.longTracePreprocessEnabled && this.startLongTraceBackgroundPreprocess(normalFiles);
+  }
+
+  /**
+   * 启动后台预处理流程，对多文件 LongTrace 进行合并、转码等操作
+   * @param normalFiles - 需要预处理的普通分片文件列表
+   */
+  private startLongTraceBackgroundPreprocess(normalFiles: File[]): void {
+    // 创建传输器实例，用于后台通信
+    const transfer = new LongTraceTransfer();
+    transfer
+      .preprocessInBackground(normalFiles, {
+        // 进度回调：更新已完成的文件数与进度百分比
+        onProgress: (p) => {
+          this.longTracePreprocessDoneFiles = p.done;
+          if (!this.litSearch) {
             return;
           }
-        });
-        return Promise.all(promises);
-      };
-      this.litSearch!.setPercent('Read in file: ', 1);
-      readFiles(detail, traceTypePage, normalTraceNames, specialTraceNames).then(() => {
-        this.litSearch!.setPercent('Cut in file: ', 1);
-        this.sendCutFileMessage(timStamp);
+          const percent =
+            p.total > 0 ? Number(((p.done * 100) / p.total).toFixed(LONG_TRACE_PROGRESS_PERCENT_DECIMALS)) : 0;
+          this.litSearch.setPercent(p.message, percent);
+          if (p.total > 0 && p.done >= p.total) {
+            this.litSearch.setPercent('', 101);
+          }
+        },
+        // 结果回调：处理单页预处理结果
+        onResult: (r) => {
+          this.handleLongTracePreprocessResult(r);
+        },
+      })
+      .catch((e: unknown) => {
+        // 捕获异常：降级为本地解析，解锁全部页面
+        const message = e instanceof Error ? e.message : 'Extension service unavailable; falling back to local-file parsing';
+        info(message);
+        this.longTracePreprocessEnabled = false;
+        this.unlockAllLongTracePages();
+        this.applyLongTracePageLockStyle();
       });
+  }
+
+  /**
+   * 处理单页预处理结果：保存补丁数据并标记页面就绪
+   * @param result - 单页预处理结果
+   */
+  private handleLongTracePreprocessResult(result: LongTracePreprocessResult): void {
+    const pageNum = this.longTraceSequenceToPageNum.get(result.n);
+    if (!pageNum) {
+      return;
     }
+    // 若存在有效补丁数据，则缓存
+    if (result.status === LONG_TRACE_STATUS_PATCH_READY && result.patchPayload && result.patchPayload.byteLength > 0) {
+      this.longTracePatchPayloadByPageNum.set(pageNum, result.patchPayload);
+    }
+    // 标记该页已就绪
+    this.longTraceReadyPageNums.add(pageNum);
+    // 刷新页面锁定样式
+    this.applyLongTracePageLockStyle();
+  }
+
+  /**
+   * 解锁全部 LongTrace 页面（降级或预处理完成时调用）
+   */
+  private unlockAllLongTracePages(): void {
+    const pageCount = this.longTraceSequenceNumbers.length > 0 ? this.longTraceSequenceNumbers.length : this.longTraceHeadMessageList.length;
+    this.longTraceReadyPageNums = new Set<number>();
+    for (let i = 0; i < pageCount; i += 1) {
+      this.longTraceReadyPageNums.add(i + LONG_TRACE_FIRST_PAGE_NUMBER);
+    }
+  }
+
+  /**
+   * 判断指定页是否已就绪（未启用预处理时始终返回 true）
+   * @param pageNum - 页码
+   * @returns 是否就绪
+   */
+  private isLongTracePageReady(pageNum: number): boolean {
+    if (!this.longTracePreprocessEnabled) {
+      return true;
+    }
+    return this.longTraceReadyPageNums.has(pageNum);
+  }
+
+  /**
+   * 应用页面锁定样式：未就绪的页码降低透明度并禁用点击
+   */
+  /**
+   * 应用 LongTrace 页面锁定样式：未就绪的页码降低透明度并禁用点击
+   */
+  private applyLongTracePageLockStyle(): void {
+    // 获取页码列表容器
+    const pageListDiv = this.shadowRoot?.querySelector('.page-number-list') as HTMLDivElement;
+    if (!pageListDiv) {
+      return;
+    }
+    // 遍历所有页码节点
+    const pageNodeList = pageListDiv.querySelectorAll<HTMLDivElement>('div');
+    pageNodeList.forEach((pageItem) => {
+      const text = String(pageItem.textContent ?? '').trim();
+      const pageNum = Number(text);
+      if (!Number.isFinite(pageNum)) {
+        // 非数字节点保持默认样式（可点击、不透明）
+        pageItem.style.pointerEvents = LONG_TRACE_POINTER_EVENTS_AUTO;
+        pageItem.style.opacity = LONG_TRACE_PAGE_READY_OPACITY;
+        return;
+      }
+      // 根据页面是否就绪设置样式：就绪则正常，未就绪则降低透明度并禁用点击
+      const ready = this.isLongTracePageReady(pageNum);
+      pageItem.style.pointerEvents = ready ? LONG_TRACE_POINTER_EVENTS_AUTO : LONG_TRACE_POINTER_EVENTS_NONE;
+      pageItem.style.opacity = ready ? LONG_TRACE_PAGE_READY_OPACITY : LONG_TRACE_PAGE_LOCKED_OPACITY;
+    });
+  }
+
+  /**
+   * 组装带补丁的 Trace Blob：将补丁插入头部后，再拼接剩余数据
+   * @param traceArray - 原始 trace 数据
+   * @param patchPayload - 补丁数据
+   * @returns 组装后的 BlobPart 数组
+   */
+  private buildAssembledTraceBlobParts(traceArray: Uint8Array, patchPayload: Uint8Array): BlobPart[] {
+    // 数据不足或补丁为空时直接返回原数据
+    if (traceArray.byteLength < LONG_TRACE_HEADER_SIZE_BYTES || patchPayload.byteLength <= 0) {
+      return [traceArray as unknown as BlobPart];
+    }
+
+    // 计算合并后的总长度
+    const totalLength = BigInt(traceArray.byteLength + patchPayload.byteLength);
+    // 复制头部并修正总长度字段
+    const header = new Uint8Array(LONG_TRACE_HEADER_SIZE_BYTES);
+    header.set(traceArray.subarray(0, LONG_TRACE_HEADER_SIZE_BYTES));
+    const dv = new DataView(header.buffer);
+    const low = Number(totalLength & LONG_TRACE_UINT32_MASK);
+    const high = Number((totalLength >> LONG_TRACE_UINT32_SHIFT_BITS) & LONG_TRACE_UINT32_MASK);
+    dv.setUint32(LONG_TRACE_TOTAL_LENGTH_OFFSET_BYTES, low, true);
+    dv.setUint32(LONG_TRACE_TOTAL_LENGTH_OFFSET_BYTES + LONG_TRACE_UINT32_BYTES, high, true);
+
+    // 返回头部 + 补丁 + 剩余数据的组合
+    return [
+      header as unknown as BlobPart,
+      patchPayload as unknown as BlobPart,
+      traceArray.subarray(LONG_TRACE_HEADER_SIZE_BYTES) as unknown as BlobPart,
+    ];
   }
 
   private longTraceFileRead = async (
@@ -498,7 +724,7 @@ export class SpApplication extends BaseElement {
       let message = { fileType: '', startIndex: 0, endIndex: 0, size: 0 };
       info('Parse long trace using wasm mode ');
       const { fileType, pageNumber } = this.getFileTypeAndPages(file.name, isNormalType, traceTypePage);
-      let chunk = 48 * 1024 * 1024;
+      let chunk = LONG_TRACE_WASM_READ_CHUNK_BYTES;
       let offset = 0;
       let sliceLen = 0;
       let index = 1;
@@ -617,6 +843,20 @@ export class SpApplication extends BaseElement {
         this.traceFileLoadFailedHandler('No large trace files exists in the folder!');
       }
       traceTypePage.sort((leftNum: number, rightNum: number) => leftNum - rightNum);
+      // 将解析出的页码数组拷贝一份，作为后续处理的长 trace 序列号列表
+      this.longTraceSequenceNumbers = [...traceTypePage];
+      // 建立“序列号 → 页码”的映射表，方便后续根据文件序列号快速定位对应页码
+      this.longTraceSequenceToPageNum = new Map<number, number>();
+      for (let i = 0; i < traceTypePage.length; i += 1) {
+        this.longTraceSequenceToPageNum.set(traceTypePage[i], i + 1);
+      }
+      // 如果未启用预处理，则默认所有页都已就绪，直接把所有页码加入就绪集合
+      if (!this.longTracePreprocessEnabled) {
+        this.longTraceReadyPageNums = new Set<number>();
+        for (let i = 0; i < traceTypePage.length; i += 1) {
+          this.longTraceReadyPageNums.add(i + LONG_TRACE_FIRST_PAGE_NUMBER);
+        }
+      }
       return { traceTypePage, allFileSize, normalTraceNames, specialTraceNames };
     }
   }
@@ -633,7 +873,7 @@ export class SpApplication extends BaseElement {
     if (index === 1 && isNormalType) {
       this.longTraceHeadMessageList.push({
         pageNum: pageNumber,
-        data: data.slice(offset, 1024),
+        data: data.slice(offset, LONG_TRACE_HEADER_SIZE_BYTES),
       });
     }
     this.longTraceDataList.push({
@@ -1448,11 +1688,15 @@ export class SpApplication extends BaseElement {
         let arkTsData = indexedDataToBufferData(otherResult[1]);
         let hiperfData = indexedDataToBufferData(otherResult[2]);
         let traceArray = new Uint8Array(traceData);
+        // 获取对应的补丁数据；若存在补丁则与当前 traceArray 合并，否则仅使用原 traceArray
+        const patchPayload = this.longTracePatchPayloadByPageNum.get(indexedDbPageNum + 1);
+        const traceBlobParts = patchPayload ? this.buildAssembledTraceBlobParts(traceArray, patchPayload) : [traceArray];
         let ebpfArray = new Uint8Array(ebpfData);
         let arkTsArray = new Uint8Array(arkTsData);
         let hiPerfArray = new Uint8Array(hiperfData);
         let allOtherData = [ebpfData, arkTsData, hiperfData];
-        let otherDataLength = traceData.byteLength + ebpfData.byteLength + arkTsData.byteLength + hiperfData.byteLength;
+        const baseTraceByteLength = traceData.byteLength + (patchPayload?.byteLength ?? 0);
+        let otherDataLength = baseTraceByteLength + ebpfData.byteLength + arkTsData.byteLength + hiperfData.byteLength;
         let timeStamp =
           this.currentDataTime[0] +
           this.currentDataTime[1] +
@@ -1463,15 +1707,15 @@ export class SpApplication extends BaseElement {
           this.currentDataTime[5];
         this.traceFileName = `hiprofiler_long_${timeStamp}_${indexedDbPageNum}.htrace`;
         if (otherDataLength > maxTraceFileLength) {
-          if (traceData.byteLength > maxTraceFileLength) {
+          if (baseTraceByteLength > maxTraceFileLength) {
             this.traceFileLoadFailedHandler('hitrace file too big!');
           } else {
-            let freeDataLength = maxTraceFileLength - traceData.byteLength;
+            let freeDataLength = maxTraceFileLength - baseTraceByteLength;
             let freeDataIndex = findFreeSizeAlgorithm(
               [ebpfData.byteLength, arkTsData.byteLength, hiperfData.byteLength],
               freeDataLength
             );
-            let finalData = [traceData];
+            let finalData: BlobPart[] = [...traceBlobParts];
             freeDataIndex.forEach((dataIndex) => {
               finalData.push(allOtherData[dataIndex]);
             });
@@ -1479,7 +1723,7 @@ export class SpApplication extends BaseElement {
             this.handleWasmMode(file, file.name, file.size, this.traceFileName);
           }
         } else {
-          let fileBlob = new Blob([traceArray, ebpfArray, arkTsArray, hiPerfArray]);
+          let fileBlob = new Blob([...traceBlobParts, ebpfArray, arkTsArray, hiPerfArray]);
           const file = new File([fileBlob], this.traceFileName);
           this.handleWasmMode(file, file.name, file.size, file.name);
         }
@@ -1491,36 +1735,41 @@ export class SpApplication extends BaseElement {
 
   private refreshLongTraceButtonStyle(): void {
     let pageListDiv = this.shadowRoot?.querySelector('.page-number-list') as HTMLDivElement;
-    let pageNodeList = pageListDiv.querySelectorAll<HTMLDivElement>('div');
     let pageInput = this.shadowRoot?.querySelector<HTMLInputElement>('.page-input');
     let previewButton: HTMLDivElement | null | undefined =
       this.shadowRoot?.querySelector<HTMLDivElement>('#preview-button');
     let nextButton: HTMLDivElement | null | undefined = this.shadowRoot?.querySelector<HTMLDivElement>('#next-button');
     let pageConfirmEl = this.shadowRoot?.querySelector<HTMLDivElement>('.confirm-button');
-    pageInput!.style.pointerEvents = 'auto';
-    pageNodeList.forEach((pageItem) => {
-      pageItem.style.pointerEvents = 'auto';
-    });
-    nextButton!.style.pointerEvents = 'auto';
-    nextButton!.style.opacity = '1';
-    previewButton!.style.pointerEvents = 'auto';
-    previewButton!.style.opacity = '1';
-    if (this.currentPageNum === 1) {
-      previewButton!.style.pointerEvents = 'none';
-      previewButton!.style.opacity = '0.7';
-    } else if (this.currentPageNum === this.longTraceHeadMessageList.length) {
-      nextButton!.style.pointerEvents = 'none';
-      nextButton!.style.opacity = '0.7';
+    pageInput!.style.pointerEvents = LONG_TRACE_POINTER_EVENTS_AUTO;
+    nextButton!.style.pointerEvents = LONG_TRACE_POINTER_EVENTS_AUTO;
+    nextButton!.style.opacity = LONG_TRACE_PAGE_READY_OPACITY;
+    previewButton!.style.pointerEvents = LONG_TRACE_POINTER_EVENTS_AUTO;
+    previewButton!.style.opacity = LONG_TRACE_PAGE_READY_OPACITY;
+    this.applyLongTracePageLockStyle();
+    if (
+      this.currentPageNum === LONG_TRACE_FIRST_PAGE_NUMBER ||
+      !this.isLongTracePageReady(this.currentPageNum - LONG_TRACE_FIRST_PAGE_NUMBER)
+    ) {
+      previewButton!.style.pointerEvents = LONG_TRACE_POINTER_EVENTS_NONE;
+      previewButton!.style.opacity = LONG_TRACE_PAGE_LOCKED_OPACITY;
+    } else if (this.currentPageNum === this.longTraceHeadMessageList.length || !this.isLongTracePageReady(this.currentPageNum + 1)) {
+      nextButton!.style.pointerEvents = LONG_TRACE_POINTER_EVENTS_NONE;
+      nextButton!.style.opacity = LONG_TRACE_PAGE_LOCKED_OPACITY;
     }
     //
     pageConfirmEl!.style.pointerEvents = 'auto';
   }
 
   private getTraceFileByPage(pageNumber: number): void {
+    if (!this.isLongTracePageReady(pageNumber)) {
+      this.litSearch?.setPercent(buildLongTracePageNotReadyMessage(pageNumber), 0);
+      this.applyLongTracePageLockStyle();
+      return;
+    }
     this.openFileInit(true);
     if (this.validateGetTraceFileByPage()) {
-      let indexedDbPageNum = pageNumber - 1;
-      let maxTraceFileLength = 400 * 1024 * 1024;
+      let indexedDbPageNum = pageNumber - LONG_TRACE_FIRST_PAGE_NUMBER;
+      let maxTraceFileLength = LONG_TRACE_MAX_FILE_LENGTH_BYTES;
       let traceRange = this.getIDBKeyRange(indexedDbPageNum, 'trace');
       let instance = LongTraceDBUtils.getInstance();
       this.queryFileByPage(instance, indexedDbPageNum, maxTraceFileLength, traceRange);
@@ -1564,7 +1813,7 @@ export class SpApplication extends BaseElement {
   private sendCutFileMessage(timStamp: number): void {
     this.pageTimStamp = timStamp;
     threadPool.init('wasm').then(() => {
-      let headUintArray = new Uint8Array(this.longTraceHeadMessageList.length * 1024);
+      let headUintArray = new Uint8Array(this.longTraceHeadMessageList.length * LONG_TRACE_HEADER_SIZE_BYTES);
       let headOffset = 0;
       this.longTraceHeadMessageList = this.longTraceHeadMessageList.sort(
         (leftMessage, rightMessage) => leftMessage.pageNum - rightMessage.pageNum
@@ -1625,12 +1874,18 @@ export class SpApplication extends BaseElement {
         if (this.progressEL!.loading) {
           return;
         }
+        let targetPageNum = 0;
         if (divEL.textContent === '...') {
           let freeSize = Number(nodeListOf[index + 1].textContent) - Number(nodeListOf[index - 1].textContent);
-          this.currentPageNum = Math.floor(freeSize / 2 + Number(nodeListOf[index - 1].textContent));
+          targetPageNum = Math.floor(freeSize / 2 + Number(nodeListOf[index - 1].textContent));
         } else {
-          this.currentPageNum = Number(divEL.textContent);
+          targetPageNum = Number(divEL.textContent);
         }
+        if (!this.isLongTracePageReady(targetPageNum)) {
+          this.applyLongTracePageLockStyle();
+          return;
+        }
+        this.currentPageNum = targetPageNum;
         this.refreshPageListHandler(pageListDiv, previewButton!, nextButton!, pageInput!);
       });
     });
@@ -1647,9 +1902,15 @@ export class SpApplication extends BaseElement {
       if (this.progressEL!.loading) {
         return;
       }
-      this.currentPageNum = Number(pageInput!.value);
+      const targetPageNum = Number(pageInput!.value);
+      if (!this.isLongTracePageReady(targetPageNum)) {
+        this.applyLongTracePageLockStyle();
+        return;
+      }
+      this.currentPageNum = targetPageNum;
       this.refreshPageListHandler(pageListDiv, previewButton!, nextButton!, pageInput!);
     });
+    this.applyLongTracePageLockStyle();
   }
 
   private initCutFileNextOrPreEvents(
@@ -1664,7 +1925,12 @@ export class SpApplication extends BaseElement {
           return;
         }
         if (this.currentPageNum > 1) {
-          this.currentPageNum--;
+          const targetPageNum = this.currentPageNum - 1;
+          if (!this.isLongTracePageReady(targetPageNum)) {
+            this.applyLongTracePageLockStyle();
+            return;
+          }
+          this.currentPageNum = targetPageNum;
           this.refreshPageListHandler(pageListDiv, previewButton!, nextButton!, pageInput!);
         }
       });
@@ -1674,7 +1940,12 @@ export class SpApplication extends BaseElement {
         return;
       }
       if (this.currentPageNum < this.longTraceHeadMessageList.length) {
-        this.currentPageNum++;
+        const targetPageNum = this.currentPageNum + 1;
+        if (!this.isLongTracePageReady(targetPageNum)) {
+          this.applyLongTracePageLockStyle();
+          return;
+        }
+        this.currentPageNum = targetPageNum;
         this.refreshPageListHandler(pageListDiv, previewButton!, nextButton!, pageInput!);
       }
     });
