@@ -172,6 +172,8 @@ export class TabPaneNMStatstics extends BaseElement {
         data.memoryTap = `So ${Utils.getByteWithUnit(malloc.heapSize)}`;
       } else if (malloc.eventType === MemoryType.ASHMEM_Alloc_NAME) {
         data.memoryTap = `Ashmem ${Utils.getByteWithUnit(malloc.heapSize)}`;
+      } else if (malloc.eventType === MemoryType.DART_HEAP_Alloc_NAME) {
+        data.memoryTap = `Dart ${Utils.getByteWithUnit(malloc.heapSize)}`;
       } else if (malloc.eventType === MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME) {
         data.memoryTap = `Global ${Utils.getByteWithUnit(malloc.heapSize)}`;
       } else if (malloc.eventType === MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME) {
@@ -192,13 +194,15 @@ export class TabPaneNMStatstics extends BaseElement {
       data.existingValue = [data.existing, data.totalBytes, this.allMax];
       if (MemoryType.APPLY_NM_EVENTS.every(item => types.includes(item))) {
         arr.push(data);
-      } else if ((types.includes(MemoryType.MEMORY_M_ALLOC_NAME) && malloc.eventType === MemoryType.MEMORY_M_ALLOC_NAME) || (types.includes(MemoryType.ARKTS_Alloc_NAME) && malloc.eventType === MemoryType.ARKTS_Alloc_NAME) || (types.includes(MemoryType.JS_Alloc_NAME) && malloc.eventType === MemoryType.JS_Alloc_NAME) || (types.includes(MemoryType.KMP_Alloc_NAME) && malloc.eventType === MemoryType.KMP_Alloc_NAME) || (types.includes(MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME) && malloc.eventType === MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME) || (types.includes(MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME) && malloc.eventType === MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME)) {
+      } else if ((types.includes(MemoryType.MEMORY_M_ALLOC_NAME) && malloc.eventType === MemoryType.MEMORY_M_ALLOC_NAME) || (types.includes(MemoryType.ARKTS_Alloc_NAME) && malloc.eventType === MemoryType.ARKTS_Alloc_NAME) || (types.includes(MemoryType.JS_Alloc_NAME) && malloc.eventType === MemoryType.JS_Alloc_NAME) || (types.includes(MemoryType.DART_HEAP_Alloc_NAME) && malloc.eventType === MemoryType.DART_HEAP_Alloc_NAME) || (types.includes(MemoryType.KMP_Alloc_NAME) && malloc.eventType === MemoryType.KMP_Alloc_NAME) || (types.includes(MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME) && malloc.eventType === MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME) || (types.includes(MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME) && malloc.eventType === MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME)) {
         arr.push(data);
       } else if (types.includes(MemoryType.MEMORY_M_ALLOC_NAME) && malloc.eventType === MemoryType.MEMORY_M_ALLOC_NAME) {
         arr.push(data);
       } else if (types.includes(MemoryType.ARKTS_Alloc_NAME) && malloc.eventType === MemoryType.ARKTS_Alloc_NAME) {
         arr.push(data);
       } else if (types.includes(MemoryType.JS_Alloc_NAME) && malloc.eventType === MemoryType.JS_Alloc_NAME) {
+        arr.push(data);
+      } else if (types.includes(MemoryType.DART_HEAP_Alloc_NAME) && malloc.eventType === MemoryType.DART_HEAP_Alloc_NAME) {
         arr.push(data);
       } else if (types.includes(MemoryType.KMP_Alloc_NAME) && malloc.eventType === MemoryType.KMP_Alloc_NAME) {
         arr.push(data);
@@ -249,6 +253,8 @@ export class TabPaneNMStatstics extends BaseElement {
           arr.push(data);
         } else if (types.includes(MemoryType.JS_Alloc_NAME) && sub.eventType === MemoryType.JS_Alloc_NAME) {
           arr.push(data);
+        } else if (types.includes(MemoryType.DART_HEAP_Alloc_NAME) && sub.eventType === MemoryType.DART_HEAP_Alloc_NAME) {
+          arr.push(data);
         } else if (types.includes(MemoryType.KMP_Alloc_NAME) && sub.eventType === MemoryType.KMP_Alloc_NAME) {
           arr.push(data);
         } else if (types.includes(MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME) && sub.eventType === MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME) {
@@ -280,6 +286,7 @@ export class TabPaneNMStatstics extends BaseElement {
     let allAnonymous: NativeHookStatisticsTableData | null = null;
     let nativeHeap: NativeHookStatisticsTableData | null = null;
     let arktsHeap: NativeHookStatisticsTableData | null = null;
+    let dartHeap: NativeHookStatisticsTableData | null = null;
     let jsHeap: NativeHookStatisticsTableData | null = null;
     let kmpHeap: NativeHookStatisticsTableData | null = null;
     let ion: NativeHookStatisticsTableData | null = null;
@@ -307,34 +314,38 @@ export class TabPaneNMStatstics extends BaseElement {
       jsHeap.memoryTap = this.nativeType[4];
     }
     if (val.nativeMemory.indexOf(this.nativeType[5]) !== -1) {
-      kmpHeap = new NativeHookStatisticsTableData();
-      kmpHeap.memoryTap = this.nativeType[5];
+      dartHeap = new NativeHookStatisticsTableData();
+      dartHeap.memoryTap = this.nativeType[5];
     }
     if (val.nativeMemory.indexOf(this.nativeType[6]) !== -1) {
-      allAnonymous = new NativeHookStatisticsTableData();
-      allAnonymous.memoryTap = this.nativeType[6];
+      kmpHeap = new NativeHookStatisticsTableData();
+      kmpHeap.memoryTap = this.nativeType[6];
     }
     if (val.nativeMemory.indexOf(this.nativeType[7]) !== -1) {
-      ion = new NativeHookStatisticsTableData();
-      ion.memoryTap = this.nativeType[7];
+      allAnonymous = new NativeHookStatisticsTableData();
+      allAnonymous.memoryTap = this.nativeType[7];
     }
     if (val.nativeMemory.indexOf(this.nativeType[8]) !== -1) {
-      ashmem = new NativeHookStatisticsTableData();
-      ashmem.memoryTap = this.nativeType[8];
+      ion = new NativeHookStatisticsTableData();
+      ion.memoryTap = this.nativeType[8];
     }
     if (val.nativeMemory.indexOf(this.nativeType[9]) !== -1) {
-      so = new NativeHookStatisticsTableData();
-      so.memoryTap = this.nativeType[9];
+      ashmem = new NativeHookStatisticsTableData();
+      ashmem.memoryTap = this.nativeType[9];
     }
     if (val.nativeMemory.indexOf(this.nativeType[10]) !== -1) {
+      so = new NativeHookStatisticsTableData();
+      so.memoryTap = this.nativeType[10];
+    }
+    if (val.nativeMemory.indexOf(this.nativeType[11]) !== -1) {
       others = new NativeHookStatisticsTableData();
-      others.memoryTap = this.nativeType[10];
+      others.memoryTap = this.nativeType[11];
     }
     for (let hook of result) {
       if (all !== null) {
         this.processHookData(hook, all);
       }
-      if (allHeap !== null && (hook.eventType === MemoryType.MEMORY_M_ALLOC_NAME || hook.eventType === MemoryType.ARKTS_Alloc_NAME || hook.eventType === MemoryType.JS_Alloc_NAME || hook.eventType === MemoryType.KMP_Alloc_NAME || hook.eventType === MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME || hook.eventType === MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME)) {
+      if (allHeap !== null && (hook.eventType === MemoryType.MEMORY_M_ALLOC_NAME || hook.eventType === MemoryType.ARKTS_Alloc_NAME || hook.eventType === MemoryType.JS_Alloc_NAME || hook.eventType === MemoryType.DART_HEAP_Alloc_NAME || hook.eventType === MemoryType.KMP_Alloc_NAME || hook.eventType === MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME || hook.eventType === MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME)) {
         this.processHookData(hook, allHeap);
       }
       if (nativeHeap !== null && (hook.eventType === MemoryType.MEMORY_M_ALLOC_NAME || hook.eventType === MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME || hook.eventType === MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME)) {
@@ -345,6 +356,9 @@ export class TabPaneNMStatstics extends BaseElement {
       }
       if (jsHeap !== null && hook.eventType === MemoryType.JS_Alloc_NAME) {
         this.processHookData(hook, jsHeap);
+      }
+      if (dartHeap !== null && hook.eventType === MemoryType.DART_HEAP_Alloc_NAME) {
+        this.processHookData(hook, dartHeap);
       }
       if (kmpHeap !== null && hook.eventType === MemoryType.KMP_Alloc_NAME) {
         this.processHookData(hook, kmpHeap);
@@ -380,6 +394,9 @@ export class TabPaneNMStatstics extends BaseElement {
     if (jsHeap?.maxStr === '' && jsHeap?.max === 0) {
       jsHeap.maxStr = Utils.getByteWithUnit(jsHeap?.max);
     }
+    if (dartHeap?.maxStr === '' && dartHeap?.max === 0) {
+      dartHeap.maxStr = Utils.getByteWithUnit(dartHeap?.max);
+    }
     if (kmpHeap?.maxStr === '' && kmpHeap?.max === 0) {
       kmpHeap.maxStr = Utils.getByteWithUnit(kmpHeap?.max);
     }
@@ -412,6 +429,9 @@ export class TabPaneNMStatstics extends BaseElement {
     }
     if (jsHeap !== null) {
       this.updateHookData(jsHeap, arr);
+    }
+    if (dartHeap !== null) {
+      this.updateHookData(dartHeap, arr);
     }
     if (kmpHeap !== null) {
       this.updateHookData(kmpHeap, arr);
