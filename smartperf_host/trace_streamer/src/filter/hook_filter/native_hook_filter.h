@@ -41,12 +41,13 @@ enum class NativeType {
     ARKTS_HEAP,
     JS_HEAP,
     KMP_HEAP,
-    RN_HEAP,
+    RN_HERMES_HEAP,
     ASHMEM,
     DMA,
     SO,
     ARK_GLOBAL_HANDLE,
-    ARK_LOCAL_HANDLE
+    ARK_LOCAL_HANDLE,
+    DART_HEAP
 };
 
 class NativeHookFrameInfo {
