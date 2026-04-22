@@ -74,6 +74,10 @@ void NativeHookFilter::InitAllocTraceTypeMaps()
                                               MakeTypeValue("JS_HEAP_Alloc_Event", NativeType::JS_HEAP));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::KMP_HEAP, true,
                                               MakeTypeValue("KMP_HEAP_Alloc_Event", NativeType::KMP_HEAP));
+    traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::RN_HERMES_HEAP, true,
+                                              MakeTypeValue("RN_HERMES_HEAP_Alloc_Event", NativeType::RN_HERMES_HEAP));
+    traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::DART_HEAP, true,
+                                              MakeTypeValue("DART_HEAP_Alloc_Event", NativeType::DART_HEAP));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::ASHMEM, true,
                                               MakeTypeValue("ASHMEM_Alloc_Event", NativeType::ASHMEM));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::DMA, true,
@@ -108,6 +112,10 @@ void NativeHookFilter::InitFreeTraceTypeMaps()
                                               MakeTypeValue("JS_HEAP_Free_Event", NativeType::JS_HEAP));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::KMP_HEAP, false,
                                               MakeTypeValue("KMP_HEAP_Free_Event", NativeType::KMP_HEAP));
+    traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::RN_HERMES_HEAP, false,
+                                              MakeTypeValue("RN_HERMES_HEAP_Free_Event", NativeType::RN_HERMES_HEAP));
+    traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::DART_HEAP, false,
+                                              MakeTypeValue("DART_HEAP_Free_Event", NativeType::DART_HEAP));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::ASHMEM, false,
                                               MakeTypeValue("ASHMEM_Free_Event", NativeType::ASHMEM));
     traceTypeToTraceTypeAndNativeType_.Insert(ProtoReader::TraceType::DMA, false,
@@ -1200,6 +1208,10 @@ uint64_t *NativeHookFilter::GetLastEventRaw(NativeType type)
             return &traceDataCache_->GetNativeHookData()->GetLastJsHeapEventRaw();
         case NativeType::KMP_HEAP:
             return &traceDataCache_->GetNativeHookData()->GetLastKmpHeapEventRaw();
+        case NativeType::RN_HERMES_HEAP:
+            return &traceDataCache_->GetNativeHookData()->GetLastRnHermesHeapEventRaw();
+        case NativeType::DART_HEAP:
+            return &traceDataCache_->GetNativeHookData()->GetLastDartHeapEventRaw();
         case NativeType::ASHMEM:
             return &traceDataCache_->GetNativeHookData()->GetLastAshmemEventRaw();
         case NativeType::DMA:
