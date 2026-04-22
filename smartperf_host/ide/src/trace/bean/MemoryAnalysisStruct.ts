@@ -175,6 +175,12 @@ export class AnalysisSample {
         this.typeName = MemoryType.JS_Alloc_NAME;
         this.isRelease = false;
         break;
+      case MemoryType.DART_HEAP_Alloc_NAME:
+      case MemoryStatisticType.DART_HEAP:
+        this.type = 20;
+        this.typeName = MemoryType.DART_HEAP_Alloc_NAME;
+        this.isRelease = false;
+        break;
       case MemoryType.KMP_Alloc_NAME:
       case MemoryStatisticType.KMP:
         this.type = 12;
@@ -228,6 +234,11 @@ export class AnalysisSample {
         this.isRelease = true;
         this.typeName = MemoryType.ASHMEM_Free_NAME;
         this.type = 14;
+        break;
+      case MemoryType.DART_HEAP_Free_NAME:
+        this.type = 20;
+        this.typeName = MemoryType.DART_HEAP_Free_NAME;
+        this.isRelease = true;
         break;
       case MemoryType.ARK_GLOBAL_HANDLE_Free_NAME:
         this.isRelease = true;
