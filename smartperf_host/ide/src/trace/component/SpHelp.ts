@@ -26,6 +26,7 @@ export class SpHelp extends BaseElement {
   private helpFile: HTMLElement | undefined | null;
   private navbarContainer: HTMLElement | undefined | null;
   private backToTop: HTMLElement | undefined | null;
+  private iframeMessageHandler: ((e: MessageEvent) => void) | undefined;
 
   get dark(): boolean {
     return this.hasAttribute('dark');
@@ -86,6 +87,9 @@ export class SpHelp extends BaseElement {
     if (urlParams && urlParams.get('action') && urlParams.get('action')!.length > 4) {
       this.itemHelpClick(urlParams, this);
     }
+
+    // 初始化 iframe 消息监听器
+    this.setupIframeMessageListener();
   }
 
   private itemHelpClick(urlParams: URLSearchParams, that: this): void {
@@ -288,6 +292,31 @@ export class SpHelp extends BaseElement {
     that.helpFile!.innerHTML = `<iframe id="myIframe" type="text/html" src='doc/${docName}.html?${that.dark}' width="100%" height="100%"></iframe>`;
     this.navbarInit(docName);
     this.changeItemURL(index!);
+  }
+
+  private setupIframeMessageListener(): void {
+    // 移除旧的监听器（如果有）
+    if (this.iframeMessageHandler) {
+      window.removeEventListener('message', this.iframeMessageHandler);
+    }
+
+    // 创建新的监听器
+    const handler = (e: MessageEvent) => {
+      if (e.data && e.data.type === 'navigate_help_doc' && e.data.index) {
+        const targetDocName = `quickstart_${e.data.index === '27' ? 'extensions' : e.data.docName || ''}`;
+        const targetEvent = e.data.event || 'extensions';
+        SpStatisticsHttpUtil.addOrdinaryVisitAction({
+          event: targetEvent,
+          action: 'help_doc',
+        });
+        this.helpFile!.innerHTML = `<iframe id="myIframe" type="text/html" src='doc/${targetDocName}.html?${this.dark}' width="100%" height="100%"></iframe>`;
+        this.navbarInit(targetDocName);
+        this.changeItemURL(e.data.index);
+      }
+    };
+
+    this.iframeMessageHandler = handler;
+    window.addEventListener('message', handler);
   }
 
   private navbarInit(docName: string): void {
