@@ -855,6 +855,57 @@ Single file max size： trace文件分割的大小。
         <br />
         <img src="../figures/parsingability/longtraceswitch.jpg" alt="GitHub Logo" />
       </p>
+      <h3 class="mume-header fontColor" id="header-index-2-1">LongTrace Adapter —— 多分片 LongTrace NativeHook 数据后台预处理</h3>
+
+      <p class="fontColor">
+        当打开包含多个分片的 LongTrace 文件时，如果分片中包含 NativeHook 数据（如 Native Memory 采集），后续分片需要依赖前序分片的公共上下文（符号表、线程映射、统计事件等）才能正确解析。LongTrace Adapter 功能通过扩展服务在后台自动完成这些预处理工作，用户打开文件后第一页即可立即查看，其余页会随后台处理完成逐步解锁。
+      </p>
+      <h4 class="mume-header fontColor">前提条件</h4>
+
+      <p class="fontColor">
+        使用此功能需要确保<a href="#" onclick="window.parent.postMessage({type: 'navigate_help_doc', index: '27', event: 'extensions', docName: 'extensions'}, '*'); return false;">扩展服务（Extension Service）</a>已启动并正常运行。如果扩展服务不可用，系统会自动降级为本地直接解析模式，所有页面仍然可以打开，但包含 NativeHook 数据的后续分片可能出现符号化信息缺失。
+      </p>
+      <h4 class="mume-header fontColor">导入多分片 LongTrace 文件</h4>
+
+      <p class="fontColor">
+        从 Open long trace file 入口导入包含多个分片的 LongTrace 文件夹。导入的文件夹中应包含按序编号的 <code>.htrace</code> 分片文件（如 <code>hiprofiler_data_20260101_000001_1.htrace</code>、<code>hiprofiler_data_20260101_000001_2.htrace</code> ...），以及可能存在的特殊类型文件（arkts、ebpf、hiperf）。
+      </p>
+      <h4 class="mume-header fontColor">后台预处理与页面逐步解锁</h4>
+
+      <p class="fontColor">
+        导入多分片文件后，第一页数据会立即加载显示，其余页码会处于锁定状态（灰显且不可点击），表示正在后台预处理中。
+      </p>
+      <p class="fontColor">
+        界面顶部的进度条会显示当前预处理进度和已完成的文件数。随着后台处理逐步完成，对应的页码会自动解锁变为可点击状态。
+      </p>
+      <p class="fontColor">
+        当某个页面尚未就绪时点击该页码，界面会提示 "Extension service converting, page N not ready"，需要等待预处理完成后再切换。
+      </p>
+      <h4 class="mume-header fontColor">预处理完成后切换页面</h4>
+
+      <p class="fontColor">
+        所有页面预处理完成后（进度条消失），即可通过点击页码、前后翻页按钮或输入页码自由切换到任意页面查看数据。包含 NativeHook 数据的页面会自动应用补丁，确保符号表、线程映射等上下文信息完整。
+      </p>
+      <h4 class="mume-header fontColor">降级说明</h4>
+
+      <p class="fontColor">
+        在以下情况下，系统会自动降级为本地解析模式，所有页面直接可用：
+      </p>
+      <ul class="fontColor">
+        <li>
+          只有单个分片文件的 LongTrace（无需跨页预处理）。
+        </li>
+        <li>
+          扩展服务未启动或连接失败。
+        </li>
+        <li>
+          预处理过程中发生异常。
+        </li>
+      </ul>
+      <p class="fontColor">
+        降级后的行为与不使用 LongTrace Adapter 时一致，不影响基本的 LongTrace 分页浏览功能。
+      </p>
+
       <h3 class="mume-header fontColor" id="header-index-3">web端支持已打开的trace文件转换成systrace，并可下载</h3>
 
       <p class="fontColor">
