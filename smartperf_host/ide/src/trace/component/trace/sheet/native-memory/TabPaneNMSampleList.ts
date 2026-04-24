@@ -361,30 +361,40 @@ export class TabPaneNMSampleList extends BaseElement {
           break;
         case '5':
           childrenToShow = nmRootSample.tempList.filter(
-            parentSample => parentSample.snapshot === MemoryType.KMP_Alloc_NAME
+            parentSample => parentSample.snapshot === MemoryType.DART_HEAP_Alloc_NAME
           );
           break;
         case '6':
           childrenToShow = nmRootSample.tempList.filter(
-            parentSample => MemoryType.ALL_ANONYMOUS_EVENTS.includes(parentSample.snapshot)
+            parentSample => parentSample.snapshot === MemoryType.RN_HERMES_HEAP_Alloc_NAME
           );
           break;
         case '7':
           childrenToShow = nmRootSample.tempList.filter(
-            parentSample => parentSample.snapshot === MemoryType.ION_Alloc_NAME
+            parentSample => parentSample.snapshot === MemoryType.KMP_Alloc_NAME
           );
           break;
         case '8':
           childrenToShow = nmRootSample.tempList.filter(
-            parentSample => parentSample.snapshot === MemoryType.ASHMEM_Alloc_NAME
+            parentSample => MemoryType.ALL_ANONYMOUS_EVENTS.includes(parentSample.snapshot)
           );
           break;
         case '9':
           childrenToShow = nmRootSample.tempList.filter(
-            parentSample => parentSample.snapshot === MemoryType.SO_Alloc_NAME
+            parentSample => parentSample.snapshot === MemoryType.ION_Alloc_NAME
           );
           break;
         case '10':
+          childrenToShow = nmRootSample.tempList.filter(
+            parentSample => parentSample.snapshot === MemoryType.ASHMEM_Alloc_NAME
+          );
+          break;
+        case '11':
+          childrenToShow = nmRootSample.tempList.filter(
+            parentSample => parentSample.snapshot === MemoryType.SO_Alloc_NAME
+          );
+          break;
+        case '12':
           childrenToShow = nmRootSample.tempList.filter(
             parentSample => parentSample.snapshot === MemoryType.MEMORY_M_MAP_NAME
           );

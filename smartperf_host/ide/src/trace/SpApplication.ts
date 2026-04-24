@@ -588,9 +588,12 @@ export class SpApplication extends BaseElement {
           const percent =
             p.total > 0 ? Number(((p.done * 100) / p.total).toFixed(LONG_TRACE_PROGRESS_PERCENT_DECIMALS)) : 0;
           this.litSearch.setPercent(p.message, percent);
-          if (p.total > 0 && p.done >= p.total) {
+          setTimeout(() => {
+            if (!this.litSearch) {
+              return;
+            }
             this.litSearch.setPercent('', 101);
-          }
+          }, 1000);
         },
         // 结果回调：处理单页预处理结果
         onResult: (r) => {

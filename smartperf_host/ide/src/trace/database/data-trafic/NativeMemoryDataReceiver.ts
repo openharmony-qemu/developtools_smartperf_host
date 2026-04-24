@@ -545,6 +545,8 @@ function cacheStatisticChartData(processData: Array<NMData>, ipid: number): void
     // 新增类型
     arkts: [],
     js: [],
+    dartHeap: [],
+    rn: [],
     kmp: [],
     so: [],
     ashmem: [],

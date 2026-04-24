@@ -131,11 +131,13 @@ type ConfigMap = {
 export const statisticCallChainsSamplesConfig: ConfigMap = {
   [MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY]: {
     caseStatement: `(case 
-            when type = ${MemoryStatisticType.MALLOC} then '${MemoryType.MEMORY_M_ALLOC_NAME}' 
+            when type = ${MemoryStatisticType.MALLOC} then '${MemoryType.MEMORY_M_ALLOC_NAME}'
             when type = ${MemoryStatisticType.ARK_GLOBAL_HANDLE} then '${MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME}'
             when type = ${MemoryStatisticType.ARK_LOCAL_HANDLE} then '${MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME}'
             when type = ${MemoryStatisticType.ARKTS} then '${MemoryType.ARKTS_Alloc_NAME}'
             when type = ${MemoryStatisticType.JS} then '${MemoryType.JS_Alloc_NAME}'
+            when type = ${MemoryStatisticType.DART_HEAP} then '${MemoryType.DART_HEAP_Alloc_NAME}'
+            when type = ${MemoryStatisticType.RN} then '${MemoryType.RN_HERMES_HEAP_Alloc_NAME}'
             when type = ${MemoryStatisticType.KMP} then '${MemoryType.KMP_Alloc_NAME}'
             when type = ${MemoryStatisticType.DMA} then '${MemoryType.ION_Alloc_NAME}'
             when type = ${MemoryStatisticType.ASHMEM} then '${MemoryType.ASHMEM_Alloc_NAME}'
@@ -254,6 +256,16 @@ export class AnalysisTabDataLogic {
           {
             applyEventType: MemoryType.JS_Alloc_NAME,
             releaseEventType: MemoryType.JS_Free_NAME,
+            sampleArray: []
+          },
+          {
+            applyEventType: MemoryType.DART_HEAP_Alloc_NAME,
+            releaseEventType: MemoryType.DART_HEAP_Free_NAME,
+            sampleArray: []
+          },
+          {
+            applyEventType: MemoryType.RN_HERMES_HEAP_Alloc_NAME,
+            releaseEventType: MemoryType.RN_HERMES_HEAP_Free_NAME,
             sampleArray: []
           },
           {
@@ -483,12 +495,14 @@ const MEMORY_BASIC_TYPE = {
   NATIVE_HEAP: 2,
   ARKTS_HEAP: 3,
   JS_HEAP: 4,
-  KMP_HEAP: 5,
-  ALL_ANONYMOUS_VM: 6,
-  VM_ION: 7,
-  VM_ASHMEM: 8,
-  VM_SO: 9,
-  VM_OTHERS: 10
+  DART_HEAP: 5,
+  RN_HEAP: 6,
+  KMP_HEAP: 7,
+  ALL_ANONYMOUS_VM: 8,
+  VM_ION: 9,
+  VM_ASHMEM: 10,
+  VM_SO: 11,
+  VM_OTHERS: 12
 };
 
 // 定义内存类型常量数组
@@ -497,6 +511,8 @@ const MEMORY_TYPE_CONSTANTS = {
     MemoryType.MEMORY_M_ALLOC_NAME,
     MemoryType.ARKTS_Alloc_NAME,
     MemoryType.JS_Alloc_NAME,
+    MemoryType.DART_HEAP_Alloc_NAME,
+    MemoryType.RN_HERMES_HEAP_Alloc_NAME,
     MemoryType.KMP_Alloc_NAME,
     MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME,
     MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME
@@ -505,6 +521,8 @@ const MEMORY_TYPE_CONSTANTS = {
     MemoryStatisticType.MALLOC,
     MemoryStatisticType.ARKTS,
     MemoryStatisticType.JS,
+    MemoryStatisticType.DART_HEAP,
+    MemoryStatisticType.RN,
     MemoryStatisticType.KMP,
     MemoryStatisticType.ARK_GLOBAL_HANDLE,
     MemoryStatisticType.ARK_LOCAL_HANDLE
@@ -541,6 +559,8 @@ function mapMemoryType(filterType: string, memoryBasicType: readonly string[]): 
     [memoryBasicType[MEMORY_BASIC_TYPE.NATIVE_HEAP], MemoryType.MEMORY_M_ALLOC_NAME],
     [memoryBasicType[MEMORY_BASIC_TYPE.ARKTS_HEAP], MemoryType.ARKTS_Alloc_NAME],
     [memoryBasicType[MEMORY_BASIC_TYPE.JS_HEAP], MemoryType.JS_Alloc_NAME],
+    [memoryBasicType[MEMORY_BASIC_TYPE.DART_HEAP], MemoryType.DART_HEAP_Alloc_NAME],
+    [memoryBasicType[MEMORY_BASIC_TYPE.RN_HEAP], MemoryType.RN_HERMES_HEAP_Alloc_NAME],
     [memoryBasicType[MEMORY_BASIC_TYPE.KMP_HEAP], MemoryType.KMP_Alloc_NAME],
     [memoryBasicType[MEMORY_BASIC_TYPE.VM_ION], MemoryType.ION_Alloc_NAME],
     [memoryBasicType[MEMORY_BASIC_TYPE.VM_ASHMEM], MemoryType.ASHMEM_Alloc_NAME],

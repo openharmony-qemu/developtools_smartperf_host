@@ -39,6 +39,8 @@ const typeConfigs: TypeConfig[] = [
   { eventId: MemoryStatisticType.MEMORY_USING_MSG, eventType: MemoryType.MEMORY_M_MEMORY_USING_MSG, hasSubType: true },
   { eventId: MemoryStatisticType.ARKTS, eventType: MemoryType.ARKTS_Alloc_NAME, hasSubType: true },
   { eventId: MemoryStatisticType.JS, eventType: MemoryType.JS_Alloc_NAME, hasSubType: true },
+  { eventId: MemoryStatisticType.DART_HEAP, eventType: MemoryType.DART_HEAP_Alloc_NAME, hasSubType: true },
+  { eventId: MemoryStatisticType.RN, eventType: MemoryType.RN_HERMES_HEAP_Alloc_NAME, hasSubType: true },
   { eventId: MemoryStatisticType.KMP, eventType: MemoryType.KMP_Alloc_NAME, hasSubType: true },
   { eventId: MemoryStatisticType.DMA, eventType: MemoryType.ION_Alloc_NAME, hasSubType: true },
   { eventId: MemoryStatisticType.ASHMEM, eventType: MemoryType.ASHMEM_Alloc_NAME, hasSubType: true },
@@ -182,6 +184,8 @@ export class MemoryAnalysisDataLogic {
             MemoryStatisticType.MEMORY_USING_MSG,
             MemoryStatisticType.ARKTS,
             MemoryStatisticType.JS,
+            MemoryStatisticType.DART_HEAP,
+            MemoryStatisticType.RN,
             MemoryStatisticType.KMP,
             MemoryStatisticType.SO,
             MemoryStatisticType.ASHMEM,
@@ -194,6 +198,8 @@ export class MemoryAnalysisDataLogic {
             `'${MemoryType.MEMORY_M_MAP_NAME}'`,
             `'${MemoryType.ARKTS_Alloc_NAME}'`,
             `'${MemoryType.JS_Alloc_NAME}'`,
+            `'${MemoryType.DART_HEAP_Alloc_NAME}'`,
+            `'${MemoryType.RN_HERMES_HEAP_Alloc_NAME}'`,
             `'${MemoryType.KMP_Alloc_NAME}'`,
             `'${MemoryType.SO_Alloc_NAME}'`,
             `'${MemoryType.ASHMEM_Alloc_NAME}'`,
@@ -208,6 +214,8 @@ export class MemoryAnalysisDataLogic {
             MemoryStatisticType.ARK_LOCAL_HANDLE,
             MemoryStatisticType.ARKTS,
             MemoryStatisticType.JS,
+            MemoryStatisticType.DART_HEAP,
+            MemoryStatisticType.RN,
             MemoryStatisticType.KMP
           ],
           normalTypes: [
@@ -216,6 +224,8 @@ export class MemoryAnalysisDataLogic {
             `'${MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME}'`,
             `'${MemoryType.ARKTS_Alloc_NAME}'`,
             `'${MemoryType.JS_Alloc_NAME}'`,
+            `'${MemoryType.DART_HEAP_Alloc_NAME}'`,
+            `'${MemoryType.RN_HERMES_HEAP_Alloc_NAME}'`,
             `'${MemoryType.KMP_Alloc_NAME}'`
           ]
         },
@@ -235,12 +245,22 @@ export class MemoryAnalysisDataLogic {
           normalTypes: [`'${MemoryType.JS_Alloc_NAME}'`]
         },
         {
-          selectionKey: MemoryBasicType.NATIVE_MEMORY[5], // KMP Heap
+          selectionKey: MemoryBasicType.NATIVE_MEMORY[5], // DART HEAP
+          statisticTypes: [MemoryStatisticType.DART_HEAP],
+          normalTypes: [`'${MemoryType.DART_HEAP_Alloc_NAME}'`]
+        },
+        {
+          selectionKey: MemoryBasicType.NATIVE_MEMORY[6], // RN HEAP
+          statisticTypes: [MemoryStatisticType.RN],
+          normalTypes: [`'${MemoryType.RN_HERMES_HEAP_Alloc_NAME}'`]
+        },
+        {
+          selectionKey: MemoryBasicType.NATIVE_MEMORY[7], // KMP Heap
           statisticTypes: [MemoryStatisticType.KMP],
           normalTypes: [`'${MemoryType.KMP_Alloc_NAME}'`]
         },
         {
-          selectionKey: MemoryBasicType.NATIVE_MEMORY[6], // All Anonymous VM (泳道组)
+          selectionKey: MemoryBasicType.NATIVE_MEMORY[8], // All Anonymous VM (泳道组)
           statisticTypes: [
             MemoryStatisticType.MMAP,
             MemoryStatisticType.FILE_PAGE_MSG,
@@ -257,22 +277,22 @@ export class MemoryAnalysisDataLogic {
           ]
         },
         {
-          selectionKey: MemoryBasicType.NATIVE_MEMORY[7], // VM ION
+          selectionKey: MemoryBasicType.NATIVE_MEMORY[9], // VM ION
           statisticTypes: [MemoryStatisticType.DMA],
           normalTypes: [`'${MemoryType.ION_Alloc_NAME}'`]
         },
         {
-          selectionKey: MemoryBasicType.NATIVE_MEMORY[8], // VM Ashmem
+          selectionKey: MemoryBasicType.NATIVE_MEMORY[10], // VM Ashmem
           statisticTypes: [MemoryStatisticType.ASHMEM],
           normalTypes: [`'${MemoryType.ASHMEM_Alloc_NAME}'`]
         },
         {
-          selectionKey: MemoryBasicType.NATIVE_MEMORY[9], // VM SO
+          selectionKey: MemoryBasicType.NATIVE_MEMORY[11], // VM SO
           statisticTypes: [MemoryStatisticType.SO],
           normalTypes: [`'${MemoryType.SO_Alloc_NAME}'`]
         },
         {
-          selectionKey: MemoryBasicType.NATIVE_MEMORY[10], // VM Others
+          selectionKey: MemoryBasicType.NATIVE_MEMORY[12], // VM Others
           statisticTypes: [
             MemoryStatisticType.MMAP,
             MemoryStatisticType.FILE_PAGE_MSG,
@@ -491,7 +511,7 @@ export class MemoryAnalysisDataLogic {
 
           // 有子类型的类型：ARKTS, ARKWEB, RN, KMP, ION, ASHMEM, SO, MMAP
           if ([MemoryStatisticType.MALLOC, MemoryStatisticType.ARK_GLOBAL_HANDLE, MemoryStatisticType.ARK_LOCAL_HANDLE, MemoryStatisticType.MMAP, MemoryStatisticType.FILE_PAGE_MSG, MemoryStatisticType.MEMORY_USING_MSG, MemoryStatisticType.ARKTS, MemoryStatisticType.JS,
-          MemoryStatisticType.KMP, MemoryStatisticType.DMA, MemoryStatisticType.ASHMEM,
+          MemoryStatisticType.DART_HEAP, MemoryStatisticType.RN, MemoryStatisticType.KMP, MemoryStatisticType.DMA, MemoryStatisticType.ASHMEM,
           MemoryStatisticType.SO].includes(tyeId)) {
             condition = (applySample.subType && applySample.subType === typeName) || // 有子类型且与当前类型一致
               (!applySample.subType && applySample.typeName === typeName); // 没有子类型，但类型名称一致

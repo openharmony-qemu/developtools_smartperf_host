@@ -169,6 +169,14 @@ public:
     {
         return lastArkLocalHandleEventRaw_;
     }
+    uint64_t &GetLastRnHermesHeapEventRaw()
+    {
+        return lastRnHermesHeapEventRaw_;
+    }
+    uint64_t &GetLastDartHeapEventRaw()
+    {
+        return lastDartHeapEventRaw_;
+    }
 
 private:
     std::deque<std::string> eventTypes_ = {};
@@ -195,6 +203,8 @@ private:
     int64_t countThreadSizes_ = 0;
     int64_t countArkGlobalHandleSizes_ = 0;
     int64_t countArkLocalHandleSizes_ = 0;
+    int64_t countRnHermesHeapSizes_ = 0;
+    int64_t countDartHeapSizes_ = 0;
     const std::string ALLOC_EVET = "AllocEvent";
     const std::string FREE_EVENT = "FreeEvent";
     const std::string MMAP_EVENT = "MmapEvent";
@@ -227,6 +237,10 @@ private:
     const std::string ARK_GLOBAL_HANDLE_FREE_EVENT = "ARK_GLOBAL_HANDLE_Free_Event";
     const std::string ARK_LOCAL_HANDLE_ALLOC_EVENT = "ARK_LOCAL_HANDLE_Alloc_Event";
     const std::string ARK_LOCAL_HANDLE_FREE_EVENT = "ARK_LOCAL_HANDLE_Free_Event";
+    const std::string RN_HERMES_HEAP_ALLOC_EVENT = "RN_HERMES_HEAP_Alloc_Event";
+    const std::string RN_HERMES_HEAP_FREE_EVENT = "RN_HERMES_HEAP_Free_Event";
+    const std::string DART_HEAP_ALLOC_EVENT = "DART_HEAP_Alloc_Event";
+    const std::string DART_HEAP_FREE_EVENT = "DART_HEAP_Free_Event";
     std::unordered_map<uint64_t, uint64_t> addrToAllocEventRow_ = {};
     std::unordered_map<uint64_t, uint64_t> addrToMmapEventRow_ = {};
     std::map<uint64_t, uint64_t> addrToTraceAllocEventRow_ = {};
@@ -246,6 +260,8 @@ private:
     uint64_t lastThreadEventRaw_ = INVALID_UINT64;
     uint64_t lastArkGlobalHandleEventRaw_ = INVALID_UINT64;
     uint64_t lastArkLocalHandleEventRaw_ = INVALID_UINT64;
+    uint64_t lastRnHermesHeapEventRaw_ = INVALID_UINT64;
+    uint64_t lastDartHeapEventRaw_ = INVALID_UINT64;
 };
 
 struct NativeHookFrameRow {
