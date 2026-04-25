@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023-2026. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,6 +28,7 @@
 #include "clock_filter_ex.h"
 #include "cpu_filter.h"
 #include "file.h"
+#include "filesystem_io_filter.h"
 #include "filter_filter.h"
 #include "frame_filter.h"
 #include "config_filter.h"
@@ -216,6 +217,8 @@ void TraceStreamerSelector::InitFilter()
     streamFilters_->syscallFilter_ = std::make_unique<SyscallFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->timerfdWakeupFilter_ =
         std::make_unique<TimerfdWakeupFilter>(traceDataCache_.get(), streamFilters_.get());
+    streamFilters_->fileSystemIoFilter_ =
+        std::make_unique<FileSystemIoFilter>(traceDataCache_.get(), streamFilters_.get());
     streamFilters_->sysEventMemMeasureFilter_ =
         std::make_unique<SystemEventMeasureFilter>(traceDataCache_.get(), streamFilters_.get(), E_SYS_MEMORY_FILTER);
     streamFilters_->sysEventVMemMeasureFilter_ = std::make_unique<SystemEventMeasureFilter>(

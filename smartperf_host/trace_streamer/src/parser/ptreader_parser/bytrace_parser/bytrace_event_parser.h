@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023-2026. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,6 +21,7 @@
 
 #include "common_types.h"
 #include "event_parser_base.h"
+#include "filesystem_io_filter.h"
 #include "print_event_parser.h"
 #include "trace_data_cache.h"
 #include "trace_streamer_config.h"
@@ -85,6 +86,18 @@ private:
     bool SysEnterEvent(const ArgsMap &args, const BytraceLine &line);
     bool SysExitEvent(const ArgsMap &args, const BytraceLine &line);
     bool TimerFdWakeupEvent(const ArgsMap &args, const BytraceLine &line) const;
+    bool HmfsReadEnterEvent(const ArgsMap &args, const BytraceLine &line) const;
+    bool HmfsReadExitEvent(const ArgsMap &args, const BytraceLine &line) const;
+    bool HmfsWriteEnterEvent(const ArgsMap &args, const BytraceLine &line) const;
+    bool HmfsWriteExitEvent(const ArgsMap &args, const BytraceLine &line) const;
+    bool BlockRqIssueEvent(const ArgsMap &args, const BytraceLine &line) const;
+    bool BlockRqCompleteEvent(const ArgsMap &args, const BytraceLine &line) const;
+    bool ParseHmfsEnterParams(const ArgsMap &args, const BytraceLine &line, HmfsIoEnterEvent &params) const;
+    bool ParseHmfsExitParams(const ArgsMap &args, const BytraceLine &line, HmfsIoExitEvent &params) const;
+    bool ParseBlockRqIssueParams(const std::string &argsStr, const BytraceLine &line, BlockIoIssueEvent &params) const;
+    bool ParseBlockRqCompleteParams(const std::string &argsStr,
+                                    const BytraceLine &line,
+                                    BlockIoCompleteEvent &params) const;
     void GetDataSegArgs(const BytraceLine &bufLine, ArgsMap &args) const;
     void SchedEventInitialization();
     void InterruptEventInitialization();
@@ -94,6 +107,8 @@ private:
     void BinderEventInitialization();
     void StackEventsInitialization();
     void TaskEventInitialization();
+    void HmsfIoInitialization();
+    void BlockIoInitialization();
 
     std::map<std::string, FuncCall> eventToFunctionMap_ = {};
     static const uint32_t MIN_SCHED_SWITCH_ARGS_COUNT = 6;
@@ -116,6 +131,10 @@ private:
     static const uint32_t MIN_BINDER_TRANSACTION_RECEIVED_ARGS_COUNT = 1;
     static const uint32_t MIN_BINDER_TRANSACTION_ALLOC_BUF_ARGS_COUNT = 3;
     static const uint32_t MIN_TIMERFD_WAKEUP_ARGS_COUNT = 6;
+    static const uint32_t MIN_HMFS_READ_ENTER_ARGS_COUNT = 5;
+    static const uint32_t MIN_HMFS_READ_EXIT_ARGS_COUNT = 5;
+    static const uint32_t MIN_HMFS_WRITE_ENTER_ARGS_COUNT = 5;
+    static const uint32_t MIN_HMFS_WRITE_EXIT_ARGS_COUNT = 5;
     std::vector<std::unique_ptr<EventInfo>> eventList_ = {};
     PrintEventParser printEventParser_;
     const DataIndex schedWakeupName_ = traceDataCache_->GetDataIndex("sched_wakeup");

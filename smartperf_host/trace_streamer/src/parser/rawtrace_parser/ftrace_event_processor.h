@@ -82,6 +82,12 @@ private:
     bool RegulatorDisable(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
     bool RegulatorDisableComplete(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
     bool TimerfdWakeup(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
+    bool BlockRqIssue(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
+    bool BlockRqComplete(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
+    bool HmfsReadEnter(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
+    bool HmfsReadExit(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
+    bool HmfsWriteEnter(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
+    bool HmfsWriteExit(FtraceEvent &ftraceEvent, uint8_t data[], size_t size, const EventFormat &format);
     void InterruptEventInitialization();
     void ClockEventInitialization();
     void CpuEventInitialization();
@@ -90,6 +96,8 @@ private:
     void StackEventsInitialization();
     void VoltageEventInitialization();
     void TaskEventInitialization();
+    void BlockEventInitialization();
+    void HmfsEventInitialization();
     void SchedEventInitialization();
 
 private:

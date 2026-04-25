@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023-2026. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -457,6 +457,11 @@ TimerfdWakeup *TraceDataCacheWriter::GetTimerfdWakeupData()
     return &timerfdWakeupData_;
 }
 
+FileSystemIo *TraceDataCacheWriter::GetFileSystemIoData()
+{
+    return &fileSystemIoData_;
+}
+
 void TraceDataCacheWriter::ClearMeasure()
 {
     filterData_.Clear();
@@ -560,6 +565,7 @@ void TraceDataCacheWriter::Clear()
     frameMapsData_.Clear();
     frameSliceData_.Clear();
     timerfdWakeupData_.Clear();
+    fileSystemIoData_.Clear();
 }
 } // namespace TraceStreamer
 } // namespace SysTuning

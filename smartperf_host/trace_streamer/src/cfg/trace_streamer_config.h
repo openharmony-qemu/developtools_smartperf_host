@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023-2026. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -124,6 +124,10 @@ enum SupportedTraceEventType {
     TRACE_EVENT_TIMERFD_WAKEUP,
     TRACE_EVENT_SCHED_SWITCH_LITE,
     TRACE_EVENT_SCHED_WAKEUP_LITE,
+    TRACE_EVENT_HMFS_READ_ENTER,
+    TRACE_EVENT_HMFS_READ_EXIT,
+    TRACE_EVENT_HMFS_WRITE_ENTER,
+    TRACE_EVENT_HMFS_WRITE_EXIT,
     TRACE_EVENT_OTHER,
     TRACE_EVENT_MAX
 };
@@ -301,16 +305,20 @@ private:
     const std::string TRACE_ACTION_BLOCK_DIRTY_BUFFER = "trace_block_dirty_buffer";
     const std::string TRACE_ACTION_BLOCK_GETRQ = "trace_block_getrq";
     const std::string TRACE_ACTION_BLOCK_PLUG = "trace_block_plug";
-    const std::string TRACE_ACTION_BLOCK_RQ_COMPLETE = "trace_block_rq_complete";
+    const std::string TRACE_ACTION_BLOCK_RQ_COMPLETE = "block_rq_complete";
     const std::string TRACE_ACTION_BLOCK_RQ_INSERT = "trace_block_rq_insert";
     const std::string TRACE_ACTION_BLOCK_RQ_REMAP = "trace_block_rq_remap";
-    const std::string TRACE_ACTION_BLOCK_RQ_ISSUE = "trace_block_rq_issue";
+    const std::string TRACE_ACTION_BLOCK_RQ_ISSUE = "block_rq_issue";
     const std::string TRACE_ACTION_DMA_FENCE_INIT = "dma_fence_init";
     const std::string TRACE_ACTION_DMA_FENCE_DESTROY = "dma_fence_destroy";
     const std::string TRACE_ACTION_DMA_FENCE_ENABLE = "dma_fence_enable_signal";
     const std::string TRACE_ACTION_DMA_FENCE_SIGNALED = "dma_fence_signaled";
     const std::string TRACE_ACTION_DMA_FENCE = "dma_fence";
     const std::string TRACE_ACTION_TIMERFD_WAKEUP = "timerfd_wakeup";
+    const std::string TRACE_ACTION_HMFS_READ_ENTER = "hmfs_read_enter";
+    const std::string TRACE_ACTION_HMFS_READ_EXIT = "hmfs_read_exit";
+    const std::string TRACE_ACTION_HMFS_WRITE_ENTER = "hmfs_write_enter";
+    const std::string TRACE_ACTION_HMFS_WRITE_EXIT = "hmfs_write_exit";
     const std::string TRACE_ACTION_FFRT = "trace_ffrt";
 
     const std::string TRACE_ACTION_SYS_MEMORY = "sys_memory";

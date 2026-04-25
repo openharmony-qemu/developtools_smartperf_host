@@ -18,14 +18,17 @@
 #include "app_start_filter.h"
 #include "binder_filter.h"
 #include "binder.pbreader.h"
+#include "block.pbreader.h"
 #include "clk.pbreader.h"
 #include "clock_filter_ex.h"
 #include "cpu_filter.h"
+#include "filesystem_io_filter.h"
 #ifdef ENABLE_FFRT
 #include "ffrt_profiler_result.pbreader.h"
 #endif
 #include "ftrace.pbreader.h"
 #include "ftrace_event.pbreader.h"
+#include "hmfs.pbreader.h"
 #include "sched.pbreader.h"
 #include "ipi.pbreader.h"
 #include "irq_filter.h"
@@ -53,6 +56,8 @@ static constexpr uint8_t DATA_AREA_START = 1;
 static constexpr uint8_t DATA_AREA_END = 11;
 static constexpr size_t MAX_BUFF_SIZE = 1000 * 1000;
 static constexpr size_t MAX_DATA_CACHE = 2 * MAX_BUFF_SIZE;
+static constexpr uint32_t DEV_MAJOR_SHIFT = 20;
+static constexpr uint64_t DEV_MINOR_MASK = 0xfffff;
 
 HtraceEventParser::HtraceEventParser(TraceDataCache *dataCache, const TraceStreamerFilters *filter)
     : EventParserBase(dataCache, filter),
@@ -83,6 +88,8 @@ HtraceEventParser::HtraceEventParser(TraceDataCache *dataCache, const TraceStrea
     LockEventInitialization();
     BinderEventInitialization();
     StackEventsInitialization();
+    HmfsEventInitialization();
+    BlockEventInitialization();
 }
 
 void HtraceEventParser::InterruptEventInitialization()
@@ -171,6 +178,26 @@ void HtraceEventParser::StackEventsInitialization()
                                 std::bind(&HtraceEventParser::WorkqueueExecuteStartEvent, this, std::placeholders::_1));
     eventToFunctionMap_.emplace(TRACE_EVENT_WORKQUEUE_EXECUTE_END,
                                 std::bind(&HtraceEventParser::WorkqueueExecuteEndEvent, this, std::placeholders::_1));
+}
+
+void HtraceEventParser::HmfsEventInitialization()
+{
+    eventToFunctionMap_.emplace(TRACE_EVENT_HMFS_READ_ENTER,
+                                std::bind(&HtraceEventParser::HmfsReadEnterEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(TRACE_EVENT_HMFS_READ_EXIT,
+                                std::bind(&HtraceEventParser::HmfsReadExitEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(TRACE_EVENT_HMFS_WRITE_ENTER,
+                                std::bind(&HtraceEventParser::HmfsWriteEnterEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(TRACE_EVENT_HMFS_WRITE_EXIT,
+                                std::bind(&HtraceEventParser::HmfsWriteExitEvent, this, std::placeholders::_1));
+}
+
+void HtraceEventParser::BlockEventInitialization()
+{
+    eventToFunctionMap_.emplace(TRACE_EVENT_BLOCK_RQ_ISSUE,
+                                std::bind(&HtraceEventParser::BlockRqIssueEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(TRACE_EVENT_BLOCK_RQ_COMPLETE,
+                                std::bind(&HtraceEventParser::BlockRqCompleteEvent, this, std::placeholders::_1));
 }
 
 HtraceEventParser::~HtraceEventParser()
@@ -448,6 +475,44 @@ bool HtraceEventParser::StackEventSet(const ProtoReader::FtraceEvent_Reader &eve
     return judgment;
 }
 
+bool HtraceEventParser::HmfsEventSet(const ProtoReader::FtraceEvent_Reader &event,
+                                     EventInfo &eventInfo,
+                                     ProtoReader::BytesView &bytesView)
+{
+    bool judgment = false;
+
+    if (event.has_hmfs_read_enter_format()) {
+        judgment =
+            BytesViewEventInfo(bytesView, event.hmfs_read_enter_format(), eventInfo, TRACE_EVENT_HMFS_READ_ENTER);
+    } else if (event.has_hmfs_read_exit_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.hmfs_read_exit_format(), eventInfo, TRACE_EVENT_HMFS_READ_EXIT);
+    } else if (event.has_hmfs_write_enter_format()) {
+        judgment =
+            BytesViewEventInfo(bytesView, event.hmfs_write_enter_format(), eventInfo, TRACE_EVENT_HMFS_WRITE_ENTER);
+    } else if (event.has_hmfs_write_exit_format()) {
+        judgment =
+            BytesViewEventInfo(bytesView, event.hmfs_write_exit_format(), eventInfo, TRACE_EVENT_HMFS_WRITE_EXIT);
+    }
+
+    return judgment;
+}
+
+bool HtraceEventParser::BlockEventSet(const ProtoReader::FtraceEvent_Reader &event,
+                                      EventInfo &eventInfo,
+                                      ProtoReader::BytesView &bytesView)
+{
+    bool judgment = false;
+
+    if (event.has_block_rq_issue_format()) {
+        judgment = BytesViewEventInfo(bytesView, event.block_rq_issue_format(), eventInfo, TRACE_EVENT_BLOCK_RQ_ISSUE);
+    } else if (event.has_block_rq_complete_format()) {
+        judgment =
+            BytesViewEventInfo(bytesView, event.block_rq_complete_format(), eventInfo, TRACE_EVENT_BLOCK_RQ_COMPLETE);
+    }
+
+    return judgment;
+}
+
 bool HtraceEventParser::SetEventType(const ProtoReader::FtraceEvent_Reader &event,
                                      EventInfo &eventInfo,
                                      ProtoReader::BytesView &bytesView)
@@ -456,7 +521,8 @@ bool HtraceEventParser::SetEventType(const ProtoReader::FtraceEvent_Reader &even
     if (ConstructEventSet(event, eventInfo, bytesView) || InterruptEventSet(event, eventInfo, bytesView) ||
         ClockEventSet(event, eventInfo, bytesView) || CpuEventSet(event, eventInfo, bytesView) ||
         LockEventSet(event, eventInfo, bytesView) || BinderEventSet(event, eventInfo, bytesView) ||
-        StackEventSet(event, eventInfo, bytesView)) {
+        StackEventSet(event, eventInfo, bytesView) || HmfsEventSet(event, eventInfo, bytesView) ||
+        BlockEventSet(event, eventInfo, bytesView)) {
         return true;
     }
 
@@ -1017,6 +1083,109 @@ bool HtraceEventParser::SysExitEvent(const EventInfo &event) const
     return true;
 }
 
+void HtraceEventParser::ParseDev(uint64_t dev, uint32_t &mainDev, uint32_t &subDev) const
+{
+    mainDev = static_cast<uint32_t>(dev >> DEV_MAJOR_SHIFT);
+    subDev = static_cast<uint32_t>(dev & DEV_MINOR_MASK);
+}
+
+bool HtraceEventParser::HmfsReadEnterEvent(const EventInfo &event) const
+{
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_READ_ENTER, STAT_EVENT_RECEIVED);
+    ProtoReader::HmfsReadEnterFormat_Reader msg(event.detail);
+    uint32_t mainDev = 0;
+    uint32_t subDev = 0;
+    ParseDev(msg.dev(), mainDev, subDev);
+    InternalTid itid = streamFilters_->processFilter_->UpdateOrCreateThread(event.timeStamp, event.pid);
+    DataIndex fileId = INVALID_DATAINDEX;
+    if (msg.name().size > 0) {
+        fileId = traceDataCache_->GetDataIndex(msg.name().ToStdString());
+    }
+    HmfsIoEnterEvent params = {event.timeStamp, itid,      mainDev,    subDev, msg.ino(),
+                               msg.i_size(),    msg.off(), msg.size(), fileId, false};
+    streamFilters_->fileSystemIoFilter_->ProcessReadEnter(params);
+    return true;
+}
+
+bool HtraceEventParser::HmfsReadExitEvent(const EventInfo &event) const
+{
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_READ_EXIT, STAT_EVENT_RECEIVED);
+    ProtoReader::HmfsReadExitFormat_Reader msg(event.detail);
+    uint32_t mainDev = 0;
+    uint32_t subDev = 0;
+    ParseDev(msg.dev(), mainDev, subDev);
+    InternalTid itid = streamFilters_->processFilter_->UpdateOrCreateThread(event.timeStamp, event.pid);
+    int64_t res = msg.res();
+    HmfsIoExitEvent params = {event.timeStamp, itid, mainDev, subDev, msg.ino(), msg.off(), msg.size(), res, false};
+    streamFilters_->fileSystemIoFilter_->ProcessReadExit(params);
+    return true;
+}
+
+bool HtraceEventParser::HmfsWriteEnterEvent(const EventInfo &event) const
+{
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_WRITE_ENTER, STAT_EVENT_RECEIVED);
+    ProtoReader::HmfsWriteEnterFormat_Reader msg(event.detail);
+    uint32_t mainDev = 0;
+    uint32_t subDev = 0;
+    ParseDev(msg.dev(), mainDev, subDev);
+    InternalTid itid = streamFilters_->processFilter_->UpdateOrCreateThread(event.timeStamp, event.pid);
+    DataIndex fileId = INVALID_DATAINDEX;
+    if (msg.name().size > 0) {
+        fileId = traceDataCache_->GetDataIndex(msg.name().ToStdString());
+    }
+    HmfsIoEnterEvent params = {event.timeStamp, itid,      mainDev,    subDev, msg.ino(),
+                               msg.i_size(),    msg.off(), msg.size(), fileId, true};
+    streamFilters_->fileSystemIoFilter_->ProcessWriteEnter(params);
+    return true;
+}
+
+bool HtraceEventParser::HmfsWriteExitEvent(const EventInfo &event) const
+{
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_WRITE_EXIT, STAT_EVENT_RECEIVED);
+    ProtoReader::HmfsWriteExitFormat_Reader msg(event.detail);
+    uint32_t mainDev = 0;
+    uint32_t subDev = 0;
+    ParseDev(msg.dev(), mainDev, subDev);
+    InternalTid itid = streamFilters_->processFilter_->UpdateOrCreateThread(event.timeStamp, event.pid);
+    int64_t res = msg.res();
+    HmfsIoExitEvent params = {event.timeStamp, itid, mainDev, subDev, msg.ino(), msg.off(), msg.size(), res, true};
+    streamFilters_->fileSystemIoFilter_->ProcessWriteExit(params);
+    return true;
+}
+
+bool HtraceEventParser::BlockRqIssueEvent(const EventInfo &event) const
+{
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BLOCK_RQ_ISSUE, STAT_EVENT_RECEIVED);
+    ProtoReader::BlockRqIssueFormat_Reader msg(event.detail);
+    uint32_t mainDev = 0;
+    uint32_t subDev = 0;
+    ParseDev(msg.dev(), mainDev, subDev);
+    InternalTid itid = streamFilters_->processFilter_->UpdateOrCreateThread(event.timeStamp, event.pid);
+    std::string rwbs = msg.rwbs().ToStdString();
+    bool isWrite = (rwbs.find('W') != std::string::npos);
+    std::string cmd = (msg.cmd().size > 0) ? msg.cmd().ToStdString() : std::string();
+    BlockIoIssueEvent params = {event.timeStamp, itid,        mainDev, subDev, msg.sector(),
+                                msg.nr_sector(), msg.bytes(), rwbs,    cmd,    isWrite};
+    streamFilters_->fileSystemIoFilter_->ProcessBlockRqIssue(params);
+    return true;
+}
+
+bool HtraceEventParser::BlockRqCompleteEvent(const EventInfo &event) const
+{
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BLOCK_RQ_COMPLETE, STAT_EVENT_RECEIVED);
+    ProtoReader::BlockRqCompleteFormat_Reader msg(event.detail);
+    uint32_t mainDev = 0;
+    uint32_t subDev = 0;
+    ParseDev(msg.dev(), mainDev, subDev);
+    std::string rwbs = msg.rwbs().ToStdString();
+    bool isWrite = (rwbs.find('W') != std::string::npos);
+    std::string cmd = (msg.cmd().size > 0) ? msg.cmd().ToStdString() : std::string();
+    BlockIoCompleteEvent params = {event.timeStamp, mainDev, subDev, msg.sector(), msg.nr_sector(),
+                                   msg.error(),     rwbs,    cmd,    isWrite};
+    streamFilters_->fileSystemIoFilter_->ProcessBlockRqComplete(params);
+    return true;
+}
+
 bool HtraceEventParser::OomScoreAdjUpdate(const EventInfo &event) const
 {
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_OOM_SCORE_ADJ_UPDATE, STAT_EVENT_RECEIVED);
@@ -1076,6 +1245,7 @@ void HtraceEventParser::FilterAllEvents()
     htraceEventList_.clear();
     streamFilters_->cpuFilter_->Finish();
     traceDataCache_->dataDict_.Finish();
+    streamFilters_->fileSystemIoFilter_->Finish();
     traceDataCache_->UpdataZeroThreadInfo();
     if (streamFilters_->configFilter_->GetSwitchConfig().AppConfigEnabled()) {
         streamFilters_->appStartupFilter_->FilterAllAPPStartupData();

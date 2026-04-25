@@ -20,6 +20,7 @@
 #include "binder_filter.h"
 #include "common_types.h"
 #include "cpu_filter.h"
+#include "filesystem_io_filter.h"
 #include "irq_filter.h"
 #include "measure_filter.h"
 #include "process_filter.h"
@@ -65,6 +66,8 @@ CpuDetailParser::CpuDetailParser(TraceDataCache *dataCache, const TraceStreamerF
     StackEventsInitialization();
     VoltageEventInitialization();
     TaskEventInitialization();
+    HmfsEventInitialization();
+    BlockEventInitialization();
 }
 
 void CpuDetailParser::SchedEventInitialization()
@@ -172,6 +175,26 @@ void CpuDetailParser::TaskEventInitialization()
                                 std::bind(&CpuDetailParser::TimerfdWakeupEvent, this, std::placeholders::_1));
 }
 
+void CpuDetailParser::HmfsEventInitialization()
+{
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_HMFS_READ_ENTER),
+                                std::bind(&CpuDetailParser::HmfsReadEnterEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_HMFS_READ_EXIT),
+                                std::bind(&CpuDetailParser::HmfsReadExitEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_HMFS_WRITE_ENTER),
+                                std::bind(&CpuDetailParser::HmfsWriteEnterEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_HMFS_WRITE_EXIT),
+                                std::bind(&CpuDetailParser::HmfsWriteExitEvent, this, std::placeholders::_1));
+}
+
+void CpuDetailParser::BlockEventInitialization()
+{
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_BLOCK_RQ_ISSUE),
+                                std::bind(&CpuDetailParser::BlockRqIssueEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_BLOCK_RQ_COMPLETE),
+                                std::bind(&CpuDetailParser::BlockRqCompleteEvent, this, std::placeholders::_1));
+}
+
 void CpuDetailParser::EventAppend(std::shared_ptr<RawTraceEventInfo> event)
 {
     if (event->cpuId >= standAloneCpuEventList_.size()) {
@@ -260,6 +283,7 @@ void CpuDetailParser::Clear()
 void CpuDetailParser::FinishCpuDetailParser()
 {
     streamFilters_->cpuFilter_->Finish();
+    streamFilters_->fileSystemIoFilter_->Finish();
     traceDataCache_->dataDict_.Finish();
     traceDataCache_->UpdataZeroThreadInfo();
     if (streamFilters_->configFilter_->GetSwitchConfig().AppConfigEnabled()) {
@@ -829,6 +853,119 @@ bool CpuDetailParser::TimerfdWakeupEvent(const RawTraceEventInfo &event) const
     TimerfdWakeupRow timerfdWakeupEvent = {
         event.msgPtr->timestamp(), pid, tid, threadNameIndex, interval, curr_mono, expire_mono};
     streamFilters_->timerfdWakeupFilter_->AppendTimerfdWakeupEventRow(timerfdWakeupEvent);
+    return true;
+}
+
+void CpuDetailParser::ParseDev(uint64_t dev, uint32_t &mainDev, uint32_t &subDev) const
+{
+    mainDev = static_cast<uint32_t>(dev >> DEV_MAJOR_SHIFT);
+    subDev = static_cast<uint32_t>(dev & DEV_MINOR_MASK);
+}
+
+bool CpuDetailParser::BlockRqIssueEvent(const RawTraceEventInfo &event) const
+{
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BLOCK_RQ_ISSUE, STAT_EVENT_RECEIVED);
+    const auto &msg = event.msgPtr->block_rq_issue_format();
+    uint32_t mainDev = 0;
+    uint32_t subDev = 0;
+    ParseDev(msg.dev(), mainDev, subDev);
+    InternalTid itid = streamFilters_->processFilter_->UpdateOrCreateThread(event.msgPtr->timestamp(), eventTid_);
+    std::string rwbs = msg.rwbs();
+    bool isWrite = (rwbs.find('W') != std::string::npos);
+    std::string cmd = msg.cmd();
+    BlockIoIssueEvent params = {event.msgPtr->timestamp(), itid,        mainDev, subDev, msg.sector(),
+                                msg.nr_sector(),           msg.bytes(), rwbs,    cmd,    isWrite};
+    streamFilters_->fileSystemIoFilter_->ProcessBlockRqIssue(params);
+    return true;
+}
+
+bool CpuDetailParser::BlockRqCompleteEvent(const RawTraceEventInfo &event) const
+{
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BLOCK_RQ_COMPLETE, STAT_EVENT_RECEIVED);
+    const auto &msg = event.msgPtr->block_rq_complete_format();
+    uint32_t mainDev = 0;
+    uint32_t subDev = 0;
+    ParseDev(msg.dev(), mainDev, subDev);
+    std::string rwbs = msg.rwbs();
+    bool isWrite = (rwbs.find('W') != std::string::npos);
+    std::string cmd = msg.cmd();
+    BlockIoCompleteEvent params = {
+        event.msgPtr->timestamp(), mainDev, subDev, msg.sector(), msg.nr_sector(), msg.error(), rwbs, cmd, isWrite};
+    streamFilters_->fileSystemIoFilter_->ProcessBlockRqComplete(params);
+    return true;
+}
+
+bool CpuDetailParser::HmfsReadEnterEvent(const RawTraceEventInfo &event) const
+{
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_READ_ENTER, STAT_EVENT_RECEIVED);
+    const auto &msg = event.msgPtr->hmfs_read_enter_format();
+    uint32_t mainDev = 0;
+    uint32_t subDev = 0;
+    ParseDev(msg.dev(), mainDev, subDev);
+    InternalTid itid = streamFilters_->processFilter_->UpdateOrCreateThread(event.msgPtr->timestamp(), eventTid_);
+    DataIndex fileId = INVALID_DATAINDEX;
+    if (!msg.name().empty()) {
+        fileId = traceDataCache_->GetDataIndex(msg.name());
+    }
+    HmfsIoEnterEvent params = {event.msgPtr->timestamp(),
+                               itid,
+                               mainDev,
+                               subDev,
+                               msg.ino(),
+                               msg.i_size(),
+                               msg.off(),
+                               msg.size(),
+                               fileId,
+                               false};
+    streamFilters_->fileSystemIoFilter_->ProcessReadEnter(params);
+    return true;
+}
+
+bool CpuDetailParser::HmfsReadExitEvent(const RawTraceEventInfo &event) const
+{
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_READ_EXIT, STAT_EVENT_RECEIVED);
+    const auto &msg = event.msgPtr->hmfs_read_exit_format();
+    uint32_t mainDev = 0;
+    uint32_t subDev = 0;
+    ParseDev(msg.dev(), mainDev, subDev);
+    InternalTid itid = streamFilters_->processFilter_->UpdateOrCreateThread(event.msgPtr->timestamp(), eventTid_);
+    int64_t res = msg.res();
+    HmfsIoExitEvent params = {
+        event.msgPtr->timestamp(), itid, mainDev, subDev, msg.ino(), msg.off(), msg.size(), res, false};
+    streamFilters_->fileSystemIoFilter_->ProcessReadExit(params);
+    return true;
+}
+
+bool CpuDetailParser::HmfsWriteEnterEvent(const RawTraceEventInfo &event) const
+{
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_WRITE_ENTER, STAT_EVENT_RECEIVED);
+    const auto &msg = event.msgPtr->hmfs_write_enter_format();
+    uint32_t mainDev = 0;
+    uint32_t subDev = 0;
+    ParseDev(msg.dev(), mainDev, subDev);
+    InternalTid itid = streamFilters_->processFilter_->UpdateOrCreateThread(event.msgPtr->timestamp(), eventTid_);
+    DataIndex fileId = INVALID_DATAINDEX;
+    if (!msg.name().empty()) {
+        fileId = traceDataCache_->GetDataIndex(msg.name());
+    }
+    HmfsIoEnterEvent params = {
+        event.msgPtr->timestamp(), itid, mainDev, subDev, msg.ino(), msg.i_size(), msg.off(), msg.size(), fileId, true};
+    streamFilters_->fileSystemIoFilter_->ProcessWriteEnter(params);
+    return true;
+}
+
+bool CpuDetailParser::HmfsWriteExitEvent(const RawTraceEventInfo &event) const
+{
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_WRITE_EXIT, STAT_EVENT_RECEIVED);
+    const auto &msg = event.msgPtr->hmfs_write_exit_format();
+    uint32_t mainDev = 0;
+    uint32_t subDev = 0;
+    ParseDev(msg.dev(), mainDev, subDev);
+    InternalTid itid = streamFilters_->processFilter_->UpdateOrCreateThread(event.msgPtr->timestamp(), eventTid_);
+    int64_t res = msg.res();
+    HmfsIoExitEvent params = {
+        event.msgPtr->timestamp(), itid, mainDev, subDev, msg.ino(), msg.off(), msg.size(), res, true};
+    streamFilters_->fileSystemIoFilter_->ProcessWriteExit(params);
     return true;
 }
 

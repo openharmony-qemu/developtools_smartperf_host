@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023-2026. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,6 +29,8 @@
 #include "string_to_numerical.h"
 #include "thread_state_flag.h"
 #include "ts_common.h"
+#include <regex>
+
 namespace SysTuning {
 namespace TraceStreamer {
 namespace {
@@ -46,6 +48,13 @@ std::string GetFunctionName(const std::string_view &text, const std::string_view
     }
     return str;
 }
+
+// block_rq_issue:   maj,min rwbs bytes (cmd) sector + nr_sector [comm]
+// block_rq_complete: maj,min rwbs (cmd) sector + nr_sector [error]
+const std::regex kBlockRqIssueArgsRegex(
+    R"(^\s*(\d+),(\d+)\s+(\S+)\s+(\d+)\s+\(\s*([^)]*)\s*\)\s+(\d+)\s*\+\s*(\d+)\s+\[([^\]]+)\]\s*$)");
+const std::regex kBlockRqCompleteArgsRegex(
+    R"(^\s*(\d+),(\d+)\s+(\S+)\s+\(\s*([^)]*)\s*\)\s+(\d+)\s*\+\s*(\d+)\s+\[([^\]]+)\]\s*$)");
 } // namespace
 
 BytraceEventParser::BytraceEventParser(TraceDataCache *dataCache, const TraceStreamerFilters *filter)
@@ -76,6 +85,8 @@ BytraceEventParser::BytraceEventParser(TraceDataCache *dataCache, const TraceStr
     BinderEventInitialization();
     StackEventsInitialization();
     TaskEventInitialization();
+    HmsfIoInitialization();
+    BlockIoInitialization();
     eventList_.reserve(maxBuffSize_);
 }
 
@@ -216,6 +227,32 @@ void BytraceEventParser::TaskEventInitialization()
     eventToFunctionMap_.emplace(
         config_.eventNameMap_.at(TRACE_EVENT_TIMERFD_WAKEUP),
         bind(&BytraceEventParser::TimerFdWakeupEvent, this, std::placeholders::_1, std::placeholders::_2));
+}
+
+void BytraceEventParser::HmsfIoInitialization()
+{
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_HMFS_READ_ENTER),
+        bind(&BytraceEventParser::HmfsReadEnterEvent, this, std::placeholders::_1, std::placeholders::_2));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_HMFS_READ_EXIT),
+        bind(&BytraceEventParser::HmfsReadExitEvent, this, std::placeholders::_1, std::placeholders::_2));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_HMFS_WRITE_ENTER),
+        bind(&BytraceEventParser::HmfsWriteEnterEvent, this, std::placeholders::_1, std::placeholders::_2));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_HMFS_WRITE_EXIT),
+        bind(&BytraceEventParser::HmfsWriteExitEvent, this, std::placeholders::_1, std::placeholders::_2));
+}
+
+void BytraceEventParser::BlockIoInitialization()
+{
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_BLOCK_RQ_ISSUE),
+        bind(&BytraceEventParser::BlockRqIssueEvent, this, std::placeholders::_1, std::placeholders::_2));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_BLOCK_RQ_COMPLETE),
+        bind(&BytraceEventParser::BlockRqCompleteEvent, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 bool BytraceEventParser::SysEnterEvent(const ArgsMap &args, const BytraceLine &line)
@@ -913,6 +950,290 @@ bool BytraceEventParser::TimerFdWakeupEvent(const ArgsMap &args, const BytraceLi
     return true;
 }
 
+static bool ParseHmfsDevice(const ArgsMap &args, uint32_t &mainDev, uint32_t &subDev, const std::string &eventName)
+{
+    auto it = args.find("dev");
+    if (it == args.end()) {
+        TS_LOGD("Failed to parse dev field in %s", eventName.c_str());
+        return false;
+    }
+    std::string devStr = it->second;
+    size_t commaPos = devStr.find(',');
+    if (commaPos == std::string::npos) {
+        TS_LOGD("Failed to parse dev field in %s: %s", eventName.c_str(), devStr.c_str());
+        return false;
+    }
+    std::string mainStr = devStr.substr(0, commaPos);
+    std::string subStr = devStr.substr(commaPos + 1);
+    base::StrTrim(mainStr);
+    base::StrTrim(subStr);
+    auto mainDevOpt = base::StrToInt<uint32_t>(mainStr);
+    auto subDevOpt = base::StrToInt<uint32_t>(subStr);
+    if (!mainDevOpt.has_value() || !subDevOpt.has_value()) {
+        TS_LOGD("Failed to parse dev numbers in %s", eventName.c_str());
+        return false;
+    }
+    mainDev = mainDevOpt.value();
+    subDev = subDevOpt.value();
+    return true;
+}
+
+static bool ParseHmfsCommonFields(const ArgsMap &args,
+                                  uint64_t &ino,
+                                  uint64_t &offset,
+                                  uint64_t &size,
+                                  const std::string &eventName)
+{
+    if (args.find("ino") == args.end() || args.find("offset") == args.end() || args.find("size") == args.end()) {
+        TS_LOGD("Failed to parse required fields in %s", eventName.c_str());
+        return false;
+    }
+    auto inoOpt = base::StrToInt<uint64_t>(args.at("ino"));
+    auto offsetOpt = base::StrToInt<uint64_t>(args.at("offset"));
+    auto sizeOpt = base::StrToInt<uint64_t>(args.at("size"));
+    if (!inoOpt.has_value() || !offsetOpt.has_value() || !sizeOpt.has_value()) {
+        TS_LOGD("Failed to parse required fields in %s", eventName.c_str());
+        return false;
+    }
+    ino = inoOpt.value();
+    offset = offsetOpt.value();
+    size = sizeOpt.value();
+    return true;
+}
+
+bool BytraceEventParser::ParseHmfsEnterParams(const ArgsMap &args,
+                                              const BytraceLine &line,
+                                              HmfsIoEnterEvent &params) const
+{
+    uint32_t mainDev = 0;
+    uint32_t subDev = 0;
+    if (!ParseHmfsDevice(args, mainDev, subDev, "hmfs_io_enter")) {
+        return false;
+    }
+    uint64_t ino = 0;
+    uint64_t offset = 0;
+    uint64_t size = 0;
+    if (!ParseHmfsCommonFields(args, ino, offset, size, "hmfs_io_enter")) {
+        return false;
+    }
+    if (args.find("i_size") == args.end()) {
+        TS_LOGD("Failed to parse required fields in hmfs_io_enter");
+        return false;
+    }
+    auto iSizeOpt = base::StrToInt<uint64_t>(args.at("i_size"));
+    if (!iSizeOpt.has_value()) {
+        TS_LOGD("Failed to parse i_size in hmfs_io_enter");
+        return false;
+    }
+    DataIndex fileId = INVALID_DATAINDEX;
+    if (args.find("entry_name") != args.end()) {
+        fileId = traceDataCache_->GetDataIndex(args.at("entry_name"));
+    }
+    params = {line.ts, streamFilters_->processFilter_->UpdateOrCreateThread(line.ts, line.pid),
+              mainDev, subDev,
+              ino,     iSizeOpt.value(),
+              offset,  size,
+              fileId,  false};
+    return true;
+}
+
+bool BytraceEventParser::ParseHmfsExitParams(const ArgsMap &args,
+                                             const BytraceLine &line,
+                                             HmfsIoExitEvent &params) const
+{
+    uint32_t mainDev = 0;
+    uint32_t subDev = 0;
+    if (!ParseHmfsDevice(args, mainDev, subDev, "hmfs_io_exit")) {
+        return false;
+    }
+    uint64_t ino = 0;
+    uint64_t offset = 0;
+    uint64_t size = 0;
+    if (!ParseHmfsCommonFields(args, ino, offset, size, "hmfs_io_exit")) {
+        return false;
+    }
+    if (args.find("res") == args.end()) {
+        TS_LOGD("Failed to parse required fields in hmfs_io_exit");
+        return false;
+    }
+    auto resOpt = base::StrToInt<int64_t>(args.at("res"));
+    if (!resOpt.has_value()) {
+        TS_LOGD("Failed to parse res in hmfs_io_exit");
+        return false;
+    }
+    params = {line.ts, streamFilters_->processFilter_->UpdateOrCreateThread(line.ts, line.pid),
+              mainDev, subDev,
+              ino,     offset,
+              size,    resOpt.value(),
+              false};
+    return true;
+}
+
+bool BytraceEventParser::HmfsReadEnterEvent(const ArgsMap &args, const BytraceLine &line) const
+{
+    if (args.empty() || args.size() < MIN_HMFS_READ_ENTER_ARGS_COUNT) {
+        TS_LOGD("Failed to parse hmfs_read_enter event, no args or args size < %d", MIN_HMFS_READ_ENTER_ARGS_COUNT);
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_READ_ENTER, STAT_EVENT_DATA_INVALID);
+        return false;
+    }
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_READ_ENTER, STAT_EVENT_RECEIVED);
+    HmfsIoEnterEvent params;
+    if (!ParseHmfsEnterParams(args, line, params)) {
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_READ_ENTER, STAT_EVENT_DATA_INVALID);
+        return false;
+    }
+    params.isWrite = false;
+    streamFilters_->fileSystemIoFilter_->ProcessReadEnter(params);
+    return true;
+}
+
+bool BytraceEventParser::HmfsReadExitEvent(const ArgsMap &args, const BytraceLine &line) const
+{
+    if (args.empty() || args.size() < MIN_HMFS_READ_EXIT_ARGS_COUNT) {
+        TS_LOGD("Failed to parse hmfs_read_exit event, no args or args size < %d", MIN_HMFS_READ_EXIT_ARGS_COUNT);
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_READ_EXIT, STAT_EVENT_DATA_INVALID);
+        return false;
+    }
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_READ_EXIT, STAT_EVENT_RECEIVED);
+    HmfsIoExitEvent params;
+    if (!ParseHmfsExitParams(args, line, params)) {
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_READ_EXIT, STAT_EVENT_DATA_INVALID);
+        return false;
+    }
+    params.isWrite = false;
+    streamFilters_->fileSystemIoFilter_->ProcessReadExit(params);
+    return true;
+}
+
+bool BytraceEventParser::HmfsWriteEnterEvent(const ArgsMap &args, const BytraceLine &line) const
+{
+    if (args.empty() || args.size() < MIN_HMFS_WRITE_ENTER_ARGS_COUNT) {
+        TS_LOGD("Failed to parse hmfs_write_enter event, no args or args size < %d", MIN_HMFS_WRITE_ENTER_ARGS_COUNT);
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_WRITE_ENTER, STAT_EVENT_DATA_INVALID);
+        return false;
+    }
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_WRITE_ENTER, STAT_EVENT_RECEIVED);
+    HmfsIoEnterEvent params;
+    if (!ParseHmfsEnterParams(args, line, params)) {
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_WRITE_ENTER, STAT_EVENT_DATA_INVALID);
+        return false;
+    }
+    params.isWrite = true;
+    streamFilters_->fileSystemIoFilter_->ProcessWriteEnter(params);
+    return true;
+}
+
+bool BytraceEventParser::HmfsWriteExitEvent(const ArgsMap &args, const BytraceLine &line) const
+{
+    if (args.empty() || args.size() < MIN_HMFS_WRITE_EXIT_ARGS_COUNT) {
+        TS_LOGD("Failed to parse hmfs_write_exit event, no args or args size < %d", MIN_HMFS_WRITE_EXIT_ARGS_COUNT);
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_WRITE_EXIT, STAT_EVENT_DATA_INVALID);
+        return false;
+    }
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_WRITE_EXIT, STAT_EVENT_RECEIVED);
+    HmfsIoExitEvent params;
+    if (!ParseHmfsExitParams(args, line, params)) {
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_WRITE_EXIT, STAT_EVENT_DATA_INVALID);
+        return false;
+    }
+    params.isWrite = true;
+    streamFilters_->fileSystemIoFilter_->ProcessWriteExit(params);
+    return true;
+}
+
+bool BytraceEventParser::BlockRqIssueEvent(const ArgsMap &args, const BytraceLine &line) const
+{
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BLOCK_RQ_ISSUE, STAT_EVENT_RECEIVED);
+    std::string argsStr = base::Strip(line.argsStr);
+    if (argsStr.empty()) {
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BLOCK_RQ_ISSUE, STAT_EVENT_DATA_INVALID);
+        return false;
+    }
+
+    BlockIoIssueEvent params;
+    if (!ParseBlockRqIssueParams(argsStr, line, params)) {
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BLOCK_RQ_ISSUE, STAT_EVENT_DATA_INVALID);
+        return false;
+    }
+    streamFilters_->fileSystemIoFilter_->ProcessBlockRqIssue(params);
+    return true;
+}
+
+bool BytraceEventParser::BlockRqCompleteEvent(const ArgsMap &args, const BytraceLine &line) const
+{
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BLOCK_RQ_COMPLETE, STAT_EVENT_RECEIVED);
+    std::string argsStr = base::Strip(line.argsStr);
+    if (argsStr.empty()) {
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BLOCK_RQ_COMPLETE, STAT_EVENT_DATA_INVALID);
+        return false;
+    }
+    BlockIoCompleteEvent params;
+    if (!ParseBlockRqCompleteParams(argsStr, line, params)) {
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BLOCK_RQ_COMPLETE, STAT_EVENT_DATA_INVALID);
+        return false;
+    }
+    streamFilters_->fileSystemIoFilter_->ProcessBlockRqComplete(params);
+    return true;
+}
+
+bool BytraceEventParser::ParseBlockRqIssueParams(const std::string &argsStr,
+                                                 const BytraceLine &line,
+                                                 BlockIoIssueEvent &params) const
+{
+    std::smatch matcher;
+    if (!std::regex_match(argsStr, matcher, kBlockRqIssueArgsRegex)) {
+        return false;
+    }
+    auto mainDevOpt = base::StrToInt<uint32_t>(matcher[1].str());
+    auto subDevOpt = base::StrToInt<uint32_t>(matcher[2].str());
+    auto bytesOpt = base::StrToInt<uint32_t>(matcher[4].str());
+    auto sectorOpt = base::StrToInt<uint64_t>(matcher[6].str());
+    auto nrSectorOpt = base::StrToInt<uint32_t>(matcher[7].str());
+    if (!mainDevOpt.has_value() || !subDevOpt.has_value() || !bytesOpt.has_value() || !sectorOpt.has_value() ||
+        !nrSectorOpt.has_value()) {
+        return false;
+    }
+    std::string rwbs = matcher[3].str();
+    std::string cmd = matcher[5].str();
+    base::StrTrim(cmd);
+    bool isWrite = (rwbs.find('W') != std::string::npos);
+    params = {line.ts,
+              streamFilters_->processFilter_->UpdateOrCreateThread(line.ts, line.pid),
+              mainDevOpt.value(),
+              subDevOpt.value(),
+              sectorOpt.value(),
+              nrSectorOpt.value(),
+              bytesOpt.value(),
+              rwbs,
+              cmd,
+              isWrite};
+    return true;
+}
+
+bool BytraceEventParser::ParseBlockRqCompleteParams(const std::string &argsStr,
+                                                    const BytraceLine &line,
+                                                    BlockIoCompleteEvent &params) const
+{
+    std::smatch matcher;
+    if (!std::regex_match(argsStr, matcher, kBlockRqCompleteArgsRegex)) {
+        return false;
+    }
+    auto mainDevOpt = base::StrToInt<uint32_t>(matcher[1].str());
+    auto subDevOpt = base::StrToInt<uint32_t>(matcher[2].str());
+    auto sectorOpt = base::StrToInt<uint64_t>(matcher[5].str());
+    auto nrSectorOpt = base::StrToInt<uint32_t>(matcher[6].str());
+    if (!mainDevOpt.has_value() || !subDevOpt.has_value() || !sectorOpt.has_value() || !nrSectorOpt.has_value()) {
+        return false;
+    }
+    std::string rwbs = matcher[3].str();
+    std::string cmd = matcher[4].str();
+    base::StrTrim(cmd);
+    bool isWrite = (rwbs.find('W') != std::string::npos);
+    params = {line.ts, mainDevOpt.value(), subDevOpt.value(), sectorOpt.value(), nrSectorOpt.value(), 0, rwbs, cmd,
+              isWrite};
+    return true;
+}
+
 void BytraceEventParser::ParseDataItem(const BytraceLine &line)
 {
     eventList_.emplace_back(std::make_unique<EventInfo>(line.ts, line));
@@ -987,6 +1308,7 @@ void BytraceEventParser::FilterAllEvents()
     }
     eventList_.clear();
     streamFilters_->cpuFilter_->Finish();
+    streamFilters_->fileSystemIoFilter_->Finish();
     traceDataCache_->dataDict_.Finish();
     traceDataCache_->UpdataZeroThreadInfo();
     if (streamFilters_->configFilter_->GetSwitchConfig().AppConfigEnabled()) {
