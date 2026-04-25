@@ -65,6 +65,8 @@ private:
     void LockEventInitialization();
     void BinderEventInitialization();
     void StackEventsInitialization();
+    void HmfsEventInitialization();
+    void BlockEventInitialization();
 
     bool BytesViewEventInfo(ProtoReader::BytesView &bytesView,
                             ProtoReader::BytesView bytesViewChange,
@@ -90,6 +92,12 @@ private:
                         EventInfo &eventInfo,
                         ProtoReader::BytesView &bytesView);
     bool StackEventSet(const ProtoReader::FtraceEvent_Reader &event,
+                       EventInfo &eventInfo,
+                       ProtoReader::BytesView &bytesView);
+    bool HmfsEventSet(const ProtoReader::FtraceEvent_Reader &event,
+                      EventInfo &eventInfo,
+                      ProtoReader::BytesView &bytesView);
+    bool BlockEventSet(const ProtoReader::FtraceEvent_Reader &event,
                        EventInfo &eventInfo,
                        ProtoReader::BytesView &bytesView);
 
@@ -147,6 +155,13 @@ private:
     bool SysEnterEvent(const EventInfo &event) const;
     bool SysExitEvent(const EventInfo &event) const;
     bool OomScoreAdjUpdate(const EventInfo &event) const;
+    bool HmfsReadEnterEvent(const EventInfo &event) const;
+    bool HmfsReadExitEvent(const EventInfo &event) const;
+    bool HmfsWriteEnterEvent(const EventInfo &event) const;
+    bool HmfsWriteExitEvent(const EventInfo &event) const;
+    bool BlockRqIssueEvent(const EventInfo &event) const;
+    bool BlockRqCompleteEvent(const EventInfo &event) const;
+    void ParseDev(uint64_t dev, uint32_t &mainDev, uint32_t &subDev) const;
     using FuncCall = std::function<bool(const EventInfo &event)>;
     std::map<uint32_t, FuncCall> eventToFunctionMap_ = {};
     std::deque<std::unique_ptr<EventInfo>> htraceEventList_ = {};

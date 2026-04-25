@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023-2026. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -41,6 +41,7 @@
 #include "dynamic_frame_table.h"
 #include "ebpf_callstack_table.h"
 #include "file.h"
+#include "filesystem_io_table.h"
 #include "file_system_sample_table.h"
 #include "filter_table.h"
 #include "frame_maps_table.h"
@@ -265,6 +266,7 @@ void TraceDataCache::InitDB()
     TableBase::TableDeclare<LiveProcessTable>(*db_, this, "live_process");
     TableBase::TableDeclare<DmaFenceTable>(*db_, this, "dma_fence");
     TableBase::TableDeclare<TimerfdWakeupTable>(*db_, this, "timerfd_wakeup");
+    TableBase::TableDeclare<FileSystemIoTable>(*db_, this, "filesystem_io");
     dbInited_ = true;
 }
 bool TraceDataCache::AnimationTraceEnabled() const
@@ -685,6 +687,7 @@ void TraceDataCache::ClearAllExportedCacheData()
     frameMapsData_.ClearExportedData();
     gpuSliceData_.ClearExportedData();
     timerfdWakeupData_.ClearExportedData();
+    fileSystemIoData_.ClearExportedData();
 }
 void TraceDataCache::UpdateAllReadySize()
 {

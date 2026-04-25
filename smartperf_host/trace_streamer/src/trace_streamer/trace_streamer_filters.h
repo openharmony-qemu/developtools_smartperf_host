@@ -1,5 +1,5 @@
 /*
- * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023-2026. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -34,6 +34,7 @@ class SyscallFilter;
 class SystemEventMeasureFilter;
 class ConfigFilter;
 class TimerfdWakeupFilter;
+class FileSystemIoFilter;
 #ifdef ENABLE_HISYSEVENT
 class HiSysEventMeasureFilter;
 #endif
@@ -61,6 +62,7 @@ public:
     std::unique_ptr<IrqFilter> irqFilter_;
     std::unique_ptr<SyscallFilter> syscallFilter_;
     std::unique_ptr<TimerfdWakeupFilter> timerfdWakeupFilter_;
+    std::unique_ptr<FileSystemIoFilter> fileSystemIoFilter_;
     std::unique_ptr<SystemEventMeasureFilter> sysEventMemMeasureFilter_;
     std::unique_ptr<SystemEventMeasureFilter> sysEventVMemMeasureFilter_;
     std::unique_ptr<SystemEventMeasureFilter> sysEventSourceFilter_;
