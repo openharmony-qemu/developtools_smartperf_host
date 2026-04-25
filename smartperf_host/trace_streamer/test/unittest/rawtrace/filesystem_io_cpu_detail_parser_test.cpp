@@ -171,63 +171,69 @@ HWTEST_F(FileSystemIoCpuDetailParserTest, HmfsReadExit_NegativeResDoesNotMatchNo
     EXPECT_EQ(selector_.streamFilters_->fileSystemIoFilter_->pendingEnterEvents_.size(), 1u);
 }
 
-HWTEST_F(FileSystemIoCpuDetailParserTest, HmfsWriteEnterExit_IsWriteTrueAndEntryNameBranches, TestSize.Level1)
+HWTEST_F(FileSystemIoCpuDetailParserTest, HmfsWriteEnterExit_WithName, TestSize.Level1)
 {
     parser_->eventTid_ = 1234;
 
-    RawTraceEventInfo enterEvent1{};
-    enterEvent1.msgPtr = std::make_unique<FtraceEvent>();
-    enterEvent1.msgPtr->set_timestamp(100);
-    auto *enter1 = enterEvent1.msgPtr->mutable_hmfs_write_enter_format();
-    enter1->set_dev(MakeDev(8, 1));
-    enter1->set_ino(1);
-    enter1->set_off(0);
-    enter1->set_size(4);
-    enter1->set_i_size(1024);
-    enter1->set_name("hello.txt");
-    EXPECT_TRUE(parser_->HmfsWriteEnterEvent(enterEvent1));
+    RawTraceEventInfo enterEvent{};
+    enterEvent.msgPtr = std::make_unique<FtraceEvent>();
+    enterEvent.msgPtr->set_timestamp(100);
+    auto *enter = enterEvent.msgPtr->mutable_hmfs_write_enter_format();
+    enter->set_dev(MakeDev(8, 1));
+    enter->set_ino(1);
+    enter->set_off(0);
+    enter->set_size(4);
+    enter->set_i_size(1024);
+    enter->set_name("hello.txt");
+    EXPECT_TRUE(parser_->HmfsWriteEnterEvent(enterEvent));
 
-    RawTraceEventInfo exitEvent1{};
-    exitEvent1.msgPtr = std::make_unique<FtraceEvent>();
-    exitEvent1.msgPtr->set_timestamp(200);
-    auto *exit1 = exitEvent1.msgPtr->mutable_hmfs_write_exit_format();
-    exit1->set_dev(MakeDev(8, 1));
-    exit1->set_ino(1);
-    exit1->set_off(4);
-    exit1->set_size(4);
-    exit1->set_res(4);
-    EXPECT_TRUE(parser_->HmfsWriteExitEvent(exitEvent1));
+    RawTraceEventInfo exitEvent{};
+    exitEvent.msgPtr = std::make_unique<FtraceEvent>();
+    exitEvent.msgPtr->set_timestamp(200);
+    auto *exit = exitEvent.msgPtr->mutable_hmfs_write_exit_format();
+    exit->set_dev(MakeDev(8, 1));
+    exit->set_ino(1);
+    exit->set_off(4);
+    exit->set_size(4);
+    exit->set_res(4);
+    EXPECT_TRUE(parser_->HmfsWriteExitEvent(exitEvent));
 
     const auto &fsIo = selector_.traceDataCache_->GetConstFileSystemIoData();
     ASSERT_EQ(fsIo.Size(), 1u);
     EXPECT_FALSE(fsIo.IsBlocksData()[0]);
     EXPECT_TRUE(fsIo.IsWritesData()[0]);
+}
 
-    RawTraceEventInfo enterEvent2{};
-    enterEvent2.msgPtr = std::make_unique<FtraceEvent>();
-    enterEvent2.msgPtr->set_timestamp(300);
-    auto *enter2 = enterEvent2.msgPtr->mutable_hmfs_write_enter_format();
-    enter2->set_dev(MakeDev(8, 1));
-    enter2->set_ino(2);
-    enter2->set_off(10);
-    enter2->set_size(8);
-    enter2->set_i_size(2048);
-    enter2->set_name("");
-    EXPECT_TRUE(parser_->HmfsWriteEnterEvent(enterEvent2));
+HWTEST_F(FileSystemIoCpuDetailParserTest, HmfsWriteEnterExit_WithEmptyName, TestSize.Level1)
+{
+    parser_->eventTid_ = 1234;
 
-    RawTraceEventInfo exitEvent2{};
-    exitEvent2.msgPtr = std::make_unique<FtraceEvent>();
-    exitEvent2.msgPtr->set_timestamp(400);
-    auto *exit2 = exitEvent2.msgPtr->mutable_hmfs_write_exit_format();
-    exit2->set_dev(MakeDev(8, 1));
-    exit2->set_ino(2);
-    exit2->set_off(18);
-    exit2->set_size(8);
-    exit2->set_res(8);
-    EXPECT_TRUE(parser_->HmfsWriteExitEvent(exitEvent2));
+    RawTraceEventInfo enterEvent{};
+    enterEvent.msgPtr = std::make_unique<FtraceEvent>();
+    enterEvent.msgPtr->set_timestamp(300);
+    auto *enter = enterEvent.msgPtr->mutable_hmfs_write_enter_format();
+    enter->set_dev(MakeDev(8, 1));
+    enter->set_ino(2);
+    enter->set_off(10);
+    enter->set_size(8);
+    enter->set_i_size(2048);
+    enter->set_name("");
+    EXPECT_TRUE(parser_->HmfsWriteEnterEvent(enterEvent));
 
-    ASSERT_EQ(fsIo.Size(), 2u);
-    EXPECT_TRUE(fsIo.IsWritesData()[1]);
+    RawTraceEventInfo exitEvent{};
+    exitEvent.msgPtr = std::make_unique<FtraceEvent>();
+    exitEvent.msgPtr->set_timestamp(400);
+    auto *exit = exitEvent.msgPtr->mutable_hmfs_write_exit_format();
+    exit->set_dev(MakeDev(8, 1));
+    exit->set_ino(2);
+    exit->set_off(18);
+    exit->set_size(8);
+    exit->set_res(8);
+    EXPECT_TRUE(parser_->HmfsWriteExitEvent(exitEvent));
+
+    const auto &fsIo = selector_.traceDataCache_->GetConstFileSystemIoData();
+    ASSERT_EQ(fsIo.Size(), 1u);
+    EXPECT_TRUE(fsIo.IsWritesData()[0]);
 }
 } // namespace TraceStreamer
 } // namespace SysTuning
