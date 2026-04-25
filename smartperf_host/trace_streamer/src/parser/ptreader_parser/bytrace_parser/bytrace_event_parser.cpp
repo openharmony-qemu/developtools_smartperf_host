@@ -988,16 +988,13 @@ static bool ParseHmfsCommonFields(const ArgsMap &args,
         TS_LOGD("Failed to parse required fields in %s", eventName.c_str());
         return false;
     }
-
     auto inoOpt = base::StrToInt<uint64_t>(args.at("ino"));
     auto offsetOpt = base::StrToInt<uint64_t>(args.at("offset"));
     auto sizeOpt = base::StrToInt<uint64_t>(args.at("size"));
-
     if (!inoOpt.has_value() || !offsetOpt.has_value() || !sizeOpt.has_value()) {
         TS_LOGD("Failed to parse required fields in %s", eventName.c_str());
         return false;
     }
-
     ino = inoOpt.value();
     offset = offsetOpt.value();
     size = sizeOpt.value();
@@ -1019,7 +1016,6 @@ bool BytraceEventParser::ParseHmfsEnterParams(const ArgsMap &args,
     if (!ParseHmfsCommonFields(args, ino, offset, size, "hmfs_io_enter")) {
         return false;
     }
-
     if (args.find("i_size") == args.end()) {
         TS_LOGD("Failed to parse required fields in hmfs_io_enter");
         return false;
@@ -1029,12 +1025,10 @@ bool BytraceEventParser::ParseHmfsEnterParams(const ArgsMap &args,
         TS_LOGD("Failed to parse i_size in hmfs_io_enter");
         return false;
     }
-
     DataIndex fileId = INVALID_DATAINDEX;
     if (args.find("entry_name") != args.end()) {
         fileId = traceDataCache_->GetDataIndex(args.at("entry_name"));
     }
-
     params = {line.ts, streamFilters_->processFilter_->UpdateOrCreateThread(line.ts, line.pid),
               mainDev, subDev,
               ino,     iSizeOpt.value(),
@@ -1052,14 +1046,12 @@ bool BytraceEventParser::ParseHmfsExitParams(const ArgsMap &args,
     if (!ParseHmfsDevice(args, mainDev, subDev, "hmfs_io_exit")) {
         return false;
     }
-
     uint64_t ino = 0;
     uint64_t offset = 0;
     uint64_t size = 0;
     if (!ParseHmfsCommonFields(args, ino, offset, size, "hmfs_io_exit")) {
         return false;
     }
-
     if (args.find("res") == args.end()) {
         TS_LOGD("Failed to parse required fields in hmfs_io_exit");
         return false;
@@ -1069,7 +1061,6 @@ bool BytraceEventParser::ParseHmfsExitParams(const ArgsMap &args,
         TS_LOGD("Failed to parse res in hmfs_io_exit");
         return false;
     }
-
     params = {line.ts, streamFilters_->processFilter_->UpdateOrCreateThread(line.ts, line.pid),
               mainDev, subDev,
               ino,     offset,
@@ -1086,7 +1077,6 @@ bool BytraceEventParser::HmfsReadEnterEvent(const ArgsMap &args, const BytraceLi
         return false;
     }
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_READ_ENTER, STAT_EVENT_RECEIVED);
-
     HmfsIoEnterEvent params;
     if (!ParseHmfsEnterParams(args, line, params)) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_READ_ENTER, STAT_EVENT_DATA_INVALID);
@@ -1105,7 +1095,6 @@ bool BytraceEventParser::HmfsReadExitEvent(const ArgsMap &args, const BytraceLin
         return false;
     }
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_READ_EXIT, STAT_EVENT_RECEIVED);
-
     HmfsIoExitEvent params;
     if (!ParseHmfsExitParams(args, line, params)) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_READ_EXIT, STAT_EVENT_DATA_INVALID);
@@ -1124,7 +1113,6 @@ bool BytraceEventParser::HmfsWriteEnterEvent(const ArgsMap &args, const BytraceL
         return false;
     }
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_WRITE_ENTER, STAT_EVENT_RECEIVED);
-
     HmfsIoEnterEvent params;
     if (!ParseHmfsEnterParams(args, line, params)) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_WRITE_ENTER, STAT_EVENT_DATA_INVALID);
@@ -1143,7 +1131,6 @@ bool BytraceEventParser::HmfsWriteExitEvent(const ArgsMap &args, const BytraceLi
         return false;
     }
     streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_WRITE_EXIT, STAT_EVENT_RECEIVED);
-
     HmfsIoExitEvent params;
     if (!ParseHmfsExitParams(args, line, params)) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_WRITE_EXIT, STAT_EVENT_DATA_INVALID);
@@ -1168,7 +1155,6 @@ bool BytraceEventParser::BlockRqIssueEvent(const ArgsMap &args, const BytraceLin
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BLOCK_RQ_ISSUE, STAT_EVENT_DATA_INVALID);
         return false;
     }
-
     streamFilters_->fileSystemIoFilter_->ProcessBlockRqIssue(params);
     return true;
 }
@@ -1181,13 +1167,11 @@ bool BytraceEventParser::BlockRqCompleteEvent(const ArgsMap &args, const Bytrace
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BLOCK_RQ_COMPLETE, STAT_EVENT_DATA_INVALID);
         return false;
     }
-
     BlockIoCompleteEvent params;
     if (!ParseBlockRqCompleteParams(argsStr, line, params)) {
         streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BLOCK_RQ_COMPLETE, STAT_EVENT_DATA_INVALID);
         return false;
     }
-
     streamFilters_->fileSystemIoFilter_->ProcessBlockRqComplete(params);
     return true;
 }

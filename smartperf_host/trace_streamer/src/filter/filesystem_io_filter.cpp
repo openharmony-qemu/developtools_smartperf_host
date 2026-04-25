@@ -60,7 +60,6 @@ void FileSystemIoFilter::ProcessWriteExit(const HmfsIoExitEvent &params)
 void FileSystemIoFilter::ProcessExit(const HmfsIoExitEvent &params)
 {
     const size_t bestMatchIndex = FindBestMatchEnterEvent(params);
-
     if (bestMatchIndex != MAX_SIZE_T) {
         const auto &enterEvent = pendingEnterEvents_[bestMatchIndex];
         FileSystemIoRow fileSystemIoRow = CreateCompleteIoRow(enterEvent, params.ts, params.offset, params.actualBytes);
