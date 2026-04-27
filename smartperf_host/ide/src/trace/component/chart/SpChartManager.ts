@@ -25,6 +25,7 @@ import { SpProcessChart } from './SpProcessChart';
 import { perfDataQuery } from './PerfDataQuery';
 import { SpVirtualMemChart } from './SpVirtualMemChart';
 import { SpEBPFChart } from './SpEBPFChart';
+import { SpSystemIOChart } from './SpSystemIOChart';
 import { SpSdkChart } from './SpSdkChart';
 import { SpHiSysEnergyChart } from './SpHiSysEnergyChart';
 import { VmTrackerChart } from './SpVmTrackerChart';
@@ -79,6 +80,7 @@ export class SpChartManager {
   private process: SpProcessChart;
   private process2?: SpProcessChart;
   private fileSystem: SpEBPFChart;
+  private systemIOChart: SpSystemIOChart;
   private sdkChart: SpSdkChart;
   private hiSyseventChart: SpHiSysEnergyChart;
   private smapsChart: VmTrackerChart;
@@ -104,6 +106,7 @@ export class SpChartManager {
     this.trace = trace;
     this.perf = new SpHiPerf(trace);
     this.fileSystem = new SpEBPFChart(trace);
+    this.systemIOChart = new SpSystemIOChart(trace);
     this.cpu = new SpCpuChart(trace);
     this.freq = new SpFreqChart(trace);
     this.virtualMemChart = new SpVirtualMemChart(trace);
@@ -232,6 +235,8 @@ export class SpChartManager {
     await perfDataQuery.initPerfCache();
     progress('file system', 89);
     await this.fileSystem!.init();
+    progress('system io', 89.2);
+    await this.systemIOChart.init();
     progress('ark ts', 90);
     await this.arkTsChart.initFolder();
     await this.spAllAppStartupsChart.init();

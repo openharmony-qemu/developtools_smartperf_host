@@ -119,8 +119,50 @@ export class ProcedureLogicWorkerFileSystem extends LogicHandler {
         case 'fileSystem-reset':
           this.fileSystemReset();
           break;
+        case 'io-statistics':
+          this.ioStatistics(data);
+          break;
       }
     }
+  }
+
+  private ioStatistics(data: unknown): void {
+    //@ts-ignore
+    if (data.params && data.params.list !== undefined && data.params.list !== null) {
+      //@ts-ignore
+      const raw = data.params.list;
+      const res = Array.isArray(raw) ? raw : convertJSON(raw) || [];
+      postMessage(
+        //@ts-ignore
+        data.id,
+        'io-statistics',
+        res as Array<unknown>
+      ); 
+      return;
+    }
+    //@ts-ignore
+    const { startTime, endTime } = data.params;
+    this.queryIOStatistics(startTime, endTime);
+  }
+
+  private queryIOStatistics(startTime: number, endTime: number): void {
+    let sql = `SELECT
+                (A.start_time - tr.start_ts) as start_time,
+                (A.end_time - tr.start_ts) as end_time,
+                A.duration,
+                A.is_write,
+                A.is_block as is_physical,
+                A.request_bytes as request_bytes,
+                A.request_bytes as actul_bytes
+              FROM
+                filesystem_io A,
+                (SELECT start_ts FROM trace_range ORDER BY start_ts LIMIT 1) tr
+              WHERE
+                A.start_time < tr.start_ts + ${endTime}
+                AND A.end_time > tr.start_ts + ${startTime}
+              ORDER BY
+                A.start_time;`;
+    this.queryData(this.currentEventId, 'io-statistics', sql, {});
   }
 
   private fileSystemQueryCallchains(data: unknown): void {

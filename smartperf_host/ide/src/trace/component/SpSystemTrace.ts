@@ -98,6 +98,7 @@ import { resetVSync } from './chart/VSync';
 import { QueryEnum } from '../database/data-trafic/utils/QueryEnum';
 import { SpSystemTraceHtml } from './SpSystemTrace.html';
 import { querySceneSearchFunc, querySearchFunc } from '../database/sql/Func.sql';
+import { IOStruct } from '../database/ui-worker/ProcedureWorkerIO';
 import { queryCpuKeyPathData } from '../database/sql/Cpu.sql';
 import { LtpoStruct } from '../database/ui-worker/ProcedureWorkerLTPO';
 import { HitchTimeStruct } from '../database/ui-worker/ProcedureWorkerHitchTime';
@@ -616,7 +617,8 @@ export class SpSystemTrace extends BaseElement {
       DmaFenceStruct.selectDmaFenceStruct ||
       XpowerThreadInfoStruct.selectXpowerStruct ||
       XpowerGpuFreqStruct.selectXpowerStruct ||
-      SnapShotStruct.selectSnapShotStruct;
+      SnapShotStruct.selectSnapShotStruct ||
+      IOStruct.selectIOStruct;
   }
   top: number = 0;
   handler: number = -1;
@@ -1079,6 +1081,9 @@ export class SpSystemTrace extends BaseElement {
     } else if (HangStruct.selectHangStruct) {
       this.currentSlicesTime.startTime = HangStruct.selectHangStruct.startTime;
       this.currentSlicesTime.endTime = HangStruct.selectHangStruct.startTime! + HangStruct.selectHangStruct.dur!;
+    } else if (IOStruct.selectIOStruct) {
+      this.currentSlicesTime.startTime = IOStruct.selectIOStruct.startNS;
+      this.currentSlicesTime.endTime = IOStruct.selectIOStruct.startNS! + IOStruct.selectIOStruct.dur!;
     } else {
       this.currentSlicesTime.startTime = 0;
       this.currentSlicesTime.endTime = 0;
@@ -1102,7 +1107,8 @@ export class SpSystemTrace extends BaseElement {
       JsCpuProfilerStruct.selectJsCpuProfilerStruct ||
       PerfToolStruct.selectPerfToolStruct ||
       DmaFenceStruct.selectDmaFenceStruct ||
-      HangStruct.selectHangStruct;
+      HangStruct.selectHangStruct ||
+      IOStruct.selectIOStruct;
     this.calculateSlicesTime(selectedStruct, shiftKey);
 
     return this.slicestime;
@@ -1409,6 +1415,7 @@ export class SpSystemTrace extends BaseElement {
     GpuCounterStruct.hoverGpuCounterStruct = undefined;
     DmaFenceStruct.hoverDmaFenceStruct = undefined;
     SnapShotStruct.hoverSnapShotStruct = undefined;
+    IOStruct.hoverIOStruct = null;
     this.tipEL!.style.display = 'none';
     return this;
   }
@@ -1452,6 +1459,8 @@ export class SpSystemTrace extends BaseElement {
     XpowerThreadInfoStruct.selectXpowerStruct = undefined;
     XpowerGpuFreqStruct.selectXpowerStruct = undefined;
     SnapShotStruct.selectSnapShotStruct = undefined;
+    IOStruct.selectIOStruct = null;
+    IOStruct.selectIOStructList = [];
     return this;
   }
 
@@ -1628,6 +1637,10 @@ export class SpSystemTrace extends BaseElement {
     [
       TraceRow.ROW_TYPE_HANG,
       (): boolean => HangStruct.hoverHangStruct !== null && HangStruct.hoverHangStruct !== undefined,
+    ],
+    [
+      TraceRow.ROW_TYPE_FILE_SYSTEM_IO,
+      (): boolean => IOStruct.hoverIOStruct !== null && IOStruct.hoverIOStruct !== undefined,
     ],
   ]);
 

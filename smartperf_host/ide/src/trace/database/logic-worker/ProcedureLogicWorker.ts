@@ -51,6 +51,11 @@ function match(req: { id: string; type: string; params: { dataDict: Map<number, 
     });
     return;
   }
+
+  if (req.type === 'io-statistics') {
+    logicWorker.fileSystem.handle(req);
+    return;
+  }
   Reflect.ownKeys(logicWorker).filter((it) => {
     if (req.type && req.type.startsWith(it as string)) {
       //@ts-ignore
