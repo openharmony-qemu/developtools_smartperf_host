@@ -166,6 +166,8 @@ import { TabPaneOSEvents } from '../sheet/otherSource/TabPaneOSEvents';
 import { TabPaneFreqByCpu } from '../sheet/cpu/TanpaneFreqByCpu';
 import { TabPaneSchedTaskByCpu } from '../sheet/cpu/TabPaneSchedTaskByCpu';
 import { TabPaneSchedTaskChild } from '../sheet/cpu/TabPaneSchedTaskChild';
+import { TabPaneIOStatistics } from '../sheet/io/TabPaneIOStatistics';
+
 
 export let tabConfig: {
   [key: string]: {
@@ -884,4 +886,9 @@ export let tabConfig: {
     title: 'Gpu Freq Selection',
     type: TabPaneXpowerGpuFreqSelection,
   }, //xpower gpu freq click
+  'box-io-statiics': {
+    title: "IO Statistics",
+    type: TabPaneIOStatistics,
+    require: (param: SelectionParam) => param.ioStatisticsRowIds.length > 0 || param.ioStatiicsData.length > 0,
+  }
 };

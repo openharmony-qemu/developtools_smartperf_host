@@ -40,6 +40,7 @@ export enum QueryEnum {
   FileSystemData = 48,
   DiskIoData = 49,
   EBPFVm = 50,
+  IOData = 51,
   VmTrackerSmapsData = 81,
   VmTrackerDmaData = 82,
   VmTrackerGpuMemoryData = 83,

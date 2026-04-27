@@ -69,6 +69,7 @@ import { logDataReceiver } from '../LogDataReceiver';
 import { cpuProfilerDataReceiver } from '../ArkTsReceiver';
 import { frameActualReceiver, frameExpectedReceiver } from '../FrameJanksReceiver';
 import { diskIoReceiver, eBPFVmReceiver, fileSystemDataReceiver } from '../EBPFReceiver';
+import { ioDataReceiver } from '../IOReceiver';
 import { nativeMemoryDataHandler } from '../NativeMemoryDataReceiver';
 import { frameAnimationReceiver, frameDynamicReceiver, frameSpacingReceiver } from '../FrameDynamicEffectReceiver';
 import {
@@ -148,6 +149,7 @@ traficHandlers.set(QueryEnum.HiSysEventData, hiSysEventDataReceiver);
 traficHandlers.set(QueryEnum.HilogData, logDataReceiver);
 traficHandlers.set(QueryEnum.FileSystemData, fileSystemDataReceiver);
 traficHandlers.set(QueryEnum.DiskIoData, diskIoReceiver);
+traficHandlers.set(QueryEnum.IOData, ioDataReceiver);
 traficHandlers.set(QueryEnum.EBPFVm, eBPFVmReceiver);
 traficHandlers.set(QueryEnum.CpuProfilerData, cpuProfilerDataReceiver);
 traficHandlers.set(QueryEnum.FrameExpectedData, frameExpectedReceiver);
