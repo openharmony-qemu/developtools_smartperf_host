@@ -123,7 +123,8 @@ import { TabPanePerfSampleChild } from '../sheet/hiperf/TabPerfSampleChild';
 import { TabPaneSchedTaskChild } from '../sheet/cpu/TabPaneSchedTaskChild';
 import { MemoryAnalysisDataLogic } from './MemoryAnalysisData';
 import { MemoryTraceRowType } from '../../../bean/MemoryEnum';
-
+import { IOStruct } from 'src/trace/database/ui-worker/ProcedureWorkerIO';
+import { TabPaneIOStatistics } from '../sheet/io/TabPaneIOStatistics';
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -1041,6 +1042,9 @@ export class TraceSheet extends BaseElement {
   };
   displayXpowerGpuFreqData = (dataList: Array<XpowerGpuFreqStruct>): void => {
     this.displayTab<TabPaneXpowerGpuFreqSelection>('box-xpower-gpu-freq-selection').setGpuFreqData(dataList);
+  };
+  displayIoStatiicsData = (dataList: Array<IOStruct>): void => {
+    this.displayTab<TabPaneIOStatistics>('box-io-statistics').setIoStatisticsData(dataList);
   };
   displayXpowerTreadCountData = (data: XpowerThreadCountStruct): Promise<void> =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setXpowerTreadCountData(data);

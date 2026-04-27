@@ -30,6 +30,7 @@ import { HiperfEventRender } from './hiperf/ProcedureWorkerHiPerfEvent';
 import { HiperfReportRender } from './hiperf/ProcedureWorkerHiPerfReport';
 import { VirtualMemoryRender } from './ProcedureWorkerVirtualMemory';
 import { EBPFRender } from './ProcedureWorkerEBPF';
+import { IORender } from './ProcedureWorkerIO';
 import { info } from '../../../log/Log';
 import { SdkSliceRender } from './ProduceWorkerSdkSlice';
 import { SdkCounterRender } from './ProduceWorkerSdkCounter';
@@ -98,6 +99,7 @@ export let renders = {
   'virtual-memory-cell': new VirtualMemoryRender(),
   'file-system-group': new EmptyRender(),
   'file-system-cell': new EBPFRender(),
+  'io': new IORender(),
   process: new ProcessRender(),
   'app-start-up': new AppStartupRender(),
   'all-app-start-up': new AllAppStartupRender(),

@@ -62,6 +62,13 @@ import { queryHangData } from '../../database/sql/Hang.sql';
 import { EmptyRender } from '../../database/ui-worker/cpu/ProcedureWorkerCPU';
 import { renders } from '../../database/ui-worker/ProcedureWorker';
 import { ThreadSysCallStruct } from '../../database/ui-worker/ProcedureWorkerThreadSysCall';
+import { IOStruct, IORender } from '../../database/ui-worker/ProcedureWorkerIO';
+import { ColorUtils } from '../trace/base/ColorUtils';
+import { ioSender } from '../../database/data-trafic/IOSender';
+import { procedurePool } from '../../database/Procedure';
+import { queryAllIOProcess } from '../../database/sql/IO.sql';
+
+const IO_LANE_HEIGHT = '48px';
 
 const FOLD_HEIGHT = 24;
 export class SpProcessChart {
@@ -421,6 +428,7 @@ export class SpProcessChart {
     SpProcessChart.processRowSortMap.clear();
     let allJankProcess: Array<number> = [];
     let allTaskPoolPid: Array<{ pid: number }> = [];
+    let allIOPid: Array<number> = [];
     let renderServiceProcess: unknown[] = [];
     if (!this.isDistributed) {
       let allJankProcessData = await queryAllJankProcess();
@@ -433,6 +441,12 @@ export class SpProcessChart {
         allTaskPoolPid = await queryTaskPoolProcessIds();
       }
       renderServiceProcess = await queryRsProcess();
+      let allIOProcessData = await queryAllIOProcess();
+      if (allIOProcessData.length > 0) {
+        allIOProcessData.forEach((name) => {
+          allIOPid.push(name.pid!);
+        });
+      }
     }
 
     // @ts-ignore
@@ -442,7 +456,7 @@ export class SpProcessChart {
     this.hangProcessSet = new Set<number>((await queryHangData()).map(item => item.id));
 
     // @ts-ignore
-    await this.initProcessRow(processList, allTaskPoolPid, allJankProcess, renderServiceProcess, traceId);
+    await this.initProcessRow(processList, allTaskPoolPid, allJankProcess, renderServiceProcess, allIOPid, traceId);
     let durTime = new Date().getTime() - time;
     info('The time to load the Process data is: ', durTime);
   }
@@ -544,6 +558,7 @@ export class SpProcessChart {
     allTaskPoolPid: Array<{ pid: number }>,
     jankArr: Array<number>,
     rsProcess: Array<unknown>,
+    allIOPid: Array<number>,
     traceId?: string
   ): Promise<void> {
     for (let i = 0; i < pArr.length; i++) {
@@ -573,6 +588,10 @@ export class SpProcessChart {
       //@ts-ignore
       let currentPid = it.pid;
       if (!this.isDistributed) {
+        // 添加IO泳道
+        if (allIOPid.indexOf(currentPid) > -1) {
+          await this.addIOReadWriteRows(it, processRow);
+        }
         if (this.loadAppStartup) {
           if (this.startupProcessArr.find((sp) => sp.pid === currentPid)) {
             startupRow = this.addStartUpRow(processRow);
@@ -607,6 +626,218 @@ export class SpProcessChart {
         await this.trace.chartManager?.frameTimeChart.initAnimatedScenesChart(processRow, it, expectedRow!, actualRow!);
       }
     }
+  }
+
+  private async addIOReadWriteRows(process: { pid: number; processName: string | null }, processRow: TraceRow<ProcessStruct>): Promise<void> {
+    this.addLogicalReadRow(process, processRow, IO_LANE_HEIGHT);
+    this.addLogicalWriteRow(process, processRow, IO_LANE_HEIGHT);
+    this.addPhysicalReadRow(process, processRow, IO_LANE_HEIGHT);
+    this.addPhysicalWriteRow(process, processRow, IO_LANE_HEIGHT);
+  }
+
+  private addLogicalReadRow(
+    process: { pid: number; processName: string | null },
+    processRow: TraceRow<ProcessStruct>,
+    laneHeight: string
+  ): void {
+    let logicalReadRow = TraceRow.skeleton<IOStruct>();
+    logicalReadRow.rowId = `io-logical-read-${process.pid}`;
+    logicalReadRow.index = 1;
+    logicalReadRow.rowType = TraceRow.ROW_TYPE_FILE_SYSTEM_IO;
+    logicalReadRow.rowParentId = processRow.rowId;
+    logicalReadRow.rowHidden = !processRow.expansion;
+    logicalReadRow.style.height = laneHeight;
+    logicalReadRow.setAttribute('children', '');
+    logicalReadRow.name = 'Logical Read';
+    logicalReadRow.supplierFrame = async (): Promise<IOStruct[]> => {
+      const res = await ioSender(0, TraceRow.range?.scale || 50, logicalReadRow, process.pid);
+      return res;
+    };
+    logicalReadRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    logicalReadRow.selectChangeHandler = this.trace.selectChangeHandler;
+    logicalReadRow.focusHandler = (): void => this.focusIOHandler(logicalReadRow);
+    logicalReadRow.findHoverStruct = (): void => {
+      IOStruct.hoverIOStruct = logicalReadRow.getHoverStruct(false) || null;
+    };
+    logicalReadRow.onThreadHandler = (useCache): void => {
+      let context: CanvasRenderingContext2D;
+      if (logicalReadRow.currentContext) {
+        context = logicalReadRow.currentContext;
+      } else {
+        context = logicalReadRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      }
+      logicalReadRow.canvasSave(context);
+      //@ts-ignore
+      (renders['io'] as IORender).renderMainThread(
+        {
+          context: context,
+          useCache: useCache,
+          type: 'io-logical-read',
+          chartColor: ColorUtils.MD_PALETTE[0],
+        },
+        logicalReadRow
+      );
+      logicalReadRow.canvasRestore(context, this.trace);
+    };
+    processRow.addChildTraceRow(logicalReadRow);
+  }
+
+  private addLogicalWriteRow(
+    process: { pid: number; processName: string | null },
+    processRow: TraceRow<ProcessStruct>,
+    laneHeight: string
+  ): void {
+    let logicalWriteRow = TraceRow.skeleton<IOStruct>();
+    logicalWriteRow.rowId = `io-logical-write-${process.pid}`;
+    logicalWriteRow.index = 2;
+    logicalWriteRow.rowType = TraceRow.ROW_TYPE_FILE_SYSTEM_IO;
+    logicalWriteRow.rowParentId = processRow.rowId;
+    logicalWriteRow.rowHidden = !processRow.expansion;
+    logicalWriteRow.style.height = laneHeight;
+    logicalWriteRow.setAttribute('children', '');
+    logicalWriteRow.name = 'Logical Write';
+    logicalWriteRow.supplierFrame = async (): Promise<IOStruct[]> => {
+      const res = await ioSender(1, TraceRow.range?.scale || 50, logicalWriteRow, process.pid);
+      return res;
+    };
+    logicalWriteRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    logicalWriteRow.selectChangeHandler = this.trace.selectChangeHandler;
+    logicalWriteRow.focusHandler = (): void => this.focusIOHandler(logicalWriteRow);
+    logicalWriteRow.findHoverStruct = (): void => {
+      IOStruct.hoverIOStruct = logicalWriteRow.getHoverStruct(false) || null;
+    };
+    logicalWriteRow.onThreadHandler = (useCache): void => {
+      let context: CanvasRenderingContext2D;
+      if (logicalWriteRow.currentContext) {
+        context = logicalWriteRow.currentContext;
+      } else {
+        context = logicalWriteRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      }
+      logicalWriteRow.canvasSave(context);
+      //@ts-ignore
+      (renders['io'] as IORender).renderMainThread(
+        {
+          context: context,
+          useCache: useCache,
+          type: 'io-logical-write',
+          chartColor: ColorUtils.MD_PALETTE[8],
+        },
+        logicalWriteRow
+      );
+      logicalWriteRow.canvasRestore(context, this.trace);
+    };
+    processRow.addChildTraceRow(logicalWriteRow);
+  }
+
+  private addPhysicalReadRow(
+    process: { pid: number; processName: string | null },
+    processRow: TraceRow<ProcessStruct>,
+    laneHeight: string
+  ): void {
+    let physicalReadRow = TraceRow.skeleton<IOStruct>();
+    physicalReadRow.rowId = `io-physical-read-${process.pid}`;
+    physicalReadRow.index = 3;
+    physicalReadRow.rowType = TraceRow.ROW_TYPE_FILE_SYSTEM_IO;
+    physicalReadRow.rowParentId = processRow.rowId;
+    physicalReadRow.rowHidden = !processRow.expansion;
+    physicalReadRow.style.height = laneHeight;
+    physicalReadRow.setAttribute('children', '');
+    physicalReadRow.name = 'Physical Read';
+    physicalReadRow.supplierFrame = async (): Promise<IOStruct[]> => {
+      const res = await ioSender(2, TraceRow.range?.scale || 50, physicalReadRow, process.pid);
+      return res;
+    };
+    physicalReadRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    physicalReadRow.selectChangeHandler = this.trace.selectChangeHandler;
+    physicalReadRow.focusHandler = (): void => this.focusIOHandler(physicalReadRow);
+    physicalReadRow.findHoverStruct = (): void => {
+      IOStruct.hoverIOStruct = physicalReadRow.getHoverStruct(false) || null;
+    };
+    physicalReadRow.onThreadHandler = (useCache): void => {
+      let context: CanvasRenderingContext2D;
+      if (physicalReadRow.currentContext) {
+        context = physicalReadRow.currentContext;
+      } else {
+        context = physicalReadRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      }
+      physicalReadRow.canvasSave(context);
+      //@ts-ignore
+      (renders['io'] as IORender).renderMainThread(
+        {
+          context: context,
+          useCache: useCache,
+          type: 'io-physical-read',
+          chartColor: ColorUtils.MD_PALETTE[2],
+        },
+        physicalReadRow
+      );
+      physicalReadRow.canvasRestore(context, this.trace);
+    };
+    processRow.addChildTraceRow(physicalReadRow);
+  }
+
+  private addPhysicalWriteRow(
+    process: { pid: number; processName: string | null },
+    processRow: TraceRow<ProcessStruct>,
+    laneHeight: string
+  ): void {
+    let physicalWriteRow = TraceRow.skeleton<IOStruct>();
+    physicalWriteRow.rowId = `io-physical-write-${process.pid}`;
+    physicalWriteRow.index = 4;
+    physicalWriteRow.rowType = TraceRow.ROW_TYPE_FILE_SYSTEM_IO;
+    physicalWriteRow.rowParentId = processRow.rowId;
+    physicalWriteRow.rowHidden = !processRow.expansion;
+    physicalWriteRow.style.height = laneHeight;
+    physicalWriteRow.setAttribute('children', '');
+    physicalWriteRow.name = 'Physical Write';
+    physicalWriteRow.supplierFrame = async (): Promise<IOStruct[]> => {
+      const res = await ioSender(3, TraceRow.range?.scale || 50, physicalWriteRow, process.pid);
+      return res;
+    };
+    physicalWriteRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
+    physicalWriteRow.selectChangeHandler = this.trace.selectChangeHandler;
+    physicalWriteRow.focusHandler = (): void => this.focusIOHandler(physicalWriteRow);
+    physicalWriteRow.findHoverStruct = (): void => {
+      IOStruct.hoverIOStruct = physicalWriteRow.getHoverStruct(false) || null;
+    };
+    physicalWriteRow.onThreadHandler = (useCache): void => {
+      let context: CanvasRenderingContext2D;
+      if (physicalWriteRow.currentContext) {
+        context = physicalWriteRow.currentContext;
+      } else {
+        context = physicalWriteRow.collect ? this.trace.canvasFavoritePanelCtx! : this.trace.canvasPanelCtx!;
+      }
+      physicalWriteRow.canvasSave(context);
+      //@ts-ignore
+      (renders['io'] as IORender).renderMainThread(
+        {
+          context: context,
+          useCache: useCache,
+          type: 'io-physical-write',
+          chartColor: ColorUtils.MD_PALETTE[10],
+        },
+        physicalWriteRow
+      );
+      physicalWriteRow.canvasRestore(context, this.trace);
+    };
+    processRow.addChildTraceRow(physicalWriteRow);
+  }
+
+  private focusIOHandler(row: TraceRow<IOStruct>): void {
+    let num = 0;
+    let tip = '';
+    if (IOStruct.hoverIOStruct) {
+      num = IOStruct.hoverIOStruct.size ?? 0;
+      let group10Ms = IOStruct.hoverIOStruct.group10Ms ?? false;
+      if (num > 0) {
+        if (group10Ms) {
+          tip = `<span>${num} (10.00ms)</span>`;
+        } else {
+          tip = `<span>${num}</span>`;
+        }
+      }
+    }
+    this.trace?.displayTip(row, IOStruct.hoverIOStruct, tip);
   }
 
   private createProcessRow(

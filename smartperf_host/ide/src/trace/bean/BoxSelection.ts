@@ -132,6 +132,7 @@ export class SelectionParam {
   diskIOipids: Array<number> = [];
   diskIOReadIds: Array<number> = [];
   diskIOWriteIds: Array<number> = [];
+  ioStatisticsRowIds: Array<string> = [];
   systemEnergy: Array<string> = [];
   powerEnergy: Array<string> = [];
   anomalyEnergy: Array<string> = [];
@@ -145,6 +146,7 @@ export class SelectionParam {
   frameAnimation: Array<FrameAnimationStruct> = [];
   frameSpacing: Array<FrameSpacingStruct> = [];
   jsCpuProfilerData: Array<JsCpuProfilerChartFrame> = [];
+  ioStatiicsData: Array<unknown> = [];
   gpu: {
     gl: boolean;
     graph: boolean;
@@ -678,6 +680,7 @@ export class SelectionParam {
         child.rangeSelect = true;
         child.checkType = '2';
         this.pushFileSystem(child, sp);
+        this.pushIO(child, sp);
       });
     }
     if (it.rowType === TraceRow.ROW_TYPE_FILE_SYSTEM) {
@@ -714,6 +717,58 @@ export class SelectionParam {
             this.diskIOWriteIds.indexOf(ipid) === -1 ? this.diskIOWriteIds.push(ipid) : '';
           }
         }
+      }
+    }
+  }
+
+  // @ts-ignore
+  pushIO(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_FILE_SYSTEM_IO) {
+      // 记录选中的 IO 泳道 ID，让 Tab 页自己按需查询数据
+      if (it.rowId && this.ioStatisticsRowIds.indexOf(it.rowId) === -1) {
+        this.ioStatisticsRowIds.push(it.rowId);
+      }
+      const dataList = it.dataListCache || [];
+      // 快速路径：如果数据为空，直接返回
+      if (dataList.length === 0) {
+        return;
+      }
+      
+      // 预计算时间范围，避免重复访问属性
+      const leftNs = this.leftNs;
+      const rightNs = this.rightNs;
+      
+      // 使用Map进行高效去重，只针对当前批次数据
+      const batchMap = new Map<number, boolean>();
+      const filteredData: Array<unknown> = [];
+      
+      // 遍历当前数据，过滤并去重
+      for (let i = 0; i < dataList.length; i++) {
+        const ioItem = dataList[i];
+        // 空值检查：在类型断言前先验证数据有效性
+        if (!ioItem || typeof ioItem !== 'object') {
+          continue;
+        }
+        const io = ioItem as { startNS: number, dur: number };
+        const start = io.startNS ?? 0;
+        const dur = io.dur ?? 0;
+        
+        // 检查是否在时间范围内
+        if (start < rightNs && start + dur > leftNs) {
+          // 使用数字作为键，避免字符串拼接开销
+          const key = (start << 32) | (dur & 0xFFFFFFFF);
+          
+          // 检查是否在当前批次中已存在
+          if (!batchMap.has(key)) {
+            filteredData.push(io);
+            batchMap.set(key, true);
+          }
+        }
+      }
+      
+      // 批量添加过滤后的数据
+      if (filteredData.length > 0) {
+        this.ioStatiicsData.push(...filteredData);
       }
     }
   }
@@ -1479,6 +1534,7 @@ export class SelectionParam {
     this.pushMonitor(it, sp);
     this.pushHiperf(it, sp);
     this.pushFileSystem(it, sp);
+    this.pushIO(it, sp);
     this.pushJank(it, sp);
     this.pushHeapTimeline(it, sp);
     this.pushJsCpuProfiler(it, sp);

@@ -162,6 +162,7 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_GPU_COUNTER_GROUP = 'gpu-counter-group';
   static ROW_TYPE_GPU_COUNTER = 'gpu-counter';
   static ROW_TYPE_SNAPSHOT = 'snapShots';
+  static ROW_TYPE_FILE_SYSTEM_IO = 'file-system-io';
   static FRAME_WIDTH: number = 0;
   static range: TimeRange | undefined | null;
   static rangeSelectObject: RangeSelectStruct | undefined;
