@@ -665,6 +665,9 @@ void FfrtConverter::FindFfrtProcClassifyLogs(LogInfo logInfo,
         int prevTid;
         int nextTid;
         FindPrevAndNextPidForSchedSwitch(logInfo.log, prevTid, nextTid);
+        if (prevTid == -1 || nextTid == -1) {
+            return;
+        }
         if (traceMap.find(prevTid) == traceMap.end()) {
             traceMap[prevTid] = {};
         }
