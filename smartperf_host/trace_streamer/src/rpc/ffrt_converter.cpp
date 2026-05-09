@@ -206,12 +206,30 @@ static void FindPrevAndNextPidForSchedSwitch(ConStr &log, int &prevPid, int &nex
     static std::string nextPidStr = "next_pid=";
     size_t prevPidPos = log.find(prevPidStr);
     size_t nextPidPos = log.find(nextPidStr);
+    if (prevPidPos == std::string::npos || nextPidPos == std::string::npos) {
+        prevPid = -1;
+        nextPid = -1;
+        TS_LOGE("Can not find prev_pid or next_pid.");
+        return;
+    }
     size_t startPos = prevPidPos + prevPidStr.size();
-    size_t pidLen = log.find(" ", prevPidPos) - prevPidPos - (prevPidStr.size() - 1);
-    prevPid = std::stoull(log.substr(startPos, pidLen));
+    size_t spacePos = log.find(" ", startPos);
+    if (spacePos == std::string::npos) {
+        prevPid = -1;
+        TS_LOGE("Can not find space after prev_pid.");
+        return;
+    }
+    size_t pidLen = spacePos - startPos;
+    prevPid = static_cast<int>(std::stoull(log.substr(startPos, pidLen)));
     startPos = nextPidPos + nextPidStr.size();
-    pidLen = log.find(" ", nextPidPos) - nextPidPos - (nextPidStr.size() - 1);
-    nextPid = std::stoull(log.substr(startPos, pidLen));
+    spacePos = log.find(" ", startPos);
+    if (spacePos == std::string::npos) {
+        nextPid = -1;
+        TS_LOGE("Can not find space after next_pid.");
+        return;
+    }
+    pidLen = spacePos - startPos;
+    nextPid = static_cast<int>(std::stoull(log.substr(startPos, pidLen)));
 }
 
 void FfrtConverter::SetOSPlatformKey(const FfrtTidMap &ffrtTidMap)
@@ -674,7 +692,7 @@ void FfrtConverter::FindFfrtProcClassifyLogs(LogInfo logInfo,
 
 static bool IsNumeric(ConStr &str)
 {
-    if (str.empty()) { 
+    if (str.empty()) {
         return false;
     }
     bool result = true;

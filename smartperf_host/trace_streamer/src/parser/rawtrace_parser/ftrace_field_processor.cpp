@@ -33,7 +33,7 @@ std::string HandleString(const uint8_t *startPos, const uint8_t *endPos, int siz
     std::string curStr;
     const uint8_t *curCursor = startPos;
     const uint8_t *sectionEnd = startPos + size;
-    while (*curCursor && curCursor < sectionEnd) {
+    while (curCursor < sectionEnd && *curCursor) {
         curCursor++;
     }
     curStr.assign(startPos, curCursor);

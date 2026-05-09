@@ -193,6 +193,10 @@ int32_t TableBase::BestIndex(sqlite3_index_info *idxInfo)
     std::string str;
     filterConstraints.ToString(str);
     char *pIdxStr = static_cast<char *>(sqlite3_malloc(str.size() + 1));
+    if (pIdxStr == nullptr) {
+        TS_LOGE("sqlite3_malloc failed for size: %zu", str.size() + 1);
+        return SQLITE_NOMEM;
+    }
     std::copy(str.begin(), str.end(), pIdxStr);
     pIdxStr[str.size()] = '\0';
     idxInfo->idxStr = pIdxStr;
