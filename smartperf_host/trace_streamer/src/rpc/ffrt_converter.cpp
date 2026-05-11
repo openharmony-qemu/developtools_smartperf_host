@@ -662,8 +662,8 @@ void FfrtConverter::FindFfrtProcClassifyLogs(LogInfo logInfo,
     SetTracingMarkerKey(logInfo);
 
     if (logInfo.log.find("sched_switch: ") != std::string::npos) {
-        int prevTid;
-        int nextTid;
+        int prevTid = -1;
+        int nextTid = -1;
         FindPrevAndNextPidForSchedSwitch(logInfo.log, prevTid, nextTid);
         if (prevTid == -1 || nextTid == -1) {
             return;
