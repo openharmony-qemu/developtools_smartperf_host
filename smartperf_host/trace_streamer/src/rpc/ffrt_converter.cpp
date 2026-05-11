@@ -216,6 +216,7 @@ static void FindPrevAndNextPidForSchedSwitch(ConStr &log, int &prevPid, int &nex
     size_t spacePos = log.find(" ", startPos);
     if (spacePos == std::string::npos) {
         prevPid = -1;
+        nextPid = -1;
         TS_LOGE("Can not find space after prev_pid.");
         return;
     }
@@ -662,8 +663,8 @@ void FfrtConverter::FindFfrtProcClassifyLogs(LogInfo logInfo,
     SetTracingMarkerKey(logInfo);
 
     if (logInfo.log.find("sched_switch: ") != std::string::npos) {
-        int prevTid;
-        int nextTid;
+        int prevTid = -1;
+        int nextTid = -1;
         FindPrevAndNextPidForSchedSwitch(logInfo.log, prevTid, nextTid);
         if (prevTid == -1 || nextTid == -1) {
             return;
