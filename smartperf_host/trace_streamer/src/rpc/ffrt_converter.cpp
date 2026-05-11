@@ -216,6 +216,7 @@ static void FindPrevAndNextPidForSchedSwitch(ConStr &log, int &prevPid, int &nex
     size_t spacePos = log.find(" ", startPos);
     if (spacePos == std::string::npos) {
         prevPid = -1;
+        nextPid = -1;
         TS_LOGE("Can not find space after prev_pid.");
         return;
     }
