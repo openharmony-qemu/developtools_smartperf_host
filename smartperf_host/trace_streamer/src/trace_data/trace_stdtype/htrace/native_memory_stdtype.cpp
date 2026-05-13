@@ -201,6 +201,12 @@ void NativeHook::AppendMoreNativeHookData(const NativeHookRow &context)
     } else if (context.eventType == DART_HEAP_FREE_EVENT) {
         countDartHeapSizes_ -= context.memSize;
         allMemSizes_.emplace_back(countDartHeapSizes_);
+    } else if (context.eventType == ARKTS_STATIC_HEAP_ALLOC_EVENT) {
+        countArktsStaticHeapSizes_ += context.memSize;
+        allMemSizes_.emplace_back(countArktsStaticHeapSizes_);
+    } else if (context.eventType == ARKTS_STATIC_HEAP_FREE_EVENT) {
+        countArktsStaticHeapSizes_ -= context.memSize;
+        allMemSizes_.emplace_back(countArktsStaticHeapSizes_);
     }
 }
 
