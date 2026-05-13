@@ -137,6 +137,7 @@ export const statisticCallChainsSamplesConfig: ConfigMap = {
             when type = ${MemoryStatisticType.ARKTS} then '${MemoryType.ARKTS_Alloc_NAME}'
             when type = ${MemoryStatisticType.JS} then '${MemoryType.JS_Alloc_NAME}'
             when type = ${MemoryStatisticType.DART_HEAP} then '${MemoryType.DART_HEAP_Alloc_NAME}'
+            when type = ${MemoryStatisticType.ARKTS_STATIC_HEAP} then '${MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME}'
             when type = ${MemoryStatisticType.RN} then '${MemoryType.RN_HERMES_HEAP_Alloc_NAME}'
             when type = ${MemoryStatisticType.KMP} then '${MemoryType.KMP_Alloc_NAME}'
             when type = ${MemoryStatisticType.DMA} then '${MemoryType.ION_Alloc_NAME}'
@@ -261,6 +262,11 @@ export class AnalysisTabDataLogic {
           {
             applyEventType: MemoryType.DART_HEAP_Alloc_NAME,
             releaseEventType: MemoryType.DART_HEAP_Free_NAME,
+            sampleArray: []
+          },
+          {
+            applyEventType: MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME,
+            releaseEventType: MemoryType.ARKTS_STATIC_HEAP_Free_NAME,
             sampleArray: []
           },
           {
@@ -496,13 +502,14 @@ const MEMORY_BASIC_TYPE = {
   ARKTS_HEAP: 3,
   JS_HEAP: 4,
   DART_HEAP: 5,
-  RN_HEAP: 6,
-  KMP_HEAP: 7,
-  ALL_ANONYMOUS_VM: 8,
-  VM_ION: 9,
-  VM_ASHMEM: 10,
-  VM_SO: 11,
-  VM_OTHERS: 12
+  ARKTS_STATIC_HEAP: 6,
+  RN_HEAP: 7,
+  KMP_HEAP: 8,
+  ALL_ANONYMOUS_VM: 9,
+  VM_ION: 10,
+  VM_ASHMEM: 11,
+  VM_SO: 12,
+  VM_OTHERS: 13
 };
 
 // 定义内存类型常量数组
@@ -512,6 +519,7 @@ const MEMORY_TYPE_CONSTANTS = {
     MemoryType.ARKTS_Alloc_NAME,
     MemoryType.JS_Alloc_NAME,
     MemoryType.DART_HEAP_Alloc_NAME,
+    MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME,
     MemoryType.RN_HERMES_HEAP_Alloc_NAME,
     MemoryType.KMP_Alloc_NAME,
     MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME,
@@ -522,6 +530,7 @@ const MEMORY_TYPE_CONSTANTS = {
     MemoryStatisticType.ARKTS,
     MemoryStatisticType.JS,
     MemoryStatisticType.DART_HEAP,
+    MemoryStatisticType.ARKTS_STATIC_HEAP,
     MemoryStatisticType.RN,
     MemoryStatisticType.KMP,
     MemoryStatisticType.ARK_GLOBAL_HANDLE,
@@ -560,13 +569,14 @@ function mapMemoryType(filterType: string, memoryBasicType: readonly string[]): 
     [memoryBasicType[MEMORY_BASIC_TYPE.ARKTS_HEAP], MemoryType.ARKTS_Alloc_NAME],
     [memoryBasicType[MEMORY_BASIC_TYPE.JS_HEAP], MemoryType.JS_Alloc_NAME],
     [memoryBasicType[MEMORY_BASIC_TYPE.DART_HEAP], MemoryType.DART_HEAP_Alloc_NAME],
+    [memoryBasicType[MEMORY_BASIC_TYPE.ARKTS_STATIC_HEAP], MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME],
     [memoryBasicType[MEMORY_BASIC_TYPE.RN_HEAP], MemoryType.RN_HERMES_HEAP_Alloc_NAME],
     [memoryBasicType[MEMORY_BASIC_TYPE.KMP_HEAP], MemoryType.KMP_Alloc_NAME],
     [memoryBasicType[MEMORY_BASIC_TYPE.VM_ION], MemoryType.ION_Alloc_NAME],
     [memoryBasicType[MEMORY_BASIC_TYPE.VM_ASHMEM], MemoryType.ASHMEM_Alloc_NAME],
     [memoryBasicType[MEMORY_BASIC_TYPE.VM_SO], MemoryType.SO_Alloc_NAME]
   ]);
-  
+
   return typeMap.get(filterType) || null;
 }
 
@@ -575,9 +585,9 @@ function handleAllHeapType(filterType: string, item: NativeHookStatistics | Nati
   if (filterType !== MemoryBasicType.NATIVE_MEMORY[MEMORY_BASIC_TYPE.ALL_HEAP]) {
     return null;
   }
-  
-  return MEMORY_TYPE_CONSTANTS.HEAP_EVENT_TYPES.includes(item.eventType) || 
-         (isStatisticMode && MEMORY_TYPE_CONSTANTS.HEAP_STATISTIC_TYPES.includes((item as any).type));
+
+  return MEMORY_TYPE_CONSTANTS.HEAP_EVENT_TYPES.includes(item.eventType) ||
+    (isStatisticMode && MEMORY_TYPE_CONSTANTS.HEAP_STATISTIC_TYPES.includes((item as any).type));
 }
 
 // 辅助函数：处理所有VM类型
@@ -585,9 +595,9 @@ function handleAllVMType(filterType: string, item: NativeHookStatistics | Native
   if (filterType !== MemoryBasicType.NATIVE_MEMORY[MEMORY_BASIC_TYPE.ALL_ANONYMOUS_VM]) {
     return null;
   }
-  
-  return MEMORY_TYPE_CONSTANTS.VM_EVENT_TYPES.includes(item.eventType) || 
-         (isStatisticMode && MEMORY_TYPE_CONSTANTS.VM_STATISTIC_TYPES.includes((item as any).type));
+
+  return MEMORY_TYPE_CONSTANTS.VM_EVENT_TYPES.includes(item.eventType) ||
+    (isStatisticMode && MEMORY_TYPE_CONSTANTS.VM_STATISTIC_TYPES.includes((item as any).type));
 }
 
 // 辅助函数：处理VM Others类型
@@ -595,9 +605,9 @@ function handleVMOthersType(filterType: string, item: NativeHookStatistics | Nat
   if (filterType !== MemoryBasicType.NATIVE_MEMORY[MEMORY_BASIC_TYPE.VM_OTHERS]) {
     return null;
   }
-  
-  return item.eventType === MemoryType.MEMORY_M_MAP_NAME || 
-         (isStatisticMode && MEMORY_TYPE_CONSTANTS.VM_OTHERS_STATISTIC_TYPES.includes((item as any).type));
+
+  return item.eventType === MemoryType.MEMORY_M_MAP_NAME ||
+    (isStatisticMode && MEMORY_TYPE_CONSTANTS.VM_OTHERS_STATISTIC_TYPES.includes((item as any).type));
 }
 
 // 辅助函数：处理统计模式和跳转逻辑
@@ -616,7 +626,7 @@ function handleGPUMemoryTypeMapping(filterType: string, isStatisticMode: boolean
     [MemoryBasicType.GPU_MEMORY[2], isStatisticMode ? MemoryType.GPU_GLES_SIMPLE_NAME : MemoryType.GPU_GLES_Alloc_NAME],
     [MemoryBasicType.GPU_MEMORY[3], isStatisticMode ? MemoryType.GPU_CL_SIMPLE_NAME : MemoryType.GPU_CL_Alloc_NAME]
   ]);
-  
+
   return gpuMemoryMap.get(filterType) || filterType;
 }
 
@@ -626,7 +636,7 @@ function handleOtherSourceTypeMapping(filterType: string, isStatisticMode: boole
     [MemoryBasicType.OTHER_SOURCE[1], isStatisticMode ? MemoryType.FD_SIMPLE_NAME : MemoryType.FD_OPEN_NAME],
     [MemoryBasicType.OTHER_SOURCE[2], isStatisticMode ? MemoryType.THREAD_SIMPLE_NAME : MemoryType.THREAD_CREATE_NAME]
   ]);
-  
+
   return otherSourceMap.get(filterType) || filterType;
 }
 
@@ -642,7 +652,7 @@ export function getFilterType(
   }
 
   const subType = getSubType(item);
-  
+
   // 处理 "Other" 前缀的通用逻辑
   const otherResult = handleOtherFilterType(filterType, item, subType);
   if (otherResult !== null) {
@@ -672,34 +682,34 @@ function handleNativeMemory(
   if (handleAllMemoryType(filterType, MemoryBasicType.NATIVE_MEMORY)) {
     return true;
   }
-  
+
   // 处理特殊内存类型组
   const allHeapResult = handleAllHeapType(filterType, item, isStatisticMode);
   if (allHeapResult !== null) return allHeapResult;
-  
+
   const allVMResult = handleAllVMType(filterType, item, isStatisticMode);
   if (allVMResult !== null) return allVMResult;
-  
+
   const vmOthersResult = handleVMOthersType(filterType, item, isStatisticMode);
   if (vmOthersResult !== null) return vmOthersResult;
-  
+
   // 处理内存类型映射
   const mappedType = mapMemoryType(filterType, MemoryBasicType.NATIVE_MEMORY);
   if (mappedType) {
     filterType = mappedType;
   }
-  
+
   // 处理统计模式和跳转逻辑
   const logicResult = handleStatisticAndJumpLogic(filterType, item, statisticsSelection, isStatisticMode);
   if (logicResult !== null) {
     return logicResult;
   }
-  
+
   // Native Heap 需要包含 ARK_GLOBAL_HANDLE_Alloc_Event
   if ((filterType === MemoryType.MEMORY_M_ALLOC_NAME && item.eventType === MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME) || (filterType === MemoryType.MEMORY_M_ALLOC_NAME && item.eventType === MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME)) {
     return true;
   }
-  
+
   return subType === filterType || item.eventType.startsWith(filterType);
 }
 
@@ -713,7 +723,7 @@ function handleGPUMemory(
   if (filterType === MemoryBasicType.GPU_MEMORY[0]) {
     return true;
   }
-  
+
   // 处理GPU内存类型映射
   filterType = handleGPUMemoryTypeMapping(filterType, isStatisticMode);
 
@@ -724,7 +734,7 @@ function handleGPUMemory(
       return jumpResult;
     }
   }
-  
+
   return subType === filterType || item.eventType.startsWith(filterType);
 }
 
@@ -737,9 +747,9 @@ function handleOtherSource(
   if (filterType === MemoryBasicType.OTHER_SOURCE[0]) {
     return true;
   }
-  
+
   // 处理其他来源内存类型映射
   filterType = handleOtherSourceTypeMapping(filterType, isStatisticMode);
-  
+
   return subType === filterType || item.eventType.startsWith(filterType);
 }
