@@ -3366,6 +3366,389 @@ HWTEST_F(NativeHookParserTest, ParseMixedHeapTypeAllocEventTest, TestSize.Level1
     NativeHookCache cache3(nativeHook, NUM_02);
     EXPECT_EQ(cache3.GetEventType(), "DART_HEAP_Alloc_Event");
 }
+
+/**
+ * @tc.name: ParseArktsStaticHeapAllocEventTest
+ * @tc.desc: Parse ARKTS_STATIC_HEAP Alloc event
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeHookParserTest, ParseArktsStaticHeapAllocEventTest, TestSize.Level1)
+{
+    TS_LOGI("test24-61");
+    BatchNativeHookData batchNativeHookData;
+    uint64_t addr = ADDR_1000;
+    SetTraceAllocEvent(batchNativeHookData, {TID_01, addr, SIZE_03, "", SEC_01, NSEC_01},
+                       ProtoReader::TraceType::ARKTS_STATIC_HEAP, true);
+    std::string hookStrMsg = "";
+    batchNativeHookData.SerializeToString(&hookStrMsg);
+
+    PbreaderDataSegment dataSeg;
+    dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
+    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t *>(hookStrMsg.data()), hookStrMsg.size());
+    dataSeg.protoData = hookBytesView;
+
+    PbreaderNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool hasSplit = false;
+    htraceNativeHookParser.Parse(dataSeg, hasSplit);
+    htraceNativeHookParser.FinishParseNativeHookData();
+
+    const NativeHook &nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
+    EXPECT_EQ(nativeHook.Size(), 1);
+
+    NativeHookCache cache(nativeHook, 0);
+    auto expect_ipid = stream_.streamFilters_->processFilter_->GetInternalPid(PID);
+    auto expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_01);
+
+    EXPECT_EQ(cache.GetPid(), expect_ipid);
+    EXPECT_EQ(cache.GetTid(), expect_itid);
+    EXPECT_EQ(cache.GetAddress(), addr);
+    EXPECT_EQ(cache.GetMemSize(), SIZE_03);
+    EXPECT_EQ(cache.GetEventType(), "ARKTS_STATIC_HEAP_Alloc_Event");
+    EXPECT_EQ(cache.GetAllMemSize(), SIZE_03);
+}
+
+/**
+ * @tc.name: ParseMultipleArktsStaticHeapAllocEventsTest
+ * @tc.desc: Parse multiple ARKTS_STATIC_HEAP Alloc events
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeHookParserTest, ParseMultipleArktsStaticHeapAllocEventsTest, TestSize.Level1)
+{
+    TS_LOGI("test24-62");
+    BatchNativeHookData batchNativeHookData;
+    uint64_t addr1 = ADDR_1000;
+    uint64_t addr2 = ADDR_2000;
+    uint64_t addr3 = ADDR_3000;
+
+    SetTraceAllocEvent(batchNativeHookData, {TID_01, addr1, SIZE_03, "", SEC_01, NSEC_01},
+                       ProtoReader::TraceType::ARKTS_STATIC_HEAP, true);
+    SetTraceAllocEvent(batchNativeHookData, {TID_01, addr2, SIZE_02, "", SEC_02, NSEC_02},
+                       ProtoReader::TraceType::ARKTS_STATIC_HEAP, true);
+    SetTraceAllocEvent(batchNativeHookData, {TID_01, addr3, SIZE_02 + SIZE_03, "", SEC_03, NSEC_03},
+                       ProtoReader::TraceType::ARKTS_STATIC_HEAP, true);
+    std::string hookStrMsg = "";
+    batchNativeHookData.SerializeToString(&hookStrMsg);
+    PbreaderDataSegment dataSeg;
+    dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
+    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t *>(hookStrMsg.data()), hookStrMsg.size());
+    dataSeg.protoData = hookBytesView;
+
+    PbreaderNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool hasSplit = false;
+    htraceNativeHookParser.Parse(dataSeg, hasSplit);
+    htraceNativeHookParser.FinishParseNativeHookData();
+    const NativeHook &nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
+    EXPECT_EQ(nativeHook.Size(), NUM_03);
+    auto expect_ipid = stream_.streamFilters_->processFilter_->GetInternalPid(PID);
+    auto expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_01);
+
+    NativeHookCache cache1(nativeHook, 0);
+    EXPECT_EQ(cache1.GetPid(), expect_ipid);
+    EXPECT_EQ(cache1.GetTid(), expect_itid);
+    EXPECT_EQ(cache1.GetAddress(), addr1);
+    EXPECT_EQ(cache1.GetMemSize(), SIZE_03);
+    EXPECT_EQ(cache1.GetEventType(), "ARKTS_STATIC_HEAP_Alloc_Event");
+    EXPECT_EQ(cache1.GetAllMemSize(), SIZE_03);
+
+    NativeHookCache cache2(nativeHook, 1);
+    EXPECT_EQ(cache2.GetPid(), expect_ipid);
+    EXPECT_EQ(cache2.GetTid(), expect_itid);
+    EXPECT_EQ(cache2.GetAddress(), addr2);
+    EXPECT_EQ(cache2.GetMemSize(), SIZE_02);
+    EXPECT_EQ(cache2.GetEventType(), "ARKTS_STATIC_HEAP_Alloc_Event");
+    EXPECT_EQ(cache2.GetAllMemSize(), SIZE_03 + SIZE_02);
+
+    NativeHookCache cache3(nativeHook, NUM_02);
+    EXPECT_EQ(cache3.GetPid(), expect_ipid);
+    EXPECT_EQ(cache3.GetTid(), expect_itid);
+    EXPECT_EQ(cache3.GetAddress(), addr3);
+    EXPECT_EQ(cache3.GetMemSize(), SIZE_02 + SIZE_03);
+    EXPECT_EQ(cache3.GetEventType(), "ARKTS_STATIC_HEAP_Alloc_Event");
+    EXPECT_EQ(cache3.GetAllMemSize(), SIZE_03 + SIZE_02 + SIZE_02 + SIZE_03);
+}
+
+/**
+ * @tc.name: ParseArktsStaticHeapFreeEventTest
+ * @tc.desc: Parse ARKTS_STATIC_HEAP Free event
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeHookParserTest, ParseArktsStaticHeapFreeEventTest, TestSize.Level1)
+{
+    TS_LOGI("test24-63");
+    BatchNativeHookData batchNativeHookData;
+    uint64_t addr = ADDR_1000;
+    SetTraceAllocEvent(batchNativeHookData, {TID_01, addr, SIZE_03, "", SEC_01, NSEC_01},
+                       ProtoReader::TraceType::ARKTS_STATIC_HEAP, true);
+    SetTraceFreeEvent(batchNativeHookData, {TID_01, addr, SIZE_03, "", SEC_01, NSEC_02},
+                      ProtoReader::TraceType::ARKTS_STATIC_HEAP, true);
+
+    std::string hookStrMsg = "";
+    batchNativeHookData.SerializeToString(&hookStrMsg);
+
+    PbreaderDataSegment dataSeg;
+    dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
+    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t *>(hookStrMsg.data()), hookStrMsg.size());
+    dataSeg.protoData = hookBytesView;
+
+    PbreaderNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool hasSplit = false;
+    htraceNativeHookParser.Parse(dataSeg, hasSplit);
+    htraceNativeHookParser.FinishParseNativeHookData();
+
+    const NativeHook &nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
+    EXPECT_EQ(nativeHook.Size(), NUM_02);
+
+    NativeHookCache allocCache(nativeHook, 0);
+    EXPECT_EQ(allocCache.GetEventType(), "ARKTS_STATIC_HEAP_Alloc_Event");
+    EXPECT_EQ(allocCache.GetAllMemSize(), SIZE_03);
+
+    NativeHookCache freeCache(nativeHook, 1);
+    EXPECT_EQ(freeCache.GetEventType(), "ARKTS_STATIC_HEAP_Free_Event");
+    EXPECT_EQ(freeCache.GetAllMemSize(), 0);
+}
+
+/**
+ * @tc.name: ParseArktsStaticHeapAllocFreePairTest
+ * @tc.desc: Parse ARKTS_STATIC_HEAP Alloc and Free event pair
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeHookParserTest, ParseArktsStaticHeapAllocFreePairTest, TestSize.Level1)
+{
+    TS_LOGI("test24-64");
+    BatchNativeHookData batchNativeHookData;
+    uint64_t addr = ADDR_1000;
+    SetTraceAllocEvent(batchNativeHookData, {TID_01, addr, SIZE_03, "", SEC_01, NSEC_01},
+                       ProtoReader::TraceType::ARKTS_STATIC_HEAP, true);
+
+    std::string allocHookStrMsg = "";
+    batchNativeHookData.SerializeToString(&allocHookStrMsg);
+
+    PbreaderDataSegment allocDataSeg;
+    allocDataSeg.seg = std::make_shared<std::string>(allocHookStrMsg);
+    ProtoReader::BytesView allocHookBytesView(reinterpret_cast<const uint8_t *>(allocHookStrMsg.data()),
+                                              allocHookStrMsg.size());
+    allocDataSeg.protoData = allocHookBytesView;
+
+    PbreaderNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool hasSplit = false;
+    htraceNativeHookParser.Parse(allocDataSeg, hasSplit);
+
+    BatchNativeHookData freeBatchData;
+    SetTraceFreeEvent(freeBatchData, {TID_01, addr, SIZE_03, "", SEC_01, NSEC_02},
+                      ProtoReader::TraceType::ARKTS_STATIC_HEAP, true);
+    std::string freeHookStrMsg = "";
+    freeBatchData.SerializeToString(&freeHookStrMsg);
+
+    PbreaderDataSegment freeDataSeg;
+    freeDataSeg.seg = std::make_shared<std::string>(freeHookStrMsg);
+    ProtoReader::BytesView freeHookBytesView(reinterpret_cast<const uint8_t *>(freeHookStrMsg.data()),
+                                             freeHookStrMsg.size());
+    freeDataSeg.protoData = freeHookBytesView;
+
+    htraceNativeHookParser.Parse(freeDataSeg, hasSplit);
+    htraceNativeHookParser.FinishParseNativeHookData();
+    const NativeHook &nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
+    EXPECT_EQ(nativeHook.Size(), NUM_02);
+
+    NativeHookCache allocCache(nativeHook, 0);
+    auto expect_ipid = stream_.streamFilters_->processFilter_->GetInternalPid(PID);
+    auto expect_itid = stream_.streamFilters_->processFilter_->GetInternalTid(TID_01);
+    EXPECT_EQ(allocCache.GetPid(), expect_ipid);
+    EXPECT_EQ(allocCache.GetTid(), expect_itid);
+    EXPECT_EQ(allocCache.GetMemSize(), SIZE_03);
+    EXPECT_EQ(allocCache.GetEventType(), "ARKTS_STATIC_HEAP_Alloc_Event");
+
+    NativeHookCache freeCache(nativeHook, 1);
+    EXPECT_EQ(freeCache.GetPid(), expect_ipid);
+    EXPECT_EQ(freeCache.GetTid(), expect_itid);
+    EXPECT_EQ(freeCache.GetMemSize(), SIZE_03);
+    EXPECT_EQ(freeCache.GetEventType(), "ARKTS_STATIC_HEAP_Free_Event");
+}
+
+/**
+ * @tc.name: ParseArktsStaticHeapSizeTrackingTest
+ * @tc.desc: Test ARKTS_STATIC_HEAP memory size tracking with multiple alloc/free events
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeHookParserTest, ParseArktsStaticHeapSizeTrackingTest, TestSize.Level1)
+{
+    TS_LOGI("test24-65");
+    BatchNativeHookData batchNativeHookData;
+    uint64_t addr1 = ADDR_1000;
+    uint64_t addr2 = ADDR_2000;
+    uint64_t addr3 = ADDR_3000;
+
+    SetTraceAllocEvent(batchNativeHookData, {TID_01, addr1, SIZE_03, "", SEC_01, NSEC_01},
+                       ProtoReader::TraceType::ARKTS_STATIC_HEAP, true);
+    SetTraceAllocEvent(batchNativeHookData, {TID_01, addr2, SIZE_02, "", SEC_02, NSEC_02},
+                       ProtoReader::TraceType::ARKTS_STATIC_HEAP, true);
+    SetTraceFreeEvent(batchNativeHookData, {TID_01, addr1, SIZE_03, "", SEC_02, NSEC_02},
+                      ProtoReader::TraceType::ARKTS_STATIC_HEAP, true);
+    SetTraceAllocEvent(batchNativeHookData, {TID_01, addr3, SIZE_01, "", SEC_03, NSEC_03},
+                       ProtoReader::TraceType::ARKTS_STATIC_HEAP, true);
+    SetTraceFreeEvent(batchNativeHookData, {TID_01, addr2, SIZE_02, "", SEC_03, NSEC_03},
+                      ProtoReader::TraceType::ARKTS_STATIC_HEAP, true);
+
+    std::string hookStrMsg = "";
+    batchNativeHookData.SerializeToString(&hookStrMsg);
+
+    PbreaderDataSegment dataSeg;
+    dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
+    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t *>(hookStrMsg.data()), hookStrMsg.size());
+    dataSeg.protoData = hookBytesView;
+
+    PbreaderNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool hasSplit = false;
+    htraceNativeHookParser.Parse(dataSeg, hasSplit);
+    htraceNativeHookParser.FinishParseNativeHookData();
+
+    const NativeHook &nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
+    EXPECT_EQ(nativeHook.Size(), NUM_05);
+
+    NativeHookCache cache0(nativeHook, 0);
+    EXPECT_EQ(cache0.GetAllMemSize(), SIZE_03);
+
+    NativeHookCache cache1(nativeHook, 1);
+    EXPECT_EQ(cache1.GetAllMemSize(), SIZE_03 + SIZE_02);
+
+    NativeHookCache cache2(nativeHook, NUM_02);
+    EXPECT_EQ(cache2.GetAllMemSize(), SIZE_02);
+
+    NativeHookCache cache3(nativeHook, NUM_03);
+    EXPECT_EQ(cache3.GetAllMemSize(), SIZE_02 + SIZE_01);
+
+    NativeHookCache cache4(nativeHook, NUM_04);
+    EXPECT_EQ(cache4.GetAllMemSize(), SIZE_01);
+}
+
+/**
+ * @tc.name: GetLastArktsStaticHeapEventRawTest
+ * @tc.desc: Test GetLastArktsStaticHeapEventRaw functionality
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeHookParserTest, GetLastArktsStaticHeapEventRawTest, TestSize.Level1)
+{
+    TS_LOGI("test24-66");
+    BatchNativeHookData batchNativeHookData;
+    uint64_t addr1 = ADDR_1000;
+    uint64_t addr2 = ADDR_2000;
+
+    SetTraceAllocEvent(batchNativeHookData, {TID_01, addr1, SIZE_03, "", SEC_01, NSEC_01},
+                       ProtoReader::TraceType::ARKTS_STATIC_HEAP, true);
+    SetTraceAllocEvent(batchNativeHookData, {TID_01, addr2, SIZE_02, "", SEC_02, NSEC_02},
+                       ProtoReader::TraceType::ARKTS_STATIC_HEAP, true);
+
+    std::string hookStrMsg = "";
+    batchNativeHookData.SerializeToString(&hookStrMsg);
+
+    PbreaderDataSegment dataSeg;
+    dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
+    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t *>(hookStrMsg.data()), hookStrMsg.size());
+    dataSeg.protoData = hookBytesView;
+
+    PbreaderNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool hasSplit = false;
+    htraceNativeHookParser.Parse(dataSeg, hasSplit);
+    htraceNativeHookParser.FinishParseNativeHookData();
+
+    NativeHook *nativeHook = stream_.traceDataCache_->GetNativeHookData();
+    uint64_t lastEventRow = nativeHook->GetLastArktsStaticHeapEventRaw();
+    EXPECT_EQ(lastEventRow, 1);
+
+    const NativeHook &constNativeHook = stream_.traceDataCache_->GetConstNativeHookData();
+    NativeHookCache lastCache(constNativeHook, lastEventRow);
+    EXPECT_EQ(lastCache.GetAddress(), addr2);
+    EXPECT_EQ(lastCache.GetMemSize(), SIZE_02);
+    EXPECT_EQ(lastCache.GetEventType(), "ARKTS_STATIC_HEAP_Alloc_Event");
+}
+
+/**
+ * @tc.name: ParseArktsStaticHeapNotMatchedFreeTest
+ * @tc.desc: Parse ARKTS_STATIC_HEAP Free event without matching Alloc
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeHookParserTest, ParseArktsStaticHeapNotMatchedFreeTest, TestSize.Level1)
+{
+    TS_LOGI("test24-67");
+    BatchNativeHookData batchNativeHookData;
+    uint64_t addr1 = ADDR_1000;
+    uint64_t addr2 = ADDR_2000;
+
+    SetTraceAllocEvent(batchNativeHookData, {TID_01, addr1, SIZE_03, "", SEC_01, NSEC_01},
+                       ProtoReader::TraceType::ARKTS_STATIC_HEAP, true);
+    SetTraceFreeEvent(batchNativeHookData, {TID_01, addr2, SIZE_02, "", SEC_02, NSEC_02},
+                      ProtoReader::TraceType::ARKTS_STATIC_HEAP, true);
+
+    std::string hookStrMsg = "";
+    batchNativeHookData.SerializeToString(&hookStrMsg);
+
+    PbreaderDataSegment dataSeg;
+    dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
+    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t *>(hookStrMsg.data()), hookStrMsg.size());
+    dataSeg.protoData = hookBytesView;
+
+    PbreaderNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool hasSplit = false;
+    htraceNativeHookParser.Parse(dataSeg, hasSplit);
+    htraceNativeHookParser.FinishParseNativeHookData();
+
+    const NativeHook &nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
+    EXPECT_EQ(nativeHook.Size(), 1);
+
+    NativeHookCache allocCache(nativeHook, 0);
+    EXPECT_EQ(allocCache.GetAddress(), addr1);
+    EXPECT_EQ(allocCache.GetMemSize(), SIZE_03);
+    EXPECT_EQ(allocCache.GetEventType(), "ARKTS_STATIC_HEAP_Alloc_Event");
+}
+
+/**
+ * @tc.name: ParseMixedHeapTypeWithArktsStaticHeapTest
+ * @tc.desc: Parse TraceAllocEvents with mixed heap types including ARKTS_STATIC_HEAP
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeHookParserTest, ParseMixedHeapTypeWithArktsStaticHeapTest, TestSize.Level1)
+{
+    TS_LOGI("test24-68");
+    BatchNativeHookData batchNativeHookData;
+    uint64_t addr1 = ADDR_1000;
+    uint64_t addr2 = ADDR_2000;
+    uint64_t addr3 = ADDR_3000;
+    uint64_t addr4 = ADDR_4000;
+
+    SetTraceAllocEvent(batchNativeHookData, {TID_01, addr1, SIZE_03, "", SEC_01, NSEC_01},
+                       ProtoReader::TraceType::ARKTS_HEAP, true);
+    SetTraceAllocEvent(batchNativeHookData, {TID_01, addr2, SIZE_02, "", SEC_02, NSEC_02},
+                       ProtoReader::TraceType::ARKTS_STATIC_HEAP, true);
+    SetTraceAllocEvent(batchNativeHookData, {TID_01, addr3, SIZE_02 + SIZE_03, "", SEC_03, NSEC_03},
+                       ProtoReader::TraceType::RN_HERMES_HEAP, true);
+    SetTraceAllocEvent(batchNativeHookData, {TID_01, addr4, SIZE_01, "", SEC_04, NSEC_04},
+                       ProtoReader::TraceType::ARKTS_STATIC_HEAP, true);
+    std::string hookStrMsg = "";
+    batchNativeHookData.SerializeToString(&hookStrMsg);
+    PbreaderDataSegment dataSeg;
+    dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
+    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t *>(hookStrMsg.data()), hookStrMsg.size());
+    dataSeg.protoData = hookBytesView;
+
+    PbreaderNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool hasSplit = false;
+    htraceNativeHookParser.Parse(dataSeg, hasSplit);
+    htraceNativeHookParser.FinishParseNativeHookData();
+    const NativeHook &nativeHook = stream_.traceDataCache_->GetConstNativeHookData();
+    EXPECT_EQ(nativeHook.Size(), NUM_04);
+
+    NativeHookCache cache1(nativeHook, 0);
+    EXPECT_EQ(cache1.GetEventType(), "ARKTS_HEAP_Alloc_Event");
+
+    NativeHookCache cache2(nativeHook, 1);
+    EXPECT_EQ(cache2.GetEventType(), "ARKTS_STATIC_HEAP_Alloc_Event");
+
+    NativeHookCache cache3(nativeHook, NUM_02);
+    EXPECT_EQ(cache3.GetEventType(), "RN_HERMES_HEAP_Alloc_Event");
+
+    NativeHookCache cache4(nativeHook, NUM_03);
+    EXPECT_EQ(cache4.GetEventType(), "ARKTS_STATIC_HEAP_Alloc_Event");
+}
 } // namespace NativeMemoryUnitTest
 } // namespace TraceStreamer
 } // namespace SysTuning
