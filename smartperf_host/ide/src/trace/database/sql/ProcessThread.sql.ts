@@ -877,6 +877,14 @@ export const queryThreadStateArgs = (argset: number): Promise<Array<BinderArgBea
     traceId: Utils.currentSelectTrace
   });
 
+export const queryThreadStateArgsBatch = (argsets: number[]): Promise<Array<BinderArgBean>> => {
+  if (argsets.length === 0) return Promise.resolve([]);
+  return query('queryThreadStateArgsBatch',
+    `select args_view.* from args_view where argset in (${argsets.join(',')})`, {}, {
+    traceId: Utils.currentSelectTrace
+  });
+};
+
 export const queryThreadStateArgsByName = (key: string, traceId?: string):
   Promise<Array<{ argset: number; strValue: string }>> =>
   query(

@@ -3,13 +3,13 @@ TraceStreamer可以将trace数据源转化为易于理解和使用的数据库�
 
 ## TraceStreamer输出的数据表分类
 * 常规泳道图数据表
-![GitHub Logo](../figures/db_common.png)
+![GitHub Logo](../../figures/traceStreamer/db_common.png)
 * native memory数据源相关表
-![GitHub Logo](../figures/db_native_memory.png)
+![GitHub Logo](../../figures/traceStreamer/db_native_memory.png)
 * perf相关数据表
-![GitHub Logo](../figures/db_hiperf.png)
+![GitHub Logo](../../figures/traceStreamer/db_hiperf.png)
 * hisysevent相关数据表
-![GitHub Logo](../figures/db_hisys_event.png)
+![GitHub Logo](../../figures/traceStreamer/db_hisys_event.png)
 ## TraceStreamer输出数据库包含以下表格
 | 表名称 |作用|
 | ----          |----      |
@@ -97,19 +97,25 @@ TraceStreamer可以将trace数据源转化为易于理解和使用的数据库�
 |         ----         |    ----      |         ----      |           ----        |
 |animation             |    -         |ftrace-plugin      |记录动效的响应时延和完成时延   |
 |app_name              |    -         |hisysevent-plugin  |JSON数据源             |
+|app_startup           |    -         |ftrace-plugin      |记录应用启动的相关信息        |
 |args                  |    -         |ftrace-plugin      |配合callstack使用      |
-|bio_latency_sample    |    -         |    -              |IO操作相关方法调用，及调用栈数据 |
+|bio_latency_sample    |    -         |ebpf               |IO操作相关方法调用，及调用栈数据 |
 |callstack             |    -         |ftrace-plugin      |异步或非异步的调用     |
+|clk_event_filter      |    -         |ftrace-plugin      |记录时钟相关的信息        |
+|clock_event_filter    |    -         |ftrace-plugin      |维护时钟事件           |
+|clock_snapshot        |    -         |公共                |时钟号和时间           |      
 |cpu_measure_filter    |    -         |ftrace-plugin      |cpu跟踪器，cpu频率等   |
 |cpu_usage             |    -         |cpu-plugin         |cpu使用率              |
-|data_dict             |  通用的      |    -              |所有字符串的记录       |
-|data_type             |  通用的      |    -              |辅助表                 |
+|data_dict             |  通用的      |公共                |所有字符串的记录       |
+|data_type             |  通用的      |公共                |辅助表                 |
+|datasource_clockid    |  通用的      |公共                |数据源和时钟号的映射表|
 |device_info           |    -         |ftrace-plugin      |记录设备分辨率和帧率   |
 |device_state          |  通用的      |hisysevent-plugin  |记录设备屏幕亮度，蓝牙，位置等信息   |
+|diskio                |    -         |diskio-plugin      |记录磁盘读写数据            |
+|dma_fence             |    -         |ftrace-plugin      |dma_fence数据         |
 |dynamic_frame         |    -         |ftrace-plugin      |动效帧的分辨率和结束时间等   |
-|ebpf_callstack        |    -         |    -              |磁盘读写相关的数据      |
-|file_system_callstack |    -         |    -              |ebpf文件系统           |
-|file_system_sample    |    -         |    -              |ebpf文件系统           |
+|ebpf_callstack        |    -         |ebpf               |磁盘读写相关的数据      |
+|file_system_sample    |    -         |ebpf               |ebpf文件系统           |
 |frame_maps            |    -         |ftrace-plugin      |帧渲染数据，app到RS的映射           |
 |frame_slice           |    -         |ftrace-plugin      |帧渲染数据             |
 |gpu_slice             |    -         |ftrace-plugin      |gpu渲染时长            |
@@ -130,49 +136,47 @@ TraceStreamer可以将trace数据源转化为易于理解和使用的数据库�
 |js_heap_string       |    -         |arkts-plugin          | js内存数据            |
 |js_heap_trace_function_info | -     |arkts-plugin          | js内存数据            |
 |js_heap_trace_node   |    -         |arkts-plugin          | js内存数据            |
-|app_startup           |    -         |ftrace-plugin      | 应用启动数据           |
-|static_initalize      |    -         |ftrace-plugin      | so初始化数据           |
-|memory_cpu            |    -         |hidumper-plugin    | cpu内存数据           |
-|memory_profile        |    -         |hidumper-plugin    |/sys/kernel/debug/mali0/ctx/$(pidof xxx)/mem_profile节点相关数据|
-| memory_rs_image      |    -         |hidumper-plugin    |hidumper抓取的界面内存大小数据|
-|live_process          |    -         |process-plugin     |Monitor数据            |
-|network               |    -         |network-plugin     |Monitor数据            |
-|diskio                |    -         |diskio-plugin      |Monitor数据            |
+|live_process          |    -         |process-plugin     |实时进程执行数据            |
 |log                   |    -         |hilog-plugin       |系统日志               |
-|measure               |  通用的      |    -              |系统中的计量值（数值型）|
-|measure_filter        |  通用的      |    -              |计量值的查询辅助表      |
+|measure               |  通用的      |ftrace-plugin,memory-plugin      |系统中的计量值（数值型）|
+|measure_filter        |  通用的      |ftrace-plugin,memory-plugin                 |计量值的查询辅助表      |
 |memory_ashmem         |    -         |memory-plugin      |进程所占用ashmem相关信息 |
+|memory_cpu            |    -         |memory-plugin      |cpu内存数据           |
 |memory_dma            |    -         |memory-plugin      |进程占用的DMA内存相关信息 |
 |memory_process_gpu    |    -         |memory-plugin      |进程占用GPU内存相关信息 |
+|memory_profile        |    -         |memory-plugin      |/sys/kernel/debug/mali0/ctx/$(pidof xxx)/mem_profile节点相关数据|
+|memory_rs_image       |    -         |memory-plugin      |界面内存大小数据|
 |memory_window_gpu     |    -         |memory-plugin      |窗口占用GPU内存相关信息 |
-|meta                  |  通用的      |    -              |记录解析现场数据（解析时间，数据类型，解析工具等）|
+|meta                  |  通用的      |公共                |记录解析现场数据（解析时间，数据类型，解析工具等）|
 |native_hook           |    -         |nativehook/hookdaemon |malloc && mmap内存数据            |
 |native_hook_frame     |    -         |nativehook/hookdaemon |native_hook调用栈数据            |
 |native_hook_statistic |    -         |nativehook/hookdaemon |malloc && mmap统计数据 |
-|paged_memory_sample   |    -         |    -              |网络数据传输相关的信息 |
-|perf_callchain        |    -         |perf-plugin        |perf数据（非插件模式） |
-|perf_files            |    -         |    -              |perf数据（非插件模式） |
-|perf_report           |    -         |    -              |perf数据（非插件模式） |
-|perf_sample           |    -         |    -              |perf数据（非插件模式） |
-|perf_thread           |    -         |    -              |perf数据（非插件模式） |
-|process               |    -         |ftrace-plugin      |进程信息               |
+|network               |    -         |network-plugin        |记录网络数据传输相关的信息            |
+|paged_memory_sample   |    -         |hiperf-plugin         |网络数据传输相关的信息 |
+|perf_callchain        |    -         |hiperf-plugin         |perf数据           |
+|perf_files            |    -         |hiperf-plugin         |perf数据           |
+|perf_napi_async       |    -         |公共                  |perf数据           |
+|perf_report           |    -         |hiperf-plugin         |perf数据           |
+|perf_sample           |    -         |hiperf-plugin         |perf数据           |
+|perf_thread           |    -         |hiperf-plugin         |perf数据           |
+|process               |    -         |公共               |进程信息               |
 |process_measure       |    -         |ftrace-plugin      |进程内存               |
 |process_measure_filter|    -         |ftrace-plugin      |process_measure的辅助表|
 |raw                   |    -         |ftrace-plugin      |线程唤醒信息           |
-|sched_slice           |    -         |ftrace-plugin      |配合现场状态表使用，dsched_switch的原始数据|
+|sched_slice           |    -         |ftrace-plugin      |配合线程状态表使用，sched_switch的原始数据|
 |smaps                 |    -         |memory-plugin      |进程的内存消耗         |
-|stat                  |  通用的      |    -              |记录不同种类数据的数据量|
+|stat                  |  通用的       |公共                |记录不同种类数据的数据量|
+|static_initalize      |    -         |ftrace-plugin      |so初始化数据           |
 |symbols               |    -         |ftrace-plugin      |符号表（地址到字符串的映射）|
-|syscall               |    -         |ftrace-plugin      |系统调用 sys_enter/exit|
-|sys_event_filter      |    -         |ftrace-plugin      |                       |
+|sys_event_filter      |    -         |memory-plugin      |filter信息                      |
 |sys_mem_measure       |    -         |memory-plugin      |系统内存               |
-|thread                |  通用的      |    -              |线程信息（常用）        |
+|syscall               |    -         |ftrace-plugin      |系统调用 sys_enter/exit|
+|task_pool             |    -         |ftrace-plugin      |任务池数据              |
+|thread                |  通用的      |公共                |线程信息（常用）        |
 |thread_state          |  通用的      |ftrace-plugin      |线程调度图（常用）      |
-|trace_config          |  通用的      |hisysevent-plugin  |记录trace数据源         |
-|trace_range           |  通用的      |    -              |trace数据的时长         |
-|clock_snapshot        |  通用的      |通用的            |时钟号和时间，时钟名的映射表|
-|datasource_clockid    |  通用的      |通用的             |数据源和时钟号的映射表|
-|task_pool             |    -         |    -             |任务池数据              |
+|trace_config          |  通用的      |memory-plugin,hisysevent-plugin  |记录trace数据源         |
+|trace_range           |  通用的      |公共                |trace数据的时长         |
+|xpower_measure        |              |xpower             |设备信息                |  
 
 ## ___表格关系图___
 ---
@@ -180,30 +184,30 @@ TraceStreamer可以将trace数据源转化为易于理解和使用的数据库�
 当一个进程或者线程结束后，系统可能再次将该进程号或者线程号分配给其他进程或者线程，造成一个进程号或线程号代表多个进程或线程的情况。  
 Process和Thread表中的id字段可以唯一标识进程和线程。process表中的id在其他表中用作ipid字段。thread表中的id在其他表中用作itid字段。   
 thread表通过ipid字段关联process表的id字段，可以查询线程归属进程。  
-![GitHub Logo](../figures/process_thread.png) 
+![GitHub Logo](../../figures/traceStreamer/process_thread.png) 
 ### 查询举例
 - 已知pid = 123,查看当前进程下的所有线程信息,可以使用如下SQL语句：  
 ```select thread.* from thread, process where process.pid = 123 and thread.ipid = process.id```
 
 ### 线程表与线程运行状态表关系图
 thread_state表记录所有线程的运行状态信息，包含ts(状态起始时间)，dur(状态持续时间)，cpu, itid, state（线程状态）。 thread表的id字段与thread_state表的itid字段相关联。  
-![GitHub Logo](../figures/thread_state.png) 
+![GitHub Logo](../../figures/traceStreamer/thread_state.png) 
 ### 查询举例
 - 已知tid = 123, 查看当前线程的所有运行状态信息，可以使用如下SQL语句：  
 ```select thread_state.* from thread, thread_state where thread.tid = 123 and thread.id = thread_state.itid```
 
 ### 堆内存数据变化表关系图
-native_hook表记录堆内存申请(AllocEvent)和释放(FreeEvent)数据。native_hook表通过ipid和itid字段分别与process和thread表的id字段关联，通过callChainId与native_hook_frame表的callChainId字段相关联。 
+native_hook表记录堆内存申请(AllocEvent)和释放(FreeEvent)数据。native_hook表通过ipid和itid字段分别与process和thread表的id字段关联，通过callchain_id与native_hook_frame表的callchain_id字段相关联。 
 native_hook表字段解释如下：  
-- callChainId：唯一标识一次堆内存申请或释放， 通过与native_hook_frame表关联可以拿到当前申请或释放的函数调用堆栈。  
+- callchain_id：唯一标识一次堆内存申请或释放， 通过与native_hook_frame表关联可以拿到当前申请或释放的函数调用堆栈。  
 - addr：堆内存申请/释放的地址。  
 - native_hook_size：堆内存申请/释放的大小。
 
-native_hook_frame表记录内存申请/释放的调用堆栈。通过callChainId区分一组调用堆栈，depth为堆栈深度，depth为0时，表示当前行为栈顶数据。  
-![GitHub Logo](../figures/dump_and_mem.png) 
+native_hook_frame表记录内存申请/释放的调用堆栈。通过callchain_id区分一组调用堆栈，depth为堆栈深度，depth为0时，表示当前行为栈顶数据。  
+![GitHub Logo](../../figures/traceStreamer/dump_and_mem.png) 
 
-native_hook_statistic表记录内存申请/释放的统计信息。通过callChainId区分一组调用堆栈。每个统计事件将记录当前事件的callChainId，并统计当前调用栈内存分配/释放的总次数和总大小。
-![GitHub Logo](../figures/db_native_hook_statistic.png) 
+native_hook_statistic表记录内存申请/释放的统计信息。通过callchain_id区分一组调用堆栈。每个统计事件将记录当前事件的callchain_id，并统计当前调用栈内存分配/释放的总次数和总大小。
+![GitHub Logo](../../figures/traceStreamer/db_native_hook_statistic.png) 
 
 ### 查询举例
 - 已知tid = 123，查看当前线程的所有堆内存变化信息，可以使用如下SQL语句：  
@@ -215,7 +219,7 @@ native_hook_statistic表记录内存申请/释放的统计信息。通过callCha
 
 ### 日志表与进程线程表关系图
 log表记录日志信息。可以根据seq字段的连续性，来判断是否存在日志丢失的情况。  
-![GitHub Logo](../figures/log.png)
+![GitHub Logo](../../figures/traceStreamer/log.png)
 ### 查询举例
 - 已知tid = 123，查看当前线程的所有error级别的日志，可以使用如下SQL语句：  
 ```select * from log where tid = 123 and level = "error"```
@@ -223,20 +227,20 @@ log表记录日志信息。可以根据seq字段的连续性，来判断是否�
 ### perf表之间关系图
 - perf_report：此表记录Hiperf工具采集数据时的配置信息。  
 - perf_thread：此表记录hiperf采集到的进程和线程数据。  
-- perf_sample：此表中记录Hiperf工具的采样信息。sample_id唯一表识一次采样记录，与perf_callchain表中的sample_id字段相关联。thread_id为线程号。与perf_thread表中的thread_id字段相关联。event_type_id为当前采样的事件类型id，与perf_report表中的id字段相关联。  
+- perf_sample：此表中记录Hiperf工具的采样信息。id唯一表示一次采样记录，通过callchain_id与perf_callchain表中的callchain_id字段相关联。thread_id为线程号,与perf_thread表中的thread_id字段相关联。event_type_id为当前采样的事件类型id，与perf_report表中的id字段相关联。  
 - perf_callchain：此表格记录的是调用栈信息。  
-- Perf_files：此表格主要存放着获取到的函数符号表和文件信息。file_id唯一表识一个文件，与perf_callchain表中的file_id字段相关联。  
+- Perf_files：此表格主要存放着获取到的函数符号表和文件信息。file_id唯一表示一个文件，与perf_callchain表中的file_id字段相关联。  
 
-![GitHub Logo](../figures/perf.png) 
+![GitHub Logo](../../figures/traceStreamer/perf.png) 
 ### 查询举例
 - 已知同步后的时间戳为28463134340470，查询采样数据  
 ```select * from perf_sample where timestamp_trace = 28463134340470```  
 
 - 已知同步后的时间戳为28463134340470，查询采样数据对应的的调用栈信息  
-```select A.* from perf_callchain as A, perf_sample as B where B.timestamp_trace = 28463134340470 and A.sample_id = B.sample_id```  
+```select A.* from perf_callchain as A, perf_sample as B where B.timestamp_trace = 28463134340470 and A.callchain_id = B.callchain_id```  
 
 - 已知同步后的时间戳为28463134277762，查询采样数据的函数名及文件路径  
-```select A.*, B.name, C.path from perf_sample as A, perf_callchain as B, perf_files as C where A.timestamp_trace = 28463134277762 and B.sample_id = A.sample_id and B.callchain_id = 0 and B.file_id = C.file_id and C.serial_id = 0```
+```select A.*, B.name, C.path from perf_sample as A, perf_callchain as B, perf_files as C where A.timestamp_trace = 28463134277762 and B.callchain_id = A.callchain_id and B.callchain_id = 0 and B.file_id = C.file_id and C.serial_id = 0```
 
 - 已知线程号为6700，查询所有的采样记录  
 ```select * from perf_sample where thread_id = 6700```
@@ -251,7 +255,7 @@ log表记录日志信息。可以根据seq字段的连续性，来判断是否�
 frame_slice: 记录RS(RenderService)和应用的帧渲染。  
 gpu_slice: 记录RS的帧对应的gpu渲染时长。  
 frame_maps:记录应用到RS的帧的映射关系。  
-![GitHub Logo](../figures/frames.jpg) 
+![GitHub Logo](../../figures/traceStreamer/frames.png) 
 ### 查询示例
 - 已知进程，查询进程对应的实际渲染帧  
 ```select * from frame_slice where ipid = 1```
@@ -266,13 +270,13 @@ frame_maps:记录应用到RS的帧的映射关系。
 
 js_heap_files：记录js内存数据的文件名和文件索引
 
-![1683163158954](image/des_tables/1683163158954.png)
+![1683163158954](../../../../trace_streamer/doc/image/des_tables/1683163158954.png)
 
 js_heap_nodes:记录js内存类对象数据
 js_heap_edges:记录js内存类对象的成员数据
 js_heap_trace_node:记录timeline的调用栈信息
 js_heap_sample:记录timeline的时间轴信息
-![1683163373206](image/des_tables/1683163373206.png)
+![1683163373206](../../../../trace_streamer/doc/image/des_tables/1683163373206.png)
 ## TraceStreamer输出数据库表格详细介绍
 ### app_name表
 #### 表结构
@@ -312,7 +316,6 @@ js_heap_sample:记录timeline的时间轴信息
 |----          |----      |
 |id            |INT       |
 |callchain_id  |INT       |
-|datatype      |INT       |
 |type          |INT       |
 |ipid          |INT       |
 |itid          |INT       |
@@ -328,8 +331,8 @@ js_heap_sample:记录timeline的时间轴信息
 记录IO操作相关方法调用，及调用栈数据。
 #### 字段详细描述
 - id: 唯一标识 
-- callchain_id：调用栈的唯一标识。与ebpf_callstack表中Callchain_id字段关联  
-- type：事件类型其取值为枚举类型（DATA_READ，DATA_WRITE，METADATA_READ，- METADATA_WRITE，PAGE_IN，PAGE_OUT）  
+- callchain_id：调用栈的唯一标识。与ebpf_callstack表中callchain_id字段关联  
+- type：事件类型其取值为枚举类型（DATA_READ，DATA_WRITE，METADATA_READ，METADATA_WRITE，PAGE_IN，PAGE_OUT）  
 - ipid：TS内部进程号  
 - itid：TS内部线程号  
 - start_ts：开始时间  
@@ -504,8 +507,8 @@ js_heap_sample:记录timeline的时间轴信息
 - wr_speed:当前时间段的写入速度
 - rd_count:读取的数据总量
 - wr_count:写入的数据总量
-- rd_sectors_speed：读数据的平均速度  
-- wr_sectors_speed：写入数据的平均速度  
+- rd_count_speed：读数据的平均速度  
+- wr_count_speed：写入数据的平均速度  
 
 ### ebpf_callstack表
 #### 表结构
@@ -1048,7 +1051,7 @@ source_arg_set_id: 同一个source_arg_set_id代表一组数据，一般取得�
 | Columns Name | SQL TYPE |
 |----          |----      |
 |id            |INT       |
-|callChainId   |INT       |
+|callchain_id   |INT       |
 |ipid          |INT       |
 |itid          |INT       |
 |event_type    |TEXT      |
@@ -1061,6 +1064,7 @@ source_arg_set_id: 同一个source_arg_set_id代表一组数据，一般取得�
 |all_heap_size |INT       |
 |current_size_dur   |INT       |
 |last_lib_id   |INT       |
+|last_symbol_id   |INT       |
 #### 表描述
 记录native_hook抓取的某个进程的堆内存，内存映射相关数据。
 #### 关键字段描述
@@ -1069,7 +1073,7 @@ source_arg_set_id: 同一个source_arg_set_id代表一组数据，一般取得�
 - ipid：所属的进程内部id, 关联process表中的id  
 - itid：所属的线程内部id, 关联thread表中的id  
 - event_type：事件类型取值范围（AllocEvent,FreeEvent,MmapEvent, MunmapEvent）  
-- sub_type_id：子事件类型(只有sub_type字段为MmapEvent时，该字段才会有值)  
+- sub_type_id：子事件类型(只有event_type字段为MmapEvent时，该字段才会有值)  
 - start_ts：申请内存开始时间  
 - end_ts：释放内存时间  
 - dur：申请内存活跃时间  
@@ -1115,12 +1119,13 @@ source_arg_set_id: 同一个source_arg_set_id代表一组数据，一般取得�
 |ipid      |INT       |
 |ts      |INT       |
 |type      |INT       |
-|sube_type_id      |INT       |
+|sub_type_id      |INT       |
 |apply_count      |INT       |
 |release_count      |INT       |
 |apply_size      |INT       |
 |release_size      |INT       |
-
+|last_lib_id      |INT       |
+|last_symbol_id      |INT       |
 #### 表描述
 该表记录了内存申请/释放的统计信息。
 #### 关键字段描述 
@@ -1215,8 +1220,8 @@ source_arg_set_id: 同一个source_arg_set_id代表一组数据，一般取得�
 - depth：调用栈深度  
 - ip: 函数ip
 - vaddr_in_file：函数在文件中的虚拟地址  
-- file_id：与PerfFiles中的file_id字段相关联  
-- symbol_id：与PerfFiles中的symbol_id相关联  
+- file_id：与perf_files表中的file_id字段相关联  
+- symbol_id：与PerfFiles中的serial_id字段相关联  
 - name：函数名
 
 ### perf_files表
@@ -1326,6 +1331,7 @@ source_arg_set_id: 同一个source_arg_set_id代表一组数据，一般取得�
 |----          |----      |
 |type          |TEXT      |
 |ts            |INT       |
+|dur           |INT       |
 |value         |NUM       |
 |filter_id     |INT       |
 #### 表描述
@@ -1382,7 +1388,7 @@ source_arg_set_id: 同一个source_arg_set_id代表一组数据，一般取得�
 |ipid          |INT       |
 |end_state     |TEXT      |
 |priority      |INT       |
-|argset_id     |INT       |
+|arg_setid     |INT       |
 #### 表描述
 此数据结构主要作为ThreadState的上下文使用，这张表是sched_switch事件的原始记录。
 #### 主要字段描述
@@ -1395,7 +1401,7 @@ source_arg_set_id: 同一个source_arg_set_id代表一组数据，一般取得�
 - ipid：进程内部编号
 - end_state：线程的终结状态
 - priority: 线程优先级
-- argset_id：线程状态参数，对应arg_view中arg_set
+- argset_id：线程状态参数，对应args中argset
 
 ### smaps表
 #### 表结构
@@ -1412,6 +1418,7 @@ source_arg_set_id: 同一个source_arg_set_id代表一组数据，一般取得�
 |virtaul_size  |INT       |
 |reside        |REAL      |
 |protection_id |INT       |
+|path_id       |INT       |
 |shared_clean       |INT       |
 |shared_dirty       |INT       |
 |private_clean      |INT       |
@@ -1479,21 +1486,19 @@ source_arg_set_id: 同一个source_arg_set_id代表一组数据，一般取得�
 #### 表结构
 | Columns Name | SQL TYPE |
 |----          |----      |
-|syscall_number|INT       |
+|syscall_num   |INT       |
+|type          |TEXT      |
+|ipid          |INT       |
 |ts            |INT       |
-|dur           |INT       |
-|itid          |INT       |
-|args          |TEXT      |
 |ret           |INT       |
 #### 表描述
 记录用户空间函数与内核空间函数相互调用记录。
 #### 相关字段描述
-- syscall_number：系统调用的序号
-- ts：时间戳
-- dur：持续时间，记录系统调用的执行时间
-- itid: 记录发起调用的线程
-- args: 参数，记录系统调用的参数信息
-- ret：返回值，记录系统调用的返回结果
+- syscall_num：系统调用的序号  
+- type：固定取值：enter或者exit  
+- ipid：线程所属的进程ID  
+- ts：时间戳  
+- ret：返回值，在type为exit时有效
 
 ### sys_event_filter表
 #### 表结构
@@ -1515,6 +1520,7 @@ source_arg_set_id: 同一个source_arg_set_id代表一组数据，一般取得�
 |----          |----      |
 |type          |TEXT      |
 |ts            |INT       |
+|dur           |INT       |
 |value         |INT       |
 |filter_id     |INT       |
 #### 表描述
@@ -1532,7 +1538,6 @@ source_arg_set_id: 同一个source_arg_set_id代表一组数据，一般取得�
 |----          |----      |
 |id	           |INT	      |
 |itid	         |INT	      |
-|type	         |TEXT      |
 |tid	         |INT	      |
 |name	         |TEXT      |
 |start_ts	     |INT	      |
@@ -1545,7 +1550,6 @@ source_arg_set_id: 同一个source_arg_set_id代表一组数据，一般取得�
 #### 字段详细描述
 - id: 唯一标识 
 - itid：TS内部线程id  
-- type：固定字段（thread）  
 - tid：线程号  
 - name：线程名  
 - start_ts：开始时间  
@@ -1554,28 +1558,11 @@ source_arg_set_id: 同一个source_arg_set_id代表一组数据，一般取得�
 - is_main_thread：是否主线程，主线程即该线程实际就是进程本身  
 - switch_count：当前线程的切换次数
 
-### thread_filter表
-#### 表结构
-| Columns Name | SQL TYPE |
-|----          |----      |
-|id            |INT       |
-|type          |TEXT      |
-|name          |TEXT      |
-|itid          |INT       |
-#### 表描述
-将线程ID作为key1，线程的内存，界面刷新，屏幕亮度等信息作为key2，唯一确定一个filter_id, filter_id同时被记录在filter表中。
-#### 主要字段描述
-- id：线程id  
-- type：线程类型  
-- name：线程名称  
-- itid：该表中的tid与thread表中的tid相关联
-
 ### thread_state表
 #### 表结构
 | Columns Name | SQL TYPE |
 |----          |----      |
 |id            |INT       |
-|type          |TEXT      |
 |ts            |INT       |
 |dur           |INT       |
 |cpu           |INT       |
@@ -1595,7 +1582,7 @@ source_arg_set_id: 同一个source_arg_set_id代表一组数据，一般取得�
 - tid：线程号  
 - pid：进程号  
 - state：线程实际的的状态值  
-- argset_id：线程状态参数，对应arg_view中arg_set
+- argset_id：线程状态参数，对应args中arg_set
 
 ```  
 'R', Runnable状态  
@@ -1979,6 +1966,7 @@ source_arg_set_id: 同一个source_arg_set_id代表一组数据，一般取得�
 |size          |INT       |
 |count         |INT       |
 |purgeable_size|INT       |
+|ipid          |INT       |
 #### 表描述
 该表记录trace数据源/sys/kernel/debug/mali0/ctx/$(pidof xxx)_0/mem_profile
 #### 关键字段描述
@@ -1991,6 +1979,7 @@ source_arg_set_id: 同一个source_arg_set_id代表一组数据，一般取得�
 - size：内存大小 bytes
 - count：内存申请个数
 - purgeable_size： 取Total memory对应的字节大小
+- ipid: 内部进程号
 
 ### static_initalize表
 #### 表结构
