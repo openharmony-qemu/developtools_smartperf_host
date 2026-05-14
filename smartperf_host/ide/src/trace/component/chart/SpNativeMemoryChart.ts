@@ -347,13 +347,13 @@ export class SpNativeMemoryChart {
       for (const event of normalTypes) {
         if ([`${MemoryType.MEMORY_M_ALLOC_NAME}`, `${MemoryType.MEMORY_M_MAP_NAME}`,
         `${MemoryType.ARKTS_Alloc_NAME}`, `${MemoryType.JS_Alloc_NAME}`,
-        `${MemoryType.DART_HEAP_Alloc_NAME}`, `${MemoryType.RN_HERMES_HEAP_Alloc_NAME}`, `${MemoryType.KMP_Alloc_NAME}`,
+        `${MemoryType.DART_HEAP_Alloc_NAME}`, `${MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME}`, `${MemoryType.RN_HERMES_HEAP_Alloc_NAME}`, `${MemoryType.KMP_Alloc_NAME}`,
         `${MemoryType.SO_Alloc_NAME}`, `${MemoryType.ASHMEM_Alloc_NAME}`,
         `${MemoryType.ION_Alloc_NAME}`, `${MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME}`, `${MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME}`,
         `${MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME}`].includes(event.eventType)) {
           hasNativeMemory = true;
         }
-        if ([`${MemoryType.GPU_VK_Alloc_NAME}`, `${MemoryType.GPU_GLES_Alloc_NAME}`, `${MemoryType.GPU_CL_Alloc_NAME}`].includes(event.eventType)) {
+        if ([`${MemoryType.GPU_VK_Alloc_NAME}`, `${MemoryType.GPU_GLES_Alloc_NAME}`, `${MemoryType.GPU_CL_Alloc_NAME}`, `${MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME}`].includes(event.eventType)) {
           hasGpuMemory = true;
         }
         if ([`${MemoryType.FD_OPEN_NAME}`, `${MemoryType.THREAD_CREATE_NAME}`,].includes(event.eventType)) {
@@ -363,7 +363,7 @@ export class SpNativeMemoryChart {
     } else if (isShowStatic) {
       for (const event of statisticTypes) {
         if ([MemoryStatisticType.MALLOC, MemoryStatisticType.MMAP, MemoryStatisticType.FILE_PAGE_MSG, MemoryStatisticType.MEMORY_USING_MSG,
-        MemoryStatisticType.ARKTS, MemoryStatisticType.JS, MemoryStatisticType.DART_HEAP, MemoryStatisticType.RN, MemoryStatisticType.KMP,
+        MemoryStatisticType.ARKTS, MemoryStatisticType.JS, MemoryStatisticType.DART_HEAP, MemoryStatisticType.ARKTS_STATIC_HEAP, MemoryStatisticType.RN, MemoryStatisticType.KMP,
         MemoryStatisticType.SO, MemoryStatisticType.ASHMEM, MemoryStatisticType.DMA, MemoryStatisticType.ARK_GLOBAL_HANDLE, MemoryStatisticType.ARK_LOCAL_HANDLE].includes(event.type)) {
           hasNativeMemory = true;
         } else if ([MemoryStatisticType.GPU_VK, MemoryStatisticType.GPU_GLES, MemoryStatisticType.GPU_CL].includes(event.type)) {

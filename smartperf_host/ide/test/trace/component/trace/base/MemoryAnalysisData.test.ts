@@ -45,6 +45,16 @@ describe('MemoryAnalysisData Test', () => {
       expect(dartHeapConfig?.hasSubType).toBe(true);
     });
 
+    it('should include ARKTS_STATIC_HEAP in typeConfigs', () => {
+      const arktsStaticHeapConfig = dataLogic['typeConfigs'].find(
+        config => config.eventId === MemoryStatisticType.ARKTS_STATIC_HEAP
+      );
+      expect(arktsStaticHeapConfig).toBeDefined();
+      expect(arktsStaticHeapConfig?.eventId).toBe(MemoryStatisticType.ARKTS_STATIC_HEAP);
+      expect(arktsStaticHeapConfig?.eventType).toBe(MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME);
+      expect(arktsStaticHeapConfig?.hasSubType).toBe(true);
+    });
+
     it('should include RN_HERMES_HEAP in typeConfigs', () => {
       const rnHeapConfig = dataLogic['typeConfigs'].find(
         config => config.eventId === MemoryStatisticType.RN
@@ -107,6 +117,47 @@ describe('MemoryAnalysisData Test', () => {
         ]
       };
       expect(mapping.mappings[0].statisticTypes).toContain(MemoryStatisticType.DART_HEAP);
+    });
+  });
+
+  describe('ARKTS_STATIC_HEAP Configuration Tests', () => {
+    it('should configure ARKTS_STATIC_HEAP in ALL Heap & Anonymous VM mapping', () => {
+      const mapping = {
+        mappings: [
+          {
+            selectionKey: 'All Heap & Anonymous VM',
+            statisticTypes: [MemoryStatisticType.ARKTS_STATIC_HEAP],
+            normalTypes: [`'${MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME}'`]
+          }
+        ]
+      };
+      expect(mapping.mappings[0].statisticTypes).toContain(MemoryStatisticType.ARKTS_STATIC_HEAP);
+    });
+
+    it('should configure ARKTS_STATIC_HEAP in All Heap mapping', () => {
+      const mapping = {
+        mappings: [
+          {
+            selectionKey: 'All Heap',
+            statisticTypes: [MemoryStatisticType.ARKTS_STATIC_HEAP],
+            normalTypes: [`'${MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME}'`]
+          }
+        ]
+      };
+      expect(mapping.mappings[0].statisticTypes).toContain(MemoryStatisticType.ARKTS_STATIC_HEAP);
+    });
+
+    it('should configure ARKTS_STATIC_HEAP standalone mapping', () => {
+      const mapping = {
+        mappings: [
+          {
+            selectionKey: 'ARKTS STATIC HEAP',
+            statisticTypes: [MemoryStatisticType.ARKTS_STATIC_HEAP],
+            normalTypes: [`'${MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME}'`]
+          }
+        ]
+      };
+      expect(mapping.mappings[0].statisticTypes).toContain(MemoryStatisticType.ARKTS_STATIC_HEAP);
     });
   });
 
@@ -213,6 +264,28 @@ describe('MemoryAnalysisData Test', () => {
       expect(result?.typeName).toBe('DART_SUBTYPE');
     });
 
+    it('should handle ARKTS_STATIC_HEAP type correctly', () => {
+      const mockSample = [
+        {
+          type: MemoryStatisticType.ARKTS_STATIC_HEAP,
+          typeName: MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME,
+          subType: 'ARKTS_STATIC_SUBTYPE',
+          size: 1536,
+          count: 15,
+          isRelease: false,
+          releaseSize: 0,
+          releaseCount: 0
+        }
+      ];
+      const typeMap = new Map<number, any[]>();
+      typeMap.set(MemoryStatisticType.ARKTS_STATIC_HEAP, mockSample);
+      dataLogic['isStatistic'] = false;
+      dataLogic['memoryType'] = MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY;
+      const result = dataLogic['setTypeMap'](typeMap, MemoryStatisticType.ARKTS_STATIC_HEAP, 'ARKTS_STATIC_SUBTYPE');
+      expect(result).not.toBeNull();
+      expect(result?.typeName).toBe('ARKTS_STATIC_SUBTYPE');
+    });
+
     it('should handle RN_HERMES_HEAP type correctly', () => {
       const mockSample = [
         {
@@ -277,6 +350,23 @@ describe('MemoryAnalysisData Test', () => {
       expect(result.has('DART_SUBTYPE2')).toBe(true);
     });
 
+    it('should build subTypeMap correctly for ARKTS_STATIC_HEAP', () => {
+      const sampleArray = [
+        {
+          subType: 'ARKTS_STATIC_SUBTYPE1',
+          size: 768
+        },
+        {
+          subType: 'ARKTS_STATIC_SUBTYPE2',
+          size: 1536
+        }
+      ];
+      const result = dataLogic['buildSubTypeMap'](sampleArray, MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME);
+      expect(result.size).toBe(2);
+      expect(result.has('ARKTS_STATIC_SUBTYPE1')).toBe(true);
+      expect(result.has('ARKTS_STATIC_SUBTYPE2')).toBe(true);
+    });
+
     it('should build subTypeMap correctly for RN_HERMES_HEAP', () => {
       const sampleArray = [
         {
@@ -338,6 +428,12 @@ describe('MemoryAnalysisData Test', () => {
           isRelease: false
         },
         {
+          type: MemoryStatisticType.ARKTS_STATIC_HEAP,
+          size: 1536,
+          count: 15,
+          isRelease: false
+        },
+        {
           type: MemoryStatisticType.RN,
           size: 2048,
           count: 20,
@@ -352,8 +448,9 @@ describe('MemoryAnalysisData Test', () => {
       ];
       dataLogic['isStatistic'] = false;
       const result = dataLogic['typeSizeGroup'](mockData);
-      expect(result.size).toBe(2);
+      expect(result.size).toBe(3);
       expect(result.get(MemoryStatisticType.DART_HEAP)?.length).toBe(2);
+      expect(result.get(MemoryStatisticType.ARKTS_STATIC_HEAP)?.length).toBe(1);
       expect(result.get(MemoryStatisticType.RN)?.length).toBe(1);
     });
   });

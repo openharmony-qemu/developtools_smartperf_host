@@ -546,6 +546,7 @@ function cacheStatisticChartData(processData: Array<NMData>, ipid: number): void
     arkts: [],
     js: [],
     dartHeap: [],
+    arktsStaticHeap: [],
     rn: [],
     kmp: [],
     so: [],

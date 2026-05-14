@@ -17,6 +17,7 @@ import { TabPaneNMSampleList } from '../../../../../../src/trace/component/trace
 import { NativeHookSamplerInfo, NativeMemory } from '../../../../../../src/trace/bean/NativeHook';
 import { NativeHookSampleQueryInfo } from '../../../../../../src/trace/bean/NativeHook';
 import { LitTable } from '../../../../../../src/base-ui/table/lit-table';
+import { MemoryType, MemoryTraceRowType } from '../../../../../../src/trace/bean/MemoryEnum';
 jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
   return {};
 });
@@ -372,5 +373,240 @@ describe('TabPaneNMSampleList Test', () => {
     });
     TabPaneNMSampleList.sampleTbl!.recycleDataSource = jest.fn(() => []);
     expect(tabPaneNMSampleList.filterAllList()).toBeUndefined();
+  });
+
+  // ARKTS_STATIC_HEAP specific tests
+  describe('ARKTS_STATIC_HEAP Tests', () => {
+    it('TabPaneNMSampleListTest18 - should filter ARKTS_STATIC_HEAP samples when filterSelect=6', () => {
+      let mixedSamples = [
+        {
+          current: '',
+          currentSize: 101,
+          startTs: 110,
+          heapSize: 10,
+          snapshot: MemoryType.DART_HEAP_Alloc_NAME,
+          growth: '',
+          total: 980,
+          totalGrowth: '',
+          existing: 7810,
+          children: [],
+          tempList: [],
+          timestamp: '',
+          eventId: 320,
+          threadId: 1,
+          threadName: '',
+        },
+        {
+          current: '',
+          currentSize: 102,
+          startTs: 120,
+          heapSize: 20,
+          snapshot: MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME,
+          growth: '',
+          total: 985,
+          totalGrowth: '',
+          existing: 500,
+          children: [],
+          tempList: [],
+          timestamp: '',
+          eventId: 321,
+          threadId: 2,
+          threadName: '',
+        },
+        {
+          current: '',
+          currentSize: 103,
+          startTs: 130,
+          heapSize: 30,
+          snapshot: MemoryType.RN_HERMES_HEAP_Alloc_NAME,
+          growth: '',
+          total: 990,
+          totalGrowth: '',
+          existing: 300,
+          children: [],
+          tempList: [],
+          timestamp: '',
+          eventId: 322,
+          threadId: 3,
+          threadName: '',
+        },
+        {
+          current: '',
+          currentSize: 104,
+          startTs: 140,
+          heapSize: 40,
+          snapshot: MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME,
+          growth: '',
+          total: 995,
+          totalGrowth: '',
+          existing: 200,
+          children: [],
+          tempList: [],
+          timestamp: '',
+          eventId: 323,
+          threadId: 4,
+          threadName: '',
+        },
+      ];
+
+      TabPaneNMSampleList.samplerInfoSource = [
+        {
+          current: '',
+          currentSize: 0,
+          startTs: 1,
+          heapSize: 10,
+          snapshot: '',
+          growth: '',
+          total: 100,
+          totalGrowth: '',
+          existing: 0,
+          children: mixedSamples,
+          tempList: mixedSamples,
+          timestamp: '',
+          eventId: -1,
+          threadId: 1,
+          threadName: '',
+        },
+      ];
+      TabPaneNMSampleList.filterSelect = '6';
+      TabPaneNMSampleList.sampleTbl!.meauseTreeRowElement = jest.fn(() => {
+        return [];
+      });
+      TabPaneNMSampleList.sampleTbl!.recycleDataSource = jest.fn(() => []);
+      
+      expect(tabPaneNMSampleList.filterAllList()).toBeUndefined();
+    });
+
+    it('TabPaneNMSampleListTest19 - should handle empty ARKTS_STATIC_HEAP samples', () => {
+      let noArktsStaticHeapSamples = [
+        {
+          current: '',
+          currentSize: 101,
+          startTs: 110,
+          heapSize: 10,
+          snapshot: MemoryType.DART_HEAP_Alloc_NAME,
+          growth: '',
+          total: 980,
+          totalGrowth: '',
+          existing: 7810,
+          children: [],
+          tempList: [],
+          timestamp: '',
+          eventId: 320,
+          threadId: 1,
+          threadName: '',
+        },
+        {
+          current: '',
+          currentSize: 103,
+          startTs: 130,
+          heapSize: 30,
+          snapshot: MemoryType.RN_HERMES_HEAP_Alloc_NAME,
+          growth: '',
+          total: 990,
+          totalGrowth: '',
+          existing: 300,
+          children: [],
+          tempList: [],
+          timestamp: '',
+          eventId: 322,
+          threadId: 3,
+          threadName: '',
+        },
+      ];
+
+      TabPaneNMSampleList.samplerInfoSource = [
+        {
+          current: '',
+          currentSize: 0,
+          startTs: 2,
+          heapSize: 20,
+          snapshot: '',
+          growth: '',
+          total: 200,
+          totalGrowth: '',
+          existing: 0,
+          children: noArktsStaticHeapSamples,
+          tempList: noArktsStaticHeapSamples,
+          timestamp: '',
+          eventId: -1,
+          threadId: 2,
+          threadName: '',
+        },
+      ];
+      TabPaneNMSampleList.filterSelect = '6';
+      TabPaneNMSampleList.sampleTbl!.meauseTreeRowElement = jest.fn(() => {
+        return [];
+      });
+      TabPaneNMSampleList.sampleTbl!.recycleDataSource = jest.fn(() => []);
+      
+      expect(tabPaneNMSampleList.filterAllList()).toBeUndefined();
+    });
+
+    it('TabPaneNMSampleListTest20 - should add ARKTS_STATIC_HEAP sample data correctly', () => {
+      let arktsStaticHeapData = new NativeMemory();
+      arktsStaticHeapData.startTs = 1000000;
+      arktsStaticHeapData.eventId = 100;
+      arktsStaticHeapData.threadId = 5;
+      arktsStaticHeapData.threadName = 'TestThread';
+      arktsStaticHeapData.hasSubType = true;
+      arktsStaticHeapData.subTypeId = 21;
+      arktsStaticHeapData.lastLibId = 1;
+      arktsStaticHeapData.lastSymbolId = 2;
+
+      let MockqueryAllHookData = sqlit.queryAllHookData;
+      MockqueryAllHookData.mockResolvedValue([new NativeHookSampleQueryInfo()]);
+
+      expect(TabPaneNMSampleList.addSampleData(arktsStaticHeapData, 1)).toBeUndefined();
+    });
+
+    it('TabPaneNMSampleListTest21 - should filter with ARKTS_STATIC_HEAP type name', () => {
+      let onlyArktsStaticHeap = [
+        {
+          current: '',
+          currentSize: 105,
+          startTs: 150,
+          heapSize: 50,
+          snapshot: MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME,
+          growth: '',
+          total: 1000,
+          totalGrowth: '',
+          existing: 400,
+          children: [],
+          tempList: [],
+          timestamp: '',
+          eventId: 330,
+          threadId: 5,
+          threadName: 'ArktsStaticThread',
+        },
+      ];
+
+      TabPaneNMSampleList.samplerInfoSource = [
+        {
+          current: '',
+          currentSize: 0,
+          startTs: 3,
+          heapSize: 30,
+          snapshot: '',
+          growth: '',
+          total: 300,
+          totalGrowth: '',
+          existing: 0,
+          children: onlyArktsStaticHeap,
+          tempList: onlyArktsStaticHeap,
+          timestamp: '',
+          eventId: -1,
+          threadId: 3,
+          threadName: '',
+        },
+      ];
+      TabPaneNMSampleList.filterSelect = '6';
+      TabPaneNMSampleList.sampleTbl!.meauseTreeRowElement = jest.fn(() => {
+        return [];
+      });
+      TabPaneNMSampleList.sampleTbl!.recycleDataSource = jest.fn(() => []);
+      
+      expect(tabPaneNMSampleList.filterAllList()).toBeUndefined();
+    });
   });
 });
