@@ -94,6 +94,9 @@ void NativeHookFilter::InitAllocTraceTypeMaps()
     traceTypeToTraceTypeAndNativeType_.Insert(
         ProtoReader::TraceType::ARK_LOCAL_HANDLE, true,
         MakeTypeValue("ARK_LOCAL_HANDLE_Alloc_Event", NativeType::ARK_LOCAL_HANDLE));
+    traceTypeToTraceTypeAndNativeType_.Insert(
+        ProtoReader::TraceType::ARKTS_STATIC_HEAP, true,
+        MakeTypeValue("ARKTS_STATIC_HEAP_Alloc_Event", NativeType::ARKTS_STATIC_HEAP));
 }
 
 void NativeHookFilter::InitFreeTraceTypeMaps()
@@ -132,6 +135,9 @@ void NativeHookFilter::InitFreeTraceTypeMaps()
     traceTypeToTraceTypeAndNativeType_.Insert(
         ProtoReader::TraceType::ARK_LOCAL_HANDLE, false,
         MakeTypeValue("ARK_LOCAL_HANDLE_Free_Event", NativeType::ARK_LOCAL_HANDLE));
+    traceTypeToTraceTypeAndNativeType_.Insert(
+        ProtoReader::TraceType::ARKTS_STATIC_HEAP, false,
+        MakeTypeValue("ARKTS_STATIC_HEAP_Free_Event", NativeType::ARKTS_STATIC_HEAP));
 }
 
 void NativeHookFilter::ParseConfigInfo(ProtoReader::BytesView &protoData, uint64_t &statisticsInterval)
@@ -1234,6 +1240,8 @@ uint64_t *NativeHookFilter::GetLastEventRaw(NativeType type)
             return &traceDataCache_->GetNativeHookData()->GetLastArkLocalHandleEventRaw();
         case NativeType::OTHER:
             return &traceDataCache_->GetNativeHookData()->GetLastOtherAllocEventRaw();
+        case NativeType::ARKTS_STATIC_HEAP:
+            return &traceDataCache_->GetNativeHookData()->GetLastArktsStaticHeapEventRaw();
         default:
             TS_LOGE("Unknown type: %d", type);
             return nullptr;

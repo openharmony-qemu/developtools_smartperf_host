@@ -322,6 +322,7 @@ export const MEMORY_TYPE_OPTIONS: TypeOption[] = [
   { value: 'RES_ARKTS_HEAP_MASK', label: 'ARKTS_HEAP' },
   { value: 'RES_JS_HEAP_MASK', label: 'JS_HEAP' },
   { value: 'RES_DART_HEAP', label: 'DART_HEAP' },
+  { value: 'RES_ARKTS_STATIC_HEAP', label: 'ARKTS_STATIC_HEAP' },
   { value: 'RES_RN_HERMES_HEAP', label: 'RN_HERMES_HEAP' },
   { value: 'RES_KMP_HEAP_MASK', label: 'KMP_HEAP' },
   { value: 'RES_FD_ALL', label: 'FD' },

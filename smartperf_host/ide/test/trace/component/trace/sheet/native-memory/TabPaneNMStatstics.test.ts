@@ -15,6 +15,7 @@
 
 import { TabPaneNMStatstics } from '../../../../../../src/trace/component/trace/sheet/native-memory/TabPaneNMStatstics';
 import { NativeHookMalloc, NativeHookStatisticsTableData, } from '../../../../../../src/trace/bean/NativeHook';
+import { MemoryType, MemoryTraceRowType } from '../../../../../../src/trace/bean/MemoryEnum';
 
 jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {
 });
@@ -115,5 +116,173 @@ describe('TabPaneNMStatstics Test', () => {
   });
   it('TabPaneNMStatsticsTest07', function () {
     expect(tabPaneNMStatstics.sortByColumn('freeByteString', 1)).toBeUndefined();
+  });
+
+  // ARKTS_STATIC_HEAP specific tests
+  describe('ARKTS_STATIC_HEAP Tests', () => {
+    it('should format ARKTS_STATIC_HEAP_Alloc_Name correctly in setMallocTableData', () => {
+      let arktsStaticHeapMalloc: Array<NativeHookMalloc> = [
+        {
+          eventType: MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME,
+          subType: 'arkts-static',
+          subTypeId: 0,
+          heapSize: 1024 * 1024,
+          allocByte: 2048 * 1024,
+          allocCount: 100,
+          freeByte: 512 * 1024,
+          freeCount: 20,
+          max: 2 * 1024 * 1024,
+        },
+      ];
+      let tableData: Array<NativeHookStatisticsTableData> = [
+        {
+          memoryTap: '',
+          existing: 0,
+          existingString: '',
+          freeByteString: '',
+          allocCount: 0,
+          freeCount: 0,
+          freeByte: 0,
+          totalBytes: 0,
+          totalBytesString: '',
+          maxStr: '',
+          max: 0,
+          totalCount: 0,
+          existingValue: [],
+        },
+      ];
+
+      tabPaneNMStatstics.setMallocTableData(arktsStaticHeapMalloc, tableData, 0);
+      
+      expect(tableData[0].memoryTap).toContain('Arkts Static');
+      expect(tableData[0].existing).toBe(1536 * 1024);
+      expect(tableData[0].allocCount).toBe(80);
+    });
+
+    it('should include ARKTS_STATIC_HEAP in allHeap aggregation', () => {
+      let mixedMalloc: Array<NativeHookMalloc> = [
+        {
+          eventType: MemoryType.DART_HEAP_Alloc_NAME,
+          subType: 'dart',
+          subTypeId: 0,
+          heapSize: 1024 * 1024,
+          allocByte: 1024 * 1024,
+          allocCount: 10,
+          freeByte: 256 * 1024,
+          freeCount: 2,
+          max: 1024 * 1024,
+        },
+        {
+          eventType: MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME,
+          subType: 'arkts-static',
+          subTypeId: 0,
+          heapSize: 512 * 1024,
+          allocByte: 512 * 1024,
+          allocCount: 5,
+          freeByte: 128 * 1024,
+          freeCount: 1,
+          max: 512 * 1024,
+        },
+      ];
+      let tableData: Array<NativeHookStatisticsTableData> = [
+        {
+          memoryTap: 'All Heap',
+          existing: 0,
+          existingString: '',
+          freeByteString: '',
+          allocCount: 0,
+          freeCount: 0,
+          freeByte: 0,
+          totalBytes: 0,
+          totalBytesString: '',
+          maxStr: '',
+          max: 0,
+          totalCount: 0,
+          existingValue: [],
+        },
+      ];
+
+      tabPaneNMStatstics.setMallocTableData(mixedMalloc, tableData, 0);
+      
+      // All Heap should include both DART_HEAP and ARKTS_STATIC_HEAP
+      expect(tableData[0].existing).toBe((1024 - 256 + 512 - 128) * 1024);
+      expect(tableData[0].allocCount).toBe((10 - 2) + (5 - 1));
+    });
+
+    it('should handle ARKTS_STATIC_HEAP in types filtering', () => {
+      let arktsStaticHeapMalloc: Array<NativeHookMalloc> = [
+        {
+          eventType: MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME,
+          subType: 'arkts-static',
+          subTypeId: 0,
+          heapSize: 1024 * 1024,
+          allocByte: 1024 * 1024,
+          allocCount: 10,
+          freeByte: 256 * 1024,
+          freeCount: 2,
+          max: 1024 * 1024,
+        },
+      ];
+      let tableData: Array<NativeHookStatisticsTableData> = [
+        {
+          memoryTap: '',
+          existing: 0,
+          existingString: '',
+          freeByteString: '',
+          allocCount: 0,
+          freeCount: 0,
+          freeByte: 0,
+          totalBytes: 0,
+          totalBytesString: '',
+          maxStr: '',
+          max: 0,
+          totalCount: 0,
+          existingValue: [],
+        },
+      ];
+
+      tabPaneNMStatstics.setSubTypeTableData(arktsStaticHeapMalloc, tableData);
+      
+      expect(tableData[0].existing).toBe(768 * 1024);
+    });
+
+    it('should process ARKTS_STATIC_HEAP in dedicated arktsStaticHeap bucket', () => {
+      let arktsStaticHeapMalloc: Array<NativeHookMalloc> = [
+        {
+          eventType: MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME,
+          subType: 'arkts-static',
+          subTypeId: 0,
+          heapSize: 2048 * 1024,
+          allocByte: 2048 * 1024,
+          allocCount: 20,
+          freeByte: 512 * 1024,
+          freeCount: 5,
+          max: 2048 * 1024,
+        },
+      ];
+      let tableData: Array<NativeHookStatisticsTableData> = [
+        {
+          memoryTap: 'Arkts Static Heap',
+          existing: 0,
+          existingString: '',
+          freeByteString: '',
+          allocCount: 0,
+          freeCount: 0,
+          freeByte: 0,
+          totalBytes: 0,
+          totalBytesString: '',
+          maxStr: '',
+          max: 0,
+          totalCount: 0,
+          existingValue: [],
+        },
+      ];
+
+      tabPaneNMStatstics.setMallocTableData(arktsStaticHeapMalloc, tableData, 0);
+      
+      expect(tableData[0].memoryTap).toContain('Arkts Static');
+      expect(tableData[0].existing).toBe(1536 * 1024);
+      expect(tableData[0].allocCount).toBe(15);
+    });
   });
 });
