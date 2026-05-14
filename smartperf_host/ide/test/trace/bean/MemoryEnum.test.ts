@@ -223,4 +223,63 @@ describe('MemoryEnum Test', () => {
     let result = getCurrentTypes(selectParam, MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY, true, false);
     expect(result).toContain(21);
   });
+
+  it('GetCurrentTypesTest20 - should handle multiple heap types including ARKTS_STATIC_HEAP', function () {
+    let selectParam = {
+      nativeMemory: ['All Heap', 'Arkts Static Heap', 'Dart Heap', 'RN Heap'],
+      nativeMemoryStatistic: [],
+      otherSource: [],
+      otherSourceStatistic: [],
+      gpuMemory: [],
+      gpuMemoryStatistic: [],
+    };
+    let result = getCurrentTypes(selectParam, MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY, false, false);
+    expect(result).toContain('ARKTS_STATIC_HEAP_Alloc_Event');
+    expect(result).toContain('DART_HEAP_Alloc_Event');
+    expect(result).toContain('RN_HERMES_HEAP_Alloc_Event');
+    expect(result).toContain('MEMORY_M_ALLOC_NAME');
+  });
+
+  it('GetCurrentTypesTest21 - should handle ARKTS_STATIC_HEAP with free events', function () {
+    let selectParam = {
+      nativeMemory: ['Arkts Static Heap'],
+      nativeMemoryStatistic: [],
+      otherSource: [],
+      otherSourceStatistic: [],
+      gpuMemory: [],
+      gpuMemoryStatistic: [],
+    };
+    let result = getCurrentTypes(selectParam, MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY, false, true);
+    expect(result).toContain('ARKTS_STATIC_HEAP_Alloc_Event');
+    expect(result).toContain('ARKTS_STATIC_HEAP_Free_Event');
+    expect(result).not.toContain('DART_HEAP_Alloc_Event');
+  });
+
+  it('GetCurrentTypesTest22 - should handle statistic mode for ARKTS_STATIC_HEAP', function () {
+    let selectParam = {
+      nativeMemory: [],
+      nativeMemoryStatistic: [21],
+      otherSource: [],
+      otherSourceStatistic: [],
+      gpuMemory: [],
+      gpuMemoryStatistic: [],
+    };
+    let result = getCurrentTypes(selectParam, MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY, true, true);
+    expect(result).toContain(21);
+  });
+
+  it('GetCurrentTypesTest23 - should handle all heap with ARKTS_STATIC_HEAP in statistic mode', function () {
+    let selectParam = {
+      nativeMemory: ['All Heap'],
+      nativeMemoryStatistic: [],
+      otherSource: [],
+      otherSourceStatistic: [],
+      gpuMemory: [],
+      gpuMemoryStatistic: [],
+    };
+    let result = getCurrentTypes(selectParam, MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY, true, false);
+    expect(result).toContain(MemoryStatisticType.ARKTS_STATIC_HEAP);
+    expect(result).toContain(MemoryStatisticType.DART_HEAP);
+    expect(result).toContain(MemoryStatisticType.RN);
+  });
 });
