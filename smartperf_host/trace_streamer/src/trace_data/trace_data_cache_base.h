@@ -43,6 +43,7 @@
 #include "task_pool_stdtype.h"
 #include "xpower_stdtype.h"
 #include "timerfd_wakeup_stdtype.h"
+#include "network_profiler_stdtype.h"
 namespace SysTuning {
 namespace TraceStreamer {
 using namespace TraceStdtype;
@@ -207,6 +208,8 @@ public:
     XPowerAppDetailDisplay xPowerAppDetailDisplayInfo_;
     XPowerComponentTop xPowerComponentTopInfo_;
     TimerfdWakeup timerfdWakeupData_;
+    NetworkTimeInformationData networkTimeInformationData_;
+    NetworkInformationData networkInformationData_;
     FileSystemIo fileSystemIoData_;
 };
 } // namespace TraceStreamer

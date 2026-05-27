@@ -457,6 +457,16 @@ TimerfdWakeup *TraceDataCacheWriter::GetTimerfdWakeupData()
     return &timerfdWakeupData_;
 }
 
+NetworkTimeInformationData *TraceDataCacheWriter::GetNetworkTimeInformationData()
+{
+    return &networkTimeInformationData_;
+}
+
+NetworkInformationData *TraceDataCacheWriter::GetNetworkInformationData()
+{
+    return &networkInformationData_;
+}
+
 FileSystemIo *TraceDataCacheWriter::GetFileSystemIoData()
 {
     return &fileSystemIoData_;

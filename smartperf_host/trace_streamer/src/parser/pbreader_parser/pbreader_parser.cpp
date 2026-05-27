@@ -81,12 +81,15 @@ PbreaderParser::PbreaderParser(TraceDataCache *dataCache, const TraceStreamerFil
       ebpfDataParser_(std::make_unique<EbpfDataParser>(dataCache, filters)),
 #endif
 #ifdef ENABLE_XPOWER
-      xpowerParser_(std::make_unique<PbreaderXpowerParser>(dataCache, filters)),
+    xpowerParser_(std::make_unique<PbreaderXpowerParser>(dataCache, filters)),
+#endif
+#ifdef ENABLE_NETWORK_PROFILER
+    networkProfilerParser_(std::make_unique<PbreaderNetworkProfilerParser>(dataCache, filters)),
 #endif
 #ifdef ENABLE_STREAM_EXTEND
-      pbreaderStreamParser_(std::make_unique<PbreaderStreamParser>(dataCache, filters)),
+    pbreaderStreamParser_(std::make_unique<PbreaderStreamParser>(dataCache, filters)),
 #endif
-      traceDataCache_(dataCache)
+    traceDataCache_(dataCache)
 {
     InitPluginNameIndex();
     if (traceDataCache_->supportThread_) {
@@ -178,6 +181,12 @@ void PbreaderParser::InitPluginNameIndex()
 #ifdef ENABLE_XPOWER
     xpowerPluginIndex_ = traceDataCache_->GetDataIndex("xpower-plugin");
     supportPluginNameIndex_.insert(xpowerPluginIndex_);
+#endif
+#ifdef ENABLE_NETWORK_PROFILER
+    networkProfilerPluginIndex_ = traceDataCache_->GetDataIndex("network-profiler");
+    networkProfilerPluginConfigIndex_ = traceDataCache_->GetDataIndex("network-profiler_config");
+    supportPluginNameIndex_.insert(networkProfilerPluginIndex_);
+    supportPluginNameIndex_.insert(networkProfilerPluginConfigIndex_);
 #endif
 }
 
@@ -296,6 +305,9 @@ inline void PbreaderParser::WaitForOtherPluginParserEnd()
 #ifdef ENABLE_MEMORY
     pbreaderMemParser_->Finish();
     traceDataCache_->GetDataSourceClockIdData()->SetDataSourceClockId(DATA_SOURCE_TYPE_MEM, dataSourceTypeMemClockid_);
+#endif
+#ifdef ENABLE_NETWORK_PROFILER
+    networkProfilerParser_->Finish();
 #endif
 }
 
@@ -619,6 +631,13 @@ void PbreaderParser::ParseDataByPluginName(PbreaderDataSegment &dataSeg,
         ParseStream(dataSeg);
     }
 #endif
+#ifdef ENABLE_NETWORK_PROFILER
+    else if (pulginNameIndex == networkProfilerPluginIndex_) {
+        ParseNetworkProfiler(dataSeg);
+    } else if (pulginNameIndex == networkProfilerPluginConfigIndex_) {
+        ParseNetworkProfilerConfig(dataSeg);
+    }
+#endif
 }
 
 void PbreaderParser::ParserData(PbreaderDataSegment &dataSeg, bool isSplitFile)
@@ -900,6 +919,19 @@ void PbreaderParser::ParseJSMemoryConfig(PbreaderDataSegment &dataSeg)
 void PbreaderParser::ParseStream(PbreaderDataSegment &dataSeg)
 {
     dataSeg.dataType = DATA_SOURCE_TYPE_STREAM;
+    dataSeg.status = TS_PARSE_STATUS_PARSED;
+}
+#endif
+
+#ifdef ENABLE_NETWORK_PROFILER
+void PbreaderParser::ParseNetworkProfiler(PbreaderDataSegment &dataSeg)
+{
+    networkProfilerParser_->Parse(dataSeg.protoData, dataSeg.timeStamp);
+}
+void PbreaderParser::ParseNetworkProfilerConfig(PbreaderDataSegment &dataSeg)
+{
+    networkProfilerParser_->SetNetworkProfilerSrcClockid(dataSeg);
+    dataSeg.dataType = DATA_SOURCE_TYPE_NETWORK_PROFILER_CONFIG;
     dataSeg.status = TS_PARSE_STATUS_PARSED;
 }
 #endif
