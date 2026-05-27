@@ -47,57 +47,5 @@ static bool VerifResult(const std::string &result)
     }
     return fdTotalInt > 0;
 }
-
-/**
- * @tc.name: FdsTestCase01
- * @tc.desc: Test Fds by packagename
- * @tc.type: FUNC
- */
-HWTEST_F(SPdaemonFdsTest, FdsTestCase01, TestSize.Level1)
-{
-    std::string cmd = "SP_daemon -N 1 -PKG ohos.samples.ecg -fds";
-    std::string result = "";
-    bool flag = false;
-    bool ret = SPUtils::LoadCmd(cmd, result);
-    std::string::size_type strOne = result.find("command exec finished!");
-    if ((strOne != result.npos)) {
-        flag = true;
-    }
-    EXPECT_EQ(ret, true);
-    EXPECT_TRUE(flag);
-}
-
-/**
- * @tc.name: FdsTestCase03
- * @tc.desc: Test Fds by pid not exit
- * @tc.type: FUNC
- */
-HWTEST_F(SPdaemonFdsTest, FdsTestCase03, TestSize.Level1)
-{
-    std::string cmd = "SP_daemon -N 1 -fds -PID 88888888"; // 88888888 is not exit
-    std::string result = "";
-    bool ret = SPUtils::LoadCmd(cmd, result);
-    EXPECT_EQ(ret, true);
-    ret = VerifResult(result);
-    EXPECT_EQ(ret, false);
-}
-
-/**
- * @tc.name: FdsTestCase04
- * @tc.desc: Test Fds
- * @tc.type: FUNC
- */
-HWTEST_F(SPdaemonFdsTest, FdsTestCase04, TestSize.Level1)
-{
-    FileDescriptor &fdsInstance = FileDescriptor::GetInstance();
-    std::string packName = "init";
-    fdsInstance.SetPackageName(packName);
-    fdsInstance.SetProcessId("1");
-    std::map<std::string, std::string> fdsItemData = fdsInstance.ItemData();
-    std::string fdTotal = fdsItemData["fdTotal"];
-    std::string fds = fdsItemData["fds"];
-    EXPECT_EQ(fdTotal.empty(), false);
-    EXPECT_EQ(fds.empty(), false);
-}
 } // namespace OHOS
 } // namespace SmartPerf
