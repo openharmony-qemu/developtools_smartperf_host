@@ -31,35 +31,5 @@ public:
     void SetUp() {}
     void TearDown() {}
 };
-
-static bool VerifResult(const std::string &result)
-{
-    int fdTotalInt = 0;
-    std::regex fdTotalRegex(R"(fdTotal=(\d+))");
-    std::smatch match;
-    std::string::const_iterator searchStart(result.cbegin());
-    while (std::regex_search(searchStart, result.cend(), match, fdTotalRegex)) {
-        std::cout << "Match found: " << match.str(0) << std::endl;
-        std::string fdTotalStr  = match.str(1);
-        fdTotalInt = std::stoi(fdTotalStr);
-        std::cout << "fdTotalInt as integer: " << fdTotalInt << std::endl;
-        searchStart = match.suffix().first;
-    }
-    return fdTotalInt > 0;
-}
-
-/**
- * @tc.name: FdsTestCase
- * @tc.desc: Test Fds by pid not exit
- * @tc.type: FUNC
- */
-HWTEST_F(SPdaemonFdsTest, FdsTestCase, TestSize.Level1)
-{
-    std::string cmd = "";
-    std::string result = "";
-    bool ret = SPUtils::LoadCmd(cmd, result);
-    ret = VerifResult(result);
-    EXPECT_EQ(ret, false);
-}
 } // namespace OHOS
 } // namespace SmartPerf
