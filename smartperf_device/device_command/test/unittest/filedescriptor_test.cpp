@@ -47,5 +47,19 @@ static bool VerifResult(const std::string &result)
     }
     return fdTotalInt > 0;
 }
+
+/**
+ * @tc.name: FdsTestCase
+ * @tc.desc: Test Fds by pid not exit
+ * @tc.type: FUNC
+ */
+HWTEST_F(SPdaemonFdsTest, FdsTestCase, TestSize.Level1)
+{
+    std::string cmd = "";
+    std::string result = "";
+    bool ret = SPUtils::LoadCmd(cmd, result);
+    ret = VerifResult(result);
+    EXPECT_EQ(ret, false);
+}
 } // namespace OHOS
 } // namespace SmartPerf
