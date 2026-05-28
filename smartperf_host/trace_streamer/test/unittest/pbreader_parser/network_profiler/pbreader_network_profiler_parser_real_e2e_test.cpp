@@ -17,7 +17,7 @@
 #include <hwext/gtest-tag.h>
 #include <string>
 
-#define private public
+#define PRIVATE public
 #include "export_test.h"
 #include "trace_streamer_selector.h"
 

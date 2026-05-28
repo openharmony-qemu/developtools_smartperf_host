@@ -270,7 +270,7 @@ void TraceDataCache::InitDB()
     TableBase::TableDeclare<LiveProcessTable>(*db_, this, "live_process");
     TableBase::TableDeclare<DmaFenceTable>(*db_, this, "dma_fence");
     TableBase::TableDeclare<TimerfdWakeupTable>(*db_, this, "timerfd_wakeup");
-     TableBase::TableDeclare<FileSystemIoTable>(*db_, this, "filesystem_io");
+    TableBase::TableDeclare<FileSystemIoTable>(*db_, this, "filesystem_io");
     dbInited_ = true;
 }
 bool TraceDataCache::AnimationTraceEnabled() const

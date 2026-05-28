@@ -22,45 +22,45 @@ namespace TraceStreamer {
 uint32_t TlvParser::ParseTag(const uint8_t *data, size_t offset)
 {
     return static_cast<uint32_t>(data[offset]) |
-           (static_cast<uint32_t>(data[offset + 1]) << 8) |
-           (static_cast<uint32_t>(data[offset + 2]) << 16) |
-           (static_cast<uint32_t>(data[offset + 3]) << 24);
+           (static_cast<uint32_t>(data[offset + 1]) << BYTE_SHIFT_8) |
+           (static_cast<uint32_t>(data[offset + 2]) << BYTE_SHIFT_16) |
+           (static_cast<uint32_t>(data[offset + 3]) << BYTE_SHIFT_24);
 }
 
 uint32_t TlvParser::ParseLength(const uint8_t *data, size_t offset)
 {
     return static_cast<uint32_t>(data[offset]) |
-           (static_cast<uint32_t>(data[offset + 1]) << 8) |
-           (static_cast<uint32_t>(data[offset + 2]) << 16) |
-           (static_cast<uint32_t>(data[offset + 3]) << 24);
+           (static_cast<uint32_t>(data[offset + 1]) << BYTE_SHIFT_8) |
+           (static_cast<uint32_t>(data[offset + 2]) << BYTE_SHIFT_16) |
+           (static_cast<uint32_t>(data[offset + 3]) << BYTE_SHIFT_24);
 }
 
 uint64_t TlvParser::ParseUint64Value(const uint8_t *data, size_t offset, uint32_t length)
 {
-    if (length != 8) {
+    if (length != TLV_UINT64_LENGTH) {
         TS_LOGW("TlvParser: UINT64 length mismatch, expected 8, got %u", length);
         return 0;
     }
     return static_cast<uint64_t>(data[offset]) |
-           (static_cast<uint64_t>(data[offset + 1]) << 8) |
-           (static_cast<uint64_t>(data[offset + 2]) << 16) |
-           (static_cast<uint64_t>(data[offset + 3]) << 24) |
-           (static_cast<uint64_t>(data[offset + 4]) << 32) |
-           (static_cast<uint64_t>(data[offset + 5]) << 40) |
-           (static_cast<uint64_t>(data[offset + 6]) << 48) |
-           (static_cast<uint64_t>(data[offset + 7]) << 56);
+           (static_cast<uint64_t>(data[offset + 1]) << BYTE_SHIFT_8) |
+           (static_cast<uint64_t>(data[offset + 2]) << BYTE_SHIFT_16) |
+           (static_cast<uint64_t>(data[offset + 3]) << BYTE_SHIFT_24) |
+           (static_cast<uint64_t>(data[offset + 4]) << BYTE_SHIFT_32) |
+           (static_cast<uint64_t>(data[offset + 5]) << BYTE_SHIFT_40) |
+           (static_cast<uint64_t>(data[offset + 6]) << BYTE_SHIFT_48) |
+           (static_cast<uint64_t>(data[offset + 7]) << BYTE_SHIFT_56);
 }
 
 uint32_t TlvParser::ParseUint32Value(const uint8_t *data, size_t offset, uint32_t length)
 {
-    if (length != 4) {
+    if (length != TLV_UINT32_LENGTH) {
         TS_LOGW("TlvParser: UINT32 length mismatch, expected 4, got %u", length);
         return 0;
     }
     return static_cast<uint32_t>(data[offset]) |
-           (static_cast<uint32_t>(data[offset + 1]) << 8) |
-           (static_cast<uint32_t>(data[offset + 2]) << 16) |
-           (static_cast<uint32_t>(data[offset + 3]) << 24);
+           (static_cast<uint32_t>(data[offset + 1]) << BYTE_SHIFT_8) |
+           (static_cast<uint32_t>(data[offset + 2]) << BYTE_SHIFT_16) |
+           (static_cast<uint32_t>(data[offset + 3]) << BYTE_SHIFT_24);
 }
 
 std::string TlvParser::ParseStringValue(const uint8_t *data, size_t offset, uint32_t length)
@@ -77,13 +77,13 @@ std::vector<TlvItem> TlvParser::ParseAllItems(const uint8_t *data, size_t size)
     }
 
     size_t offset = 0;
-    while (offset + 8 <= size) {
+    while (offset + TLV_HEADER_SIZE <= size) {
         TlvItem item;
         item.type = ParseTag(data, offset);
-        offset += 4;
+        offset += TLV_TAG_SIZE;
 
         item.length = ParseLength(data, offset);
-        offset += 4;
+        offset += TLV_LENGTH_SIZE;
 
         if (offset + item.length > size) {
             TS_LOGW("TlvParser: incomplete TLV, offset=%zu, length=%u, size=%zu", offset, item.length, size);
@@ -92,7 +92,7 @@ std::vector<TlvItem> TlvParser::ParseAllItems(const uint8_t *data, size_t size)
 
         if (item.length > 0) {
             item.value.resize(item.length);
-            std::memcpy(item.value.data(), data + offset, item.length);
+            std::copy(data + offset, data + offset + item.length, item.value.data());
         }
 
         items.push_back(std::move(item));
@@ -104,63 +104,81 @@ std::vector<TlvItem> TlvParser::ParseAllItems(const uint8_t *data, size_t size)
 
 void TlvParser::ParseTimeFields(const std::vector<TlvItem> &items, TlvResult &result)
 {
-    if (items.size() >= 1 && items[0].type == static_cast<uint32_t>(TlvType::UINT64)) {
-        result.beginTime = ParseUint64Value(items[0].value.data(), 0, items[0].length);
+    if (items.size() > IDX_BEGIN_TIME && items[IDX_BEGIN_TIME].type == static_cast<uint32_t>(TlvType::UINT64)) {
+        result.beginTime = ParseUint64Value(items[IDX_BEGIN_TIME].value.data(), 0, items[IDX_BEGIN_TIME].length);
     }
-    if (items.size() >= 2 && items[1].type == static_cast<uint32_t>(TlvType::UINT64)) {
-        result.dnsEndTime = ParseUint64Value(items[1].value.data(), 0, items[1].length);
+    if (items.size() > IDX_DNS_END_TIME && items[IDX_DNS_END_TIME].type == static_cast<uint32_t>(TlvType::UINT64)) {
+        result.dnsEndTime = ParseUint64Value(items[IDX_DNS_END_TIME].value.data(), 0, items[IDX_DNS_END_TIME].length);
     }
-    if (items.size() >= 3 && items[2].type == static_cast<uint32_t>(TlvType::UINT64)) {
-        result.tcpConnectEndTime = ParseUint64Value(items[2].value.data(), 0, items[2].length);
+    if (items.size() > IDX_TCP_CONNECT_END_TIME &&
+        items[IDX_TCP_CONNECT_END_TIME].type == static_cast<uint32_t>(TlvType::UINT64)) {
+        result.tcpConnectEndTime =
+            ParseUint64Value(items[IDX_TCP_CONNECT_END_TIME].value.data(), 0, items[IDX_TCP_CONNECT_END_TIME].length);
     }
-    if (items.size() >= 4 && items[3].type == static_cast<uint32_t>(TlvType::UINT64)) {
-        result.tlsHandshakeEndTime = ParseUint64Value(items[3].value.data(), 0, items[3].length);
+    if (items.size() > IDX_TLS_HANDSHAKE_END_TIME &&
+        items[IDX_TLS_HANDSHAKE_END_TIME].type == static_cast<uint32_t>(TlvType::UINT64)) {
+        result.tlsHandshakeEndTime =
+            ParseUint64Value(items[IDX_TLS_HANDSHAKE_END_TIME].value.data(), 0, items[IDX_TLS_HANDSHAKE_END_TIME].length);
     }
-    if (items.size() >= 5 && items[4].type == static_cast<uint32_t>(TlvType::UINT64)) {
-        result.firstSendTime = ParseUint64Value(items[4].value.data(), 0, items[4].length);
+    if (items.size() > IDX_FIRST_SEND_TIME && items[IDX_FIRST_SEND_TIME].type == static_cast<uint32_t>(TlvType::UINT64)) {
+        result.firstSendTime =
+            ParseUint64Value(items[IDX_FIRST_SEND_TIME].value.data(), 0, items[IDX_FIRST_SEND_TIME].length);
     }
-    if (items.size() >= 6 && items[5].type == static_cast<uint32_t>(TlvType::UINT64)) {
-        result.firstRecvTime = ParseUint64Value(items[5].value.data(), 0, items[5].length);
+    if (items.size() > IDX_FIRST_RECV_TIME && items[IDX_FIRST_RECV_TIME].type == static_cast<uint32_t>(TlvType::UINT64)) {
+        result.firstRecvTime =
+            ParseUint64Value(items[IDX_FIRST_RECV_TIME].value.data(), 0, items[IDX_FIRST_RECV_TIME].length);
     }
-    if (items.size() >= 7 && items[6].type == static_cast<uint32_t>(TlvType::UINT64)) {
-        result.endTime = ParseUint64Value(items[6].value.data(), 0, items[6].length);
+    if (items.size() > IDX_END_TIME && items[IDX_END_TIME].type == static_cast<uint32_t>(TlvType::UINT64)) {
+        result.endTime = ParseUint64Value(items[IDX_END_TIME].value.data(), 0, items[IDX_END_TIME].length);
     }
 }
 
 void TlvParser::ParseStringFields(const std::vector<TlvItem> &items, TlvResult &result)
 {
-    if (items.size() >= 8 && items[7].type >= static_cast<uint32_t>(TlvType::STRING)) {
-        result.requestId = ParseStringValue(items[7].value.data(), 0, items[7].length);
+    if (items.size() > IDX_REQUEST_ID && items[IDX_REQUEST_ID].type >= static_cast<uint32_t>(TlvType::STRING)) {
+        result.requestId = ParseStringValue(items[IDX_REQUEST_ID].value.data(), 0, items[IDX_REQUEST_ID].length);
     }
-    if (items.size() >= 9 && items[8].type >= static_cast<uint32_t>(TlvType::STRING)) {
-        result.requestUrl = ParseStringValue(items[8].value.data(), 0, items[8].length);
+    if (items.size() > IDX_REQUEST_URL && items[IDX_REQUEST_URL].type >= static_cast<uint32_t>(TlvType::STRING)) {
+        result.requestUrl = ParseStringValue(items[IDX_REQUEST_URL].value.data(), 0, items[IDX_REQUEST_URL].length);
     }
-    if (items.size() >= 10 && items[9].type >= static_cast<uint32_t>(TlvType::STRING)) {
-        result.requestMethod = ParseStringValue(items[9].value.data(), 0, items[9].length);
+    if (items.size() > IDX_REQUEST_METHOD &&
+        items[IDX_REQUEST_METHOD].type >= static_cast<uint32_t>(TlvType::STRING)) {
+        result.requestMethod =
+            ParseStringValue(items[IDX_REQUEST_METHOD].value.data(), 0, items[IDX_REQUEST_METHOD].length);
     }
-    if (items.size() >= 11 && items[10].type >= static_cast<uint32_t>(TlvType::STRING)) {
-        result.requestHeader = ParseStringValue(items[10].value.data(), 0, items[10].length);
+    if (items.size() > IDX_REQUEST_HEADER &&
+        items[IDX_REQUEST_HEADER].type >= static_cast<uint32_t>(TlvType::STRING)) {
+        result.requestHeader =
+            ParseStringValue(items[IDX_REQUEST_HEADER].value.data(), 0, items[IDX_REQUEST_HEADER].length);
     }
-    if (items.size() >= 12 && items[11].type == static_cast<uint32_t>(TlvType::UINT32)) {
-        result.responseStatusCode = ParseUint32Value(items[11].value.data(), 0, items[11].length);
+    if (items.size() > IDX_RESPONSE_STATUS_CODE &&
+        items[IDX_RESPONSE_STATUS_CODE].type == static_cast<uint32_t>(TlvType::UINT32)) {
+        result.responseStatusCode =
+            ParseUint32Value(items[IDX_RESPONSE_STATUS_CODE].value.data(), 0, items[IDX_RESPONSE_STATUS_CODE].length);
     }
-    if (items.size() >= 13 && items[12].type >= static_cast<uint32_t>(TlvType::STRING)) {
-        result.responseHeader = ParseStringValue(items[12].value.data(), 0, items[12].length);
+    if (items.size() > IDX_RESPONSE_HEADER &&
+        items[IDX_RESPONSE_HEADER].type >= static_cast<uint32_t>(TlvType::STRING)) {
+        result.responseHeader =
+            ParseStringValue(items[IDX_RESPONSE_HEADER].value.data(), 0, items[IDX_RESPONSE_HEADER].length);
     }
-    if (items.size() >= 14 && items[13].type >= static_cast<uint32_t>(TlvType::STRING)) {
-        result.responseEffectiveUrl = ParseStringValue(items[13].value.data(), 0, items[13].length);
+    if (items.size() > IDX_RESPONSE_EFFECTIVE_URL &&
+        items[IDX_RESPONSE_EFFECTIVE_URL].type >= static_cast<uint32_t>(TlvType::STRING)) {
+        result.responseEffectiveUrl =
+            ParseStringValue(items[IDX_RESPONSE_EFFECTIVE_URL].value.data(), 0, items[IDX_RESPONSE_EFFECTIVE_URL].length);
     }
-    if (items.size() >= 15 && items[14].type >= static_cast<uint32_t>(TlvType::STRING)) {
-        result.ipAddress = ParseStringValue(items[14].value.data(), 0, items[14].length);
+    if (items.size() > IDX_IP_ADDRESS && items[IDX_IP_ADDRESS].type >= static_cast<uint32_t>(TlvType::STRING)) {
+        result.ipAddress = ParseStringValue(items[IDX_IP_ADDRESS].value.data(), 0, items[IDX_IP_ADDRESS].length);
     }
-    if (items.size() >= 16 && items[15].type >= static_cast<uint32_t>(TlvType::STRING)) {
-        result.httpVersion = ParseStringValue(items[15].value.data(), 0, items[15].length);
+    if (items.size() > IDX_HTTP_VERSION && items[IDX_HTTP_VERSION].type >= static_cast<uint32_t>(TlvType::STRING)) {
+        result.httpVersion = ParseStringValue(items[IDX_HTTP_VERSION].value.data(), 0, items[IDX_HTTP_VERSION].length);
     }
-    if (items.size() >= 17 && items[16].type >= static_cast<uint32_t>(TlvType::STRING)) {
-        result.responseReasonPhrase = ParseStringValue(items[16].value.data(), 0, items[16].length);
+    if (items.size() > IDX_RESPONSE_REASON_PHRASE &&
+        items[IDX_RESPONSE_REASON_PHRASE].type >= static_cast<uint32_t>(TlvType::STRING)) {
+        result.responseReasonPhrase =
+            ParseStringValue(items[IDX_RESPONSE_REASON_PHRASE].value.data(), 0, items[IDX_RESPONSE_REASON_PHRASE].length);
     }
-    if (items.size() >= 18 && items[17].type >= static_cast<uint32_t>(TlvType::STRING)) {
-        result.responseBody = ParseStringValue(items[17].value.data(), 0, items[17].length);
+    if (items.size() > IDX_RESPONSE_BODY && items[IDX_RESPONSE_BODY].type >= static_cast<uint32_t>(TlvType::STRING)) {
+        result.responseBody = ParseStringValue(items[IDX_RESPONSE_BODY].value.data(), 0, items[IDX_RESPONSE_BODY].length);
     }
 }
 

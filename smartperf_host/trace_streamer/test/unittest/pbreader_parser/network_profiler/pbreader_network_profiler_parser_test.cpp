@@ -19,7 +19,7 @@
 #include <cstring>
 #include <vector>
 
-#define private public
+#define PRIVATE public
 #include "base/log.h"
 #include "filter/process_filter.h"
 #include "parser/pbreader_parser/network_profiler_parser/pbreader_network_profiler_parser.h"
@@ -515,7 +515,7 @@ HWTEST_F(NetworkProfilerParserTestSuite, ParseMethodIntegrationTest, TestSize.Le
     event->set_tv_nsec(500000000);
 
     std::vector<uint8_t> tlvPayload;
-    auto appendTlvUint64 = [&](uint32_t tag, uint64_t val) {
+    auto appendTlvUint64 = [tlvPayload](uint32_t tag, uint64_t val) mutable {
         tlvPayload.push_back(static_cast<uint8_t>(tag));
         tlvPayload.push_back(0);
         tlvPayload.push_back(0);
@@ -572,7 +572,7 @@ HWTEST_F(NetworkProfilerParserTestSuite, ParseMethodWithCompleteTlvTest, TestSiz
     event->set_tv_nsec(0);
 
     std::vector<uint8_t> tlvData;
-    auto appendTlvUint64 = [&](uint32_t tag, uint64_t val) {
+    auto appendTlvUint64 = [&tlvData](uint32_t tag, uint64_t val) {
         tlvData.push_back(static_cast<uint8_t>(tag));
         tlvData.push_back(0);
         tlvData.push_back(0);
@@ -583,7 +583,7 @@ HWTEST_F(NetworkProfilerParserTestSuite, ParseMethodWithCompleteTlvTest, TestSiz
         tlvData.push_back(0);
         for (int i = 0; i < 8; i++) tlvData.push_back(static_cast<uint8_t>(val >> (i * 8)));
     };
-    auto appendTlvUint32 = [&](uint32_t tag, uint32_t val) {
+    auto appendTlvUint32 = [&tlvData](uint32_t tag, uint32_t val) {
         tlvData.push_back(static_cast<uint8_t>(tag));
         tlvData.push_back(0);
         tlvData.push_back(0);
@@ -594,7 +594,7 @@ HWTEST_F(NetworkProfilerParserTestSuite, ParseMethodWithCompleteTlvTest, TestSiz
         tlvData.push_back(0);
         for (int i = 0; i < 4; i++) tlvData.push_back(static_cast<uint8_t>(val >> (i * 8)));
     };
-    auto appendTlvString = [&](uint32_t tag, const std::string &s) {
+    auto appendTlvString = [&tlvData](uint32_t tag, const std::string &s) {
         tlvData.push_back(static_cast<uint8_t>(tag));
         tlvData.push_back(0);
         tlvData.push_back(0);
@@ -920,7 +920,7 @@ HWTEST_F(NetworkProfilerParserTestSuite, ParseMultipleEventsTest, TestSize.Level
     event1->set_tv_nsec(0);
 
     std::vector<uint8_t> tlvData1;
-    auto appendTlvUint64 = [&](std::vector<uint8_t> &data, uint32_t tag, uint64_t val) {
+    auto appendTlvUint64 = [](std::vector<uint8_t> &data, uint32_t tag, uint64_t val) {
         data.push_back(static_cast<uint8_t>(tag));
         data.push_back(0);
         data.push_back(0);

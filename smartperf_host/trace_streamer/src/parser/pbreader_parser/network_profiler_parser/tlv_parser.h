@@ -16,6 +16,7 @@
 #ifndef TLV_PARSER_H
 #define TLV_PARSER_H
 
+#include <algorithm>
 #include <cstdint>
 #include <cstring>
 #include <string>
@@ -23,6 +24,40 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
+
+constexpr size_t BYTE_SHIFT_8 = 8;
+constexpr size_t BYTE_SHIFT_16 = 16;
+constexpr size_t BYTE_SHIFT_24 = 24;
+constexpr size_t BYTE_SHIFT_32 = 32;
+constexpr size_t BYTE_SHIFT_40 = 40;
+constexpr size_t BYTE_SHIFT_48 = 48;
+constexpr size_t BYTE_SHIFT_56 = 56;
+
+constexpr size_t TLV_TAG_SIZE = 4;
+constexpr size_t TLV_LENGTH_SIZE = 4;
+constexpr size_t TLV_HEADER_SIZE = TLV_TAG_SIZE + TLV_LENGTH_SIZE;
+
+constexpr uint32_t TLV_UINT64_LENGTH = 8;
+constexpr uint32_t TLV_UINT32_LENGTH = 4;
+
+constexpr size_t IDX_BEGIN_TIME = 0;
+constexpr size_t IDX_DNS_END_TIME = 1;
+constexpr size_t IDX_TCP_CONNECT_END_TIME = 2;
+constexpr size_t IDX_TLS_HANDSHAKE_END_TIME = 3;
+constexpr size_t IDX_FIRST_SEND_TIME = 4;
+constexpr size_t IDX_FIRST_RECV_TIME = 5;
+constexpr size_t IDX_END_TIME = 6;
+constexpr size_t IDX_REQUEST_ID = 7;
+constexpr size_t IDX_REQUEST_URL = 8;
+constexpr size_t IDX_REQUEST_METHOD = 9;
+constexpr size_t IDX_REQUEST_HEADER = 10;
+constexpr size_t IDX_RESPONSE_STATUS_CODE = 11;
+constexpr size_t IDX_RESPONSE_HEADER = 12;
+constexpr size_t IDX_RESPONSE_EFFECTIVE_URL = 13;
+constexpr size_t IDX_IP_ADDRESS = 14;
+constexpr size_t IDX_HTTP_VERSION = 15;
+constexpr size_t IDX_RESPONSE_REASON_PHRASE = 16;
+constexpr size_t IDX_RESPONSE_BODY = 17;
 
 enum class TlvType : uint32_t {
     UINT64 = 1,

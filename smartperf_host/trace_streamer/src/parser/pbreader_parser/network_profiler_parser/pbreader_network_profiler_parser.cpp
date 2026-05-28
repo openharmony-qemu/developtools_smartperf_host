@@ -145,8 +145,8 @@ void PbreaderNetworkProfilerParser::SetNetworkProfilerSrcClockid(PbreaderDataSeg
 {
     ProtoReader::NetworkProfilerConfig_Reader configReader(dataSeg.protoData);
     networkProfilerClockid_ = configReader.clock_id();
-    traceDataCache_->GetDataSourceClockIdData()->SetDataSourceClockId(DATA_SOURCE_TYPE_NETWORK_PROFILER,
-                                                                       networkProfilerClockid_);
+    traceDataCache_->GetDataSourceClockIdData()->SetDataSourceClockId(
+        DATA_SOURCE_TYPE_NETWORK_PROFILER, networkProfilerClockid_);
     TS_LOGI("networkProfilerClockid_=%u", networkProfilerClockid_);
 }
 
