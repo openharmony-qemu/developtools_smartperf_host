@@ -75,8 +75,7 @@ ohos_source_set("pbreader_parser_src") {
       cflags += [ "-D IS_UT" ]
     }
   }
-  public_deps =
-      [ "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/services:ts_all_type_cpp" ]
+  public_deps = [ "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos/services:ts_all_type_cpp" ]
   if (enable_ebpf) {
     public_deps += [ "../ebpf_parser:ebpf_parser" ]
   }
@@ -126,8 +125,7 @@ ohos_source_set("pbreader_parser_src") {
     public_deps += [ "process_parser:process_parser" ]
   }
   if (enable_stream_extend) {
-    public_deps +=
-        [ "${EXTEND_SRC}/parser/pbreader_stream_parser:stream_extend_parser" ]
+    public_deps += [ "${EXTEND_SRC}/parser/pbreader_stream_parser:stream_extend_parser" ]
   }
   public_deps += [
     "${OHOS_TRACE_STREAMER_PROTOS_DIR}/protos:protobuf_lite_static",
