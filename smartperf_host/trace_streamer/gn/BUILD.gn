@@ -152,7 +152,7 @@ config("default") {
         "-fstack-protector-all",
         "-D_FORTIFY_SOURCE=2 -O2",
         "-D target_cpu_x64",
-        "-D target_cpu_x86_64", # for hiperf
+        "-D target_cpu_x86_64",  # for hiperf
         "-DHAVE_CONFIG_H",
         "-DCC_IS_CLANG",
       ]
@@ -280,9 +280,7 @@ config("executable") {
         "-lgcc",
       ]
     } else {
-      ldflags += [
-        "-fuse-ld=gold",
-      ]
+      ldflags += [ "-fuse-ld=gold" ]
     }
   }
   if (!is_mac && !use_wasm) {
