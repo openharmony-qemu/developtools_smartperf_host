@@ -21,18 +21,18 @@ namespace TraceStreamer {
 
 uint32_t TlvParser::ParseTag(const uint8_t *data, size_t offset)
 {
-    return static_cast<uint32_t>(data[offset]) |
-           (static_cast<uint32_t>(data[offset + 1]) << BYTE_SHIFT_8) |
-           (static_cast<uint32_t>(data[offset + 2]) << BYTE_SHIFT_16) |
-           (static_cast<uint32_t>(data[offset + 3]) << BYTE_SHIFT_24);
+    return static_cast<uint32_t>(data[offset + BYTE_OFFSET_0]) |
+           (static_cast<uint32_t>(data[offset + BYTE_OFFSET_1]) << BYTE_SHIFT_8) |
+           (static_cast<uint32_t>(data[offset + BYTE_OFFSET_2]) << BYTE_SHIFT_16) |
+           (static_cast<uint32_t>(data[offset + BYTE_OFFSET_3]) << BYTE_SHIFT_24);
 }
 
 uint32_t TlvParser::ParseLength(const uint8_t *data, size_t offset)
 {
-    return static_cast<uint32_t>(data[offset]) |
-           (static_cast<uint32_t>(data[offset + 1]) << BYTE_SHIFT_8) |
-           (static_cast<uint32_t>(data[offset + 2]) << BYTE_SHIFT_16) |
-           (static_cast<uint32_t>(data[offset + 3]) << BYTE_SHIFT_24);
+    return static_cast<uint32_t>(data[offset + BYTE_OFFSET_0]) |
+           (static_cast<uint32_t>(data[offset + BYTE_OFFSET_1]) << BYTE_SHIFT_8) |
+           (static_cast<uint32_t>(data[offset + BYTE_OFFSET_2]) << BYTE_SHIFT_16) |
+           (static_cast<uint32_t>(data[offset + BYTE_OFFSET_3]) << BYTE_SHIFT_24);
 }
 
 uint64_t TlvParser::ParseUint64Value(const uint8_t *data, size_t offset, uint32_t length)
@@ -41,14 +41,14 @@ uint64_t TlvParser::ParseUint64Value(const uint8_t *data, size_t offset, uint32_
         TS_LOGW("TlvParser: UINT64 length mismatch, expected 8, got %u", length);
         return 0;
     }
-    return static_cast<uint64_t>(data[offset]) |
-           (static_cast<uint64_t>(data[offset + 1]) << BYTE_SHIFT_8) |
-           (static_cast<uint64_t>(data[offset + 2]) << BYTE_SHIFT_16) |
-           (static_cast<uint64_t>(data[offset + 3]) << BYTE_SHIFT_24) |
-           (static_cast<uint64_t>(data[offset + 4]) << BYTE_SHIFT_32) |
-           (static_cast<uint64_t>(data[offset + 5]) << BYTE_SHIFT_40) |
-           (static_cast<uint64_t>(data[offset + 6]) << BYTE_SHIFT_48) |
-           (static_cast<uint64_t>(data[offset + 7]) << BYTE_SHIFT_56);
+    return static_cast<uint64_t>(data[offset + BYTE_OFFSET_0]) |
+           (static_cast<uint64_t>(data[offset + BYTE_OFFSET_1]) << BYTE_SHIFT_8) |
+           (static_cast<uint64_t>(data[offset + BYTE_OFFSET_2]) << BYTE_SHIFT_16) |
+           (static_cast<uint64_t>(data[offset + BYTE_OFFSET_3]) << BYTE_SHIFT_24) |
+           (static_cast<uint64_t>(data[offset + BYTE_OFFSET_4]) << BYTE_SHIFT_32) |
+           (static_cast<uint64_t>(data[offset + BYTE_OFFSET_5]) << BYTE_SHIFT_40) |
+           (static_cast<uint64_t>(data[offset + BYTE_OFFSET_6]) << BYTE_SHIFT_48) |
+           (static_cast<uint64_t>(data[offset + BYTE_OFFSET_7]) << BYTE_SHIFT_56);
 }
 
 uint32_t TlvParser::ParseUint32Value(const uint8_t *data, size_t offset, uint32_t length)
@@ -57,10 +57,10 @@ uint32_t TlvParser::ParseUint32Value(const uint8_t *data, size_t offset, uint32_
         TS_LOGW("TlvParser: UINT32 length mismatch, expected 4, got %u", length);
         return 0;
     }
-    return static_cast<uint32_t>(data[offset]) |
-           (static_cast<uint32_t>(data[offset + 1]) << BYTE_SHIFT_8) |
-           (static_cast<uint32_t>(data[offset + 2]) << BYTE_SHIFT_16) |
-           (static_cast<uint32_t>(data[offset + 3]) << BYTE_SHIFT_24);
+    return static_cast<uint32_t>(data[offset + BYTE_OFFSET_0]) |
+           (static_cast<uint32_t>(data[offset + BYTE_OFFSET_1]) << BYTE_SHIFT_8) |
+           (static_cast<uint32_t>(data[offset + BYTE_OFFSET_2]) << BYTE_SHIFT_16) |
+           (static_cast<uint32_t>(data[offset + BYTE_OFFSET_3]) << BYTE_SHIFT_24);
 }
 
 std::string TlvParser::ParseStringValue(const uint8_t *data, size_t offset, uint32_t length)
@@ -120,11 +120,13 @@ void TlvParser::ParseTimeFields(const std::vector<TlvItem> &items, TlvResult &re
         result.tlsHandshakeEndTime =
             ParseUint64Value(items[IDX_TLS_HANDSHAKE_END_TIME].value.data(), 0, items[IDX_TLS_HANDSHAKE_END_TIME].length);
     }
-    if (items.size() > IDX_FIRST_SEND_TIME && items[IDX_FIRST_SEND_TIME].type == static_cast<uint32_t>(TlvType::UINT64)) {
+    if (items.size() > IDX_FIRST_SEND_TIME &&
+        items[IDX_FIRST_SEND_TIME].type == static_cast<uint32_t>(TlvType::UINT64)) {
         result.firstSendTime =
             ParseUint64Value(items[IDX_FIRST_SEND_TIME].value.data(), 0, items[IDX_FIRST_SEND_TIME].length);
     }
-    if (items.size() > IDX_FIRST_RECV_TIME && items[IDX_FIRST_RECV_TIME].type == static_cast<uint32_t>(TlvType::UINT64)) {
+    if (items.size() > IDX_FIRST_RECV_TIME &&
+        items[IDX_FIRST_RECV_TIME].type == static_cast<uint32_t>(TlvType::UINT64)) {
         result.firstRecvTime =
             ParseUint64Value(items[IDX_FIRST_RECV_TIME].value.data(), 0, items[IDX_FIRST_RECV_TIME].length);
     }
@@ -166,19 +168,25 @@ void TlvParser::ParseStringFields(const std::vector<TlvItem> &items, TlvResult &
         result.responseEffectiveUrl =
             ParseStringValue(items[IDX_RESPONSE_EFFECTIVE_URL].value.data(), 0, items[IDX_RESPONSE_EFFECTIVE_URL].length);
     }
-    if (items.size() > IDX_IP_ADDRESS && items[IDX_IP_ADDRESS].type >= static_cast<uint32_t>(TlvType::STRING)) {
-        result.ipAddress = ParseStringValue(items[IDX_IP_ADDRESS].value.data(), 0, items[IDX_IP_ADDRESS].length);
+    if (items.size() > IDX_IP_ADDRESS &&
+        items[IDX_IP_ADDRESS].type >= static_cast<uint32_t>(TlvType::STRING)) {
+        result.ipAddress =
+            ParseStringValue(items[IDX_IP_ADDRESS].value.data(), 0, items[IDX_IP_ADDRESS].length);
     }
-    if (items.size() > IDX_HTTP_VERSION && items[IDX_HTTP_VERSION].type >= static_cast<uint32_t>(TlvType::STRING)) {
-        result.httpVersion = ParseStringValue(items[IDX_HTTP_VERSION].value.data(), 0, items[IDX_HTTP_VERSION].length);
+    if (items.size() > IDX_HTTP_VERSION &&
+        items[IDX_HTTP_VERSION].type >= static_cast<uint32_t>(TlvType::STRING)) {
+        result.httpVersion =
+            ParseStringValue(items[IDX_HTTP_VERSION].value.data(), 0, items[IDX_HTTP_VERSION].length);
     }
     if (items.size() > IDX_RESPONSE_REASON_PHRASE &&
         items[IDX_RESPONSE_REASON_PHRASE].type >= static_cast<uint32_t>(TlvType::STRING)) {
         result.responseReasonPhrase =
             ParseStringValue(items[IDX_RESPONSE_REASON_PHRASE].value.data(), 0, items[IDX_RESPONSE_REASON_PHRASE].length);
     }
-    if (items.size() > IDX_RESPONSE_BODY && items[IDX_RESPONSE_BODY].type >= static_cast<uint32_t>(TlvType::STRING)) {
-        result.responseBody = ParseStringValue(items[IDX_RESPONSE_BODY].value.data(), 0, items[IDX_RESPONSE_BODY].length);
+    if (items.size() > IDX_RESPONSE_BODY &&
+        items[IDX_RESPONSE_BODY].type >= static_cast<uint32_t>(TlvType::STRING)) {
+        result.responseBody =
+            ParseStringValue(items[IDX_RESPONSE_BODY].value.data(), 0, items[IDX_RESPONSE_BODY].length);
     }
 }
 

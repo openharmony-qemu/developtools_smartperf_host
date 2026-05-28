@@ -33,6 +33,15 @@ constexpr size_t BYTE_SHIFT_40 = 40;
 constexpr size_t BYTE_SHIFT_48 = 48;
 constexpr size_t BYTE_SHIFT_56 = 56;
 
+constexpr size_t BYTE_OFFSET_0 = 0;
+constexpr size_t BYTE_OFFSET_1 = 1;
+constexpr size_t BYTE_OFFSET_2 = 2;
+constexpr size_t BYTE_OFFSET_3 = 3;
+constexpr size_t BYTE_OFFSET_4 = 4;
+constexpr size_t BYTE_OFFSET_5 = 5;
+constexpr size_t BYTE_OFFSET_6 = 6;
+constexpr size_t BYTE_OFFSET_7 = 7;
+
 constexpr size_t TLV_TAG_SIZE = 4;
 constexpr size_t TLV_LENGTH_SIZE = 4;
 constexpr size_t TLV_HEADER_SIZE = TLV_TAG_SIZE + TLV_LENGTH_SIZE;
