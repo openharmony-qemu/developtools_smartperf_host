@@ -973,7 +973,7 @@ HWTEST_F(NetworkProfilerParserTestSuite, TlvParserValidUint64Test, TestSize.Leve
     tlvData.push_back(0);
     tlvData.push_back(0);
     tlvData.push_back(0);
-tlvData.push_back(TLV_UINT64_LENGTH);
+    tlvData.push_back(TLV_UINT64_LENGTH);
     tlvData.push_back(0);
     tlvData.push_back(0);
     tlvData.push_back(0);

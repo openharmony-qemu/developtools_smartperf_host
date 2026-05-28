@@ -69,7 +69,7 @@ THIRD_PARTY = "//third_party"
 kernel_version = "."
 LLVM_ROOT = "//llvm"
 
-TOOLS_DIR = rebase_path("//tools") 
+TOOLS_DIR = rebase_path("//tools")
 
 OHOS_TRACE_STREAMER_DIR_PROTOC = get_path_info("./protoc.sh", "abspath")
 
