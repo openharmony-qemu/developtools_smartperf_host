@@ -117,7 +117,8 @@ void NetworkInformationTable::Cursor::HandleTextColumn(int32_t column) const
                                  STR_DEFAULT_LEN, nullptr);
             break;
         case Index::REASON_PHRASE:
-            sqlite3_result_text(context_, networkInformationDataObj_.ResponseReasonPhrases()[CurrentRow()].c_str(),
+            sqlite3_result_text(context_,
+                                 networkInformationDataObj_.ResponseReasonPhrases()[CurrentRow()].c_str(),
                                  STR_DEFAULT_LEN, nullptr);
             break;
         default:

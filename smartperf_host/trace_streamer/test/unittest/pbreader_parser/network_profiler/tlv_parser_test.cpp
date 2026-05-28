@@ -15,6 +15,7 @@
 
 #include <hwext/gtest-ext.h>
 #include <hwext/gtest-tag.h>
+#include <algorithm>
 #include <cstdint>
 #include <cstring>
 #include <vector>
@@ -38,11 +39,13 @@ protected:
     std::vector<uint8_t> BuildTlvData(uint32_t type, uint32_t length, const uint8_t *value)
     {
         std::vector<uint8_t> data;
-        data.resize(8 + length);
-        std::memcpy(data.data(), &type, sizeof(type));
-        std::memcpy(data.data() + 4, &length, sizeof(length));
+        data.resize(TLV_HEADER_SIZE + length);
+        std::copy(reinterpret_cast<const uint8_t *>(&type),
+                  reinterpret_cast<const uint8_t *>(&type) + sizeof(type), data.data());
+        std::copy(reinterpret_cast<const uint8_t *>(&length),
+                  reinterpret_cast<const uint8_t *>(&length) + sizeof(length), data.data() + TLV_TAG_SIZE);
         if (value && length > 0) {
-            std::memcpy(data.data() + 8, value, length);
+            std::copy(value, value + length, data.data() + TLV_HEADER_SIZE);
         }
         return data;
     }
@@ -50,13 +53,13 @@ protected:
     std::vector<uint8_t> BuildUint64Tlv(uint64_t value)
     {
         uint32_t type = static_cast<uint32_t>(TlvType::UINT64);
-        return BuildTlvData(type, 8, reinterpret_cast<const uint8_t *>(&value));
+        return BuildTlvData(type, TLV_UINT64_LENGTH, reinterpret_cast<const uint8_t *>(&value));
     }
 
     std::vector<uint8_t> BuildUint32Tlv(uint32_t value)
     {
         uint32_t type = static_cast<uint32_t>(TlvType::UINT32);
-        return BuildTlvData(type, 4, reinterpret_cast<const uint8_t *>(&value));
+        return BuildTlvData(type, TLV_UINT32_LENGTH, reinterpret_cast<const uint8_t *>(&value));
     }
 
     std::vector<uint8_t> BuildStringTlv(const std::string &value)
@@ -69,11 +72,13 @@ protected:
     std::vector<uint8_t> BuildWrongLengthTlv(uint32_t type, uint32_t wrongLength)
     {
         std::vector<uint8_t> data;
-        data.resize(8 + wrongLength);
-        std::memcpy(data.data(), &type, sizeof(type));
-        std::memcpy(data.data() + 4, &wrongLength, sizeof(wrongLength));
+        data.resize(TLV_HEADER_SIZE + wrongLength);
+        std::copy(reinterpret_cast<const uint8_t *>(&type),
+                  reinterpret_cast<const uint8_t *>(&type) + sizeof(type), data.data());
+        std::copy(reinterpret_cast<const uint8_t *>(&wrongLength),
+                  reinterpret_cast<const uint8_t *>(&wrongLength) + sizeof(wrongLength), data.data() + TLV_TAG_SIZE);
         for (uint32_t i = 0; i < wrongLength; i++) {
-            data[8 + i] = static_cast<uint8_t>(i);
+            data[TLV_HEADER_SIZE + i] = static_cast<uint8_t>(i);
         }
         return data;
     }
@@ -112,7 +117,7 @@ HWTEST_F(TlvParserTestSuite, ParseUint32WithWrongLength, TestSize.Level1)
     auto data = BuildWrongLengthTlv(type, 5);
 
     std::vector<uint8_t> fullData;
-    for (int i = 0; i < 11; i++) {
+    for (int i = 0; i < (IDX_RESPONSE_STATUS_CODE + 1); i++) {
         auto uint64Item = BuildUint64Tlv(1000 + i);
         fullData.insert(fullData.end(), uint64Item.begin(), uint64Item.end());
     }
@@ -131,7 +136,7 @@ HWTEST_F(TlvParserTestSuite, ParseString, TestSize.Level1)
     const std::string expectedValue = "test";
     
     std::vector<uint8_t> data;
-    for (int i = 0; i < 7; i++) {
+    for (int i = 0; i < (IDX_END_TIME + 1); i++) {
         auto uint64Item = BuildUint64Tlv(1000 + i);
         data.insert(data.end(), uint64Item.begin(), uint64Item.end());
     }
@@ -151,7 +156,7 @@ HWTEST_F(TlvParserTestSuite, ParseUint32, TestSize.Level1)
     const uint32_t expectedValue = 200;
     
     std::vector<uint8_t> data;
-    for (int i = 0; i < 11; i++) {
+    for (int i = 0; i < (IDX_RESPONSE_STATUS_CODE + 1); i++) {
         auto uint64Item = BuildUint64Tlv(1000 + i);
         data.insert(data.end(), uint64Item.begin(), uint64Item.end());
     }
@@ -192,10 +197,12 @@ HWTEST_F(TlvParserTestSuite, ParseIncompleteTlvPayload, TestSize.Level1)
     uint32_t type = static_cast<uint32_t>(TlvType::UINT64);
     uint32_t length = 100;
     std::vector<uint8_t> data;
-    data.resize(8 + 50);
-    std::memcpy(data.data(), &type, sizeof(type));
-    std::memcpy(data.data() + 4, &length, sizeof(length));
-    for (size_t i = 8; i < data.size(); i++) {
+    data.resize(TLV_HEADER_SIZE + 50);
+    std::copy(reinterpret_cast<const uint8_t *>(&type),
+              reinterpret_cast<const uint8_t *>(&type) + sizeof(type), data.data());
+    std::copy(reinterpret_cast<const uint8_t *>(&length),
+              reinterpret_cast<const uint8_t *>(&length) + sizeof(length), data.data() + TLV_TAG_SIZE);
+    for (size_t i = TLV_HEADER_SIZE; i < data.size(); i++) {
         data[i] = static_cast<uint8_t>(i);
     }
 
@@ -278,7 +285,7 @@ HWTEST_F(TlvParserTestSuite, ParseAllStringTags, TestSize.Level1)
     std::string responseReasonPhraseVal = "OK";
     std::string responseBodyVal = "response body data";
 
-    for (int i = 0; i < 7; i++) {
+    for (int i = 0; i < (IDX_END_TIME + 1); i++) {
         auto uint64Item = BuildUint64Tlv(1000 + i);
         data.insert(data.end(), uint64Item.begin(), uint64Item.end());
     }
@@ -330,7 +337,7 @@ HWTEST_F(TlvParserTestSuite, ParseResponseStatusCode, TestSize.Level1)
     const uint32_t expectedStatusCode = 404;
     
     std::vector<uint8_t> data;
-    for (int i = 0; i < 11; i++) {
+    for (int i = 0; i < (IDX_RESPONSE_STATUS_CODE + 1); i++) {
         auto uint64Item = BuildUint64Tlv(1000 + i);
         data.insert(data.end(), uint64Item.begin(), uint64Item.end());
     }
@@ -350,11 +357,14 @@ HWTEST_F(TlvParserTestSuite, ParseUnknownType, TestSize.Level1)
     uint32_t unknownType = 100;
     uint64_t value = 12345;
     std::vector<uint8_t> data;
-    data.resize(8 + 8);
-    std::memcpy(data.data(), &unknownType, sizeof(unknownType));
-    uint32_t length = 8;
-    std::memcpy(data.data() + 4, &length, sizeof(length));
-    std::memcpy(data.data() + 8, &value, sizeof(value));
+    data.resize(TLV_HEADER_SIZE + TLV_UINT64_LENGTH);
+    std::copy(reinterpret_cast<const uint8_t *>(&unknownType),
+              reinterpret_cast<const uint8_t *>(&unknownType) + sizeof(unknownType), data.data());
+    uint32_t length = TLV_UINT64_LENGTH;
+    std::copy(reinterpret_cast<const uint8_t *>(&length),
+              reinterpret_cast<const uint8_t *>(&length) + sizeof(length), data.data() + TLV_TAG_SIZE);
+    std::copy(reinterpret_cast<const uint8_t *>(&value),
+              reinterpret_cast<const uint8_t *>(&value) + sizeof(value), data.data() + TLV_HEADER_SIZE);
 
     TlvParser parser;
     TlvResult result = parser.ParseAll(data.data(), data.size());
@@ -434,7 +444,7 @@ HWTEST_F(TlvParserTestSuite, ParseEmptyString, TestSize.Level1)
     std::string emptyValue = "";
     
     std::vector<uint8_t> data;
-    for (int i = 0; i < 7; i++) {
+    for (int i = 0; i < (IDX_END_TIME + 1); i++) {
         auto uint64Item = BuildUint64Tlv(1000 + i);
         data.insert(data.end(), uint64Item.begin(), uint64Item.end());
     }
