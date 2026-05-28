@@ -515,20 +515,20 @@ HWTEST_F(NetworkProfilerParserTestSuite, ParseMethodIntegrationTest, TestSize.Le
     event->set_tv_nsec(500000000);
 
     std::vector<uint8_t> tlvPayload;
-    auto appendTlvUint64 = [tlvPayload](uint32_t tag, uint64_t val) mutable {
+    auto appendTlvUint64 = [&tlvPayload](uint32_t tag, uint64_t val) mutable {
         tlvPayload.push_back(static_cast<uint8_t>(tag));
         tlvPayload.push_back(0);
         tlvPayload.push_back(0);
         tlvPayload.push_back(0);
-        tlvPayload.push_back(8);
+        tlvPayload.push_back(TLV_UINT64_LENGTH);
         tlvPayload.push_back(0);
         tlvPayload.push_back(0);
         tlvPayload.push_back(0);
-        for (int i = 0; i < 8; i++) {
-            tlvPayload.push_back(static_cast<uint8_t>(val >> (i * 8)));
+        for (int i = 0; i < TLV_UINT64_LENGTH; i++) {
+            tlvPayload.push_back(static_cast<uint8_t>(val >> (i * BYTE_SHIFT_8)));
         }
     };
-    auto appendTlvString = [&](uint32_t tag, const std::string &s) {
+    auto appendTlvString = [&tlvPayload](uint32_t tag, const std::string &s) {
         tlvPayload.push_back(static_cast<uint8_t>(tag));
         tlvPayload.push_back(0);
         tlvPayload.push_back(0);
@@ -577,22 +577,26 @@ HWTEST_F(NetworkProfilerParserTestSuite, ParseMethodWithCompleteTlvTest, TestSiz
         tlvData.push_back(0);
         tlvData.push_back(0);
         tlvData.push_back(0);
-        tlvData.push_back(8);
+        tlvData.push_back(TLV_UINT64_LENGTH);
         tlvData.push_back(0);
         tlvData.push_back(0);
         tlvData.push_back(0);
-        for (int i = 0; i < 8; i++) tlvData.push_back(static_cast<uint8_t>(val >> (i * 8)));
+        for (int i = 0; i < TLV_UINT64_LENGTH; i++) {
+            tlvData.push_back(static_cast<uint8_t>(val >> (i * BYTE_SHIFT_8)));
+        }
     };
     auto appendTlvUint32 = [&tlvData](uint32_t tag, uint32_t val) {
         tlvData.push_back(static_cast<uint8_t>(tag));
         tlvData.push_back(0);
         tlvData.push_back(0);
         tlvData.push_back(0);
-        tlvData.push_back(4);
+        tlvData.push_back(TLV_UINT32_LENGTH);
         tlvData.push_back(0);
         tlvData.push_back(0);
         tlvData.push_back(0);
-        for (int i = 0; i < 4; i++) tlvData.push_back(static_cast<uint8_t>(val >> (i * 8)));
+        for (int i = 0; i < TLV_UINT32_LENGTH; i++) {
+            tlvData.push_back(static_cast<uint8_t>(val >> (i * BYTE_SHIFT_8)));
+        }
     };
     auto appendTlvString = [&tlvData](uint32_t tag, const std::string &s) {
         tlvData.push_back(static_cast<uint8_t>(tag));
@@ -675,11 +679,11 @@ HWTEST_F(NetworkProfilerParserTestSuite, TlvParserUint64LengthMismatchTest, Test
     tlvData.push_back(0);
     tlvData.push_back(0);
     tlvData.push_back(0);
-    tlvData.push_back(4);
+    tlvData.push_back(TLV_UINT32_LENGTH);
     tlvData.push_back(0);
     tlvData.push_back(0);
     tlvData.push_back(0);
-    for (int i = 0; i < 4; i++) tlvData.push_back(static_cast<uint8_t>(i));
+    for (int i = 0; i < TLV_UINT32_LENGTH; i++) tlvData.push_back(static_cast<uint8_t>(i));
 
     TlvResult result = parser.ParseAll(tlvData.data(), tlvData.size());
     EXPECT_EQ(result.beginTime, 0);
@@ -694,11 +698,11 @@ HWTEST_F(NetworkProfilerParserTestSuite, TlvParserUint32LengthMismatchTest, Test
     tlvData.push_back(0);
     tlvData.push_back(0);
     tlvData.push_back(0);
-    tlvData.push_back(8);
+    tlvData.push_back(TLV_UINT64_LENGTH);
     tlvData.push_back(0);
     tlvData.push_back(0);
     tlvData.push_back(0);
-    for (int i = 0; i < 8; i++) tlvData.push_back(static_cast<uint8_t>(i));
+    for (int i = 0; i < TLV_UINT64_LENGTH; i++) tlvData.push_back(static_cast<uint8_t>(i));
 
     TlvResult result = parser.ParseAll(tlvData.data(), tlvData.size());
     EXPECT_EQ(result.responseStatusCode, 0);
@@ -713,11 +717,11 @@ HWTEST_F(NetworkProfilerParserTestSuite, TlvParserUnknownTagTest, TestSize.Level
     tlvData.push_back(0);
     tlvData.push_back(0);
     tlvData.push_back(0);
-    tlvData.push_back(8);
+    tlvData.push_back(TLV_UINT64_LENGTH);
     tlvData.push_back(0);
     tlvData.push_back(0);
     tlvData.push_back(0);
-    for (int i = 0; i < 8; i++) tlvData.push_back(static_cast<uint8_t>(i));
+    for (int i = 0; i < TLV_UINT64_LENGTH; i++) tlvData.push_back(static_cast<uint8_t>(i));
 
     TlvResult result = parser.ParseAll(tlvData.data(), tlvData.size());
     EXPECT_TRUE(result.parseSuccess);
@@ -925,11 +929,13 @@ HWTEST_F(NetworkProfilerParserTestSuite, ParseMultipleEventsTest, TestSize.Level
         data.push_back(0);
         data.push_back(0);
         data.push_back(0);
-        data.push_back(8);
+        data.push_back(TLV_UINT64_LENGTH);
         data.push_back(0);
         data.push_back(0);
         data.push_back(0);
-        for (int i = 0; i < 8; i++) data.push_back(static_cast<uint8_t>(val >> (i * 8)));
+        for (int i = 0; i < TLV_UINT64_LENGTH; i++) {
+            data.push_back(static_cast<uint8_t>(val >> (i * BYTE_SHIFT_8)));
+        }
     };
 
     appendTlvUint64(tlvData1, 1, 1000);
@@ -967,12 +973,13 @@ HWTEST_F(NetworkProfilerParserTestSuite, TlvParserValidUint64Test, TestSize.Leve
     tlvData.push_back(0);
     tlvData.push_back(0);
     tlvData.push_back(0);
-    tlvData.push_back(8);
+tlvData.push_back(TLV_UINT64_LENGTH);
     tlvData.push_back(0);
     tlvData.push_back(0);
     tlvData.push_back(0);
-    uint64_t expectedValue = 12345678901234ULL;
-    for (int i = 0; i < 8; i++) tlvData.push_back(static_cast<uint8_t>(expectedValue >> (i * 8)));
+    for (int i = 0; i < TLV_UINT64_LENGTH; i++) {
+        tlvData.push_back(static_cast<uint8_t>(expectedValue >> (i * BYTE_SHIFT_8)));
+    }
 
     TlvResult result = parser.ParseAll(tlvData.data(), tlvData.size());
     EXPECT_TRUE(result.parseSuccess);
@@ -985,21 +992,27 @@ HWTEST_F(NetworkProfilerParserTestSuite, TlvParserValidUint32Test, TestSize.Leve
     TlvParser parser;
     std::vector<uint8_t> tlvData;
     
-    for (int i = 0; i < 11; i++) {
+    for (int i = 0; i < IDX_RESPONSE_STATUS_CODE; i++) {
         uint32_t type = 1;
-        uint32_t length = 8;
+        uint32_t length = TLV_UINT64_LENGTH;
         uint64_t value = 1000 + i;
-        tlvData.insert(tlvData.end(), reinterpret_cast<uint8_t*>(&type), reinterpret_cast<uint8_t*>(&type) + 4);
-        tlvData.insert(tlvData.end(), reinterpret_cast<uint8_t*>(&length), reinterpret_cast<uint8_t*>(&length) + 4);
-        tlvData.insert(tlvData.end(), reinterpret_cast<uint8_t*>(&value), reinterpret_cast<uint8_t*>(&value) + 8);
+        tlvData.insert(tlvData.end(), reinterpret_cast<uint8_t*>(&type),
+                         reinterpret_cast<uint8_t*>(&type) + TLV_UINT32_LENGTH);
+        tlvData.insert(tlvData.end(), reinterpret_cast<uint8_t*>(&length),
+                         reinterpret_cast<uint8_t*>(&length) + TLV_UINT32_LENGTH);
+        tlvData.insert(tlvData.end(), reinterpret_cast<uint8_t*>(&value),
+                         reinterpret_cast<uint8_t*>(&value) + TLV_UINT64_LENGTH);
     }
     
-    uint32_t type = 2;
-    uint32_t length = 4;
+    uint32_t type = IDX_RESPONSE_STATUS_CODE;
+    uint32_t length = TLV_UINT32_LENGTH;
     uint32_t expectedValue = 404;
-    tlvData.insert(tlvData.end(), reinterpret_cast<uint8_t*>(&type), reinterpret_cast<uint8_t*>(&type) + 4);
-    tlvData.insert(tlvData.end(), reinterpret_cast<uint8_t*>(&length), reinterpret_cast<uint8_t*>(&length) + 4);
-    tlvData.insert(tlvData.end(), reinterpret_cast<uint8_t*>(&expectedValue), reinterpret_cast<uint8_t*>(&expectedValue) + 4);
+    tlvData.insert(tlvData.end(), reinterpret_cast<uint8_t*>(&type),
+                     reinterpret_cast<uint8_t*>(&type) + TLV_UINT32_LENGTH);
+    tlvData.insert(tlvData.end(), reinterpret_cast<uint8_t*>(&length),
+                     reinterpret_cast<uint8_t*>(&length) + TLV_UINT32_LENGTH);
+    tlvData.insert(tlvData.end(), reinterpret_cast<uint8_t*>(&expectedValue),
+                     reinterpret_cast<uint8_t*>(&expectedValue) + TLV_UINT32_LENGTH);
 
     TlvResult result = parser.ParseAll(tlvData.data(), tlvData.size());
     EXPECT_TRUE(result.parseSuccess);
@@ -1013,19 +1026,24 @@ HWTEST_F(NetworkProfilerParserTestSuite, TlvParserValidStringTest, TestSize.Leve
     std::vector<uint8_t> tlvData;
     std::string testString = "test-request-id";
     
-    for (int i = 0; i < 7; i++) {
+    for (int i = 0; i < IDX_REQUEST_ID; i++) {
         uint32_t type = 1;
-        uint32_t length = 8;
+        uint32_t length = TLV_UINT64_LENGTH;
         uint64_t value = 1000 + i;
-        tlvData.insert(tlvData.end(), reinterpret_cast<uint8_t*>(&type), reinterpret_cast<uint8_t*>(&type) + 4);
-        tlvData.insert(tlvData.end(), reinterpret_cast<uint8_t*>(&length), reinterpret_cast<uint8_t*>(&length) + 4);
-        tlvData.insert(tlvData.end(), reinterpret_cast<uint8_t*>(&value), reinterpret_cast<uint8_t*>(&value) + 8);
+        tlvData.insert(tlvData.end(), reinterpret_cast<uint8_t*>(&type),
+                         reinterpret_cast<uint8_t*>(&type) + TLV_UINT32_LENGTH);
+        tlvData.insert(tlvData.end(), reinterpret_cast<uint8_t*>(&length),
+                         reinterpret_cast<uint8_t*>(&length) + TLV_UINT32_LENGTH);
+        tlvData.insert(tlvData.end(), reinterpret_cast<uint8_t*>(&value),
+                         reinterpret_cast<uint8_t*>(&value) + TLV_UINT64_LENGTH);
     }
     
-    uint32_t type = 3;
+    uint32_t type = IDX_REQUEST_ID;
     uint32_t length = static_cast<uint32_t>(testString.size());
-    tlvData.insert(tlvData.end(), reinterpret_cast<uint8_t*>(&type), reinterpret_cast<uint8_t*>(&type) + 4);
-    tlvData.insert(tlvData.end(), reinterpret_cast<uint8_t*>(&length), reinterpret_cast<uint8_t*>(&length) + 4);
+    tlvData.insert(tlvData.end(), reinterpret_cast<uint8_t*>(&type),
+                     reinterpret_cast<uint8_t*>(&type) + TLV_UINT32_LENGTH);
+    tlvData.insert(tlvData.end(), reinterpret_cast<uint8_t*>(&length),
+                     reinterpret_cast<uint8_t*>(&length) + TLV_UINT32_LENGTH);
     for (char c : testString) tlvData.push_back(static_cast<uint8_t>(c));
 
     TlvResult result = parser.ParseAll(tlvData.data(), tlvData.size());
