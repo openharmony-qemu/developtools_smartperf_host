@@ -78,6 +78,9 @@
 #ifdef ENABLE_XPOWER
 #include "pbreader_xpower_parser.h"
 #endif
+#ifdef ENABLE_NETWORK_PROFILER
+#include "pbreader_network_profiler_parser.h"
+#endif
 #ifdef ENABLE_HIPERF
 #include "perf_data_parser.h"
 #endif
@@ -228,6 +231,10 @@ private:
 #ifdef ENABLE_XPOWER
     void ParseXpower(PbreaderDataSegment &dataSeg);
 #endif
+#ifdef ENABLE_NETWORK_PROFILER
+    void ParseNetworkProfiler(PbreaderDataSegment &dataSeg);
+    void ParseNetworkProfilerConfig(PbreaderDataSegment &dataSeg);
+#endif
 #ifdef ENABLE_DISKIO
     void ParseDiskIO(PbreaderDataSegment &dataSeg);
 #endif
@@ -364,6 +371,12 @@ private:
 #ifdef ENABLE_XPOWER
     std::unique_ptr<PbreaderXpowerParser> xpowerParser_;
     DataIndex xpowerPluginIndex_;
+#endif
+#ifdef ENABLE_NETWORK_PROFILER
+    std::unique_ptr<PbreaderNetworkProfilerParser> networkProfilerParser_;
+    ClockId dataSourceTypeNetworkProfilerClockid_ = TS_CLOCK_UNKNOW;
+    DataIndex networkProfilerPluginIndex_;
+    DataIndex networkProfilerPluginConfigIndex_;
 #endif
 #ifdef ENABLE_STREAM_EXTEND
     DataIndex streamPluginIndex_;

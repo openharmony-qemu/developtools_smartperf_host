@@ -116,6 +116,9 @@ ohos_source_set("pbreader_parser_src") {
   if (enable_network) {
     public_deps += [ "network_parser:network_parser" ]
   }
+  if (enable_network_profiler) {
+    public_deps += [ "network_profiler_parser:network_profiler_parser" ]
+  }
   if (enable_diskio) {
     public_deps += [ "disk_io_parser:disk_io_parser" ]
   }

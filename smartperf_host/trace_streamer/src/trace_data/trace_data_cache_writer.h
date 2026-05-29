@@ -123,6 +123,8 @@ public:
     XPowerAppDetailDisplay *GetXPowerAppDetailDisplayInfo();
     XPowerComponentTop *GetXPowerComponentTopInfo();
     TimerfdWakeup *GetTimerfdWakeupData();
+    NetworkTimeInformationData *GetNetworkTimeInformationData();
+    NetworkInformationData *GetNetworkInformationData();
     FileSystemIo *GetFileSystemIoData();
 
 private:

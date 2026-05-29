@@ -38,6 +38,7 @@ ohos_source_set("table") {
     "${SRC}/trace_data/trace_stdtype/htrace",
     "${SRC}/trace_data/trace_stdtype/measure",
     "${SRC}/trace_data/trace_stdtype/xpower",
+    "${SRC}/table/network_profiler/include",
   ]
   if (!is_independent_compile) {
     configs = [ "${TS_DIR}/gn:ts_config" ]
@@ -68,4 +69,7 @@ ohos_source_set("table") {
     "native_hook:native_hook_tables",
     "xpower:xpower_tables",
   ]
+  if (enable_network_profiler) {
+    deps += [ "network_profiler:network_profiler_tables" ]
+  }
 }

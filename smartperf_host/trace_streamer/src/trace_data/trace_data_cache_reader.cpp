@@ -409,6 +409,16 @@ const TimerfdWakeup &TraceDataCacheReader::GetConstTimerfdWakeupData() const
     return timerfdWakeupData_;
 }
 
+const NetworkTimeInformationData &TraceDataCacheReader::GetConstNetworkTimeInformationData() const
+{
+    return networkTimeInformationData_;
+}
+
+const NetworkInformationData &TraceDataCacheReader::GetConstNetworkInformationData() const
+{
+    return networkInformationData_;
+}
+
 const FileSystemIo &TraceDataCacheReader::GetConstFileSystemIoData() const
 {
     return fileSystemIoData_;

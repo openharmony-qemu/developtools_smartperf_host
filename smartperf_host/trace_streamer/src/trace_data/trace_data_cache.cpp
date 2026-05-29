@@ -76,6 +76,8 @@
 #include "native_hook_frame_table.h"
 #include "native_hook_statistic_table.h"
 #include "native_hook_table.h"
+#include "network_information_table.h"
+#include "network_time_information_table.h"
 #include "network_table.h"
 #include "paged_memory_sample_table.h"
 #include "perf_call_chain_table.h"
@@ -260,6 +262,8 @@ void TraceDataCache::InitDB()
     TableBase::TableDeclare<SystemCallTable>(*db_, this, "syscall");
     TableBase::TableDeclare<LogTable>(*db_, this, "log");
     TableBase::TableDeclare<NetworkTable>(*db_, this, "network");
+    TableBase::TableDeclare<NetworkTimeInformationTable>(*db_, this, "network_time_information");
+    TableBase::TableDeclare<NetworkInformationTable>(*db_, this, "network_information");
     TableBase::TableDeclare<SystemEventFilterTable>(*db_, this, "sys_event_filter");
     TableBase::TableDeclare<DiskIOTable>(*db_, this, "diskio");
     TableBase::TableDeclare<CpuUsageInfoTable>(*db_, this, "cpu_usage");

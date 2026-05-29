@@ -141,6 +141,8 @@ public:
     const XPowerAppDetailDisplay &GetConstXPowerAppDetailDisplayInfo() const;
     const XPowerComponentTop &GetConstXPowerComponentTopInfo() const;
     const TimerfdWakeup &GetConstTimerfdWakeupData() const;
+    const NetworkTimeInformationData &GetConstNetworkTimeInformationData() const;
+    const NetworkInformationData &GetConstNetworkInformationData() const;
     const FileSystemIo &GetConstFileSystemIoData() const;
 };
 } // namespace TraceStreamer
