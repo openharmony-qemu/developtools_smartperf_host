@@ -44,6 +44,7 @@ import { SpHisysEvent } from './setting/SpHisysEvent';
 import { SpArkTs } from './setting/SpArkTs';
 import { SpHilogRecord } from './setting/SpHilogRecord';
 import { SpFFRTConfig } from './setting/SpFFRTConfig';
+import { SpNetworkProfilerConfig } from './setting/SpNetworkProfilerConfig';
 import { SpXPowerRecord } from './setting/SpXPowerRecord';
 import { resGpuClBuffer, resGpuClImage, resGpuGlesBuffer, resGpuGlesImage, resGpuVk } from './setting/utils/PluginConvertUtils';
 
@@ -880,6 +881,39 @@ export function createFFRTPluginConfig(
     config.clockId = currentConfigPage!.clockType;
     request.pluginConfigs.push({
       pluginName: 'ffrt-profiler',
+      configData: config,
+    });
+  }
+}
+
+export function createNetworkProfilerPluginConfig(
+  currentConfigPage: SpNetworkProfilerConfig,
+  selectVersion: string | null,
+  request: CreateSessionRequest
+): void {
+  if (currentConfigPage &&
+    (
+      currentConfigPage.processIds.length > 0 ||
+      currentConfigPage.restartProcessNames.length > 0 ||
+      currentConfigPage.startupProcessNames.length > 0
+    ) &&
+    currentConfigPage.startSamp) {
+    let config: FFRTConfig = {};
+    if (currentConfigPage.processIds.length > 0) {
+      config.pid = currentConfigPage.processIds;
+    }
+    if (currentConfigPage.startupProcessNames.length > 0) {
+      config.startupProcessName = currentConfigPage!.startupProcessNames;
+    }
+    if (currentConfigPage.restartProcessNames.length > 0) {
+      config.restartProcessName = currentConfigPage.restartProcessNames;
+    }
+    config.smbPages = currentConfigPage.smbPages;
+    config.flushInterval = currentConfigPage.flushInterval;
+    config.block = currentConfigPage.useBlock;
+    config.clockId = currentConfigPage!.clockType;
+    request.pluginConfigs.push({
+      pluginName: 'network-profiler',
       configData: config,
     });
   }

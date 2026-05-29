@@ -174,6 +174,11 @@ export class SelectionParam {
   hiSysEvents: Array<string> = [];
   sampleData: Array<unknown> = [];
   gpuCounter: Array<unknown> = [];
+  networkIds: Array<number> = [];
+  shouldQueryByProcess: boolean = false;
+  networkCountSelected: boolean = false;
+  networkSummarySelected: boolean = false;
+  networkDetailSelected: boolean = false;
   isImportSo: boolean = false;
 
   // @ts-ignore
@@ -435,7 +440,7 @@ export class SelectionParam {
     }
   }
 
-  // @ts-ignore 
+  // @ts-ignore
   private pushGenericMemoryData(it: TraceRow<unknown>, sp: SpSystemTrace, isFolder: boolean): void {
     const config = this.getMemoryConfig(it.rowType!);
     if (!config) return;
@@ -457,12 +462,12 @@ export class SelectionParam {
     // @ts-ignore
     let processRow: TraceRow<unknown> | null = isFolder ? it : it;
     let rowKey: string | null = null;
-    
+
     // 向上查找包含进程信息的父节点（rowId 格式为 "native-memory ${pid} ${ipid}"）
     while (processRow) {
       const currentRowId = processRow.rowId || '';
-      if (currentRowId.startsWith('native-memory ') || 
-          currentRowId.startsWith('gpu-memory ') || 
+      if (currentRowId.startsWith('native-memory ') ||
+          currentRowId.startsWith('gpu-memory ') ||
           currentRowId.startsWith('other-source ')) {
         rowKey = currentRowId;
         break;
@@ -475,12 +480,12 @@ export class SelectionParam {
         break;
       }
     }
-    
+
     if (!rowKey) {
       // 如果找不到，尝试从 rowParentId 解析（兼容旧逻辑）
       rowKey = (isFolder ? it.rowId : it.rowParentId) || '';
     }
-    
+
     const rowKeyParts = rowKey.split(' ');
     const process = {
       ipid: Number(rowKeyParts[rowKeyParts.length - 1]),
@@ -733,15 +738,15 @@ export class SelectionParam {
       if (dataList.length === 0) {
         return;
       }
-      
+
       // 预计算时间范围，避免重复访问属性
       const leftNs = this.leftNs;
       const rightNs = this.rightNs;
-      
+
       // 使用Map进行高效去重，只针对当前批次数据
       const batchMap = new Map<number, boolean>();
       const filteredData: Array<unknown> = [];
-      
+
       // 遍历当前数据，过滤并去重
       for (let i = 0; i < dataList.length; i++) {
         const ioItem = dataList[i];
@@ -752,12 +757,12 @@ export class SelectionParam {
         const io = ioItem as { startNS: number, dur: number };
         const start = io.startNS ?? 0;
         const dur = io.dur ?? 0;
-        
+
         // 检查是否在时间范围内
         if (start < rightNs && start + dur > leftNs) {
           // 使用数字作为键，避免字符串拼接开销
           const key = (start << 32) | (dur & 0xFFFFFFFF);
-          
+
           // 检查是否在当前批次中已存在
           if (!batchMap.has(key)) {
             filteredData.push(io);
@@ -765,7 +770,7 @@ export class SelectionParam {
           }
         }
       }
-      
+
       // 批量添加过滤后的数据
       if (filteredData.length > 0) {
         this.ioStatiicsData.push(...filteredData);
@@ -1314,6 +1319,60 @@ export class SelectionParam {
   }
 
   // @ts-ignore
+  pushNetworkCount(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_NETWORK_COUNT_FOLDER || it.rowType === TraceRow.ROW_TYPE_NETWORK_COUNT) {
+      this.networkCountSelected = true;
+    }
+    if (it.rowType === TraceRow.ROW_TYPE_NETWORK_COUNT_FOLDER) {
+      it.childrenList.forEach((child) => {
+        const idParts = child.rowId!.split('_');
+        const ipid = parseInt(idParts[0]);
+        if (!this.networkIds.includes(ipid)) {
+          this.networkIds.push(ipid);
+        }
+      });
+    } else if (it.rowType === TraceRow.ROW_TYPE_NETWORK_COUNT) {
+      const idParts = it.rowId!.split('_');
+      const ipid = parseInt(idParts[0]);
+      if (!this.networkIds.includes(ipid)) {
+        this.networkIds.push(ipid);
+      }
+    }
+  }
+
+  // @ts-ignore
+  pushNetworkSummary(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_NETWORK_SUMMARY) {
+      this.networkSummarySelected = true;
+    }
+    if (it.rowType === TraceRow.ROW_TYPE_NETWORK_SUMMARY) {
+      this.networkIds.push(parseInt(it.rowId!));
+    }
+  }
+
+  // @ts-ignore
+  pushProcessNetworkDetail(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    if (it.rowType === TraceRow.ROW_TYPE_NETWORK_DETAIL_FOLDER || it.rowType === TraceRow.ROW_TYPE_NETWORK_DETAIL) {
+      this.networkDetailSelected = true;
+    }
+    if (it.rowType === TraceRow.ROW_TYPE_NETWORK_DETAIL_FOLDER) {
+      it.childrenList.forEach((child) => {
+        const rowId = child.rowId!;
+        const ipid = parseInt(rowId.replace('ipid-', ''));
+        if (!this.networkIds.includes(ipid)) {
+          this.networkIds.push(ipid);
+        }
+      });
+    } else if (it.rowType === TraceRow.ROW_TYPE_NETWORK_DETAIL) {
+      const rowId = it.rowId!;
+      const ipid = parseInt(rowId.replace('ipid-', ''));
+      if (!this.networkIds.includes(ipid)) {
+        this.networkIds.push(ipid);
+      }
+    }
+  }
+
+  // @ts-ignore
   pushDmaAbility(it: TraceRow<unknown>, sp: SpSystemTrace): void {
     if (it.rowType === TraceRow.ROW_TYPE_DMA_ABILITY) {
       this.dmaAbilityData.push(...intersectData(it)!);
@@ -1519,6 +1578,10 @@ export class SelectionParam {
 
   // @ts-ignore
   pushSelection(it: TraceRow<unknown>, sp: SpSystemTrace): void {
+    this.shouldQueryByProcess = false;
+    this.networkCountSelected = false;
+    this.networkSummarySelected = false;
+    this.networkDetailSelected = false;
     this.pushCpus(it);
     this.pushCpuStateFilterIds(it);
     this.pushCpuFreqFilter(it);
@@ -1559,6 +1622,9 @@ export class SelectionParam {
     this.pushMemoryAbility(it, sp);
     this.pushDiskAbility(it, sp);
     this.pushNetworkAbility(it, sp);
+    this.pushNetworkCount(it, sp);
+    this.pushNetworkSummary(it, sp);
+    this.pushProcessNetworkDetail(it, sp);
     this.pushDmaAbility(it, sp);
     this.pushGpuMemoryAbility(it, sp);
     this.pushPowerEnergy(it, sp);
@@ -1578,6 +1644,7 @@ export class SelectionParam {
     this.pushXpower(it, sp);
     this.pushXpowerThreadInfo(it, sp);
     this.pushXpowerGpuFreq(it, sp);
+    this.shouldQueryByProcess = this.networkDetailSelected && !this.networkCountSelected && !this.networkSummarySelected;
   }
 }
 

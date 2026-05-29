@@ -79,7 +79,8 @@ export class TabPaneCpuByThread extends BaseElement {
         this.cpuByThreadTbl!.loading = false;
         const resArr = cpuData.concat(interruptData);
         if (resArr != null && resArr.length > 0) {
-          const cutData: finalResultBean[] = this.groupByCpu(resArr);//切割后数据
+          // @ts-ignore
+          const cutData: finalResultBean[] = this.groupByCpu(resArr, cpuByThreadValue.leftNs, cpuByThreadValue.rightNs);//切割后数据
           this.aggregateData(cutData, cpuByThreadValue);//整合数据
         } else {
           this.cpuByIrqSource = [];
@@ -104,7 +105,7 @@ export class TabPaneCpuByThread extends BaseElement {
   }
 
   //将所有数据按cpu重新分组
-  private groupByCpu(data: Array<CpuAndIrqBean>): finalResultBean[] {
+  private groupByCpu(data: Array<CpuAndIrqBean>, leftNs: number, rightNs: number): finalResultBean[] {
     const cpuObject: { [cpu: number]: byCpuGroupBean } =
       data.reduce((groups, item) => {
         const { cpu, ...restProps } = item;
@@ -120,14 +121,37 @@ export class TabPaneCpuByThread extends BaseElement {
     const cutObj: { [cpu: number]: finalResultBean[] } = {};
     Object.entries(cpuObject).forEach(([cpuStr, { CPU }]) => {
       const cpu = Number(cpuStr);
-      cutObj[cpu] = this.cpuByIrq(CPU);
+      cutObj[cpu] = this.cpuByIrq(CPU, leftNs, rightNs);
     })
     const cutList: finalResultBean[] = Object.values(cutObj).flat();
     return cutList;
   }
 
+  private createResultBean(item: CpuAndIrqBean, dur: number): finalResultBean {
+    return {
+      cat: item.cat,
+      dur: dur,
+      cpu: item.cpu,
+      pid: item.pid ? item.pid : '[NULL]',
+      tid: item.tid ? item.tid : '[NULL]',
+      occurrences: item.isFirstObject === 1 ? 1 : 0
+    };
+  }
+
+  private processBoxSelection(waitArr: CpuAndIrqBean[], minEndItem: CpuAndIrqBean, minOriginalEndTs: number, segmentDuration: number, completedArr: finalResultBean[]): void {
+    const currentMinOriginalEndTs = Math.min(...waitArr.map((i: CpuAndIrqBean) => i.originalEndTime!));
+    if (minOriginalEndTs < currentMinOriginalEndTs) {
+      completedArr.push(this.createResultBean(minEndItem, segmentDuration));
+    } else {
+      waitArr.forEach((item: CpuAndIrqBean) => {
+        const isMinOriginal = item.originalEndTime === currentMinOriginalEndTs;
+        completedArr.push(this.createResultBean(item, isMinOriginal ? segmentDuration : 0));
+      });
+    }
+  }
+
   //具体切割方法
-  private cpuByIrq(data: CpuAndIrqBean[]): finalResultBean[] {
+  private cpuByIrq(data: CpuAndIrqBean[], leftNs: number, rightNs: number): finalResultBean[] {
     let sourceData = data.sort((a, b) => a.startTime - b.startTime);
     let waitArr: CpuAndIrqBean[] = [];
     let completedArr: finalResultBean[] = [];
@@ -136,6 +160,8 @@ export class TabPaneCpuByThread extends BaseElement {
     while (index < sourceData.length || waitArr.length > 0) {
       let minEndTs = Math.min(...waitArr.map((item: CpuAndIrqBean) => item.endTime));
       let minIndex = waitArr.findIndex((item: CpuAndIrqBean) => item.endTime === minEndTs);
+      let minOriginalEndTs = Math.min(...waitArr.map((item: CpuAndIrqBean) => item.originalEndTime!));
+      let minOriginalIndex = waitArr.findIndex((item: CpuAndIrqBean) => item.originalEndTime === minOriginalEndTs);
       //当waitArr为空时
       if (waitArr.length === 0) {
         globalTs = sourceData[index].startTime;
@@ -145,34 +171,26 @@ export class TabPaneCpuByThread extends BaseElement {
       }
       //当全局Ts等于minEndTs时，只做删除处理
       if (globalTs === minEndTs) {
-        if (minIndex !== -1) {  
-          const item = waitArr[minIndex];  
-          if (item.endTime > item.startTime) { 
-            waitArr.splice(minIndex, 1);  
-          } else {  
-            // wallDuration为0，需要特别处理  
-            const obj: finalResultBean = {  
-              cat: item.cat,  
-              cpu: item.cpu,  
-              dur: 0, 
+        if (minIndex !== -1) {
+          const item = waitArr[minIndex];
+          if (item.endTime > item.startTime) {
+            waitArr.splice(minIndex, 1);
+          } else {
+            // wallDuration为0，需要特别处理
+            const obj: finalResultBean = {
+              cat: item.cat,
+              cpu: item.cpu,
+              dur: 0,
               pid: item.pid ? item.pid : '[NULL]',
               tid: item.tid ? item.tid : '[NULL]',
-              occurrences: item.isFirstObject === 1 ? 1 : 0  
-            };  
-            completedArr.push(obj);  
+              occurrences: item.isFirstObject === 1 ? 1 : 0
+            };
+            completedArr.push(obj);
             waitArr.splice(minIndex, 1);
-          }  
+          }
           continue;
         }
       }
-      let obj: finalResultBean = {
-        cat: '',
-        dur: 0,
-        cpu: 0,
-        pid: 0,
-        tid: 0,
-        occurrences: 0
-      };
       if (index < sourceData.length) {
         if (sourceData[index].startTime < minEndTs) {
           if (globalTs === sourceData[index].startTime) {
@@ -180,59 +198,42 @@ export class TabPaneCpuByThread extends BaseElement {
             index++;
             continue;
           } else {
-            const maxPriorityItem = this.findMaxPriority(waitArr);
-            obj = {
-              cat: maxPriorityItem.cat,
-              dur: sourceData[index].startTime - globalTs,
-              cpu: maxPriorityItem.cpu,
-              pid: maxPriorityItem.pid ? maxPriorityItem.pid : '[NULL]',
-              tid: maxPriorityItem.tid ? maxPriorityItem.tid : '[NULL]',
-              occurrences: maxPriorityItem.isFirstObject === 1 ? 1 : 0
+            const minEndItem = waitArr[minIndex];
+            const segmentEndTs = sourceData[index].startTime;
+            const segmentDuration = segmentEndTs - globalTs;
+            const segmentInBoxSelection = !(segmentEndTs < leftNs || globalTs > rightNs);
+            if (segmentInBoxSelection) {
+              this.processBoxSelection(waitArr, minEndItem, minOriginalEndTs, segmentDuration, completedArr);
             }
-            completedArr.push(obj);
-            maxPriorityItem.isFirstObject = 0;
+            minEndItem.isFirstObject = 0;
             waitArr.push(sourceData[index]);
             globalTs = sourceData[index].startTime;
             index++;
           }
         } else {
-          const maxPriorityItem = this.findMaxPriority(waitArr);
-          obj = {
-            cat: maxPriorityItem.cat,
-            dur: minEndTs - globalTs,
-            cpu: maxPriorityItem.cpu,
-            pid: maxPriorityItem.pid ? maxPriorityItem.pid : '[NULL]',
-            tid: maxPriorityItem.tid ? maxPriorityItem.tid : '[NULL]',
-            occurrences: maxPriorityItem.isFirstObject === 1 ? 1 : 0
+          const minEndItem = waitArr[minIndex];
+          const segmentDuration = minEndTs - globalTs;
+          const segmentInBoxSelection = !(minEndTs < leftNs || globalTs > rightNs);
+          if (segmentInBoxSelection) {
+            this.processBoxSelection(waitArr, minEndItem, minOriginalEndTs, segmentDuration, completedArr);
           }
-          completedArr.push(obj);
-          maxPriorityItem.isFirstObject = 0;
+          minEndItem.isFirstObject = 0;
           globalTs = minEndTs;
           if (minIndex !== -1) { waitArr.splice(minIndex, 1) };
         }
       } else {
-        const maxPriorityItem = this.findMaxPriority(waitArr);
-        obj = {
-          cat: maxPriorityItem.cat,
-          dur: minEndTs - globalTs,
-          cpu: maxPriorityItem.cpu,
-          pid: maxPriorityItem.pid ? maxPriorityItem.pid : '[NULL]',
-          tid: maxPriorityItem.tid ? maxPriorityItem.tid : '[NULL]',
-          occurrences: maxPriorityItem.isFirstObject === 1 ? 1 : 0
+        const minEndItem = waitArr[minIndex];
+        const segmentDuration = minEndTs - globalTs;
+        const segmentInBoxSelection = !(minEndTs < leftNs || globalTs > rightNs);
+        if (segmentInBoxSelection) {
+          this.processBoxSelection(waitArr, minEndItem, minOriginalEndTs, segmentDuration, completedArr);
         }
-        completedArr.push(obj);
-        maxPriorityItem.isFirstObject = 0;
+        minEndItem.isFirstObject = 0;
         globalTs = minEndTs;
         if (minIndex !== -1) { waitArr.splice(minIndex, 1) };
       }
     }
     return completedArr;
-  }
-
-  private findMaxPriority(arr: CpuAndIrqBean[]): CpuAndIrqBean {
-    return arr.reduce((maxItem: CpuAndIrqBean, currentItem: CpuAndIrqBean) => {
-      return maxItem.priority > currentItem.priority ? maxItem : currentItem;
-    }, arr[0]);
   }
 
   // 聚合数据
@@ -267,17 +268,17 @@ export class TabPaneCpuByThread extends BaseElement {
             occurrences: 0,
             avgDuration: 0,
             cpus: {},
-            [cpuDurationKey]: 0, 
+            [cpuDurationKey]: 0,
             [cpuPercentKey]: 100,
           };
         }
 
-        cpuAggregations[tidPidKey].wallDuration += obj.dur; 
-        cpuAggregations[tidPidKey].occurrences += obj.occurrences; 
-        cpuAggregations[tidPidKey].avgDuration = cpuAggregations[tidPidKey].wallDuration / cpuAggregations[tidPidKey].occurrences; 
+        cpuAggregations[tidPidKey].wallDuration += obj.dur;
+        cpuAggregations[tidPidKey].occurrences += obj.occurrences;
+        cpuAggregations[tidPidKey].avgDuration = cpuAggregations[tidPidKey].wallDuration / cpuAggregations[tidPidKey].occurrences;
         cpuAggregations[tidPidKey].cpus[obj.cpu] = (cpuAggregations[tidPidKey].cpus[obj.cpu] || 0) + obj.dur;
         cpuAggregations[tidPidKey][cpuDurationKey] = cpuAggregations[tidPidKey].cpus[obj.cpu];
-        cpuAggregations[tidPidKey][cpuPercentKey] = (cpuAggregations[tidPidKey][cpuDurationKey] / (cpuByThreadValue.rightNs - cpuByThreadValue.leftNs)) * 100; 
+        cpuAggregations[tidPidKey][cpuPercentKey] = (cpuAggregations[tidPidKey][cpuDurationKey] / (cpuByThreadValue.rightNs - cpuByThreadValue.leftNs)) * 100;
       }
 
       // 聚合 softirq 数据
@@ -328,7 +329,7 @@ export class TabPaneCpuByThread extends BaseElement {
       aggregation.cpus[callid] = 0;
     }
     aggregation.cpus[callid] += obj.dur;
- 
+
     if (!(callidDurKey in aggregation)) {
       aggregation[callidDurKey] = 0;
     }
@@ -387,7 +388,7 @@ export class TabPaneCpuByThread extends BaseElement {
 
   //点击表头进行排序
   private reSortByColum(key: string, type: number): void {
-    // 如果数组为空，则直接返回 
+    // 如果数组为空，则直接返回
     if (!this.cpuByIrqSource.length) return;
     let sortObject: finalResultBean[] = JSON.parse(JSON.stringify(this.cpuByIrqSource)).splice(1);
     let sortList: Array<finalResultBean> = [];
@@ -582,7 +583,7 @@ export class TabPaneCpuByThread extends BaseElement {
         </style>
         <label id="time-range" class="cpu-by-thread-label" style="text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
         <lit-table id="tb-cpu-thread" style="height:calc( 30vh - 25px )" >
-            
+
         </lit-table>
         `;
   }

@@ -23,6 +23,8 @@ export class CpuAndIrqBean {
     pid?: number | string;
     tid?: number | string;
     isFirstObject?:number = 1;
+    originalStartTime?: number = 0;
+    originalEndTime?: number = 0;
 }
 
 export class finalResultBean {
@@ -52,6 +54,6 @@ export class softirqAndIrq {
     pid?: number|string;
     //@ts-ignore
     process?: string;
-    //@ts-ignore  
-    thread?: string; 
+    //@ts-ignore
+    thread?: string;
 }

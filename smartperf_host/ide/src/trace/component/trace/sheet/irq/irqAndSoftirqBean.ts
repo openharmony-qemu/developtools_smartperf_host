@@ -22,6 +22,8 @@ export class IrqAndSoftirqBean {
     endTime: number = 0;
     wallDuration: number = 0;
     priority: number = 0;
+    originalStartTime?: number = 0;
+    originalEndTime?: number = 0;
 }
 
 export class byCallidGroupBean {

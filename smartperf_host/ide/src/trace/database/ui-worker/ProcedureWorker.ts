@@ -80,6 +80,9 @@ import { XpowerGpuFreqCountRender } from './ProcedureWorkerXpowerGpuFreqCount';
 import { XpowerGpuFreqRender } from './ProcedureWorkerXpowerGpuFreq';
 import { SnapShotRender } from './ProcedureWorkerSnaps';
 import { ThreadSysCallRender } from './ProcedureWorkerThreadSysCall';
+import { NetworkCountRender } from './ProcedureWorkerNetworkCount';
+import { NetworkSummaryRender } from './ProcedureWorkerNetworkSummary';
+import { NetworkDetailRender } from './ProcedureWorkerNetworkDetail';
 // import { GpuMemoryRender } from './ProcedureWorkerGpuMemory';
 // import { OtherSourceRender } from './ProcedureWorkerOtherSource';
 
@@ -128,6 +131,9 @@ export let renders = {
   monitorNetwork: new NetworkAbilityRender(),
   'sdk-slice': new SdkSliceRender(),
   'sdk-counter': new SdkCounterRender(),
+  'network-count': new NetworkCountRender(),
+  'network-summary': new NetworkSummaryRender(),
+  'network-detail': new NetworkDetailRender(),
   energyAnomaly: new EnergyAnomalyRender(),
   energySystem: new EnergySystemRender(),
   energyPower: new EnergyPowerRender(),

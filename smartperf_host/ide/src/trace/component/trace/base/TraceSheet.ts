@@ -125,6 +125,7 @@ import { MemoryAnalysisDataLogic } from './MemoryAnalysisData';
 import { MemoryTraceRowType } from '../../../bean/MemoryEnum';
 import { IOStruct } from 'src/trace/database/ui-worker/ProcedureWorkerIO';
 import { TabPaneIOStatistics } from '../sheet/io/TabPaneIOStatistics';
+import { NetworkRequestStruct } from '../../../bean/NetworkStruct';
 
 @element('trace-sheet')
 export class TraceSheet extends BaseElement {
@@ -1060,6 +1061,8 @@ export class TraceSheet extends BaseElement {
     this.displayTab<TabPaneCurrentSelection>('current-selection').setAllStartupData(data, scrollCallback);
   displayStaticInitData = (data: SoStruct, scrollCallback: Function): void =>
     this.displayTab<TabPaneCurrentSelection>('current-selection').setStaticInitData(data, scrollCallback);
+  displayNetworkSummaryData = async (data: NetworkRequestStruct): Promise<void> =>
+    await this.displayTab<TabPaneCurrentSelection>('current-selection').setNetworkData(data);
 
   // 统计模式点选
   displayGenicMemoryData = (data: HeapStruct, childrenRowType: string, ipid: number, rowType: string): void => {
