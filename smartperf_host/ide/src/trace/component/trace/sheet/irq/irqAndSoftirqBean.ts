@@ -26,11 +26,11 @@ export class IrqAndSoftirqBean {
     originalEndTime?: number = 0;
 }
 
-export class byCallidGroupBean {
+export class ByCallidGroupBean {
     Callid: IrqAndSoftirqBean[] = [];
 }
 
-export class finalResultBean {
+export class FinalResultBean {
     cat: string = '';
     wallDuration: number = 0;
     maxDuration?: number = 0;

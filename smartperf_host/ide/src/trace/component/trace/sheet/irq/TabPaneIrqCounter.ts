@@ -19,7 +19,7 @@ import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
 import { initSort, resizeObserver } from '../SheetUtils';
 import { queryIrqDataBoxSelect, querySoftIrqDataBoxSelect, queryIrqSelectData, querySoftirqSelectData } from '../../../../database/sql/Irq.sql';
 import { FlagsConfig } from '../../../SpFlags';
-import { IrqAndSoftirqBean, byCallidGroupBean, finalResultBean } from './irqAndSoftirqBean';
+import { IrqAndSoftirqBean, ByCallidGroupBean, FinalResultBean } from './irqAndSoftirqBean';
 
 @element('tabpane-irq-counter')
 export class TabPaneIrqCounter extends BaseElement {
@@ -29,7 +29,7 @@ export class TabPaneIrqCounter extends BaseElement {
   private sortColumn: string = 'wallDurationFormat';
   private sortType: number = 2;
   private loadIrq: boolean = false;//flag开关
-  private irqAndSoftirqSource: Array<finalResultBean> = [];
+  private irqAndSoftirqSource: Array<FinalResultBean> = [];
 
   set data(irqParam: SelectionParam | unknown) {
     if (this.irqCounterTbl) {
@@ -54,7 +54,7 @@ export class TabPaneIrqCounter extends BaseElement {
         if (resArr != null && resArr.length > 0) {//@ts-ignore
           let isSelectIrq = irqParam.irqCallIds.length > 0 ? true : false;//@ts-ignore
           let isSelectSoftirq = irqParam.softIrqCallIds.length > 0 ? true : false;//@ts-ignore
-          const cutData: finalResultBean[] = this.groupByCallid(resArr, irqParam.leftNs, irqParam.rightNs);
+          const cutData: FinalResultBean[] = this.groupByCallid(resArr, irqParam.leftNs, irqParam.rightNs);
           this.aggregateData(cutData, isSelectIrq, isSelectSoftirq);//整合数据
         } else {
           this.irqAndSoftirqSource = [];
@@ -174,8 +174,8 @@ export class TabPaneIrqCounter extends BaseElement {
   }
 
     //将所有数据按callid重新分组
-    private groupByCallid(data: Array<IrqAndSoftirqBean>, leftNs: number, rightNs: number): finalResultBean[] {
-      const callidObject: { [callid: number]: byCallidGroupBean } =
+    private groupByCallid(data: Array<IrqAndSoftirqBean>, leftNs: number, rightNs: number): FinalResultBean[] {
+      const callidObject: { [callid: number]: ByCallidGroupBean } =
         data.reduce((groups, item) => {
           const { callid, ...restProps } = item;
           const newIrqAndSoftirqBean: IrqAndSoftirqBean = { callid, ...restProps };
@@ -186,17 +186,17 @@ export class TabPaneIrqCounter extends BaseElement {
           groups[callid].Callid!.push(newIrqAndSoftirqBean);
 
           return groups;
-        }, {} as { [callid: number]: byCallidGroupBean });
-      const cutObj: { [callid: number]: finalResultBean[] } = {};
+        }, {} as { [callid: number]: ByCallidGroupBean });
+      const cutObj: { [callid: number]: FinalResultBean[] } = {};
       Object.entries(callidObject).forEach(([callidStr, { Callid }]) => {
         const callid = Number(callidStr);
         cutObj[callid] = this.callidByIrq(Callid, leftNs, rightNs);
       });
-      const cutList: finalResultBean[] = Object.values(cutObj).flat();
+      const cutList: FinalResultBean[] = Object.values(cutObj).flat();
       return cutList;
     }
 
-    private createResultBean(item: IrqAndSoftirqBean, wallDuration: number): finalResultBean {
+    private createResultBean(item: IrqAndSoftirqBean, wallDuration: number): FinalResultBean {
       return {
         cat: item.cat,
         name: item.name,
@@ -205,7 +205,7 @@ export class TabPaneIrqCounter extends BaseElement {
       };
     }
 
-    private processBoxSelection(waitArr: IrqAndSoftirqBean[], minEndItem: IrqAndSoftirqBean, minOriginalEndTs: number, segmentDuration: number, completedArr: finalResultBean[]): void {
+    private processBoxSelection(waitArr: IrqAndSoftirqBean[], minEndItem: IrqAndSoftirqBean, minOriginalEndTs: number, segmentDuration: number, completedArr: FinalResultBean[]): void {
       const currentMinOriginalEndTs = Math.min(...waitArr.map((i: IrqAndSoftirqBean) => i.originalEndTime!));
       if (minOriginalEndTs < currentMinOriginalEndTs) {
         completedArr.push(this.createResultBean(minEndItem, segmentDuration));
@@ -218,10 +218,10 @@ export class TabPaneIrqCounter extends BaseElement {
     }
 
     //具体切割方法
-    private callidByIrq(data: IrqAndSoftirqBean[], leftNs: number, rightNs: number): finalResultBean[] {
+    private callidByIrq(data: IrqAndSoftirqBean[], leftNs: number, rightNs: number): FinalResultBean[] {
       let sourceData = data.sort((a, b) => a.startTime - b.startTime);
       let waitArr: IrqAndSoftirqBean[] = [];
-      let completedArr: finalResultBean[] = [];
+      let completedArr: FinalResultBean[] = [];
       let globalTs: number = 0;
       let index: number = 0;
       while (index < sourceData.length || waitArr.length > 0) {
@@ -244,7 +244,7 @@ export class TabPaneIrqCounter extends BaseElement {
               waitArr.splice(minIndex, 1);
             } else {
               // wallDuration为0，需要特别处理
-              const obj: finalResultBean = {
+              const obj: FinalResultBean = {
                 cat: item.cat,
                 name: item.name,
                 wallDuration: 0,
@@ -302,9 +302,9 @@ export class TabPaneIrqCounter extends BaseElement {
     }
 
     // 聚合数据
-    private aggregateData(data: finalResultBean[], isSelectIrq: boolean, isSelectSoftirq: boolean): void {
-      function groupAndSumDurations(items: finalResultBean[]): finalResultBean[] {
-        const grouped: Record<string, finalResultBean> = items.reduce((acc, item) => {
+    private aggregateData(data: FinalResultBean[], isSelectIrq: boolean, isSelectSoftirq: boolean): void {
+      function groupAndSumDurations(items: FinalResultBean[]): FinalResultBean[] {
+        const grouped: Record<string, FinalResultBean> = items.reduce((acc, item) => {
             if (item.cat === 'irq' && !isSelectIrq) {//若没有框选irq，则不对其进行处理
               return acc;
             }
@@ -330,7 +330,7 @@ export class TabPaneIrqCounter extends BaseElement {
               acc[item.name].maxDurationFormat = (acc[item.name].maxDuration! / 1000).toFixed(2);
             }
           return acc;
-        }, {} as Record<string, finalResultBean>);
+        }, {} as Record<string, FinalResultBean>);
         return Object.values(grouped);
       }
       this.irqAndSoftirqSource = groupAndSumDurations(data);
@@ -340,8 +340,8 @@ export class TabPaneIrqCounter extends BaseElement {
     private reSortByColum(key: string, type: number): void {
       // 如果数组为空，则直接返回
       if (!this.irqAndSoftirqSource.length) return;
-      let sortObject: finalResultBean[] = JSON.parse(JSON.stringify(this.irqAndSoftirqSource));
-      let sortList: Array<finalResultBean> = [];
+      let sortObject: FinalResultBean[] = JSON.parse(JSON.stringify(this.irqAndSoftirqSource));
+      let sortList: Array<FinalResultBean> = [];
       sortList.push(...sortObject);
       if (type === 0) {
         this.irqCounterTbl!.recycleDataSource = this.irqAndSoftirqSource;

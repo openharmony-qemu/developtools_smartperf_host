@@ -22,7 +22,7 @@ import { Utils } from '../../base/Utils';
 import { resizeObserver } from '../SheetUtils';
 import { getTabCpuByThread } from '../../../../database/sql/Cpu.sql';
 import { getCpuData, getIrqAndSoftIrqData } from "../../../../database/sql/CpuAndIrq.sql";
-import { byCpuGroupBean, CpuAndIrqBean, softirqAndIrq, finalResultBean } from "./CpuAndIrqBean";
+import { ByCpuGroupBean, CpuAndIrqBean, SoftirqAndIrq, FinalResultBean } from "./CpuAndIrqBean";
 import { FlagsConfig } from '../../../SpFlags';
 
 @element('tabpane-cpu-thread')
@@ -31,7 +31,7 @@ export class TabPaneCpuByThread extends BaseElement {
   private range: HTMLLabelElement | null | undefined;
   private cpuByThreadSource: Array<SelectionData> = [];
   private currentSelectionParam: SelectionParam | undefined;
-  private cpuByIrqSource: Array<finalResultBean> = [];
+  private cpuByIrqSource: Array<FinalResultBean> = [];
   private loadIrq: boolean = false;//flag开关
   private pubColumns = `
             <lit-table-column order width="250px" title="Process" data-index="process" key="process" align="flex-start" order >
@@ -80,7 +80,7 @@ export class TabPaneCpuByThread extends BaseElement {
         const resArr = cpuData.concat(interruptData);
         if (resArr != null && resArr.length > 0) {
           // @ts-ignore
-          const cutData: finalResultBean[] = this.groupByCpu(resArr, cpuByThreadValue.leftNs, cpuByThreadValue.rightNs);//切割后数据
+          const cutData: FinalResultBean[] = this.groupByCpu(resArr, cpuByThreadValue.leftNs, cpuByThreadValue.rightNs);//切割后数据
           this.aggregateData(cutData, cpuByThreadValue);//整合数据
         } else {
           this.cpuByIrqSource = [];
@@ -105,8 +105,8 @@ export class TabPaneCpuByThread extends BaseElement {
   }
 
   //将所有数据按cpu重新分组
-  private groupByCpu(data: Array<CpuAndIrqBean>, leftNs: number, rightNs: number): finalResultBean[] {
-    const cpuObject: { [cpu: number]: byCpuGroupBean } =
+  private groupByCpu(data: Array<CpuAndIrqBean>, leftNs: number, rightNs: number): FinalResultBean[] {
+    const cpuObject: { [cpu: number]: ByCpuGroupBean } =
       data.reduce((groups, item) => {
         const { cpu, ...restProps } = item;
         const newCpuAndIrqBean: CpuAndIrqBean = { cpu, ...restProps };
@@ -117,17 +117,17 @@ export class TabPaneCpuByThread extends BaseElement {
         groups[cpu].CPU!.push(newCpuAndIrqBean);
 
         return groups;
-      }, {} as { [cpu: number]: byCpuGroupBean })
-    const cutObj: { [cpu: number]: finalResultBean[] } = {};
+      }, {} as { [cpu: number]: ByCpuGroupBean })
+    const cutObj: { [cpu: number]: FinalResultBean[] } = {};
     Object.entries(cpuObject).forEach(([cpuStr, { CPU }]) => {
       const cpu = Number(cpuStr);
       cutObj[cpu] = this.cpuByIrq(CPU, leftNs, rightNs);
     })
-    const cutList: finalResultBean[] = Object.values(cutObj).flat();
+    const cutList: FinalResultBean[] = Object.values(cutObj).flat();
     return cutList;
   }
 
-  private createResultBean(item: CpuAndIrqBean, dur: number): finalResultBean {
+  private createResultBean(item: CpuAndIrqBean, dur: number): FinalResultBean {
     return {
       cat: item.cat,
       dur: dur,
@@ -138,7 +138,7 @@ export class TabPaneCpuByThread extends BaseElement {
     };
   }
 
-  private processBoxSelection(waitArr: CpuAndIrqBean[], minEndItem: CpuAndIrqBean, minOriginalEndTs: number, segmentDuration: number, completedArr: finalResultBean[]): void {
+  private processBoxSelection(waitArr: CpuAndIrqBean[], minEndItem: CpuAndIrqBean, minOriginalEndTs: number, segmentDuration: number, completedArr: FinalResultBean[]): void {
     const currentMinOriginalEndTs = Math.min(...waitArr.map((i: CpuAndIrqBean) => i.originalEndTime!));
     if (minOriginalEndTs < currentMinOriginalEndTs) {
       completedArr.push(this.createResultBean(minEndItem, segmentDuration));
@@ -151,10 +151,10 @@ export class TabPaneCpuByThread extends BaseElement {
   }
 
   //具体切割方法
-  private cpuByIrq(data: CpuAndIrqBean[], leftNs: number, rightNs: number): finalResultBean[] {
+  private cpuByIrq(data: CpuAndIrqBean[], leftNs: number, rightNs: number): FinalResultBean[] {
     let sourceData = data.sort((a, b) => a.startTime - b.startTime);
     let waitArr: CpuAndIrqBean[] = [];
-    let completedArr: finalResultBean[] = [];
+    let completedArr: FinalResultBean[] = [];
     let globalTs: number = 0;
     let index: number = 0;
     while (index < sourceData.length || waitArr.length > 0) {
@@ -177,7 +177,7 @@ export class TabPaneCpuByThread extends BaseElement {
             waitArr.splice(minIndex, 1);
           } else {
             // wallDuration为0，需要特别处理
-            const obj: finalResultBean = {
+            const obj: FinalResultBean = {
               cat: item.cat,
               cpu: item.cpu,
               dur: 0,
@@ -238,16 +238,16 @@ export class TabPaneCpuByThread extends BaseElement {
 
   // 聚合数据
   private aggregateData(data: any[], cpuByThreadValue: SelectionParam | any): void {
-    const cpuAggregations: { [tidPidKey: string]: softirqAndIrq } = {};
+    const cpuAggregations: { [tidPidKey: string]: SoftirqAndIrq } = {};
     //@ts-ignore
-    let softirqAggregations: softirqAndIrq = {
+    let softirqAggregations: SoftirqAndIrq = {
       occurrences: 0,
       wallDuration: 0,
       avgDuration: 0,
       cpus: {}
     };
     //@ts-ignore
-    let irqAggregations: softirqAndIrq = {
+    let irqAggregations: SoftirqAndIrq = {
       occurrences: 0,
       wallDuration: 0,
       avgDuration: 0,
@@ -316,7 +316,7 @@ export class TabPaneCpuByThread extends BaseElement {
   }
 
   //irq和softirq聚合方法
-  private updateIrqAndSoftirq(aggregation: softirqAndIrq, obj: CpuAndIrqBean, cpuByThreadValue: SelectionParam): void {
+  private updateIrqAndSoftirq(aggregation: SoftirqAndIrq, obj: CpuAndIrqBean, cpuByThreadValue: SelectionParam): void {
     const callid = obj.cpu;
     const callidDurKey = `cpu${callid}`;
     const callidPercentKey = `cpu${callid}Ratio`;
@@ -343,7 +343,7 @@ export class TabPaneCpuByThread extends BaseElement {
     let index = 0;
     let totalWallDuration = 0;
     let totalOccurrences = 0;
-    const finalData: Array<finalResultBean> = [];
+    const finalData: Array<FinalResultBean> = [];
     while (index < data.length) {
       const obj = data[index];
       totalWallDuration += obj.wallDuration;
@@ -390,8 +390,8 @@ export class TabPaneCpuByThread extends BaseElement {
   private reSortByColum(key: string, type: number): void {
     // 如果数组为空，则直接返回
     if (!this.cpuByIrqSource.length) return;
-    let sortObject: finalResultBean[] = JSON.parse(JSON.stringify(this.cpuByIrqSource)).splice(1);
-    let sortList: Array<finalResultBean> = [];
+    let sortObject: FinalResultBean[] = JSON.parse(JSON.stringify(this.cpuByIrqSource)).splice(1);
+    let sortList: Array<FinalResultBean> = [];
     sortList.push(...sortObject);
     if (type === 0) {
       this.cpuByThreadTbl!.recycleDataSource = this.cpuByIrqSource;

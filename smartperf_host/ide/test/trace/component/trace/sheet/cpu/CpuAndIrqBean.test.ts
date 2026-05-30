@@ -15,9 +15,9 @@
 
 import {
   CpuAndIrqBean,
-  byCpuGroupBean,
-  finalResultBean,
-  softirqAndIrq,
+  ByCpuGroupBean,
+  FinalResultBean,
+  SoftirqAndIrq,
 } from '../../../../../../src/trace/component/trace/sheet/cpu/CpuAndIrqBean';
 describe('PerfStruct', () => {
   it('PerfStructTest01', () => {
@@ -35,7 +35,7 @@ describe('PerfStruct', () => {
     expect(cpuAndIrqBean).toEqual(struct);
   });
   it('PerfStructTest02', () => {
-    let finalResultBeanData = new finalResultBean();
+    let finalResultBeanData = new FinalResultBean();
     let struct = {
       cat: '',
       cpu: 0,
@@ -45,14 +45,14 @@ describe('PerfStruct', () => {
     expect(finalResultBeanData).toEqual(struct);
   });
   it('PerfStructTest02', () => {
-    let byCpuGroupBeanData = new byCpuGroupBean();
+    let byCpuGroupBeanData = new ByCpuGroupBean();
     let struct = {
       CPU: [],
     };
     expect(byCpuGroupBeanData).toEqual(struct);
   });
   it('PerfStructTest02', () => {
-    let softirqAndIrqData = new softirqAndIrq();
+    let softirqAndIrqData = new SoftirqAndIrq();
     let struct = {
       avgDuration: 0,
       cpus: {},

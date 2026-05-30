@@ -27,7 +27,7 @@ export class CpuAndIrqBean {
     originalEndTime?: number = 0;
 }
 
-export class finalResultBean {
+export class FinalResultBean {
     wallDuration?:number | string;
     dur?: number = 0;
     cat?: string = '';
@@ -37,11 +37,11 @@ export class finalResultBean {
     tid?: number | string;
 }
 
-export class byCpuGroupBean {
+export class ByCpuGroupBean {
     CPU: CpuAndIrqBean[] = [];
 }
 
-export class softirqAndIrq {
+export class SoftirqAndIrq {
     occurrences: number = 0;
     wallDuration: number = 0;
     avgDuration: number = 0;
