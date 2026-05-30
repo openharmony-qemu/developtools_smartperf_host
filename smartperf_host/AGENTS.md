@@ -37,13 +37,9 @@ ide/src/trace/ (前端泳道渲染)
 
 | 遇到什么问题 | 先读 |
 |--------------|------|
-| 数据库表结构/stat | `trace_streamer/doc/des_tables.md` |
-| Binder 事务匹配 | `trace_streamer/doc/des_binder.md` |
-| 帧渲染/卡顿判定 | `trace_streamer/doc/frames.md` |
-| 时间戳/时钟源转化逻辑 | `trace_streamer/doc/des_timestamp.md` |
-| NativeHook 内存配置与匹配规则 | `trace_streamer/doc/des_native_hook_config.md` |
-| 应用启动8阶段识别 | `trace_streamer/doc/app_startup.md` |
-| 支持的trace事件 | `trace_streamer/doc/des_support_event.md` |
+| 数据库表结构 | `docs/table_schema.md` |
+| 支持解析的trace事件 | `docs/trace_event_mapping.md` |
+| 添加新trace事件的解析逻辑 | `docs/add_trace_event_guide.md` |
 
 ### 领域词汇速查
 
