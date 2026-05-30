@@ -152,18 +152,30 @@ export class TabPaneSchedPriority extends BaseElement {
     }
   }
 
-  private getDataByPriority(source: Array<Priority>): void {
+private getDataByPriority(source: Array<Priority>): void {
     const priorityMap: Map<string, Priority> = new Map<string, Priority>();
     const stateMap: Map<string, Priority> = new Map<string, Priority>();
-    this.prepareMaps(source, priorityMap, stateMap);
+    let priorityNumMap: Map<string, Priority> = new Map<string, Priority>();
+    this.prepareMaps(source, priorityMap, stateMap, priorityNumMap);
+    
+    const priorityNumArr = Array.from(priorityNumMap);
+    priorityNumArr.sort((a,b) => a[1].priority - b[1].priority);
+    priorityNumMap = new Map(priorityNumArr);
 
     const priorityArr: Array<Priority> = [];
-    for (const key of priorityMap.keys()) {
-      const ptsValues = priorityMap.get(key);
+    for (const key of stateMap.keys()) {
+      const ptsValues = stateMap.get(key);
       ptsValues!.children = [];
-      for (const itemKey of stateMap.keys()) {
+      for (const itemKey of priorityMap.keys()) {
         if (itemKey.startsWith(`${key}_`)) {
-          const sp = stateMap.get(itemKey);
+          const sp = priorityMap.get(itemKey);
+          sp!.children = [];
+          for(const priNumKey of priorityNumMap.keys()){
+            if(priNumKey.startsWith(`${itemKey}_`)){
+              const snum = priorityNumMap.get(priNumKey);
+              sp!.children.push(snum!);
+            }
+          }
           ptsValues!.children.push(sp!);
         }
       }
@@ -177,11 +189,33 @@ export class TabPaneSchedPriority extends BaseElement {
   private prepareMaps(
     source: Array<Priority>,
     priorityMap: Map<string, Priority>,
-    stateMap: Map<string, Priority>
+    stateMap: Map<string, Priority>,
+    priorityNumMap: Map<string, Priority>
   ): void {
     source.map((priorityItem): void => {
-      if (priorityMap.has(`${priorityItem.priorityType}`)) {
-        const priorityMapObj = priorityMap.get(`${priorityItem.priorityType}`);
+      if (stateMap.has(`${priorityItem.state}`)) {
+        const stateMapObj = stateMap.get(`${priorityItem.state}`);
+        stateMapObj!.count++;
+        stateMapObj!.wallDuration += priorityItem.dur;
+        stateMapObj!.avgDuration = (stateMapObj!.wallDuration / stateMapObj!.count).toFixed(2);
+        if (priorityItem.dur > stateMapObj!.maxDuration) {
+          stateMapObj!.maxDuration = priorityItem.dur;
+        }
+        if (priorityItem.dur < stateMapObj!.minDuration) {
+          stateMapObj!.minDuration = priorityItem.dur;
+        }
+      } else {
+        const stateMapObj = new Priority();
+        stateMapObj.title = priorityItem.state;
+        stateMapObj.minDuration = priorityItem.dur;
+        stateMapObj.maxDuration = priorityItem.dur;
+        stateMapObj.count = 1;
+        stateMapObj.avgDuration = `${priorityItem.dur}`;
+        stateMapObj.wallDuration = priorityItem.dur;
+        stateMap.set(`${priorityItem.state}`, stateMapObj);
+      }
+      if (priorityMap.has(`${priorityItem.state}_${priorityItem.priorityType}`)) {
+        const priorityMapObj = priorityMap.get(`${priorityItem.state}_${priorityItem.priorityType}`);
         priorityMapObj!.count++;
         priorityMapObj!.wallDuration += priorityItem.dur;
         priorityMapObj!.avgDuration = (priorityMapObj!.wallDuration / priorityMapObj!.count).toFixed(2);
@@ -192,35 +226,36 @@ export class TabPaneSchedPriority extends BaseElement {
           priorityMapObj!.minDuration = priorityItem.dur;
         }
       } else {
-        const stateMapObj = new Priority();
-        stateMapObj.title = priorityItem.priorityType;
-        stateMapObj.minDuration = priorityItem.dur;
-        stateMapObj.maxDuration = priorityItem.dur;
-        stateMapObj.count = 1;
-        stateMapObj.avgDuration = `${priorityItem.dur}`;
-        stateMapObj.wallDuration = priorityItem.dur;
-        priorityMap.set(`${priorityItem.priorityType}`, stateMapObj);
-      }
-      if (stateMap.has(`${priorityItem.priorityType}_${priorityItem.state}`)) {
-        const ptsPtMapObj = stateMap.get(`${priorityItem.priorityType}_${priorityItem.state}`);
-        ptsPtMapObj!.count++;
-        ptsPtMapObj!.wallDuration += priorityItem.dur;
-        ptsPtMapObj!.avgDuration = (ptsPtMapObj!.wallDuration / ptsPtMapObj!.count).toFixed(2);
-        if (priorityItem.dur > ptsPtMapObj!.maxDuration) {
-          ptsPtMapObj!.maxDuration = priorityItem.dur;
-        }
-        if (priorityItem.dur < ptsPtMapObj!.minDuration) {
-          ptsPtMapObj!.minDuration = priorityItem.dur;
-        }
-      } else {
         const ptsPtMapObj = new Priority();
-        ptsPtMapObj.title = priorityItem.state;
+        ptsPtMapObj.title = priorityItem.priorityType;
         ptsPtMapObj.minDuration = priorityItem.dur;
         ptsPtMapObj.maxDuration = priorityItem.dur;
         ptsPtMapObj.count = 1;
         ptsPtMapObj.avgDuration = `${priorityItem.dur}`;
         ptsPtMapObj.wallDuration = priorityItem.dur;
-        stateMap.set(`${priorityItem.priorityType}_${priorityItem.state}`, ptsPtMapObj);
+        priorityMap.set(`${priorityItem.state}_${priorityItem.priorityType}`, ptsPtMapObj);
+      }
+      if (priorityNumMap.has(`${priorityItem.state}_${priorityItem.priorityType}_${priorityItem.priority}`)) {
+        const priorityNumObj = priorityNumMap.get(`${priorityItem.state}_${priorityItem.priorityType}_${priorityItem.priority}`);
+        priorityNumObj!.count++;
+        priorityNumObj!.wallDuration += priorityItem.dur;
+        priorityNumObj!.avgDuration = (priorityNumObj!.wallDuration / priorityNumObj!.count).toFixed(2);
+        if (priorityItem.dur > priorityNumObj!.maxDuration) {
+          priorityNumObj!.maxDuration = priorityItem.dur;
+        }
+        if (priorityItem.dur < priorityNumObj!.minDuration) {
+          priorityNumObj!.minDuration = priorityItem.dur;
+        }
+      } else {
+        const priorityNumObj = new Priority();
+        priorityNumObj.title = priorityItem.priority.toString();
+        priorityNumObj.minDuration = priorityItem.dur;
+        priorityNumObj.maxDuration = priorityItem.dur;
+        priorityNumObj.count = 1;
+        priorityNumObj.avgDuration = `${priorityItem.dur}`;
+        priorityNumObj.wallDuration = priorityItem.dur;
+        priorityNumObj.priority = priorityItem.priority;
+        priorityNumMap.set(`${priorityItem.state}_${priorityItem.priorityType}_${priorityItem.priority}`,priorityNumObj);
       }
     });
   }
@@ -231,10 +266,13 @@ export class TabPaneSchedPriority extends BaseElement {
       for (let i = 0; i < labels.length; i++) {
         let label = labels[i].innerHTML;
         labels[i].addEventListener('click', (): void => {
-          if (label.includes('Priority') && i === 0) {
+          if (label.includes('State') && i === 0) {
             this.priorityTbl!.setStatus(data, false);
             this.priorityTbl!.recycleDs = this.priorityTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
-          } else if (label.includes('State') && i === 1) {
+          } else if (label.includes('Priority') && i === 1) {
+            this.priorityTbl!.setStatus(data, false, 0, 1);
+            this.priorityTbl!.recycleDs = this.priorityTbl!.meauseTreeRowElement(data, RedrawTreeForm.Retract);
+          } else if (label.includes('PriorityValue') && i === 2) {
             this.priorityTbl!.setStatus(data, true);
             this.priorityTbl!.recycleDs = this.priorityTbl!.meauseTreeRowElement(data, RedrawTreeForm.Expand);
           }
@@ -254,7 +292,7 @@ export class TabPaneSchedPriority extends BaseElement {
         </style>
         <label id="priority-time-range" style="width: 100%;height: 20px;text-align: end;font-size: 10pt;margin-bottom: 5px">Selected range:0.0 ms</label>
         <lit-table id="priority-tbl" style="height: auto" tree>
-            <lit-table-column width="27%" data-index="title" key="title" align="flex-start" title="Priority/State" retract>
+            <lit-table-column width="27%" data-index="title" key="title" align="flex-start" title="State/Priority/PriorityValue" retract>
             </lit-table-column>
             <lit-table-column width="1fr" data-index="count" key="count" align="flex-start" title="Count">
             </lit-table-column>

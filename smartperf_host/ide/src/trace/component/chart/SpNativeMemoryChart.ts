@@ -44,6 +44,7 @@ import { queryNativeMemoryRealTime } from '../../database/sql/Memory.sql';
 import { queryBootTime } from '../../database/sql/Clock.sql';
 import { SpOtherSourceChart } from './SpOtherSourceChart';
 import { SpGpuMemoryChart } from './SpGpuMemoryChart';
+import { SpApplication } from '../../SpApplication';
 
 export class SpNativeMemoryChart {
   static EVENT_HEAP: Array<NativeEventHeap> = [];
@@ -105,7 +106,12 @@ export class SpNativeMemoryChart {
     nativeRow.rowParentId = '';
     nativeRow.folder = true;
     nativeRow.addTemplateTypes('NativeMemory', 'Memory');
-    nativeRow.name = `Native Memory (${process})`;
+    if (SpApplication.traceName.startsWith('native_memory_')) {
+      let processName = this.getProcessName(SpApplication.traceName.split('native_memory_')[1]);
+      nativeRow.name = `Native Memory [${processName}(${process})]`;
+    } else {
+      nativeRow.name = `Native Memory (${process})]`;
+    }
     nativeRow.favoriteChangeHandler = this.trace.favoriteChangeHandler;
     nativeRow.selectChangeHandler = this.trace.selectChangeHandler;
     nativeRow.addRowSettingPop();
@@ -137,6 +143,17 @@ export class SpNativeMemoryChart {
     this.folderThreadHandler(nativeRow);
     this.trace.rowsEL?.appendChild(nativeRow);
     return nativeRow;
+  }
+
+  getProcessName(traceName: string): string{
+    let returnString = '';
+    const lastDotIndex = traceName.lastIndexOf('.');
+    if(lastDotIndex !== -1){
+      returnString = traceName.substring(0,lastDotIndex);
+    }else{
+      returnString = traceName;
+    }
+    return returnString;
   }
 
   initAllocMapChart(folder: TraceRow<BaseStruct>, type: string, process: { pid: number; ipid: number; }): void {

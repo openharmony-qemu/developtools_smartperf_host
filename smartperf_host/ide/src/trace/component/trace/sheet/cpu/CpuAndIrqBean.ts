@@ -23,9 +23,11 @@ export class CpuAndIrqBean {
     pid?: number | string;
     tid?: number | string;
     isFirstObject?:number = 1;
+    originalStartTime?: number = 0;
+    originalEndTime?: number = 0;
 }
 
-export class finalResultBean {
+export class FinalResultBean {
     wallDuration?:number | string;
     dur?: number = 0;
     cat?: string = '';
@@ -35,11 +37,11 @@ export class finalResultBean {
     tid?: number | string;
 }
 
-export class byCpuGroupBean {
+export class ByCpuGroupBean {
     CPU: CpuAndIrqBean[] = [];
 }
 
-export class softirqAndIrq {
+export class SoftirqAndIrq {
     occurrences: number = 0;
     wallDuration: number = 0;
     avgDuration: number = 0;
@@ -52,6 +54,6 @@ export class softirqAndIrq {
     pid?: number|string;
     //@ts-ignore
     process?: string;
-    //@ts-ignore  
-    thread?: string; 
+    //@ts-ignore
+    thread?: string;
 }

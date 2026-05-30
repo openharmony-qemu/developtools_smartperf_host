@@ -36,6 +36,7 @@ import { SpSystemTrace } from '../../SpSystemTrace';
 import { AppStartupStruct } from '../../../database/ui-worker/ProcedureWorkerAppStartup';
 import { SoStruct } from '../../../database/ui-worker/ProcedureWorkerSoInit';
 import { type SelectionParam } from '../../../bean/BoxSelection';
+import { NetworkRequestStruct } from '../../../bean/NetworkStruct';
 import { type FrameAnimationStruct } from '../../../database/ui-worker/ProcedureWorkerFrameAnimation';
 import {
   queryBinderByArgsId,
@@ -197,8 +198,8 @@ export class TabPaneCurrentSelection extends BaseElement {
         timeStr = startTimeAbsolute / 1000000000 + 's';
       }
       startTimeValue = `<div style="white-space: nowrap;display: flex;align-items: center">
-                            <div id="${startTimeAbsaluteId}" style="white-space:pre-wrap" >${timeStr}</div>                             
-                            <lit-icon id="${transfBtnId}" class="temp-icon" title="Convert to realtime" name="restore" size="30" 
+                            <div id="${startTimeAbsaluteId}" style="white-space:pre-wrap" >${timeStr}</div>
+                            <lit-icon id="${transfBtnId}" class="temp-icon" title="Convert to realtime" name="restore" size="30"
                                   style="position: relative; top: 5px; left: 10px;"></lit-icon>
                         </div>`;
     } else {
@@ -1374,7 +1375,7 @@ export class TabPaneCurrentSelection extends BaseElement {
         name: 'wakeup from tid',
         value: `<div style="white-space: nowrap;display: flex;align-items: center">
             <div style="white-space:pre-wrap">${fromBean.tid}</div>
-            <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="wakeup-from"  
+            <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="wakeup-from"
             class="wakeup-click"  name="select" color="#7fa1e7" size="20"></lit-icon>
             </div>`,
       });
@@ -1382,7 +1383,7 @@ export class TabPaneCurrentSelection extends BaseElement {
         name: 'wakeup from top',
         value: `<div style="white-space: nowrap;display: flex;align-items: center">
             <div style="white-space:pre-wrap" id="wakeup-top-content" style="display: none"></div>
-            <lit-icon id="wakeup-top" class="temp-icon" title="Get to chain" name="restore" size="30" 
+            <lit-icon id="wakeup-top" class="temp-icon" title="Get to chain" name="restore" size="30"
               style="position: relative; top: 5px; left: 10px;"></lit-icon>
             </div>`,
       });
@@ -1393,7 +1394,7 @@ export class TabPaneCurrentSelection extends BaseElement {
           name: 'wakeup tid',
           value: `<div style="white-space: nowrap;display: flex;align-items: center">
             <div style="white-space:pre-wrap">${e.tid}</div>
-            <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="wakeup-${e.tid}" 
+            <lit-icon style="cursor:pointer;transform: scaleX(-1);margin-left: 5px" id="wakeup-${e.tid}"
             class="wakeup-click" name="select" color="#7fa1e7" size="20"></lit-icon>
             </div>`,
         });
@@ -2595,6 +2596,97 @@ export class TabPaneCurrentSelection extends BaseElement {
         return '#262626';
       }
     };
+  }
+
+  async setNetworkData(data: NetworkRequestStruct): Promise<void> {
+    this.setTableHeight('auto');
+    this.initCanvas();
+    this.setTitleAndButtonStyle();
+    let leftTitle: HTMLElement | null | undefined = this?.shadowRoot?.querySelector('#leftTitle');
+    if (leftTitle) {
+      leftTitle.innerText = 'Network Details';
+    }
+    let list: unknown[] = [];
+
+    const { queryNetworkTimeInformationById, queryProcessInfo } = await import('../../../database/sql/Network.sql');
+    const timeInfo = data.timeInfo || await queryNetworkTimeInformationById(data.ipid!, data.itid!);
+
+    let processName = '';
+    let threadName = '';
+    if (timeInfo) {
+      const processInfo = await queryProcessInfo(data.ipid!);
+      if (processInfo) {
+        processName = processInfo.name;
+      }
+      const threadMap = Utils.getInstance().getThreadMap();
+      threadName = threadMap.get(data.itid!) || '';
+    }
+
+    if (processName || timeInfo) {
+      list.push({ name: 'Process', value: `${processName || 'Unknown'} [${timeInfo?.pid || data.ipid}]` });
+    }
+    if (threadName || timeInfo) {
+      list.push({ name: 'Thread', value: `${threadName || 'Unknown'} [${timeInfo?.tid || data.itid}]` });
+    }
+
+    let startTime = data.startTime || 0;
+    let endTime = data.endTime || 0;
+
+    if (timeInfo && data.clickedLayer) {
+      switch (data.clickedLayer) {
+        case 'blocked':
+          startTime = timeInfo.blockedStartTime || 0;
+          endTime = timeInfo.blockedEndTime || 0;
+          break;
+        case 'waiting':
+          startTime = timeInfo.waitingStartTime || 0;
+          endTime = timeInfo.waitingEndTime || 0;
+          break;
+        case 'receive':
+          startTime = timeInfo.receiveStartTime || 0;
+          endTime = timeInfo.receiveEndTime || 0;
+          break;
+        case 'dns':
+          startTime = timeInfo.dnsStartTime || 0;
+          endTime = timeInfo.dnsEndTimeCalc || 0;
+          break;
+        case 'tcp':
+          startTime = timeInfo.tcpStartTime || 0;
+          endTime = timeInfo.tcpEndTimeCalc || 0;
+          break;
+        case 'tls':
+          startTime = timeInfo.tlsStartTime || 0;
+          endTime = timeInfo.tlsEndTimeCalc || 0;
+          break;
+        default:
+          startTime = data.startTime || 0;
+          endTime = data.endTime || 0;
+      }
+    }
+
+    list.push({ name: 'StartTime(Relative)', value: getTimeString(startTime) });
+    list.push({ name: 'EndTime(Relative)', value: getTimeString(endTime) });
+    list.push({ name: 'Duration', value: getTimeString(data.duration || 0) });
+
+    list.push({ name: 'Request ID', value: data.requestId || '' });
+    list.push({ name: 'Request Method', value: data.requestMethod || '' });
+    list.push({ name: 'HTTP Version', value: data.version || '' });
+
+    if (data.responseStatusCode || data.reasonPhrase) {
+      const statusText = data.responseStatusCode ? data.responseStatusCode.toString() : '';
+      const reasonText = data.reasonPhrase || '';
+      list.push({ name: 'ResponseStatusCode', value: `${statusText} ${reasonText}` });
+    }
+
+    if (data.responseEffectiveUrl && data.responseEffectiveUrl !== data.domain + data.requestUri) {
+      list.push({ name: 'Redirect URL', value: data.responseEffectiveUrl || '' });
+    }
+    list.push({ name: 'Domain', value: data.domain || '' });
+    list.push({ name: 'IP Address', value: data.ipAddress || '' });
+
+
+
+    this.currentSelectionTbl!.dataSource = list;
   }
 
   addTableObserver(): void {

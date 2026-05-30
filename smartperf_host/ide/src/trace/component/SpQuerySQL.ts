@@ -137,7 +137,12 @@ export class SpQuerySQL extends BaseElement {
       });
       copyResult += '\n';
     }
-    await navigator.clipboard.writeText(copyResult);
+    try {
+      await navigator.clipboard.writeText(copyResult);
+      console.log('Table data copied to clipboard');
+    } catch (err) {
+      console.error('Failed to copy table data: ', err);
+    }
   }
 
   selectEventListener = (event: KeyboardEvent): void => {

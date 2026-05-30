@@ -15,8 +15,8 @@
 
 import {
   IrqAndSoftirqBean,
-  byCallidGroupBean,
-  finalResultBean,
+  ByCallidGroupBean,
+  FinalResultBean,
 } from '../../../../../../src/trace/component/trace/sheet/irq/irqAndSoftirqBean';
 
 describe('IrqBean Test', () => {
@@ -27,13 +27,13 @@ describe('IrqBean Test', () => {
   });
 
   it('IrqBean02', function () {
-    let data = new byCallidGroupBean();
+    let data = new ByCallidGroupBean();
     data.Callid = [];
     expect(data.Callid).toEqual([]);
   });
 
   it('IrqBean03', function () {
-    let data = new finalResultBean();
+    let data = new FinalResultBean();
     data.cat = 'fds';
     expect(data.cat).toEqual('fds');
   });

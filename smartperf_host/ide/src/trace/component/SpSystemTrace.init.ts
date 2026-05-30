@@ -166,7 +166,7 @@ function rightButtonOnClick(sp: SpSystemTrace, rightStar: HTMLElementAlias): unk
       CpuStruct.selectCpuStruct!.itid = CpuStruct.wakeupBean!.itid;
       sessionStorage.setItem('saveselectcpustruct', JSON.stringify(CpuStruct.selectCpuStruct));
     }
-    let rightButton: HTMLElement | null | undefined = sp.traceSheetEL?.shadowRoot 
+    let rightButton: HTMLElement | null | undefined = sp.traceSheetEL?.shadowRoot
     ?.querySelector('#current-selection > tabpane-current-selection')
     ?.shadowRoot?.querySelector('#rightButton');
     rightButton?.blur();
@@ -683,6 +683,18 @@ function selectHandlerRows(sp: SpSystemTrace, rows: Array<TraceRow<unknown>>): v
     }
     sp.setParentCheckStatus(it);
   });
+  let hasNetworkCount = rows.some(row =>
+    row.rowType === TraceRow.ROW_TYPE_NETWORK_COUNT || row.rowType === TraceRow.ROW_TYPE_NETWORK_COUNT_FOLDER
+  );
+  let hasNetworkSummary = rows.some(row => row.rowType === TraceRow.ROW_TYPE_NETWORK_SUMMARY);
+  let hasNetworkDetail = rows.some(row =>
+    row.rowType === TraceRow.ROW_TYPE_NETWORK_DETAIL || row.rowType === TraceRow.ROW_TYPE_NETWORK_DETAIL_FOLDER
+  );
+  if (hasNetworkDetail && !hasNetworkCount && !hasNetworkSummary) {
+    selection.shouldQueryByProcess = true;
+  } else if (hasNetworkCount || hasNetworkSummary) {
+    selection.shouldQueryByProcess = false;
+  }
   if (selection.diskIOipids.length > 0 && !selection.diskIOLatency) {
     selection.promiseList.push(
       queryEbpfSamplesCount(
@@ -1477,6 +1489,9 @@ const eventMap = {
   'memory-ability': 'Memory Ability',
   'disk-ability': 'DiskIO Ability',
   'network-ability': 'Network Ability',
+  'network-count': 'Network Count',
+  'network-summary': 'Network Traffic',
+  'network-detail': 'Network Process Detail',
   sdk: 'Sdk',
   'sdk-counter': 'SDK Counter',
   'sdk-slice': 'Sdk Slice',

@@ -29,7 +29,9 @@ export const getCpuData = (cpus: Array<number>, leftNS: number, rightNS: number)
         true As isFirstObject,
         MAX(${leftNS},TS.ts - TR.start_ts) AS startTime,
         MIN(${rightNS},(TS.ts - TR.start_ts + iif(TS.dur = -1 OR TS.dur IS NULL, 0, TS.dur))) AS endTime,
-        MIN(${rightNS},(TS.ts - TR.start_ts + iif(TS.dur = -1 OR TS.dur IS NULL, 0, TS.dur))) - MAX(${leftNS},TS.ts - TR.start_ts) AS dur
+        MIN(${rightNS},(TS.ts - TR.start_ts + iif(TS.dur = -1 OR TS.dur IS NULL, 0, TS.dur))) - MAX(${leftNS},TS.ts - TR.start_ts) AS dur,
+        TS.ts - TR.start_ts AS originalStartTime,
+        TS.ts - TR.start_ts + iif(TS.dur = -1 OR TS.dur IS NULL, 0, TS.dur) AS originalEndTime
       FROM
         thread_state AS TS
       LEFT JOIN
@@ -59,9 +61,11 @@ export const getIrqAndSoftIrqData = (cpus: Array<number>, leftNS: number, rightN
       true As isFirstObject,
       MAX(${leftNS},i.ts - TR.start_ts) AS startTime,
       MIN(${rightNS},(i.ts - TR.start_ts + iif(i.dur = -1 OR i.dur IS NULL, 0, i.dur))) AS endTime,
-      MIN(${rightNS},(i.ts - TR.start_ts + iif(i.dur = -1 OR i.dur IS NULL, 0, i.dur))) - MAX(${leftNS},i.ts - TR.start_ts) AS dur
+      MIN(${rightNS},(i.ts - TR.start_ts + iif(i.dur = -1 OR i.dur IS NULL, 0, i.dur))) - MAX(${leftNS},i.ts - TR.start_ts) AS dur,
+      i.ts - TR.start_ts AS originalStartTime,
+      i.ts - TR.start_ts + iif(i.dur = -1 OR i.dur IS NULL, 0, i.dur) AS originalEndTime
     FROM
-      irq i 
+      irq i
     LEFT JOIN
       trace_range AS TR
     WHERE

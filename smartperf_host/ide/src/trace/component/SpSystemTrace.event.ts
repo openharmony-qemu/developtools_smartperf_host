@@ -64,8 +64,8 @@ import { XpowerThreadCountStruct, XpowerThreadCountStructOnClick } from '../data
 import { XpowerGpuFreqCountStruct, XpowerGpuFreqCountStructOnClick } from '../database/ui-worker/ProcedureWorkerXpowerGpuFreqCount';
 import { SnapShotOnClick, SnapShotStruct } from '../database/ui-worker/ProcedureWorkerSnaps';
 import { ThreadSysCallStruct, ThreadSysCallStructOnClick } from '../database/ui-worker/ProcedureWorkerThreadSysCall';
-import { IOStructOnClick, IOStruct } from '../database/ui-worker/ProcedureWorkerIO';
-import { SlicesTime } from './trace/timer-shaft/SportRuler';
+import { NetworkSummaryStruct, NetworkSummaryStructOnClick } from '../database/ui-worker/ProcedureWorkerNetworkSummary';
+import { NetworkDetailStruct, NetworkDetailStructOnClick } from '../database/ui-worker/ProcedureWorkerNetworkDetail';
 
 function timeoutJudge(sp: SpSystemTrace): number {
   let timeoutJudge = window.setTimeout((): void => {
@@ -427,7 +427,8 @@ function allStructOnClick(clickRowType: string, sp: SpSystemTrace, row?: TraceRo
     .then(() => PerfToolsStructOnClick(clickRowType, sp, entry as PerfToolStruct))
     .then(() => ThreadSysCallStructOnClick(clickRowType, sp, entry as ThreadSysCallStruct))
     .then(() => SnapShotOnClick(clickRowType, sp, entry as SnapShotStruct))
-    .then(() => IOStructOnClick(clickRowType, sp, entry as IOStruct))
+    .then(() => NetworkSummaryStructOnClick(clickRowType, sp, row as TraceRow<NetworkSummaryStruct>, entry as NetworkSummaryStruct))
+    .then(() => NetworkDetailStructOnClick(clickRowType, sp, row as TraceRow<NetworkDetailStruct>, entry as NetworkDetailStruct))
     .then(() => {
       if (!JankStruct.hoverJankStruct && JankStruct.delJankLineFlag) {
         sp.removeLinkLinesByBusinessType('janks');
