@@ -9,7 +9,7 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and 
+ * See the License for the specific language governing permissions and
  * limitations under the License.
  */
 
@@ -50,6 +50,7 @@ import { SpWebHdcShell } from './setting/SpWebHdcShell';
 import { SpHilogRecord } from './setting/SpHilogRecord';
 import { SpGpuCountersRecord } from './setting/SpGpuCountersRecord'
 import { SpXPowerRecord } from './setting/SpXPowerRecord';
+import { SpNetworkProfilerConfig } from './setting/SpNetworkProfilerConfig';
 import { LongTraceDBUtils } from '../database/LongTraceDBUtils';
 import {
   createFpsPluginConfig,
@@ -64,6 +65,7 @@ import {
   createHiSystemEventPluginConfig,
   createArkTsConfig,
   createHiLogConfig, createFFRTPluginConfig,
+  createNetworkProfilerPluginConfig,
   createXPowerConfig,
 } from './SpRecordConfigModel';
 import { SpRecordTraceHtml } from './SpRecordTrace.html';
@@ -112,6 +114,7 @@ export class SpRecordTrace extends BaseElement {
   private spGpuCounters: SpGpuCountersRecord | undefined;
   private spXPower: SpXPowerRecord | undefined;
   private spFFRTConfig: SpFFRTConfig | undefined;
+  private spNetworkProfilerConfig: SpNetworkProfilerConfig | undefined;
   private ftraceSlider: LitSlider | undefined | null;
   private spWebShell: SpWebHdcShell | undefined;
   private menuGroup: LitMainMenuGroup | undefined | null;
@@ -1047,6 +1050,7 @@ export class SpRecordTrace extends BaseElement {
     this.spGpuCounters = new SpGpuCountersRecord();
     this.spXPower = new SpXPowerRecord();
     this.spFFRTConfig = new SpFFRTConfig();
+    this.spNetworkProfilerConfig = new SpNetworkProfilerConfig();
     this.spWebShell = new SpWebHdcShell();
     this.spRecordTemplate = new SpRecordTemplate(this);
     this.appContent = this.shadowRoot?.querySelector('#app-content') as HTMLElement;
@@ -1348,7 +1352,8 @@ export class SpRecordTrace extends BaseElement {
       this.buildMenuItem('FFRT', 'file-config', this.spFFRTConfig!),
       this.buildMenuItem('Hilog', 'realIntentionBulb', this.spHiLog!),
       this.buildMenuItem('Xpower', 'externaltools', this.spXPower!),
-      this.buildMenuItem('GpuCounters', 'externaltools', this.spGpuCounters!)
+      this.buildMenuItem('GpuCounters', 'externaltools', this.spGpuCounters!),
+      this.buildMenuItem('Network Profiler', 'externaltools', this.spNetworkProfilerConfig!)
     ];
   }
 
@@ -1866,6 +1871,7 @@ export class SpRecordTrace extends BaseElement {
       }
       createHiLogConfig(reportingFrequency, this.spHiLog!, request);
       createFFRTPluginConfig(this.spFFRTConfig!, SpRecordTrace.selectVersion, request);
+      createNetworkProfilerPluginConfig(this.spNetworkProfilerConfig!, SpRecordTrace.selectVersion, request);
       createXPowerConfig(this.spXPower!, request);
     }
     return request;
@@ -1917,7 +1923,7 @@ export class SpRecordTrace extends BaseElement {
     this.addButton!.style.pointerEvents = pointerEventValue;
     this.deviceSelect!.style.pointerEvents = pointerEventValue;
     this.deviceVersion!.style.pointerEvents = pointerEventValue;
-    this.useExtendCheck!.style.pointerEvents = pointerEventValue;// arkts trace 
+    this.useExtendCheck!.style.pointerEvents = pointerEventValue;// arkts trace
   }
 
   private freshMenuItemsStatus(currentValue: string): void {

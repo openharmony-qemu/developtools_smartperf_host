@@ -147,6 +147,7 @@ import { TabPaneSampleInstruction } from '../sheet/bpftrace/TabPaneSampleInstruc
 import { TabPaneDataCut } from '../sheet/TabPaneDataCut';
 import { TabPaneGpuCounterSelection } from '../sheet/gpu-counter/TabPaneGpuCounterSelection';
 import { TabPaneGpuCounter } from '../sheet/gpu-counter/TabPaneGpuCounter';
+import { TabPaneNetworkStatistics } from '../sheet/network/TabPaneNetworkStatistics';
 import { TabPaneTimeParallel } from '../sheet/parallel/TabPaneTimeParallel';
 import { TabPaneMtParallel } from '../sheet/parallel/TabPaneMtParallel';
 import { TabPanePerfAsync } from '../sheet/hiperf/TabPerfAsyncList';
@@ -890,5 +891,10 @@ export let tabConfig: {
     title: "IO Statistics",
     type: TabPaneIOStatistics,
     require: (param: SelectionParam) => param.ioStatisticsRowIds.length > 0 || param.ioStatiicsData.length > 0,
-  }
+  },
+  'global-network-statistics': {
+    title: 'Network Statistics',
+    type: TabPaneNetworkStatistics,
+    require: (param: SelectionParam) => param.networkIds.length > 0,
+  },
 };

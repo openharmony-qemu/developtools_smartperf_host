@@ -19,7 +19,7 @@ import { SelectionData, SelectionParam } from '../../../../bean/BoxSelection';
 import { initSort, resizeObserver } from '../SheetUtils';
 import { queryIrqDataBoxSelect, querySoftIrqDataBoxSelect, queryIrqSelectData, querySoftirqSelectData } from '../../../../database/sql/Irq.sql';
 import { FlagsConfig } from '../../../SpFlags';
-import { IrqAndSoftirqBean, byCallidGroupBean, finalResultBean } from './irqAndSoftirqBean';
+import { IrqAndSoftirqBean, ByCallidGroupBean, FinalResultBean } from './irqAndSoftirqBean';
 
 @element('tabpane-irq-counter')
 export class TabPaneIrqCounter extends BaseElement {
@@ -29,7 +29,7 @@ export class TabPaneIrqCounter extends BaseElement {
   private sortColumn: string = 'wallDurationFormat';
   private sortType: number = 2;
   private loadIrq: boolean = false;//flag开关
-  private irqAndSoftirqSource: Array<finalResultBean> = [];
+  private irqAndSoftirqSource: Array<FinalResultBean> = [];
 
   set data(irqParam: SelectionParam | unknown) {
     if (this.irqCounterTbl) {
@@ -47,14 +47,15 @@ export class TabPaneIrqCounter extends BaseElement {
       let irqCallIds = irqParam.softIrqCallIds.length > 0 ? irqParam.softIrqCallIds : irqParam.irqCallIds;
       Promise.all([//@ts-ignore
         queryIrqSelectData(irqCallIds, irqParam.leftNs, irqParam.rightNs),//@ts-ignore
-        querySoftirqSelectData(irqParam.softIrqCallIds, irqParam.leftNs, irqParam.rightNs),
+        querySoftirqSelectData(irqCallIds, irqParam.leftNs, irqParam.rightNs),
       ]).then(([irqData, softirqData]) => {
         this.irqCounterTbl!.loading = false;
         const resArr = irqData.concat(softirqData);
         if (resArr != null && resArr.length > 0) {//@ts-ignore
-          let isSelectIrq = irqParam.irqCallIds.length > 0 ? true : false;
-          const cutData: finalResultBean[] = this.groupByCallid(resArr);
-          this.aggregateData(cutData, isSelectIrq);//整合数据
+          let isSelectIrq = irqParam.irqCallIds.length > 0 ? true : false;//@ts-ignore
+          let isSelectSoftirq = irqParam.softIrqCallIds.length > 0 ? true : false;//@ts-ignore
+          const cutData: FinalResultBean[] = this.groupByCallid(resArr, irqParam.leftNs, irqParam.rightNs);
+          this.aggregateData(cutData, isSelectIrq, isSelectSoftirq);//整合数据
         } else {
           this.irqAndSoftirqSource = [];
           this.irqCounterTbl!.recycleDataSource = this.irqAndSoftirqSource;
@@ -173,38 +174,61 @@ export class TabPaneIrqCounter extends BaseElement {
   }
 
     //将所有数据按callid重新分组
-    private groupByCallid(data: Array<IrqAndSoftirqBean>): finalResultBean[] {
-      const callidObject: { [callid: number]: byCallidGroupBean } =
+    private groupByCallid(data: Array<IrqAndSoftirqBean>, leftNs: number, rightNs: number): FinalResultBean[] {
+      const callidObject: { [callid: number]: ByCallidGroupBean } =
         data.reduce((groups, item) => {
           const { callid, ...restProps } = item;
           const newIrqAndSoftirqBean: IrqAndSoftirqBean = { callid, ...restProps };
-  
+
           if (!groups[callid]) {
             groups[callid] = { Callid: [] };
           }
           groups[callid].Callid!.push(newIrqAndSoftirqBean);
-  
+
           return groups;
-        }, {} as { [callid: number]: byCallidGroupBean });
-      const cutObj: { [callid: number]: finalResultBean[] } = {};
+        }, {} as { [callid: number]: ByCallidGroupBean });
+      const cutObj: { [callid: number]: FinalResultBean[] } = {};
       Object.entries(callidObject).forEach(([callidStr, { Callid }]) => {
         const callid = Number(callidStr);
-        cutObj[callid] = this.callidByIrq(Callid);
+        cutObj[callid] = this.callidByIrq(Callid, leftNs, rightNs);
       });
-      const cutList: finalResultBean[] = Object.values(cutObj).flat();
+      const cutList: FinalResultBean[] = Object.values(cutObj).flat();
       return cutList;
     }
-  
+
+    private createResultBean(item: IrqAndSoftirqBean, wallDuration: number): FinalResultBean {
+      return {
+        cat: item.cat,
+        name: item.name,
+        wallDuration: wallDuration,
+        count: item.isFirstObject === 1 ? 1 : 0
+      };
+    }
+
+    private processBoxSelection(waitArr: IrqAndSoftirqBean[], minEndItem: IrqAndSoftirqBean, minOriginalEndTs: number, segmentDuration: number, completedArr: FinalResultBean[]): void {
+      const currentMinOriginalEndTs = Math.min(...waitArr.map((i: IrqAndSoftirqBean) => i.originalEndTime!));
+      if (minOriginalEndTs < currentMinOriginalEndTs) {
+        completedArr.push(this.createResultBean(minEndItem, segmentDuration));
+      } else {
+        waitArr.forEach((item: IrqAndSoftirqBean) => {
+          const isMinOriginal = item.originalEndTime === currentMinOriginalEndTs;
+          completedArr.push(this.createResultBean(item, isMinOriginal ? segmentDuration : 0));
+        });
+      }
+    }
+
     //具体切割方法
-    private callidByIrq(data: IrqAndSoftirqBean[]): finalResultBean[] {
+    private callidByIrq(data: IrqAndSoftirqBean[], leftNs: number, rightNs: number): FinalResultBean[] {
       let sourceData = data.sort((a, b) => a.startTime - b.startTime);
       let waitArr: IrqAndSoftirqBean[] = [];
-      let completedArr: finalResultBean[] = [];
+      let completedArr: FinalResultBean[] = [];
       let globalTs: number = 0;
       let index: number = 0;
       while (index < sourceData.length || waitArr.length > 0) {
         let minEndTs = Math.min(...waitArr.map((item: IrqAndSoftirqBean) => item.endTime));
         let minIndex = waitArr.findIndex((item: IrqAndSoftirqBean) => item.endTime === minEndTs);
+        let minOriginalEndTs = Math.min(...waitArr.map((item: IrqAndSoftirqBean) => item.originalEndTime!));
+        let minOriginalIndex = waitArr.findIndex((item: IrqAndSoftirqBean) => item.originalEndTime === minOriginalEndTs);
         //当waitArr为空时
         if (waitArr.length === 0) {
           globalTs = sourceData[index].startTime;
@@ -214,103 +238,89 @@ export class TabPaneIrqCounter extends BaseElement {
         }
         //当全局Ts等于minEndTs时，只做删除处理
         if (globalTs === minEndTs) {
-          if (minIndex !== -1) {  
-            const item = waitArr[minIndex];  
+          if (minIndex !== -1) {
+            const item = waitArr[minIndex];
             if (item.endTime > item.startTime) {
-              waitArr.splice(minIndex, 1);  
-            } else {  
-              // wallDuration为0，需要特别处理  
-              const obj: finalResultBean = {  
-                cat: item.cat,  
-                name: item.name,  
-                wallDuration: 0,
-                count: item.isFirstObject === 1 ? 1 : 0 
-              };  
-              completedArr.push(obj);  
               waitArr.splice(minIndex, 1);
-            }  
+            } else {
+              // wallDuration为0，需要特别处理
+              const obj: FinalResultBean = {
+                cat: item.cat,
+                name: item.name,
+                wallDuration: 0,
+                count: item.isFirstObject === 1 ? 1 : 0
+              };
+              completedArr.push(obj);
+              waitArr.splice(minIndex, 1);
+            }
             continue;
           }
         }
-        let obj: finalResultBean = {
-          cat: '',
-          name: '',
-          wallDuration: 0,
-          count: 0,
-        };
         if (index < sourceData.length) {
           if (sourceData[index].startTime < minEndTs) {
             if (globalTs === sourceData[index].startTime) {
               waitArr.push(sourceData[index]);
               index++;
               continue;
-            } else {
-              const maxPriorityItem = this.findMaxPriority(waitArr);
-              obj = {
-                cat: maxPriorityItem.cat,
-                name: maxPriorityItem.name,
-                wallDuration: sourceData[index].startTime - globalTs,
-                count: maxPriorityItem.isFirstObject === 1 ? 1 : 0
-              }
-              completedArr.push(obj);
-              maxPriorityItem.isFirstObject = 0;
+          } else {
+            const minEndItem = waitArr[minIndex];
+            const segmentEndTs = sourceData[index].startTime;
+            const segmentDuration = segmentEndTs - globalTs;
+            const segmentInBoxSelection = !(segmentEndTs < leftNs || globalTs > rightNs);
+            if (segmentInBoxSelection) {
+              this.processBoxSelection(waitArr, minEndItem, minOriginalEndTs, segmentDuration, completedArr);
+            }
+              minEndItem.isFirstObject = 0;
               waitArr.push(sourceData[index]);
               globalTs = sourceData[index].startTime;
               index++;
             }
           } else {
-            const maxPriorityItem = this.findMaxPriority(waitArr);
-            obj = {
-              cat: maxPriorityItem.cat,
-              name: maxPriorityItem.name,
-              wallDuration: minEndTs - globalTs,
-              count: maxPriorityItem.isFirstObject === 1 ? 1 : 0
+            const minEndItem = waitArr[minIndex];
+            const segmentDuration = minEndTs - globalTs;
+            const segmentInBoxSelection = !(minEndTs < leftNs || globalTs > rightNs);
+            if (segmentInBoxSelection) {
+              this.processBoxSelection(waitArr, minEndItem, minOriginalEndTs, segmentDuration, completedArr);
             }
-            completedArr.push(obj);
-            maxPriorityItem.isFirstObject = 0;
+            minEndItem.isFirstObject = 0;
             globalTs = minEndTs;
             if (minIndex !== -1) { waitArr.splice(minIndex, 1) };
           }
         } else {
-          const maxPriorityItem = this.findMaxPriority(waitArr);
-          obj = {
-            cat: maxPriorityItem.cat,
-            name: maxPriorityItem.name,
-            wallDuration: minEndTs - globalTs,
-            count: maxPriorityItem.isFirstObject === 1 ? 1 : 0
+          const minEndItem = waitArr[minIndex];
+          const segmentDuration = minEndTs - globalTs;
+          const segmentInBoxSelection = !(minEndTs < leftNs || globalTs > rightNs);
+          if (segmentInBoxSelection) {
+            this.processBoxSelection(waitArr, minEndItem, minOriginalEndTs, segmentDuration, completedArr);
           }
-          completedArr.push(obj);
-          maxPriorityItem.isFirstObject = 0;
+          minEndItem.isFirstObject = 0;
           globalTs = minEndTs;
           if (minIndex !== -1) { waitArr.splice(minIndex, 1) };
         }
       }
       return completedArr;
     }
-  
-    private findMaxPriority(arr: IrqAndSoftirqBean[]): IrqAndSoftirqBean {
-      return arr.reduce((maxItem: IrqAndSoftirqBean, currentItem: IrqAndSoftirqBean) => {
-        return maxItem.priority > currentItem.priority ? maxItem : currentItem;
-      }, arr[0]);;
-    }
-  
+
     // 聚合数据
-    private aggregateData(data: finalResultBean[], isSelectIrq: boolean): void {
-      function groupAndSumDurations(items: finalResultBean[]): finalResultBean[] {
-        const grouped: Record<string, finalResultBean> = items.reduce((acc, item) => {
+    private aggregateData(data: FinalResultBean[], isSelectIrq: boolean, isSelectSoftirq: boolean): void {
+      function groupAndSumDurations(items: FinalResultBean[]): FinalResultBean[] {
+        const grouped: Record<string, FinalResultBean> = items.reduce((acc, item) => {
             if (item.cat === 'irq' && !isSelectIrq) {//若没有框选irq，则不对其进行处理
+              return acc;
+            }
+            if (item.cat === 'softirq' && !isSelectSoftirq) {//若没有框选softirq，则不对其进行处理
               return acc;
             }
             if (!acc[item.name]) {
               acc[item.name] = {
                 wallDuration: 0,
-                maxDuration: 0,
+                maxDuration: -1,
                 name: item.name,
                 cat: item.cat,
                 count: 0,
                 avgDuration: 0
               };
-            }  
+            }
             acc[item.name].wallDuration += item.wallDuration;
             acc[item.name].wallDurationFormat = (acc[item.name].wallDuration / 1000).toFixed(2);
             acc[item.name].count += item.count;
@@ -320,18 +330,18 @@ export class TabPaneIrqCounter extends BaseElement {
               acc[item.name].maxDurationFormat = (acc[item.name].maxDuration! / 1000).toFixed(2);
             }
           return acc;
-        }, {} as Record<string, finalResultBean>);
+        }, {} as Record<string, FinalResultBean>);
         return Object.values(grouped);
       }
       this.irqAndSoftirqSource = groupAndSumDurations(data);
       this.irqCounterTbl!.recycleDataSource = this.irqAndSoftirqSource;
     }
-  
+
     private reSortByColum(key: string, type: number): void {
-      // 如果数组为空，则直接返回 
+      // 如果数组为空，则直接返回
       if (!this.irqAndSoftirqSource.length) return;
-      let sortObject: finalResultBean[] = JSON.parse(JSON.stringify(this.irqAndSoftirqSource));
-      let sortList: Array<finalResultBean> = [];
+      let sortObject: FinalResultBean[] = JSON.parse(JSON.stringify(this.irqAndSoftirqSource));
+      let sortList: Array<FinalResultBean> = [];
       sortList.push(...sortObject);
       if (type === 0) {
         this.irqCounterTbl!.recycleDataSource = this.irqAndSoftirqSource;

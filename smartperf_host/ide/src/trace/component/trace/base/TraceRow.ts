@@ -163,6 +163,12 @@ export class TraceRow<T extends BaseStruct> extends HTMLElement {
   static ROW_TYPE_GPU_COUNTER = 'gpu-counter';
   static ROW_TYPE_SNAPSHOT = 'snapShots';
   static ROW_TYPE_FILE_SYSTEM_IO = 'file-system-io';
+  static ROW_TYPE_NETWORK_COUNT = 'network-count';
+  static ROW_TYPE_NETWORK_SUMMARY = 'network-summary';
+  static ROW_TYPE_NETWORK_DETAIL = 'network-detail';
+  static ROW_TYPE_NETWORK_COUNT_FOLDER = 'network-count-folder';
+  static ROW_TYPE_NETWORK_SUMMARY_FOLDER = 'network-summary-folder';
+  static ROW_TYPE_NETWORK_DETAIL_FOLDER = 'network-detail-folder';
   static FRAME_WIDTH: number = 0;
   static range: TimeRange | undefined | null;
   static rangeSelectObject: RangeSelectStruct | undefined;

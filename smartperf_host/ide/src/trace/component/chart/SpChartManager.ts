@@ -65,6 +65,9 @@ import { queryDmaFenceIdAndCat } from '../../database/sql/dmaFence.sql';
 import { queryAllFuncNames } from '../../database/sql/Func.sql';
 import { SpSnapShotChart } from './spSnapShotChart';
 import { SpRecordTrace } from '../SpRecordTrace';
+import { SpNetworkChart } from './SpNetworkChart';
+import { ProcessNetworkDetailChart } from './ProcessNetworkDetailChart';
+import { GlobalNetworkSummaryChart } from './GlobalNetworkSummaryChart';
 
 export class SpChartManager {
   static APP_STARTUP_PID_ARR: Array<number> = [];
@@ -101,6 +104,9 @@ export class SpChartManager {
   private spUserFileChart: SpUserFileChart;
   private spImportUserPluginsChart: SpImportUserPluginsChart;
   private spSnapShotChart: SpSnapShotChart;
+  private spNetworkChart: SpNetworkChart;
+  private processNetworkDetailChart: ProcessNetworkDetailChart;
+  private globalNetworkSummaryChart: GlobalNetworkSummaryChart;
 
   constructor(trace: SpSystemTrace) {
     this.trace = trace;
@@ -134,6 +140,9 @@ export class SpChartManager {
     this.spImportUserPluginsChart = new SpImportUserPluginsChart(trace);
     this.xpowerChart = new SpXpowerChart(trace);
     this.spSnapShotChart = new SpSnapShotChart(trace);
+    this.processNetworkDetailChart = new ProcessNetworkDetailChart(trace);
+    this.globalNetworkSummaryChart = new GlobalNetworkSummaryChart(trace);
+    this.spNetworkChart = new SpNetworkChart(trace);
   }
   async initPreprocessData(progress: Function): Promise<void> {
     progress('load data dict', 50);
@@ -215,6 +224,8 @@ export class SpChartManager {
     await this.xpowerChart.init();
     progress('Irq init', 84);
     await this.irqChart.init();
+    progress('Network init', 84.2);
+    await this.spNetworkChart.init();
     progress('SpSegmentationChart inin', 84.5);
     await this.spSegmentationChart.init();
     await this.virtualMemChart.init();

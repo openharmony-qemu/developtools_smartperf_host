@@ -20,11 +20,11 @@ import { Utils } from '../../component/trace/base/Utils';
 
 export const queryIrqList = (traceId?: string): Promise<Array<{ name: string; cpu: number }>> =>
   query('queryIrqList',
-  `SELECT 
-  * 
+  `SELECT
+  *
   FROM
     (SELECT DISTINCT cat AS name, callid AS cpu FROM irq WHERE cat<>'ipi')
-  ORDER By 
+  ORDER By
     name,
     cpu`
     , {}, { traceId: traceId });
@@ -34,10 +34,10 @@ export const queryAllIrqNames = async (traceId?: string): Promise<Array<{ ipiNam
     'queryAllIrqNames',
     `select
       id,
-      case 
-    when 
+      case
+    when
       cat = 'ipi' then 'IPI' || name else name end as ipiName from irq;`,
-    {}, 
+    {},
     { traceId: traceId, action: 'exec-buf' }
   );
   // @ts-ignore
@@ -54,9 +54,9 @@ trace_range t where i.callid = ${callid} and i.cat = 'softirq'
         case when i.cat = 'ipi' then 'IPI' || i.name else i.name end as name,
         i.depth,
         argsetid as argSetId,
-        i.id 
-        from irq i,trace_range t 
-        where i.callid = ${callid} and ((i.cat = 'irq' and i.flag ='1') or i.cat = 'ipi') 
+        i.id
+        from irq i,trace_range t
+        where i.callid = ${callid} and ((i.cat = 'irq' and i.flag ='1') or i.cat = 'ipi')
     `;
   return query('queryIrqData', cat === 'irq' ? sqlIrq : sqlSoftIrq, {});
 };
@@ -123,12 +123,14 @@ export const queryIrqSelectData = (callIds: Array<number>, startNS: number, endN
           END AS name,
         1 As count,
         true As isFirstObject,
-        2 AS priority, 
+        2 AS priority,
         MAX(${startNS},i.ts - TR.start_ts) AS startTime,
         MIN(${endNS},(i.ts - TR.start_ts + iif(i.dur = -1 OR i.dur IS NULL, 0, i.dur))) AS endTime,
-        MIN(${endNS},(i.ts - TR.start_ts + iif(i.dur = -1 OR i.dur IS NULL, 0, i.dur))) - MAX(${startNS},i.ts - TR.start_ts) AS wallDuration 
+        MIN(${endNS},(i.ts - TR.start_ts + iif(i.dur = -1 OR i.dur IS NULL, 0, i.dur))) - MAX(${startNS},i.ts - TR.start_ts) AS wallDuration,
+        i.ts - TR.start_ts AS originalStartTime,
+        i.ts - TR.start_ts + iif(i.dur = -1 OR i.dur IS NULL, 0, i.dur) AS originalEndTime
     FROM
-      irq i 
+      irq i
     LEFT JOIN
       trace_range AS TR
       WHERE
@@ -148,18 +150,20 @@ export const querySoftirqSelectData = (callIds: Array<number>, startNS: number, 
           i.name,
           1 As count,
           true As isFirstObject,
-          1 AS priority, 
+          1 AS priority,
           MAX(${startNS},i.ts - TR.start_ts) AS startTime,
           MIN(${endNS},(i.ts - TR.start_ts + iif(i.dur = -1 OR i.dur IS NULL, 0, i.dur))) AS endTime,
-          MIN(${endNS},(i.ts - TR.start_ts + iif(i.dur = -1 OR i.dur IS NULL, 0, i.dur))) - MAX(${startNS},i.ts - TR.start_ts) AS wallDuration 
+          MIN(${endNS},(i.ts - TR.start_ts + iif(i.dur = -1 OR i.dur IS NULL, 0, i.dur))) - MAX(${startNS},i.ts - TR.start_ts) AS wallDuration,
+          i.ts - TR.start_ts AS originalStartTime,
+          i.ts - TR.start_ts + iif(i.dur = -1 OR i.dur IS NULL, 0, i.dur) AS originalEndTime
       FROM
-        irq i 
+        irq i
       LEFT JOIN
         trace_range AS TR
       WHERE
         i.callid IN (${callIds.join(',')})
       AND
         NOT ((i.ts - TR.start_ts + iif(i.dur = -1 OR i.dur IS NULL, 0, i.dur) < ${startNS}) OR (i.ts - TR.start_ts > ${endNS}))
-      AND 
+      AND
         i.cat = 'softirq' `
   );
