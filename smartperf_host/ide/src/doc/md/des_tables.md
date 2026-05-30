@@ -270,13 +270,13 @@ frame_maps:记录应用到RS的帧的映射关系。
 
 js_heap_files：记录js内存数据的文件名和文件索引
 
-![1683163158954](image/des_tables/1683163158954.png)
+![1683163158954](../../../../trace_streamer/doc/image/des_tables/1683163158954.png)
 
 js_heap_nodes:记录js内存类对象数据
 js_heap_edges:记录js内存类对象的成员数据
 js_heap_trace_node:记录timeline的调用栈信息
 js_heap_sample:记录timeline的时间轴信息
-![1683163373206](image/des_tables/1683163373206.png)
+![1683163373206](../../../../trace_streamer/doc/image/des_tables/1683163373206.png)
 ## TraceStreamer输出数据库表格详细介绍
 ### app_name表
 #### 表结构

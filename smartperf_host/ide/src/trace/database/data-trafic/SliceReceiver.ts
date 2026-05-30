@@ -400,25 +400,25 @@ function getChildBoxDb(data: unknown): void {
 
   let childBoxDb = threadSlice.filter((it: unknown) => {
     let condition = true;
-    // 检查进程ID  
+    // 检查进程ID
     if (setProcessId.size !== 0) {
       //@ts-ignore
       condition = condition && setProcessId.has(it.pid);
     }
-    // 检查线程ID  
+    // 检查线程ID
     if (setThreadId.size !== 0) {
       //@ts-ignore
       condition = condition && setThreadId.has(it.tid);
     }
-    // 检查CPU（如果存在且不是null/undefined，或在setCpu中）  
+    // 检查CPU（如果存在且不是null/undefined，或在setCpu中）
     if (setCpu.size !== 0) {
       //@ts-ignore
       condition = condition && (it.cpu === null || it.cpu === undefined || setCpu.has(it.cpu));
     }
     // 检查状态
-    //@ts-ignore  
+    //@ts-ignore
     if (data.params.state) {
-      //@ts-ignore  
+      //@ts-ignore
       condition = condition && it.state === data.params.state;
     }
     //@ts-ignore

@@ -19,6 +19,8 @@ import { BoxJumpParam, SelectionData } from '../../../../bean/BoxSelection';
 import { Utils } from '../../base/Utils';
 import { resizeObserver } from '../SheetUtils';
 import { sliceChildBoxSender, threadNearData } from '../../../../database/data-trafic/SliceSender';
+import { queryThreadStateArgsBatch } from '../../../../database/sql/ProcessThread.sql';
+import { BinderArgBean } from '../../../../bean/BinderArgBean';
 
 @element('tabpane-box-child')
 export class TabPaneBoxChild extends BaseElement {
@@ -38,6 +40,7 @@ export class TabPaneBoxChild extends BaseElement {
       ((boxChildValue.rightNs - boxChildValue.leftNs) / 1000000.0).toFixed(5)
     )} ms`;
     this.boxChildTbl!.recycleDataSource = [];
+    this.boxChildTbl!.loading = true;
     this.getDataByDB(boxChildValue);
   }
 
@@ -68,19 +71,79 @@ export class TabPaneBoxChild extends BaseElement {
     resizeObserver(this.parentElement!, this.boxChildTbl!);
   }
 
-  getDataByDB(val: BoxJumpParam): void {
-    this.boxChildTbl!.loading = true;
+  // 处理next_info的展示
+  parseSchedSwitchHmNew(num: bigint): string {
+    // 将数字拆分为高32位和低32位
+    // @ts-ignore
+    const low = Number(num & 0xFFFFFFFFn);
+    // @ts-ignore
+    const high = Number((num >> 32n) & 0xFFFFFFFFn);
+
+    // 创建一个8字节的Uint8Array
+    const buffer = new Uint8Array(8);
+    const view = new DataView(buffer.buffer);
+
+    // 写入低32位（小端序）
+    view.setUint32(0, low, true);
+    // 写入高32位（小端序）
+    view.setUint32(4, high, true);
+
+    // 读取前4个字节作为tmpAffinity（小端序）
+    const tmpAffinity = view.getUint32(0, true);
+    let affinity = tmpAffinity.toString(16);
+    affinity = affinity.replace(/^0+/, '');
+    affinity = affinity === '' ? '0' : affinity;
+
+    // 读取后4个字节作为remaining（小端序）
+    const remaining = view.getUint32(4, true);
+
+    // 定义位域掩码
+    const loadMask = (1 << 10) - 1;
+    const groupMask = (1 << 2) - 1;
+    const restrictedMask = 1;
+    const expelMask = (1 << 3) - 1;
+    const cgidMask = (1 << 5) - 1;
+
+    // 按位域偏移量解析
+    const load = ((remaining >> 0) & loadMask) << 1;
+    const group = (remaining >> 10) & groupMask;
+    const restricted = (remaining >> 12) & restrictedMask;
+    const expel = (remaining >> 13) & expelMask;
+    const cgid = (remaining >> 16) & cgidMask;
+
+    // 拼接结果字符串
+    const result = `${affinity},${load},${group},${restricted},${expel},${cgid}`;
+    return result;
+  }
+
+  async getDataByDB(val: BoxJumpParam): Promise<void> {
     sliceChildBoxSender('state-box', val.leftNs, val.rightNs, val.threadId!, val.processId!,
-      val.cpus, val.state, val.traceId!).then((result: unknown): void => {
-        this.boxChildTbl!.loading = false;
+      val.cpus, val.state, val.traceId!).then(async (result: unknown): Promise<void> => {
         // @ts-ignore
         if (result.length !== null && result.length > 0) {
           // @ts-ignore
-          result.map((e: unknown) => {
-            //获取优先级数据
+          const argSetIds = result.filter((e: unknown) => e!.argSetId && e!.state === 'Running').map((e: unknown) => e!.argSetId);
+
+          const argsMap = new Map<number, BinderArgBean[]>();
+          if (argSetIds.length > 0) {
+            const argsList = await queryThreadStateArgsBatch(argSetIds);
+            argsList.forEach((arg: BinderArgBean) => {
+              // @ts-ignore
+              if (!argsMap.has(arg.argset)) {
+                // @ts-ignore
+                argsMap.set(arg.argset, []);
+              }
+              // @ts-ignore
+              argsMap.get(arg.argset)!.push(arg);
+            });
+          }
+
+          // @ts-ignore
+          const processedResult = result.map((e: unknown) => {
+            // 获取优先级数据
             // @ts-ignore
             let prioObj = Utils.getInstance().getSchedSliceMap().get(`${e.id}-${e.startTime}`);
-            //thread statesTab页 dur截取的问题 与thread states保持一致
+            // thread statesTab页 dur截取的问题 与thread states保持一致
             if (val.currentId === 'box-thread-states') {
               // @ts-ignore
               if (e.startTime < val.leftNs && (e.startTime + e.dur) < val.rightNs) {
@@ -96,7 +159,22 @@ export class TabPaneBoxChild extends BaseElement {
                 e.dur = val.rightNs - val.leftNs;
               }
             }
-            //相对起始时间转换为带单位的字符串
+            // @ts-ignore
+            if (e!.argSetId && e!.state === 'Running') {
+              // @ts-ignore
+              const args = argsMap.get(e!.argSetId);
+              // @ts-ignore
+              if (args && args.length > 0) {
+                // @ts-ignore
+                let argStrArr = this.parseSchedSwitchHmNew(BigInt(args[0].strValue)).split(',');
+                // @ts-ignore
+                e.affinity = argStrArr[0];
+                // @ts-ignore
+                e.schedSub = argStrArr[2];
+                // @ts-ignore
+                e.cGroup = argStrArr[5];
+              }
+            }
             // @ts-ignore
             e.sTime = Utils.getTimeString(e.startTime);
             // @ts-ignore
@@ -119,22 +197,24 @@ export class TabPaneBoxChild extends BaseElement {
             e.threadName = `${threadInfo === undefined || threadInfo === null ? 'thread' : threadInfo}[${e.tid}]`;
             // @ts-ignore
             e.note = '-';
+            return e;
           });
-          // @ts-ignore
-          this.boxChildSource = result;
+          this.boxChildSource = processedResult;
+
           if (this.boxChildTbl) {
             // @ts-ignore
-            this.boxChildTbl.recycleDataSource = result;
+            this.boxChildTbl.recycleDataSource = processedResult;
           }
+          this.boxChildTbl!.loading = false;
         } else {
           this.boxChildSource = [];
           if (this.boxChildTbl) {
             // @ts-ignore
             this.boxChildTbl.recycleDataSource = [];
           }
+          this.boxChildTbl!.loading = false;
         }
-      }
-      );
+      });
   }
 
   initHtml(): string {
@@ -157,9 +237,9 @@ export class TabPaneBoxChild extends BaseElement {
           </lit-table-column>
           <lit-table-column order title="StartTime(Absolute)" width="15%" data-index="absoluteTime" key="absoluteTime" align="flex-start" >
           </lit-table-column>
-          <lit-table-column order width="15%" data-index="processName" key="processName" title="Process" align="flex-start" >
+          <lit-table-column order width="10%" data-index="processName" key="processName" title="Process" align="flex-start" >
           </lit-table-column>
-          <lit-table-column order width="15%" data-index="threadName" key="threadName" align="flex-start" title="Thread">
+          <lit-table-column order width="10%" data-index="threadName" key="threadName" align="flex-start" title="Thread">
           </lit-table-column>
           <lit-table-column order width="1fr" data-index="duration" key="duration" title="duration(ms)" align="flex-start" >
           </lit-table-column>
@@ -170,6 +250,12 @@ export class TabPaneBoxChild extends BaseElement {
           <lit-table-column order width="1fr" data-index="prior" title="Priority" key="prior" align="flex-start" >
           </lit-table-column>
           <lit-table-column order width="1fr" data-index="note" key="note" align="flex-start" title="Note">
+          </lit-table-column>
+          <lit-table-column order width="1fr" data-index="affinity" key="affinity" align="flex-start" title="Affinity">
+          </lit-table-column>
+          <lit-table-column order width="1fr" data-index="schedSub" key="schedSub" align="flex-start" title="SchedSub">
+          </lit-table-column>
+          <lit-table-column order width="1fr" data-index="cGroup" key="cGroup" align="flex-start" title="Cgroup">
           </lit-table-column>
         </lit-table>
         `;

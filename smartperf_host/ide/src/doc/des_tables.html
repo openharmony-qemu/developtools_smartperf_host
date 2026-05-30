@@ -2039,6 +2039,26 @@
           <td>flag</td>
           <td>TEXT</td>
         </tr>
+        <tr>
+          <td>trace_level</td>
+          <td>TEXT</td>
+        </tr>
+        <tr>
+          <td>trace_tag</td>
+          <td>TEXT</td>
+        </tr>
+        <tr>
+          <td>custom_category</td>
+          <td>TEXT</td>
+        </tr>
+        <tr>
+          <td>custom_args</td>
+          <td>TEXT</td>
+        </tr>
+        <tr>
+          <td>child_callid</td>
+          <td>INT</td>
+        </tr>
       </tbody>
     </table>
     <h4>表描述</h4>
@@ -2060,6 +2080,11 @@
       <li>spanId：分布式调用关联关系，当前帧的id</li>
       <li>parentSpanId: 分布式调用关联关系，当前帧的parent的SpanId，对应当前表的spandId</li>
       <li>flag：C表示分布式调用发送方，S表示接受方</li>
+      <li>trace_level：决定trace的等级，log和nolog等级不同，其中log表示详细记录所有相关的调用信息，nolog 表示不记录</li>
+      <li>trace_tag：Tag标签，标识请求的来源或类型</li>
+      <li>custom_category：聚合标签，用于关联同类信息</li>
+      <li>custom_args：自定义参数，用于存储与调用相关的额外信息</li>
+      <li>child_callid：当为异步调用，此时callid为进程唯一号，child_callid为子线程唯一号，反之为无效值</li>
     </ul>
     <h3>clk_event_filter表</h3>
     <h4>表结构</h4>

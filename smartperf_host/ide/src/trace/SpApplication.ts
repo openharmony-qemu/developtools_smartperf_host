@@ -206,6 +206,7 @@ export class SpApplication extends BaseElement {
   private pageTimStamp: number = 0;
   private currentPageNum: number = 1;
   private currentDataTime: string[] = [];
+  static traceName: String = '';
   static traceType: String = '';
   private isZipFile: boolean = false;
   isClear: boolean = false;
@@ -927,6 +928,7 @@ export class SpApplication extends BaseElement {
     }
     let fileName = ev.name;
     this.traceFileName = fileName;
+    SpApplication.traceName = fileName;
     let showFileName = fileName.lastIndexOf('.') === -1 ? fileName : fileName.substring(0, fileName.lastIndexOf('.'));
     window.sessionStorage.setItem('fileName', showFileName);
     TraceRow.rangeSelectObject = undefined;
