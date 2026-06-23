@@ -52,7 +52,6 @@ export struct Home {
     }, 1000)
 
     BundleManager.getAppList().then((appList) => {
-      console.log(TAG, 'appList: ' + JSON.stringify(appList));
       globalThis.appList = appList;
     });
 
