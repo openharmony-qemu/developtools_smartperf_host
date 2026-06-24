@@ -70,10 +70,12 @@ struct StartTestPage {
     var iterator = supportMap.keys()
     for (var i = 0; i < supportMap.size; i++) {
       let key = iterator.next().value
-      let val = supportMap.get(key).valueOf()
-      this.collectConfigs.push(
-        new CollectItem(key, val, val)
-      )
+      let val = supportMap.get(key)?.valueOf()
+      if (val !== null && val !== undefined) {
+        this.collectConfigs.push(
+          new CollectItem(key, val, val)
+        )
+      }
     }
   }
 

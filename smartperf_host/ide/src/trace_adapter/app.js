@@ -112,12 +112,17 @@ wss.on('connection', function connection(ws, req) {
 // 业务侧调，用来往客户端发送消息
 // type:Number;sessionId:Number;cmd:Number;data:Uint8Array
 function sendMsgToClient(type, sessionId, cmd, data) {
-    let ws = SessionManage.SessionJs.sessionMap.get(sessionId)[1];
+    let sessionArr = SessionManage.SessionJs.sessionMap.get(sessionId);
+    if (!sessionArr) {
+        logger.error(`sessionId:${sessionId} not found in sessionMap`);
+        return;
+    }
+    let ws = sessionArr[1];
     let sendMsg = {};
     sendMsg.type = type;
     sendMsg.cmd = cmd;
     sendMsg.session_id = sessionId;
-    sendMsg.session = SessionManage.SessionJs.sessionMap.get(sessionId)[0];
+    sendMsg.session = sessionArr[0];
     sendMsg.data_lenght = data.byteLength;
     sendMsg.data = data;
     ws.send(Utils.Utils.encode(sendMsg));
