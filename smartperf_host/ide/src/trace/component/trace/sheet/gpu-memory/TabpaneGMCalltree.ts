@@ -19,7 +19,7 @@ import '../../../../../base-ui/headline/lit-headline';
 import { LitProgressBar } from '../../../../../base-ui/progress-bar/LitProgressBar';
 import { LitTable } from '../../../../../base-ui/table/lit-table';
 import { SelectionParam } from '../../../../bean/BoxSelection';
-import { ChartMode } from '../../../../bean/FrameChartStruct';
+import { ChartMode, ChartStruct } from '../../../../bean/FrameChartStruct';
 import { MemoryBasicType, MemoryStatisticType, MemoryTableName, MemoryType } from '../../../../bean/MemoryEnum';
 import { FilterByAnalysis, NativeMemoryExpression } from '../../../../bean/NativeHook';
 import { FileMerageBean } from '../../../../database/logic-worker/ProcedureLogicWorkerFileSystem';
@@ -146,11 +146,17 @@ export class TabpaneGMCalltree extends BaseElement {
                 if (this._initFromAnalysis) {
                     this.filterByAnalysis();
                 } else {
-                    // @ts-ignore
-                    this.gmCallTreeFrameChart!.data = this.gmCallTreeSource;
+                    this.gmCallTreeFrameChart!.data = this.gmCallTreeSource as Array<ChartStruct>;
                     this.switchFlameChart();
                     this.gmCallTreeFilter!.icon = 'block';
                 }
+
+                this.dispatchEvent(
+                    new CustomEvent('gm-select-created-and-existing', {
+                        bubbles: true,
+                        composed: true
+                    })
+                );
             }
         );
     }
@@ -206,7 +212,7 @@ export class TabpaneGMCalltree extends BaseElement {
             }
             this.getDataByWorker(gmCallTreeFuncArgs, (result: unknown[]): void => {
                 this.setLTableData(result); // @ts-ignore
-                this.gmCallTreeFrameChart!.data = this.gmCallTreeSource;
+                this.gmCallTreeFrameChart!.data = this.gmCallTreeSource as Array<ChartStruct>;
                 if (this.isChartShow) {
                     this.gmCallTreeFrameChart?.calculateChartData();
                 }
@@ -279,13 +285,14 @@ export class TabpaneGMCalltree extends BaseElement {
                 this.gmCallTreeTbl!.isSearch = true;
                 this.gmCallTreeTbl!.setStatus(result, true);
                 this.setLTableData(result); // @ts-ignore
-                this.gmCallTreeFrameChart!.data = this.gmCallTreeSource;
+                this.gmCallTreeFrameChart!.data = this.gmCallTreeSource as Array<ChartStruct>;
                 this.switchFlameChart(gmCallTreeData);
                 result = [];
             });
         } else {
             this.gmCallTreeTbl!.setStatus(this.gmCallTreeSource, true);
             this.setLTableData(this.gmCallTreeSource);
+            this.gmCallTreeFrameChart!.data = this.gmCallTreeSource as Array<ChartStruct>;
             this.switchFlameChart(gmCallTreeData);
         }
     }
@@ -314,7 +321,7 @@ export class TabpaneGMCalltree extends BaseElement {
         });
         this.getDataByWorker(gmCallTreeConstraintsArgs, (result: unknown[]): void => {
             this.setLTableData(result); // @ts-ignore
-            this.gmCallTreeFrameChart!.data = this.gmCallTreeSource;
+            this.gmCallTreeFrameChart!.data = this.gmCallTreeSource as Array<ChartStruct>;
             if (this.isChartShow) {
                 this.gmCallTreeFrameChart?.calculateChartData();
             }
@@ -495,7 +502,7 @@ export class TabpaneGMCalltree extends BaseElement {
         gmCallTreeArgs.push({ funcName: 'resetAllNode', funcArgs: [] });
         this.getDataByWorker(gmCallTreeArgs, (result: unknown[]) => {
             this.setLTableData(result); // @ts-ignore
-            this.gmCallTreeFrameChart!.data = this.gmCallTreeSource;
+            this.gmCallTreeFrameChart!.data = this.gmCallTreeSource as Array<ChartStruct>;
             if (this.isChartShow) {
                 this.gmCallTreeFrameChart?.calculateChartData();
             }
@@ -762,11 +769,18 @@ export class TabpaneGMCalltree extends BaseElement {
         );
         this.getDataByWorker(filterContent, (result: unknown[]) => {
             this.setLTableData(result); // @ts-ignore
-            this.gmCallTreeFrameChart!.data = this.gmCallTreeSource;
+            this.gmCallTreeFrameChart!.data = this.gmCallTreeSource as Array<ChartStruct>;
             this.switchFlameChart();
             this.banTypeAndLidSelect();
             this.gmCallTreeFilter!.icon = 'block';
             this.initFromAnalysis = false;
+
+            this.dispatchEvent(
+                new CustomEvent('gm-select-created-and-existing', {
+                    bubbles: true,
+                    composed: true
+                })
+            );
         });
         this.banTypeAndLidSelect();
     }
@@ -865,6 +879,21 @@ export class TabpaneGMCalltree extends BaseElement {
         this.gmCallTreeTbl!.addEventListener('row-click', this.gmCallTreeTblRowClickHandler);
         this.gpuMemoryTbr!.addEventListener('row-click', this.gpuMemoryTbrRowClickHandler);
         this.gmCallTreeTbl!.addEventListener('column-click', this.gmCallTreeTblColumnClickHandler);
+
+        this.addEventListener('gm-select-created-and-existing', () => {
+            this.currentGMCallTreeFilter!.firstSelect = '1';
+            const filterData: FilterData = {
+                inputValue: this.gmCallTreeFilter!.filterValue || '',
+                firstSelect: '1',
+                secondSelect: this.currentGMCallTreeFilter!.secondSelect,
+                thirdSelect: this.currentGMCallTreeFilter!.thirdSelect,
+                mark: false,
+                icon: this.gmCallTreeFilter!.icon,
+                type: 'call-tree',
+            };
+            this.initGetFilterByGMCallTreeFilter(filterData);
+        });
+
         let filterHeight = 0;
         new ResizeObserver((entries: ResizeObserverEntry[]): void => {
             let gmCallTreeTabFilter = this.shadowRoot!.querySelector('#gm-call-tree-filter') as HTMLElement;
@@ -920,7 +949,7 @@ export class TabpaneGMCalltree extends BaseElement {
         this.sortKey = event.detail.key; // @ts-ignore
         this.sortType = event.detail.sort;
         this.setLTableData(this.gmCallTreeSource, true); // @ts-ignore
-        this.gmCallTreeFrameChart!.data = this.gmCallTreeSource;
+        this.gmCallTreeFrameChart!.data = this.gmCallTreeSource as Array<ChartStruct>;
     };
 
     gpuMemoryTbrRowClickHandler = (event: unknown): void => {
