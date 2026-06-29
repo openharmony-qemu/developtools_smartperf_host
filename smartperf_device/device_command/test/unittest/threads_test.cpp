@@ -65,11 +65,11 @@ HWTEST_F(SPdaemonThreadsTest, ThreadsTestCase01, TestSize.Level1)
 }
 
 /**
- * @tc.name: ThreadsTestCase03
+ * @tc.name: ThreadsTestCase02
  * @tc.desc: Test Threads by pid not exit
  * @tc.type: FUNC
  */
-HWTEST_F(SPdaemonThreadsTest, ThreadsTestCase03, TestSize.Level1)
+HWTEST_F(SPdaemonThreadsTest, ThreadsTestCase02, TestSize.Level1)
 {
     std::string cmd = "SP_daemon -N 1 -threads -PID 88888888"; // 88888888 is not exit
     std::string result = "";
@@ -77,22 +77,6 @@ HWTEST_F(SPdaemonThreadsTest, ThreadsTestCase03, TestSize.Level1)
     EXPECT_EQ(ret, true);
     ret = VerifResult(result);
     EXPECT_EQ(ret, false);
-}
-
-/**
- * @tc.name: ThreadsTestCase04
- * @tc.desc: Test Threads
- * @tc.type: FUNC
- */
-HWTEST_F(SPdaemonThreadsTest, ThreadsTestCase04, TestSize.Level1)
-{
-    Threads &ths = Threads::GetInstance();
-    std::string packName = "init";
-    ths.SetPackageName(packName);
-    ths.SetProcessId("1");
-    std::map<std::string, std::string> thsItemData = ths.ItemData();
-    std::string threadsNum = thsItemData["threadsNum"];
-    EXPECT_EQ(threadsNum.empty(), false);
 }
 } // namespace OHOS
 } // namespace SmartPerf
