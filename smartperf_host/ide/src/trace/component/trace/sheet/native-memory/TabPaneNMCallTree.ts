@@ -144,6 +144,12 @@ export class TabpaneNMCalltree extends BaseElement {
         if (this._initFromAnalysis) {
           this.filterByAnalysis();
         } else {
+          this.dispatchEvent(
+            new CustomEvent('nm-select-created-and-existing', {
+              bubbles: true,
+              composed: true,
+            })
+          );
           // @ts-ignore
           this.nmCallTreeFrameChart!.data = this.nmCallTreeSource;
           this.switchFlameChart();
@@ -202,6 +208,12 @@ export class TabpaneNMCalltree extends BaseElement {
       this.switchFlameChart();
       this.nmCallTreeFilter!.icon = 'block';
       this.initFromAnalysis = false;
+      this.dispatchEvent(
+        new CustomEvent('nm-select-created-and-existing', {
+          bubbles: true,
+          composed: true,
+        })
+      );
     });
     this.banTypeAndLidSelect();
   }
@@ -676,6 +688,19 @@ export class TabpaneNMCalltree extends BaseElement {
     this.nmCallTreeTbl!.addEventListener('row-click', this.nmCallTreeTblRowClickHandler);
     this.filesystemTbr!.addEventListener('row-click', this.filesystemTbrRowClickHandler);
     this.nmCallTreeTbl!.addEventListener('column-click', this.nmCallTreeTblColumnClickHandler);
+    this.addEventListener('nm-select-created-and-existing', () => {
+      this.currentNMCallTreeFilter!.firstSelect = '1';
+      const filterData: FilterData = {
+        inputValue: this.nmCallTreeFilter!.filterValue || '',
+        firstSelect: '1',
+        secondSelect: this.currentNMCallTreeFilter!.secondSelect,
+        thirdSelect: this.currentNMCallTreeFilter!.thirdSelect,
+        mark: false,
+        icon: this.nmCallTreeFilter!.icon,
+        type: 'call-tree',
+      };
+      this.initGetFilterByNMCallTreeFilter(filterData);
+    });
     let filterHeight = 0;
     new ResizeObserver((entries: ResizeObserverEntry[]): void => {
       let nmCallTreeTabFilter = this.shadowRoot!.querySelector('#nm-call-tree-filter') as HTMLElement;

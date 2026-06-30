@@ -145,6 +145,13 @@ export class TabpaneOSCalltree extends BaseElement {
           this.switchFlameChart();
           this.osCallTreeFilter!.icon = 'block';
         }
+
+        this.dispatchEvent(
+          new CustomEvent('os-select-created-and-existing', {
+            bubbles: true,
+            composed: true
+          })
+        );
       }
     );
   }
@@ -200,7 +207,7 @@ export class TabpaneOSCalltree extends BaseElement {
       }
       this.getDataByWorker(osCallTreeFuncArgs, (result: unknown[]): void => {
         this.setLTableData(result); // @ts-ignore
-        this.osCallTreeFrameChart!.data = this.osCallTreeSource;
+        this.osCallTreeFrameChart!.data = this.osCallTreeSource as Array<ChartStruct>;
         if (this.isChartShow) {
           this.osCallTreeFrameChart?.calculateChartData();
         }
@@ -277,7 +284,7 @@ export class TabpaneOSCalltree extends BaseElement {
       }
       this.getDataByWorker(resultArgs, (result: unknown[]): void => {
         this.setLTableData(result); // @ts-ignore
-        this.osCallTreeFrameChart!.data = this.osCallTreeSource;
+        this.osCallTreeFrameChart!.data = this.osCallTreeSource as Array<ChartStruct>;
         if (this.isChartShow) {
           this.osCallTreeFrameChart?.calculateChartData();
         }
@@ -336,13 +343,14 @@ export class TabpaneOSCalltree extends BaseElement {
         this.osCallTreeTbl!.isSearch = true;
         this.osCallTreeTbl!.setStatus(result, true);
         this.setLTableData(result); // @ts-ignore
-        this.osCallTreeFrameChart!.data = this.osCallTreeSource;
+        this.osCallTreeFrameChart!.data = this.osCallTreeSource as Array<ChartStruct>;
         this.switchFlameChart(osCallTreeData);
         result = [];
       });
     } else {
       this.osCallTreeTbl!.setStatus(this.osCallTreeSource, true);
       this.setLTableData(this.osCallTreeSource);
+      this.osCallTreeFrameChart!.data = this.osCallTreeSource as Array<ChartStruct>;
       this.switchFlameChart(osCallTreeData);
     }
   }
@@ -383,9 +391,9 @@ export class TabpaneOSCalltree extends BaseElement {
     }
     osCallTreeArgs.push({ funcName: 'splitAllProcess', funcArgs: [list] });
     osCallTreeArgs.push({ funcName: 'resetAllNode', funcArgs: [] });
-    this.getDataByWorker(osCallTreeArgs, (result: unknown[]) => {
+    this.getDataByWorker(osCallTreeArgs, (result: unknown[]): void => {
       this.setLTableData(result); // @ts-ignore
-      this.osCallTreeFrameChart!.data = this.osCallTreeSource;
+      this.osCallTreeFrameChart!.data = this.osCallTreeSource as Array<ChartStruct>;
       if (this.isChartShow) {
         this.osCallTreeFrameChart?.calculateChartData();
       }
@@ -740,6 +748,13 @@ export class TabpaneOSCalltree extends BaseElement {
       this.switchFlameChart();
       this.osCallTreeFilter!.icon = 'block';
       this.initFromAnalysis = false;
+
+      this.dispatchEvent(
+        new CustomEvent('os-select-created-and-existing', {
+          bubbles: true,
+          composed: true
+        })
+      );
     });
     this.banTypeAndLidSelect();
   }
@@ -832,6 +847,21 @@ export class TabpaneOSCalltree extends BaseElement {
     this.osCallTreeTbl!.addEventListener('row-click', this.osCallTreeTblRowClickHandler);
     this.otherSourceTbr!.addEventListener('row-click', this.otherSourceTbrRowClickHandler);
     this.osCallTreeTbl!.addEventListener('column-click', this.osCallTreeTblColumnClickHandler);
+
+    this.addEventListener('os-select-created-and-existing', () => {
+      this.currentOSCallTreeFilter!.firstSelect = '1';
+      const filterData: FilterData = {
+        inputValue: this.osCallTreeFilter!.filterValue || '',
+        firstSelect: '1',
+        secondSelect: this.currentOSCallTreeFilter!.secondSelect,
+        thirdSelect: this.currentOSCallTreeFilter!.thirdSelect,
+        mark: false,
+        icon: this.osCallTreeFilter!.icon,
+        type: 'call-tree',
+      };
+      this.initGetFilterByOSCallTreeFilter(filterData);
+    });
+
     let filterHeight = 0;
     new ResizeObserver((entries: ResizeObserverEntry[]): void => {
       let osCallTreeTabFilter = this.shadowRoot!.querySelector('#os-call-tree-filter') as HTMLElement;
@@ -887,7 +917,7 @@ export class TabpaneOSCalltree extends BaseElement {
     this.sortKey = event.detail.key; // @ts-ignore
     this.sortType = event.detail.sort;
     this.setLTableData(this.osCallTreeSource, true); // @ts-ignore
-    this.osCallTreeFrameChart!.data = this.osCallTreeSource;
+    this.osCallTreeFrameChart!.data = this.osCallTreeSource as Array<ChartStruct>;
   };
 
   otherSourceTbrRowClickHandler = (event: unknown): void => {
