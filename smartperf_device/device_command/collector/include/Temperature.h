@@ -23,6 +23,7 @@ class Temperature : public SpProfiler {
 public:
     std::vector<std::string> collectNodes = { std::string("soc_thermal"), std::string("system_h"),
                                               std::string("soc-thermal"), std::string("gpu"),
+                                              std::string("soc-thmzone"), std::string("gpu-thmzone"),
                                               std::string("shell_frame"), std::string("shell_front"),
                                               std::string("shell_back"),  std::string("Battery"),
                                               std::string("cluster0"), std::string("gpu-thermal"),

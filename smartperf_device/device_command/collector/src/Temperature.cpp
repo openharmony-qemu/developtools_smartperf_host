@@ -66,6 +66,10 @@ void Temperature::GetTempInfos(std::map<std::string, std::string> &result, const
             float t = SPUtilesTye::StringToSometype<float>(temp);
             if (node == "gpu" || node.find("cluster") != std::string::npos) {
                 result[type] = std::to_string(t);
+            } else if (node == "gpu-thmzone") {
+                result["gpu"] = std::to_string(t / 1e3);
+            } else if (node == "soc-thmzone") {
+                result["soc-thermal"] = std::to_string(t / 1e3);
             } else if (node == "drmos_gpu_npu" || node == "npu_thermal") {
                 result["npu_thermal"] = std::to_string(t / 1e3);
             } else {
