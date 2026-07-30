@@ -31,6 +31,7 @@ namespace base {
 #define ZLIB_CMF 0x78
 #define ZLIB_FLG 0x9C
 #define ZLIB_MAGIC_NUM_LEN 2
+#define HTRACE_MAGIC_NUM_LEN 8
 constexpr uint32_t K_FILE_MODE_INVALID = 0xFFFFFFFF;
 enum TraceParserStatus {
     TRACE_PARSER_NORMAL = 0,

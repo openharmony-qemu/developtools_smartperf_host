@@ -119,12 +119,12 @@ bool IsHtraceFile(const std::string &filePath)
     if (!f.is_open()) {
         return false;
     }
-    char buf[8];
-    f.read(buf, 8);
-    if (f.gcount() < 8) {
+    char buf[HTRACE_MAGIC_NUM_LEN];
+    f.read(buf, HTRACE_MAGIC_NUM_LEN);
+    if (f.gcount() < HTRACE_MAGIC_NUM_LEN) {
         return false;
     }
-    return std::string(buf, 8) == "OHOSPROF";
+    return std::string(buf, HTRACE_MAGIC_NUM_LEN) == "OHOSPROF";
 }
 
 
