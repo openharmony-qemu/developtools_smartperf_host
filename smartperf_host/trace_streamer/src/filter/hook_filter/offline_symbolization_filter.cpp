@@ -26,6 +26,7 @@ OfflineSymbolizationFilter::OfflineSymbolizationFilter(TraceDataCache *dataCache
       ipidToIpToFrameInfo_(nullptr),
       ipidToFilePathIdToFileIndex_(INVALID_UINT64),
       ipidToFilePathIdToAdltBase_(INVALID_UINT64),
+      ipidToFilePathIdToBuildId_(INVALID_DATAINDEX),
       ipidTofilePathIdToSymbolTableMap_(nullptr)
 {
 }

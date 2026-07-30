@@ -113,6 +113,21 @@ bool UnZlibFile(const std::string &zlibFile, std::string &traceFile)
     return localZip.Unzlib(traceFile);
 }
 
+bool IsHtraceFile(const std::string &filePath)
+{
+    std::ifstream f(filePath, std::ios::binary);
+    if (!f.is_open()) {
+        return false;
+    }
+    char buf[HTRACE_MAGIC_NUM_LEN];
+    f.read(buf, HTRACE_MAGIC_NUM_LEN);
+    if (f.gcount() < HTRACE_MAGIC_NUM_LEN) {
+        return false;
+    }
+    return std::string(buf, HTRACE_MAGIC_NUM_LEN) == "OHOSPROF";
+}
+
+
 LocalZip::LocalZip(const std::string &file) : filePath_(file)
 {
     buf_ = std::make_unique<char[]>(bufSize_);
@@ -260,6 +275,12 @@ bool LocalZip::Unzip(std::string &traceFile)
         traceFile = Utf8ToGbk(traceFile.c_str());
 #endif
         return true;
+    }
+    for (const auto &f : files) {
+        if (IsHtraceFile(f)) {
+            traceFile = f;
+            return true;
+        }
     }
     return false;
 }

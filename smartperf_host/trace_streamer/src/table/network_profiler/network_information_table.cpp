@@ -23,7 +23,7 @@ enum class Index : int32_t {
     ID = 0,
     REQUEST_ID,
     PROTOCOL,
-    DOMAIN,
+    DOMAIN_NAME,
     REQUEST_URI,
     REQUEST_METHOD,
     REQUEST_HEADER,
@@ -84,7 +84,7 @@ void NetworkInformationTable::Cursor::HandleTextColumn(int32_t column) const
             sqlite3_result_text(context_, networkInformationDataObj_.Protocols()[CurrentRow()].c_str(),
                                  STR_DEFAULT_LEN, nullptr);
             break;
-        case Index::DOMAIN:
+        case Index::DOMAIN_NAME:
             sqlite3_result_text(context_, networkInformationDataObj_.Domains()[CurrentRow()].c_str(),
                                  STR_DEFAULT_LEN, nullptr);
             break;
@@ -146,7 +146,7 @@ int32_t NetworkInformationTable::Cursor::Column(int32_t column) const
             break;
         case Index::REQUEST_ID:
         case Index::PROTOCOL:
-        case Index::DOMAIN:
+        case Index::DOMAIN_NAME:
         case Index::REQUEST_URI:
         case Index::REQUEST_METHOD:
         case Index::REQUEST_HEADER:

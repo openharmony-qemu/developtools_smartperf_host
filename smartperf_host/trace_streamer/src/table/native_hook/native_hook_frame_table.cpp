@@ -17,7 +17,7 @@
 
 namespace SysTuning {
 namespace TraceStreamer {
-enum class Index : int32_t { ID = 0, CALLCHAIN_ID, DEPTH, IP, SYMBOL_ID, FILE_ID, OFFSET, SYMBOL_OFFSET, VADDR };
+enum class Index : int32_t { ID = 0, CALLCHAIN_ID, DEPTH, IP, SYMBOL_ID, FILE_ID, OFFSET, SYMBOL_OFFSET, VADDR, BUILD_ID };
 NativeHookFrameTable::NativeHookFrameTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
     tableColumn_.push_back(TableBase::ColumnInfo("id", "INTEGER"));
@@ -29,6 +29,7 @@ NativeHookFrameTable::NativeHookFrameTable(const TraceDataCache *dataCache) : Ta
     tableColumn_.push_back(TableBase::ColumnInfo("offset", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("symbol_offset", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("vaddr", "TEXT"));
+    tableColumn_.push_back(TableBase::ColumnInfo("build_id", "INTEGER"));
     tablePriKey_.push_back("id");
 }
 
@@ -99,6 +100,10 @@ int32_t NativeHookFrameTable::Cursor::Filter(const FilterConstraints &fc, sqlite
                 indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[c.idxInaConstraint])),
                                     nativeHookFrameInfoObj_.FilePaths());
                 break;
+            case Index::BUILD_ID:
+                indexMap_->MixRange(c.op, static_cast<uint64_t>(sqlite3_value_int64(argv[c.idxInaConstraint])),
+                                    nativeHookFrameInfoObj_.BuildIds());
+                break;
             default:
                 break;
         }
@@ -152,6 +157,10 @@ int32_t NativeHookFrameTable::Cursor::Column(int32_t nativeHookFrameCol) const
         case Index::VADDR: {
             SetTypeColumnTextNotEmpty(nativeHookFrameInfoObj_.Vaddrs()[CurrentRow()].empty(),
                                       nativeHookFrameInfoObj_.Vaddrs()[CurrentRow()].c_str());
+            break;
+        }
+        case Index::BUILD_ID: {
+            SetTypeColumnInt64(nativeHookFrameInfoObj_.BuildIds()[CurrentRow()], INVALID_DATAINDEX);
             break;
         }
         default:

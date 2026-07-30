@@ -31,6 +31,7 @@ namespace base {
 #define ZLIB_CMF 0x78
 #define ZLIB_FLG 0x9C
 #define ZLIB_MAGIC_NUM_LEN 2
+#define HTRACE_MAGIC_NUM_LEN 8
 constexpr uint32_t K_FILE_MODE_INVALID = 0xFFFFFFFF;
 enum TraceParserStatus {
     TRACE_PARSER_NORMAL = 0,
@@ -49,14 +50,12 @@ int32_t OpenFile(const std::string &path, int32_t flags, uint32_t mode = K_FILE_
 
 std::string GetExecutionDirectoryPath();
 
-#if defined(is_linux) || defined(_WIN32)
 std::vector<std::string> GetFilesNameFromDir(const std::string &path, bool onlyFileName = true);
-#endif
 
 bool UnZipFile(const std::string &zipFile, std::string &traceFile);
 bool UnZlibFile(const std::string &zlibFile, std::string &traceFile);
 
-bool LocalUnzip(const std::string &zipFile, const std::string &dstDir);
+bool IsHtraceFile(const std::string &filePath);
 
 class LocalZip {
 public:

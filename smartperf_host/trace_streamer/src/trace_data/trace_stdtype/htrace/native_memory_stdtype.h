@@ -281,6 +281,7 @@ struct NativeHookFrameRow {
     DataIndex filePath = INVALID_DATAINDEX;
     uint64_t offset = INVALID_UINT64;
     uint64_t symbolOffset = INVALID_UINT64;
+    DataIndex buildId = INVALID_DATAINDEX;
 };
 
 struct NativeHookFrameVaddrRow {
@@ -292,6 +293,7 @@ struct NativeHookFrameVaddrRow {
     DataIndex filePath = INVALID_DATAINDEX;
     uint64_t offset = INVALID_UINT64;
     uint64_t symbolOffset = INVALID_UINT64;
+    DataIndex buildId = INVALID_DATAINDEX;
     const std::string &vaddr;
 };
 
@@ -318,6 +320,7 @@ public:
     const std::deque<uint64_t> &Offsets() const;
     const std::deque<uint64_t> &SymbolOffsets() const;
     const std::deque<std::string> &Vaddrs() const;
+    const std::deque<DataIndex> &BuildIds() const;
     const std::deque<uint32_t> &realStack() const;
     size_t Size() const
     {
@@ -333,6 +336,7 @@ public:
         offsets_.clear();
         symbolOffsets_.clear();
         vaddrs_.clear();
+        buildIds_.clear();
     }
 
 private:
@@ -344,6 +348,7 @@ private:
     std::deque<uint64_t> offsets_ = {};
     std::deque<uint64_t> symbolOffsets_ = {};
     std::deque<std::string> vaddrs_ = {};
+    std::deque<DataIndex> buildIds_ = {};
     std::map<uint32_t, uint64_t> symbolIdToSymbolName_ = {};
 };
 struct NativeHookStatisticRow {
@@ -356,6 +361,7 @@ struct NativeHookStatisticRow {
     uint64_t releaseCount = INVALID_UINT64;
     uint64_t applySize = INVALID_UINT64;
     uint64_t releaseSize = INVALID_UINT64;
+    DataIndex addrId = INVALID_DATAINDEX;
 };
 class NativeHookStatistic : public NativeHookSampleBase {
 public:
@@ -366,6 +372,7 @@ public:
     const std::deque<uint64_t> &ReleaseCounts() const;
     const std::deque<uint64_t> &ApplySizes() const;
     const std::deque<uint64_t> &ReleaseSizes() const;
+    const std::deque<DataIndex> &AddrIds() const;
     void Clear() override
     {
         NativeHookSampleBase::Clear();
@@ -374,6 +381,7 @@ public:
         releaseCounts_.clear();
         applySizes_.clear();
         releaseSizes_.clear();
+        addrIds_.clear();
     }
 
 private:
@@ -383,6 +391,7 @@ private:
     std::deque<uint64_t> releaseCounts_ = {};
     std::deque<uint64_t> applySizes_ = {};
     std::deque<uint64_t> releaseSizes_ = {};
+    std::deque<DataIndex> addrIds_ = {};
 };
 } // namespace TraceStdtype
 } // namespace SysTuning
