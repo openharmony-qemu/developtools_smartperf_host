@@ -802,10 +802,10 @@ HWTEST_F(TableTest, NativeHookFrameTableTest, TestSize.Level1)
     uint64_t symbolOffset1 = 2;
     const std::string vaddr1 = "addr1";
     NativeHookFrameVaddrRow nativeHookFrameVaddrRow = {CALLCHAIN_ID, depth,  ip,           symbolName,
-                                                       filePath,     offset, symbolOffset, vaddr};
+                                                        filePath,     offset, symbolOffset, INVALID_DATAINDEX, vaddr};
     stream_.traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(nativeHookFrameVaddrRow);
     NativeHookFrameVaddrRow nativeHookFrameVaddrRow2 = {CALLCHAIN_ID1, depth1,  ip1,           symbolName1,
-                                                        filePath1,     offset1, symbolOffset1, vaddr1};
+                                                        filePath1,     offset1, symbolOffset1, INVALID_DATAINDEX, vaddr1};
     stream_.traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(nativeHookFrameVaddrRow2);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect, false), 2);
     EXPECT_EQ(stream_.traceDataCache_->SearchDatabase(sqlSelect1, false), 1);

@@ -95,10 +95,14 @@ void PbreaderNativeHookParser::ParseFileEvent(const ProtoReader::BytesView &byte
     ProtoReader::FilePathMap_Reader filePathMapReader(bytesView);
     auto ipid = streamFilters_->processFilter_->UpdateOrCreateProcessWithName(filePathMapReader.pid(), "");
     auto nameIndex = traceDataCache_->dataDict_.GetStringIndex(filePathMapReader.name().ToStdString());
+    DataIndex buildIdIndex = INVALID_DATAINDEX;
+    if (filePathMapReader.has_build_id() && !filePathMapReader.build_id().ToStdString().empty()) {
+        buildIdIndex = traceDataCache_->dataDict_.GetStringIndex(filePathMapReader.build_id().ToStdString());
+    }
     if (filePathMapReader.has_adlt_base()) {
-        nativeHookFilter_->AppendFilePathMaps(ipid, filePathMapReader.id(), nameIndex, filePathMapReader.adlt_base());
+        nativeHookFilter_->AppendFilePathMaps(ipid, filePathMapReader.id(), nameIndex, filePathMapReader.adlt_base(), buildIdIndex);
     } else {
-        nativeHookFilter_->AppendFilePathMaps(ipid, filePathMapReader.id(), nameIndex, INVALID_UINT64);
+        nativeHookFilter_->AppendFilePathMaps(ipid, filePathMapReader.id(), nameIndex, INVALID_UINT64, buildIdIndex);
     }
 }
 void PbreaderNativeHookParser::ParseSymbolEvent(const ProtoReader::BytesView &bytesView)

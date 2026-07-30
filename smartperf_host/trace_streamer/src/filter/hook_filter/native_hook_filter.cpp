@@ -196,14 +196,16 @@ void NativeHookFilter::AppendFrameMaps(uint32_t ipid, uint32_t frameMapId, const
         ipidToFrameIdToFrameBytes_.Insert(ipid, frameMapId, frames);
     }
 }
-void NativeHookFilter::AppendFilePathMaps(uint32_t ipid, uint32_t filePathId, uint64_t fileIndex, uint64_t adlt_base)
+void NativeHookFilter::AppendFilePathMaps(uint32_t ipid, uint32_t filePathId, uint64_t fileIndex, uint64_t adlt_base, DataIndex buildIdIndex)
 {
     if (isSingleProcData_) {
         ipidToFilePathIdToFileIndex_.Insert(SINGLE_PROC_IPID, filePathId, fileIndex);
         ipidToFilePathIdToAdltBase_.Insert(SINGLE_PROC_IPID, filePathId, adlt_base);
+        ipidToFilePathIdToBuildId_.Insert(SINGLE_PROC_IPID, filePathId, buildIdIndex);
     } else {
         ipidToFilePathIdToFileIndex_.Insert(ipid, filePathId, fileIndex);
         ipidToFilePathIdToAdltBase_.Insert(ipid, filePathId, adlt_base);
+        ipidToFilePathIdToBuildId_.Insert(ipid, filePathId, buildIdIndex);
     }
 }
 
@@ -263,9 +265,11 @@ std::unique_ptr<NativeHookFrameInfo> NativeHookFilter::ParseFrame(uint64_t row, 
         frameInfo->filePathIndex_ = ipidToFilePathIdToFileIndex_.Find(curCacheIpid, reader.file_path_id());
         TS_CHECK_TRUE(frameInfo->filePathIndex_ != INVALID_UINT64, nullptr,
                       "Native hook ParseFrame find file path id failed!!!");
+        frameInfo->buildIdIndex_ = ipidToFilePathIdToBuildId_.Find(curCacheIpid, reader.file_path_id());
     } else {
         frameInfo->symbolIndex_ = traceDataCache_->dataDict_.GetStringIndex(reader.symbol_name().ToStdString());
         frameInfo->filePathIndex_ = traceDataCache_->dataDict_.GetStringIndex(reader.file_path().ToStdString());
+        frameInfo->buildIdIndex_ = INVALID_DATAINDEX;
     }
     // 0 is meaningful, but it is not displayed. Other data is still needed
     if (reader.has_ip()) {
@@ -351,6 +355,34 @@ void NativeHookFilter::ParseStatisticEvent(uint64_t timeStamp, const ProtoReader
     if (reader.has_tag_name() && !reader.tag_name().ToStdString().empty()) {
         memSubType = traceDataCache_->GetDataIndex(reader.tag_name().ToStdString());
     }
+    DataIndex addrId = INVALID_DATAINDEX;
+    if (reader.has_addr()) {
+        std::string addrStr;
+        auto addrDataArea = reader.Get(11);
+        if (addrDataArea.Type() == ProtoReader::ProtoWireType::kLengthDelimited) {
+            bool addrParseError = false;
+            auto addrIter = reader.addr(&addrParseError);
+            while (addrIter) {
+                if (!addrStr.empty()) {
+                    addrStr += ",";
+                }
+                addrStr += base::Uint64ToHexText(*addrIter);
+                ++addrIter;
+            }
+        } else {
+            auto addrIter = reader.GetRepeated<uint64_t>(11);
+            while (addrIter) {
+                if (!addrStr.empty()) {
+                    addrStr += ",";
+                }
+                addrStr += base::Uint64ToHexText(*addrIter);
+                ++addrIter;
+            }
+        }
+        if (!addrStr.empty()) {
+            addrId = traceDataCache_->GetDataIndex(addrStr);
+        }
+    }
     NativeHookStatisticRow nativeHookStatisticRow = {ipid,
                                                      timeStamp,
                                                      callChainId,
@@ -359,7 +391,8 @@ void NativeHookFilter::ParseStatisticEvent(uint64_t timeStamp, const ProtoReader
                                                      reader.apply_count(),
                                                      reader.release_count(),
                                                      reader.apply_size(),
-                                                     reader.release_size()};
+                                                     reader.release_size(),
+                                                     addrId};
     traceDataCache_->GetNativeHookStatisticsData()->AppendNewNativeHookStatistic(nativeHookStatisticRow);
 }
 
@@ -967,6 +1000,7 @@ void NativeHookFilter::FillOfflineSymbolizationFrames(
         auto frameInfo = itor->get();
         filePathIndex = ipidToFilePathIdToFileIndex_.Find(curCacheIpid, frameInfo->filePathId_);
         auto adltBase = ipidToFilePathIdToAdltBase_.Find(curCacheIpid, frameInfo->filePathId_);
+        auto buildIdIndex = ipidToFilePathIdToBuildId_.Find(curCacheIpid, frameInfo->filePathId_);
         if (adltBase != INVALID_UINT64) {
             // get subFilePathIndex
             auto subFilePathIndex = GetSubFilePathIndex(adltBase, frameInfo);
@@ -984,6 +1018,7 @@ void NativeHookFilter::FillOfflineSymbolizationFrames(
                                                            filePathIndex,
                                                            frameInfo->offset_,
                                                            frameInfo->symbolOffset_,
+                                                           buildIdIndex,
                                                            vaddr};
         auto row = traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(nativeHookFrameVaddrRow);
         UpdateFilePathIndexToCallStackRowMap(row, filePathIndex);
@@ -1366,6 +1401,7 @@ void NativeHookFilter::ParseFramesInCallStackCompressedMode()
                 continue;
             }
             auto symbolIndex = ipidToSymIdToSymIndex_.Find(curCacheIpid, reader.symbol_name_id());
+            auto buildIdIndex = ipidToFilePathIdToBuildId_.Find(curCacheIpid, reader.file_path_id());
             if (symbolIndex == INVALID_UINT64) {
                 TS_LOGE("Data exception, can not find symbol_name_id!!!");
                 continue;
@@ -1381,7 +1417,8 @@ void NativeHookFilter::ParseFramesInCallStackCompressedMode()
                                                      symbolIndex,
                                                      filePathIndex,
                                                      frameOffset,
-                                                     frameSymbolOffset};
+                                                     frameSymbolOffset,
+                                                     buildIdIndex};
             auto row = traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(nativeHookFrameRow);
             UpdateFilePathIndexToCallStackRowMap(row, filePathIndex);
         }
@@ -1410,7 +1447,8 @@ void NativeHookFilter::ParseFramesWithOutCallStackCompressedMode()
                                                      frameInfo->symbolIndex_,
                                                      frameInfo->filePathIndex_,
                                                      frameInfo->offset_,
-                                                     frameInfo->symbolOffset_};
+                                                     frameInfo->symbolOffset_,
+                                                     frameInfo->buildIdIndex_};
             auto row = traceDataCache_->GetNativeHookFrameData()->AppendNewNativeHookFrame(nativeHookFrameRow);
             UpdateFilePathIndexToCallStackRowMap(row, frameInfo->filePathIndex_);
         }

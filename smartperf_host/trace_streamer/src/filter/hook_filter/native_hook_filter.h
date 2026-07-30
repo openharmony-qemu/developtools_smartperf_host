@@ -58,7 +58,8 @@ public:
           symbolIndex_(INVALID_UINT64),
           filePathIndex_(INVALID_UINT64),
           offset_(INVALID_UINT64),
-          symbolOffset_(INVALID_UINT64)
+          symbolOffset_(INVALID_UINT64),
+          buildIdIndex_(INVALID_UINT64)
     {
     }
     NativeHookFrameInfo(uint64_t ip,
@@ -79,6 +80,7 @@ public:
     uint64_t filePathIndex_;
     uint64_t offset_;
     uint64_t symbolOffset_;
+    uint64_t buildIdIndex_;
 };
 struct CommHookData {
     size_t size = 0;
@@ -105,7 +107,7 @@ public:
     void ParseConfigInfo(ProtoReader::BytesView &protoData, uint64_t &statisticsInterval);
     void AppendStackMaps(uint32_t ipid, uint32_t stackid, std::vector<uint64_t> &frames);
     void AppendFrameMaps(uint32_t ipid, uint32_t frameMapId, const ProtoReader::BytesView &bytesView);
-    void AppendFilePathMaps(uint32_t ipid, uint32_t filePathId, uint64_t fileIndex, uint64_t adlt_base);
+    void AppendFilePathMaps(uint32_t ipid, uint32_t filePathId, uint64_t fileIndex, uint64_t adlt_base, DataIndex buildIdIndex);
     void AppendSymbolMap(uint32_t ipid, uint32_t symId, uint64_t symbolIndex);
     void AppendThreadNameMap(uint32_t ipid, uint32_t nameId, uint64_t threadNameIndex);
     void ParseMapsEvent(std::unique_ptr<NativeHookMetaData> &nativeHookMetaData);

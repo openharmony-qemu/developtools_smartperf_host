@@ -49,14 +49,12 @@ int32_t OpenFile(const std::string &path, int32_t flags, uint32_t mode = K_FILE_
 
 std::string GetExecutionDirectoryPath();
 
-#if defined(is_linux) || defined(_WIN32)
 std::vector<std::string> GetFilesNameFromDir(const std::string &path, bool onlyFileName = true);
-#endif
 
 bool UnZipFile(const std::string &zipFile, std::string &traceFile);
 bool UnZlibFile(const std::string &zlibFile, std::string &traceFile);
 
-bool LocalUnzip(const std::string &zipFile, const std::string &dstDir);
+bool IsHtraceFile(const std::string &filePath);
 
 class LocalZip {
 public:

@@ -29,7 +29,8 @@ enum class Index : int32_t {
     APPLY_SIZE,
     RELEASE_SIZE,
     LAST_LIB_ID,
-    LAST_SYMBOL_ID
+    LAST_SYMBOL_ID,
+    ADDR_ID
 };
 NativeHookStatisticTable::NativeHookStatisticTable(const TraceDataCache *dataCache) : TableBase(dataCache)
 {
@@ -45,6 +46,7 @@ NativeHookStatisticTable::NativeHookStatisticTable(const TraceDataCache *dataCac
     tableColumn_.push_back(TableBase::ColumnInfo("release_size", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("last_lib_id", "INTEGER"));
     tableColumn_.push_back(TableBase::ColumnInfo("last_symbol_id", "INTEGER"));
+    tableColumn_.push_back(TableBase::ColumnInfo("addr_id", "INTEGER"));
     tablePriKey_.push_back("id");
 }
 
@@ -168,6 +170,9 @@ int32_t NativeHookStatisticTable::Cursor::Column(int32_t column) const
             break;
         case Index::LAST_SYMBOL_ID:
             SetTypeColumnInt64(nativeHookStatisticInfoObj_.LastSymbolIndexs()[CurrentRow()], INVALID_DATAINDEX);
+            break;
+        case Index::ADDR_ID:
+            SetTypeColumnInt64(nativeHookStatisticInfoObj_.AddrIds()[CurrentRow()], INVALID_DATAINDEX);
             break;
         default:
             TS_LOGF("Unregistered column : %d", column);

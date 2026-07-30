@@ -277,8 +277,11 @@ bool SetFileSize(const std::string &traceFilePath)
 int OpenAndParserFile(TraceStreamerSelector &ts, const std::string &traceFilePath)
 {
     std::string filePath = traceFilePath;
-    UnZipFile(traceFilePath, filePath);
-    UnZlibFile(traceFilePath, filePath);
+    if (!UnZipFile(traceFilePath, filePath)) {
+        if (!UnZlibFile(traceFilePath, filePath)) {
+            filePath = traceFilePath;
+        }
+    }
     if (!SetFileSize(filePath)) {
         return 0;
     }

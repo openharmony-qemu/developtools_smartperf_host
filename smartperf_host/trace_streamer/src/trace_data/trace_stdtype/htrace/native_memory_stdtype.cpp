@@ -277,6 +277,7 @@ size_t NativeHookFrame::AppendNewNativeHookFrame(const NativeHookFrameVaddrRow &
     offsets_.emplace_back(context.offset);
     symbolOffsets_.emplace_back(context.symbolOffset);
     vaddrs_.emplace_back(context.vaddr);
+    buildIds_.emplace_back(context.buildId);
     return Size() - 1;
 }
 size_t NativeHookFrame::AppendNewNativeHookFrame(const NativeHookFrameRow &context)
@@ -288,6 +289,7 @@ size_t NativeHookFrame::AppendNewNativeHookFrame(const NativeHookFrameRow &conte
     filePaths_.emplace_back(context.filePath);
     offsets_.emplace_back(context.offset);
     symbolOffsets_.emplace_back(context.symbolOffset);
+    buildIds_.emplace_back(context.buildId);
     return Size() - 1;
 }
 void NativeHookFrame::UpdateSymbolIdToNameMap(uint64_t originSymbolId, uint64_t symbolId)
@@ -354,6 +356,7 @@ void NativeHookFrame::ClearUselessCallChainIds(const std::unordered_set<uint32_t
     std::deque<uint64_t> offsetsTmp;
     std::deque<uint64_t> symbolOffsetsTmp;
     std::deque<std::string> vaddrsTmp;
+    std::deque<DataIndex> buildIdsTmp;
     for (size_t i = 0; i < callChainIds_.size(); i++) {
         if (callChainIdsSet.find(callChainIds_[i]) == callChainIdsSet.end()) {
             continue;
@@ -366,6 +369,7 @@ void NativeHookFrame::ClearUselessCallChainIds(const std::unordered_set<uint32_t
         offsetsTmp.emplace_back(offsets_[i]);
         symbolOffsetsTmp.emplace_back(symbolOffsets_[i]);
         vaddrsTmp.emplace_back(vaddrs_[i]);
+        buildIdsTmp.emplace_back(buildIds_[i]);
     }
     callChainIds_.swap(callChainIdsTmp);
     depths_.swap(depthsTmp);
@@ -375,6 +379,7 @@ void NativeHookFrame::ClearUselessCallChainIds(const std::unordered_set<uint32_t
     offsets_.swap(offsetsTmp);
     symbolOffsets_.swap(symbolOffsetsTmp);
     vaddrs_.swap(vaddrsTmp);
+    buildIds_.swap(buildIdsTmp);
 }
 const std::deque<uint32_t> &NativeHookFrame::CallChainIds() const
 {
@@ -408,6 +413,10 @@ const std::deque<std::string> &NativeHookFrame::Vaddrs() const
 {
     return vaddrs_;
 }
+const std::deque<DataIndex> &NativeHookFrame::BuildIds() const
+{
+    return buildIds_;
+}
 
 size_t NativeHookStatistic::AppendNewNativeHookStatistic(const NativeHookStatisticRow &nativeHookStatisticRow)
 {
@@ -419,6 +428,7 @@ size_t NativeHookStatistic::AppendNewNativeHookStatistic(const NativeHookStatist
     releaseCounts_.emplace_back(nativeHookStatisticRow.releaseCount);
     applySizes_.emplace_back(nativeHookStatisticRow.applySize);
     releaseSizes_.emplace_back(nativeHookStatisticRow.releaseSize);
+    addrIds_.emplace_back(nativeHookStatisticRow.addrId);
     return Size() - 1;
 }
 
@@ -445,6 +455,10 @@ const std::deque<uint64_t> &NativeHookStatistic::ApplySizes() const
 const std::deque<uint64_t> &NativeHookStatistic::ReleaseSizes() const
 {
     return releaseSizes_;
+}
+const std::deque<DataIndex> &NativeHookStatistic::AddrIds() const
+{
+    return addrIds_;
 }
 } // namespace TraceStdtype
 } // namespace SysTuning

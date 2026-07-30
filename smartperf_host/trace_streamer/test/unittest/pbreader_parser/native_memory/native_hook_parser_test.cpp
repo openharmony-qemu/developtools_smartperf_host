@@ -462,6 +462,35 @@ public:
         return batchNativeHookData;
     }
 
+    void SetStatisticEvent(BatchNativeHookData &hookData,
+                           uint32_t pid,
+                           uint32_t callstackId,
+                           RecordStatisticsEvent::MemoryType type,
+                           uint64_t applyCount,
+                           uint64_t releaseCount,
+                           uint64_t applySize,
+                           uint64_t releaseSize,
+                           const std::vector<uint64_t> &addrs = {},
+                           uint64_t sec = SEC_01,
+                           uint64_t nsec = NSEC_01)
+    {
+        auto statisticsEvent = new RecordStatisticsEvent();
+        statisticsEvent->set_pid(pid);
+        statisticsEvent->set_callstack_id(callstackId);
+        statisticsEvent->set_type(type);
+        statisticsEvent->set_apply_count(applyCount);
+        statisticsEvent->set_release_count(releaseCount);
+        statisticsEvent->set_apply_size(applySize);
+        statisticsEvent->set_release_size(releaseSize);
+        for (auto addr : addrs) {
+            statisticsEvent->add_addr(addr);
+        }
+        auto nativeHookData = hookData.add_events();
+        nativeHookData->set_tv_sec(sec);
+        nativeHookData->set_tv_nsec(nsec);
+        nativeHookData->set_allocated_statistics_event(statisticsEvent);
+    }
+
 public:
     SysTuning::TraceStreamer::TraceStreamerSelector stream_ = {};
 };
@@ -3748,6 +3777,35 @@ HWTEST_F(NativeHookParserTest, ParseMixedHeapTypeWithArktsStaticHeapTest, TestSi
 
     NativeHookCache cache4(nativeHook, NUM_03);
     EXPECT_EQ(cache4.GetEventType(), "ARKTS_STATIC_HEAP_Alloc_Event");
+}
+
+HWTEST_F(NativeHookParserTest, ParseStatisticEventAddr, TestSize.Level1)
+{
+    TS_LOGI("test-StatisticEventAddr");
+    BatchNativeHookData batchNativeHookData;
+    SetStatisticEvent(batchNativeHookData, PID, 0,
+                      RecordStatisticsEvent::MALLOC,
+                      NUM_02, NUM_03, SIZE_01, SIZE_02,
+                      {ADDR_01, ADDR_02});
+
+    std::string hookStrMsg = "";
+    batchNativeHookData.SerializeToString(&hookStrMsg);
+    PbreaderDataSegment dataSeg;
+    dataSeg.seg = std::make_shared<std::string>(hookStrMsg);
+    ProtoReader::BytesView hookBytesView(reinterpret_cast<const uint8_t *>(hookStrMsg.data()), hookStrMsg.size());
+    dataSeg.protoData = hookBytesView;
+
+    PbreaderNativeHookParser htraceNativeHookParser(stream_.traceDataCache_.get(), stream_.streamFilters_.get());
+    bool hasSplit = false;
+    htraceNativeHookParser.Parse(dataSeg, hasSplit);
+    htraceNativeHookParser.FinishParseNativeHookData();
+
+    const auto &statisticData = stream_.traceDataCache_->GetConstNativeHookStatisticData();
+    EXPECT_GT(statisticData.Size(), 0u);
+
+    auto addrId = statisticData.AddrIds()[0];
+    EXPECT_NE(addrId, INVALID_DATAINDEX);
+    EXPECT_EQ(stream_.traceDataCache_->dataDict_.GetDataFromDict(addrId), "0x9f8060,0x9f8061");
 }
 } // namespace NativeMemoryUnitTest
 } // namespace TraceStreamer

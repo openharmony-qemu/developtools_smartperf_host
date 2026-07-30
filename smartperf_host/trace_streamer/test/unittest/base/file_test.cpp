@@ -36,11 +36,6 @@ public:
     const std::string tempPath_ = "../../test/resource/ts_tmp";
 };
 
-/**
- * @tc.name: UnZlibFile Test
- * @tc.desc: UnZlibFile Test
- * @tc.type: FUNC
- */
 HWTEST_F(FileTest, UnZlibFile, TestSize.Level1)
 {
     TS_LOGE("test46-1");
@@ -53,11 +48,6 @@ HWTEST_F(FileTest, UnZlibFile, TestSize.Level1)
     RemoveDirectory(tempPath_);
 }
 
-/**
- * @tc.name: UnZipFile Test
- * @tc.desc: UnZipFile Test
- * @tc.type: FUNC
- */
 HWTEST_F(FileTest, UnZipFile, TestSize.Level1)
 {
     TS_LOGE("test46-2");
@@ -68,6 +58,25 @@ HWTEST_F(FileTest, UnZipFile, TestSize.Level1)
     ret = base::UnZipFile(zipPath_, traceFile);
     EXPECT_TRUE(ret);
     RemoveDirectory(tempPath_);
+}
+
+HWTEST_F(FileTest, UnZipFileMulti, TestSize.Level1)
+{
+    TS_LOGE("test_UnZipFileMulti");
+    std::string multiZipPath_ = "../../test/resource/multi_file.zip";
+    std::string traceFile;
+    auto ret = base::UnZipFile(multiZipPath_, traceFile);
+    EXPECT_TRUE(ret);
+    EXPECT_TRUE(base::IsHtraceFile(traceFile));
+    RemoveDirectory(tempPath_);
+}
+
+HWTEST_F(FileTest, IsHtraceFile, TestSize.Level1)
+{
+    TS_LOGE("test_IsHtraceFile");
+    EXPECT_FALSE(base::IsHtraceFile("invalidpath"));
+    EXPECT_FALSE(base::IsHtraceFile("../../test/resource/ut_bytrace_input_full.txt"));
+    EXPECT_TRUE(base::IsHtraceFile("../../test/resource/pbreader_ffrt.htrace"));
 }
 } // namespace FileDataUnitTest
 } // namespace TraceStreamer
