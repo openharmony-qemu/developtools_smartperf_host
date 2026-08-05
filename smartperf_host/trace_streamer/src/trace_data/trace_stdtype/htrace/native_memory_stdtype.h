@@ -236,8 +236,8 @@ private:
     const std::string SO_FREE_EVENT = "SO_Free_Event";
     const std::string FD_OPEN_EVENT = "FD_Open_Event";
     const std::string FD_CLOSE_EVENT = "FD_Close_Event";
-    const std::string THREAD_CREATE_EVENT = "Thread_Create_Event";
-    const std::string THREAD_DESTROY_EVENT = "Thread_Destroy_Event";
+    const std::string THREAD_CREATE_EVENT = "THREAD_Create_Event";
+    const std::string THREAD_DESTROY_EVENT = "THREAD_Destroy_Event";
     const std::string ARK_GLOBAL_HANDLE_ALLOC_EVENT = "ARK_GLOBAL_HANDLE_Alloc_Event";
     const std::string ARK_GLOBAL_HANDLE_FREE_EVENT = "ARK_GLOBAL_HANDLE_Free_Event";
     const std::string ARK_LOCAL_HANDLE_ALLOC_EVENT = "ARK_LOCAL_HANDLE_Alloc_Event";
