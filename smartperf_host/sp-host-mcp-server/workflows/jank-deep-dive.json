@@ -1,0 +1,26 @@
+{
+  "name": "jank-deep-dive",
+  "description": "Deep dive into jank/frame drops: triage → detail analysis → CPU context.",
+  "steps": [
+    {
+      "id": "triage",
+      "tool": "triage_jank"
+    },
+    {
+      "id": "detail",
+      "tool": "jank_detail",
+      "argsMapping": {
+        "ipid": "${triage.content.0.ipid}"
+      }
+    },
+    {
+      "id": "cpu_context",
+      "tool": "jank_cpu_context",
+      "argsMapping": {
+        "ipid": "${triage.content.0.ipid}",
+        "startTime": "${triage.content.0.startTime}",
+        "endTime": "${triage.content.0.endTime}"
+      }
+    }
+  ]
+}

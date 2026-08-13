@@ -1,0 +1,16 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "smartperf-host": {
+      "type": "local",
+      "command": ["node", "D:/SPAgent/developtools_smartperf_host/smartperf_host/sp-host-mcp-server/dist/index.js"],
+      "enabled": true,
+      "timeout": 120000,
+      "environment": {
+        "TRACE_STREAMER_PATH": "D:/SPAgent/developtools_smartperf_host/smartperf_host/trace_streamer/out/windows/trace_streamer.exe",
+        "SP_AGENT_EXT_HOST": "127.0.0.1",
+        "SP_AGENT_EXT_PORT": "19099"
+      }
+    }
+  }
+}

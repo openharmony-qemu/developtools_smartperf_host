@@ -1,0 +1,21 @@
+{
+  "name": "cpu-sched-analysis",
+  "description": "CPU scheduling analysis: triage → sched latency → thread state.",
+  "steps": [
+    {
+      "id": "triage",
+      "tool": "triage_cpu"
+    },
+    {
+      "id": "sched_latency",
+      "tool": "sched_latency"
+    },
+    {
+      "id": "thread_state",
+      "tool": "thread_state_summary",
+      "argsMapping": {
+        "itid": "${triage.content.0.itid}"
+      }
+    }
+  ]
+}

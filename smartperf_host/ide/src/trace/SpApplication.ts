@@ -88,6 +88,7 @@ import { cancelCurrentTraceRowHighlight } from './component/SpSystemTrace.init';
 import './component/SpAiAnalysisPage';
 import './component/SpSnapShotView';
 import { WebSocketManager } from '../webSocket/WebSocketManager';
+import { SpAgentListener } from '../webSocket/SpAgentListener';
 import { LongTraceFilter } from './longtrace/LongTraceFilter';
 import {
   buildLongTracePageNotReadyMessage,
@@ -418,9 +419,15 @@ export class SpApplication extends BaseElement {
     }
   }
   private connectWebSocket(): void {
-    document.addEventListener('DOMContentLoaded', function () {//
+    const init = () => {
       WebSocketManager.getInstance();
-    });
+      new SpAgentListener().register();
+    };
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      init();
+    } else {
+      document.addEventListener('DOMContentLoaded', init);
+    }
   }
   private initElementsEnd(): void {
     let urlParams = new URL(window.location.href).searchParams;
