@@ -15,6 +15,7 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <memory>
 #include <regex>
@@ -70,16 +71,16 @@ void ShowHelpInfo(const char *argv)
 #ifdef ENABLE_EBPF
     dumpReadableTextPluginName.append("ebpf.");
 #endif
-    printf(
-        "trace analyze tool, it can transfer a bytrace/htrace file into a "
+    std::cout << "trace analyze tool, it can transfer a bytrace/htrace file into a "
         "SQLite database and save result to a local file trace_streamer.log.\n"
-        "Usage: %s FILE -e sqlite_out.db\n"
-        " or    %s FILE -c\n"
+        "Usage: " << argv << " FILE -e sqlite_out.db\n"
+        " or    " << argv << " FILE -c\n"
         "Options:\n"
         " -e    transfer a trace file into a SQLiteBased DB. with -nm to except meta table\n"
         " -c    command line mode.\n"
         " -D    Specify the directory path with multiple long trace files\n"
-        " -d    dump '%s' readable text.Default dump file path is src path name + `_ReadableText.txt`\n"
+        " -d    dump '" << (dumpReadableTextPluginName.empty() ? "null" : dumpReadableTextPluginName.data())
+        << "' readable text.Default dump file path is src path name + `_ReadableText.txt`\n"
         " -l <level>, --level=<level>\n"
         "       Show specific level/levels logs with format: level1,level2,level3\n"
         "       Long level string coule be: DEBUG/INFO/WARN/ERROR/FATAL/OFF.\n"
@@ -95,8 +96,7 @@ void ShowHelpInfo(const char *argv)
         " -tn <num>   set parser thread num, min is 1, max is 16.\n"
         " -nt   close muti thread.\n"
         " -i    show information.\n"
-        " -v    show version.\n",
-        argv, argv, dumpReadableTextPluginName.empty() ? "null" : dumpReadableTextPluginName.data());
+        " -v    show version.\n" << std::endl;
 }
 void PrintInformation()
 {
@@ -105,7 +105,7 @@ void PrintInformation()
 }
 void PrintVersion()
 {
-    (void)fprintf(stderr, "version %s\n", TRACE_STREAMER_VERSION.c_str());
+    std::cout << "version " << TRACE_STREAMER_VERSION << std::endl;
 }
 void SetFtracePluginsAbilityInfo(std::string &disableInfo, std::string &enableInfo)
 {
@@ -163,9 +163,8 @@ void PrintDefaultAbilityInfo(std::string &disableInfo, std::string &enableInfo)
 #else
     enableInfo.append("\n\tprocess");
 #endif
-    printf(
-        "the default support ability list:\n\thiperf,ebpf,native_hook,hilog,hisysevent,arkts\n\t"
-        "bytrace,rawtrace,htrace,ffrt,memory,hidump,cpudata,network,diskio,process\n");
+    std::cout << "the default support ability list:\n\thiperf,ebpf,native_hook,hilog,hisysevent,arkts\n\t"
+                 "bytrace,rawtrace,htrace,ffrt,memory,hidump,cpudata,network,diskio,process" << std::endl;
 }
 void PrintExtendAbilityInfo(std::string &disableInfo, std::string &enableInfo)
 {
@@ -174,7 +173,7 @@ void PrintExtendAbilityInfo(std::string &disableInfo, std::string &enableInfo)
 #else
     enableInfo.append("\n\tstream_extend");
 #endif
-    printf("the extend support ability list:\n\tstream_extend\n");
+    std::cout << "the extend support ability list:\n\tstream_extend" << std::endl;
 }
 void PrintAbilityInfo()
 {
@@ -217,8 +216,9 @@ void PrintAbilityInfo()
 #endif
     PrintDefaultAbilityInfo(disableInfo, enableInfo);
     PrintExtendAbilityInfo(disableInfo, enableInfo);
-    printf("the enable ability list:%s\n", enableInfo.empty() ? "\n\tnull" : enableInfo.c_str());
-    printf("the disable ability list:%s\n", disableInfo.empty() ? "\n\tnull" : disableInfo.c_str());
+    std::cout << "the enable ability list:" << (enableInfo.empty() ? "\n\tnull" : enableInfo.c_str()) << std::endl;
+    std::cout << "the disable ability list:" << (disableInfo.empty() ? "\n\tnull" : disableInfo.c_str())
+              << std::endl;
 }
 bool ReadAndParser(SysTuning::TraceStreamer::TraceStreamerSelector &ta, int fd)
 {
@@ -253,14 +253,16 @@ bool ReadAndParser(SysTuning::TraceStreamer::TraceStreamerSelector &ta, int fd)
         if (!ta.ParseTraceDataSegment(std::move(buf), static_cast<size_t>(rsize), false, isFinish)) {
             return false;
         };
-        printf("\rLoadingFile:\t%.2f MB\r", static_cast<double>(g_loadSize) / 1E6);
+        std::cout << "\rLoadingFile:\t" << std::fixed << std::setprecision(2)
+                  << (static_cast<double>(g_loadSize) / 1E6) << " MB\r" << std::flush;
     }
     ta.WaitForParserEnd();
     auto endTime =
         (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()))
             .count();
-    (void)fprintf(stdout, "\nParserDuration:\t%u ms\n", static_cast<unsigned int>(endTime - startTime));
-    (void)fprintf(stdout, "ParserSpeed:\t%.2f MB/s\n", (g_loadSize / (endTime - startTime) / 1E3));
+    std::cout << "\nParserDuration:\t" << static_cast<unsigned int>(endTime - startTime) << " ms" << std::endl;
+    std::cout << "ParserSpeed:\t" << std::fixed << std::setprecision(2)
+              << (g_loadSize / (endTime - startTime) / 1E3) << " MB/s" << std::endl;
     return true;
 }
 bool SetFileSize(const std::string &traceFilePath)
@@ -328,7 +330,7 @@ int ExportDatabase(TraceStreamerSelector &ts, const std::string &sqliteFilePath)
         metaData->SetParserToolPublishDateTime(TRACE_STREAMER_PUBLISH_VERSION);
         metaData->SetTraceDataSize(g_loadSize);
         if (ts.ExportDatabase(sqliteFilePath)) {
-            fprintf(stdout, "ExportDatabase failed\n");
+            TS_LOGE("ExportDatabase failed");
             ExportStatusToLog(sqliteFilePath, TRACE_PARSER_ABNORMAL);
             return 1;
         }
@@ -337,8 +339,9 @@ int ExportDatabase(TraceStreamerSelector &ts, const std::string &sqliteFilePath)
         (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()))
             .count();
     endTime += 1; // for any exception of endTime == startTime
-    (void)fprintf(stdout, "ExportDuration:\t%u ms\n", static_cast<unsigned int>(endTime - startTime));
-    (void)fprintf(stdout, "ExportSpeed:\t%.2f MB/s\n", (g_loadSize / (endTime - startTime)) / 1E3);
+    std::cout << "ExportDuration:\t" << static_cast<unsigned int>(endTime - startTime) << " ms" << std::endl;
+    std::cout << "ExportSpeed:\t" << std::fixed << std::setprecision(2)
+              << ((g_loadSize / (endTime - startTime)) / 1E3) << " MB/s" << std::endl;
     return 0;
 }
 bool LongTraceExportDatabase(TraceStreamerSelector &ts, const std::string &sqliteFilePath)
@@ -351,7 +354,7 @@ bool LongTraceExportDatabase(TraceStreamerSelector &ts, const std::string &sqlit
         }
 #endif
         if (ts.BatchExportDatabase(sqliteFilePath)) {
-            fprintf(stdout, "ExportDatabase failed\n");
+            TS_LOGE("ExportDatabase failed");
             ExportStatusToLog(sqliteFilePath, TRACE_PARSER_ABNORMAL);
             return false;
         }
@@ -603,7 +606,7 @@ bool ReadAndParserLongTrace(SysTuning::TraceStreamer::TraceStreamerSelector &ta,
                             int fd,
                             const std::string &traceFilePath)
 {
-    printf("Start Parse %s ...\n", traceFilePath.c_str());
+    std::cout << "Start Parse " << traceFilePath << " ..." << std::endl;
     g_loadSize = 0;
     while (true) {
         std::unique_ptr<uint8_t[]> buf = std::make_unique<uint8_t[]>(G_CHUNK_SIZE);
@@ -619,7 +622,8 @@ bool ReadAndParserLongTrace(SysTuning::TraceStreamer::TraceStreamerSelector &ta,
         if (!ta.BatchParseTraceDataSegment(std::move(buf), static_cast<size_t>(rSize))) {
             return false;
         }
-        printf("\rLoadingFile:\t%.2f MB\r", static_cast<double>(g_loadSize) / 1E6);
+        std::cout << "\rLoadingFile:\t" << std::fixed << std::setprecision(2)
+                  << (static_cast<double>(g_loadSize) / 1E6) << " MB\r" << std::flush;
     }
     return true;
 }

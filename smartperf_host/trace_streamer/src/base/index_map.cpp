@@ -16,6 +16,7 @@
 #include "index_map.h"
 
 #include <algorithm>
+#include <iostream>
 
 #include "log.h"
 
@@ -44,9 +45,9 @@ void IndexMap::ConvertToIndexMap()
 void IndexMap::Print()
 {
     for (auto itor = rowIndex_.begin(); itor != rowIndex_.end(); itor++) {
-        (void)fprintf(stdout, "%d,", *itor);
+        std::cout << *itor << ",";
     }
-    (void)fflush(stdout);
+    std::cout << std::flush;
 }
 void IndexMap::Sort() {}
 

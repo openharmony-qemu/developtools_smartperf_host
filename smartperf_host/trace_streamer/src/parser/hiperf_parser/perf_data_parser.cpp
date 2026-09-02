@@ -407,7 +407,7 @@ PerfDataParser::~PerfDataParser()
 {
     recordDataReader_.reset();
     if (remove(tmpPerfData_.c_str()) == -1) {
-        TS_LOGE("remove %s err:%s\n", tmpPerfData_.c_str(), strerror(errno));
+        TS_LOGE("remove %s err:%s", tmpPerfData_.c_str(), strerror(errno));
     }
     TS_LOGI("perf data ts MIN:%llu, MAX:%llu", static_cast<unsigned long long>(GetPluginStartTime()),
             static_cast<unsigned long long>(GetPluginEndTime()));
@@ -572,7 +572,7 @@ bool PerfDataParser::LoadPerfData()
     // try load the perf data
     int32_t fd(base::OpenFile(tmpPerfData_, O_CREAT | O_RDWR, TS_PERMISSION_RW));
     if (!fd) {
-        fprintf(stdout, "Failed to create file: %s", tmpPerfData_.c_str());
+        TS_LOGE("Failed to create file: %s", tmpPerfData_.c_str());
         return false;
     }
     (void)ftruncate(fd, 0);
@@ -598,7 +598,7 @@ bool PerfDataParser::Reload()
     traceDataCache_->GetPerfThreadData()->Clear();
 
     if (!recordDataReader_->ReadFeatureSection()) {
-        printf("record format error.\n");
+        TS_LOGE("record format error.");
         return false;
     }
     // update perf report table
