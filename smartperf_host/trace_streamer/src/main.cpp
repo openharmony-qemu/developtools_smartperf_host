@@ -41,6 +41,7 @@ constexpr int G_MIN_PARAM_NUM = 2;
 constexpr size_t G_FILE_PERMISSION = 664;
 constexpr uint8_t PARSER_THREAD_MAX = 16;
 constexpr uint8_t PARSER_THREAD_MIN = 1;
+constexpr int G_DISPLAY_PRECISION = 2;
 std::regex traceInvalidStr("\\\\");
 // set version info in meta.cpp please
 void ExportStatusToLog(const std::string &dbPath, TraceParserStatus status)
@@ -253,16 +254,16 @@ bool ReadAndParser(SysTuning::TraceStreamer::TraceStreamerSelector &ta, int fd)
         if (!ta.ParseTraceDataSegment(std::move(buf), static_cast<size_t>(rsize), false, isFinish)) {
             return false;
         };
-        std::cout << "\rLoadingFile:\t" << std::fixed << std::setprecision(2)
-                  << (static_cast<double>(g_loadSize) / 1E6) << " MB\r" << std::flush;
+        std::cout << "\rLoadingFile:\t" << std::fixed << std::setprecision(G_DISPLAY_PRECISION) <<
+                  (static_cast<double>(g_loadSize) / 1E6) << " MB\r" << std::flush;
     }
     ta.WaitForParserEnd();
     auto endTime =
         (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()))
             .count();
     std::cout << "\nParserDuration:\t" << static_cast<unsigned int>(endTime - startTime) << " ms" << std::endl;
-    std::cout << "ParserSpeed:\t" << std::fixed << std::setprecision(2)
-              << (g_loadSize / (endTime - startTime) / 1E3) << " MB/s" << std::endl;
+    std::cout << "ParserSpeed:\t" << std::fixed << std::setprecision(G_DISPLAY_PRECISION) <<
+              (g_loadSize / (endTime - startTime) / 1E3) << " MB/s" << std::endl;
     return true;
 }
 bool SetFileSize(const std::string &traceFilePath)
@@ -340,8 +341,8 @@ int ExportDatabase(TraceStreamerSelector &ts, const std::string &sqliteFilePath)
             .count();
     endTime += 1; // for any exception of endTime == startTime
     std::cout << "ExportDuration:\t" << static_cast<unsigned int>(endTime - startTime) << " ms" << std::endl;
-    std::cout << "ExportSpeed:\t" << std::fixed << std::setprecision(2)
-              << ((g_loadSize / (endTime - startTime)) / 1E3) << " MB/s" << std::endl;
+    std::cout << "ExportSpeed:\t" << std::fixed << std::setprecision(G_DISPLAY_PRECISION) <<
+              ((g_loadSize / (endTime - startTime)) / 1E3) << " MB/s" << std::endl;
     return 0;
 }
 bool LongTraceExportDatabase(TraceStreamerSelector &ts, const std::string &sqliteFilePath)
@@ -622,8 +623,8 @@ bool ReadAndParserLongTrace(SysTuning::TraceStreamer::TraceStreamerSelector &ta,
         if (!ta.BatchParseTraceDataSegment(std::move(buf), static_cast<size_t>(rSize))) {
             return false;
         }
-        std::cout << "\rLoadingFile:\t" << std::fixed << std::setprecision(2)
-                  << (static_cast<double>(g_loadSize) / 1E6) << " MB\r" << std::flush;
+        std::cout << "\rLoadingFile:\t" << std::fixed << std::setprecision(G_DISPLAY_PRECISION) <<
+                  (static_cast<double>(g_loadSize) / 1E6) << " MB\r" << std::flush;
     }
     return true;
 }

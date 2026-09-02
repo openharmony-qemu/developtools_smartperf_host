@@ -35,6 +35,7 @@
 #include "ts_common.h"
 
 namespace {
+const int32_t DISPLAY_PRECISION = 3;
 const std::string UPDATE_MEM_PROC_NAME =
     "update process set name = (select name from thread t where t.ipid = process.id and t.name is not null and "
     "is_main_thread = 1)";
@@ -354,8 +355,8 @@ void TraceDataDB::PrintSearchResult(std::string line, bool printResult)
     const auto start = steady_clock::now();
     int32_t rowCount = SearchDatabase(line, printResult);
     std::chrono::nanoseconds searchDur = duration_cast<nanoseconds>(steady_clock::now() - start);
-    std::cout << "\"" << line << "\"\n\tused " << std::fixed << std::setprecision(3)
-              << (searchDur.count() / 1E6) << "ms row: " << rowCount << std::endl;
+    std::cout << "\"" << line << "\"\n\tused " << std::fixed << std::setprecision(DISPLAY_PRECISION) <<
+              (searchDur.count() / 1E6) << "ms row: " << rowCount << std::endl;
 }
 int32_t TraceDataDB::SearchDatabase(std::string &sql, bool print)
 {
