@@ -17,6 +17,8 @@
 
 #include <memory>
 #include <iostream>
+
+#include "log.h"
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -135,14 +137,14 @@ std::wstring String2WString(const std::string &strInput)
 {
     auto codePage = IsGBK(reinterpret_cast<const uint8_t *>(strInput.c_str()), strInput.length()) ? CP_ACP : CP_UTF8;
     if (strInput.empty()) {
-        std::cout << "strInput is empty" << std::endl;
+        TS_LOGE("strInput is empty");
         return L"";
     }
 
     // 获取待转换的数据的长度
     int len_in = MultiByteToWideChar(codePage, 0, (LPCSTR)strInput.c_str(), -1, NULL, 0);
     if (len_in <= 0) {
-        std::cout << "The result of WideCharToMultiByte is Invalid!" << std::endl;
+        TS_LOGE("The result of WideCharToMultiByte is Invalid!");
         return L"";
     }
 
@@ -154,7 +156,7 @@ std::wstring String2WString(const std::string &strInput)
     int to_result = MultiByteToWideChar(codePage, 0, (LPCSTR)strInput.c_str(), -1, (LPWSTR)wstr_out.c_str(), len_in);
     // 判断转换结果
     if (0 == to_result) {
-        std::cout << "Can't transfer String to WString" << std::endl;
+        TS_LOGE("Can't transfer String to WString");
     }
 
     return wstr_out;

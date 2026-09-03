@@ -260,7 +260,7 @@ void PbreaderJSMemoryParser::ParseJsCpuProfiler(const std::string &result,
     if (enableFileSave_) {
         auto fd = base::OpenFile(tmpJsCpuProfilerData_ + jsCpuProFiler, O_CREAT | O_RDWR, TS_PERMISSION_RW);
         if (!fd) {
-            fprintf(stdout, "Failed to create file: %s", jsCpuProFiler.c_str());
+            TS_LOGE("Failed to create file: %s", jsCpuProFiler.c_str());
             exit(-1);
         }
         (void)ftruncate(fd, 0);
@@ -389,7 +389,7 @@ void PbreaderJSMemoryParser::ParseSnapshot(ProtoReader::BytesView &tracePacket,
         jsFileId_ = base::OpenFile(tmpJsMemorySnapshotData_ + "_" + base::number(fileId_) + jsSnapshotFileTail,
                                    O_CREAT | O_RDWR, TS_PERMISSION_RW);
         if (!jsFileId_) {
-            fprintf(stdout, "Failed to create file: %s", jsSnapshotFileTail.c_str());
+            TS_LOGE("Failed to create file: %s", jsSnapshotFileTail.c_str());
             exit(-1);
         }
         (void)ftruncate(jsFileId_, 0);
@@ -420,7 +420,7 @@ void PbreaderJSMemoryParser::EnableSaveFile(bool enable)
     if (enable) {
         jsFileId_ = base::OpenFile(tmpJsMemoryTimelineData_, O_CREAT | O_RDWR, TS_PERMISSION_RW);
         if (!jsFileId_) {
-            fprintf(stdout, "Failed to create file: %s", tmpJsMemoryTimelineData_.c_str());
+            TS_LOGE("Failed to create file: %s", tmpJsMemoryTimelineData_.c_str());
             exit(-1);
         }
         (void)ftruncate(jsFileId_, 0);

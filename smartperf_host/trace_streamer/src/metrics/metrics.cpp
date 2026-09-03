@@ -14,6 +14,7 @@
  */
 
 #include "metrics.h"
+#include <iostream>
 #include <regex>
 #include "string_help.h"
 
@@ -225,7 +226,7 @@ void Metrics::PrintMetricsResult(uint32_t metricsIndex, ResultCallBack callback)
     std::regex strRegex(",");
     auto str = std::regex_replace(res, strRegex, "");
 #ifndef IS_WASM
-    printf("%s", str.c_str());
+    std::cout << str;
 #else
     callback(str, SEND_FINISH);
 #endif

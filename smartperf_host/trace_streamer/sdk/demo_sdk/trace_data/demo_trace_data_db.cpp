@@ -20,6 +20,7 @@
 #include <cstring>
 #include <fcntl.h>
 #include <functional>
+#include <iomanip>
 #include <iostream>
 #include <string_view>
 #include <unistd.h>
@@ -31,6 +32,7 @@
 #include "string_help.h"
 
 const int32_t ONCE_MAX_MB = 1024 * 1024 * 4;
+const int32_t DISPLAY_PRECISION = 3;
 namespace SysTuning {
 namespace TraceStreamer {
 #define UNUSED(expr)             \
@@ -79,7 +81,7 @@ int32_t DemoTraceDataDB::DemoExportDatabase(const std::string &outputName)
     {
         int32_t demoFd(base::OpenFile(outputName, O_CREAT | O_RDWR, TS_PERMISSION_RW));
         if (!demoFd) {
-            fprintf(stdout, "Failed to create file: %s", outputName.c_str());
+            TS_LOGE("Failed to create file: %s", outputName.c_str());
             return 1;
         }
         auto ret = ftruncate(demoFd, 0);
@@ -184,7 +186,7 @@ int32_t DemoTraceDataDB::DemoSearchData()
         } else if (strLine.find("-c:") != std::string::npos) {
             strLine = strLine.substr(strlen("-c:"));
             if (DemoOperateDatabase(strLine) == SQLITE_OK) {
-                printf("operate SQL success\n");
+                std::cout << "operate SQL success" << std::endl;
             }
             continue;
         }
@@ -193,7 +195,8 @@ int32_t DemoTraceDataDB::DemoSearchData()
         const auto start = steady_clock::now();
         int32_t rowCount = DemoSearchDatabase(strLine, printResult);
         std::chrono::nanoseconds searchDur = duration_cast<nanoseconds>(steady_clock::now() - start);
-        printf("\"%s\"\n\tused %.3fms row: %d\n", strLine.c_str(), searchDur.count() / 1E6, rowCount);
+        std::cout << "\"" << strLine << "\"\n\tused " << std::fixed << std::setprecision(DISPLAY_PRECISION) <<
+                  (searchDur.count() / 1E6) << "ms row: " << rowCount << std::endl;
     }
     return 0;
 }
@@ -215,9 +218,9 @@ int32_t DemoTraceDataDB::DemoSearchDatabase(const std::string &sql, bool print)
     }
     if (print) {
         for (int32_t i = 0; i < demoColCount; i++) {
-            printf("%s\t", sqlite3_column_name(demoStmt, i));
+            std::cout << sqlite3_column_name(demoStmt, i) << "\t";
         }
-        printf("\n");
+        std::cout << std::endl;
     }
     while (sqlite3_step(demoStmt) == SQLITE_ROW) {
         demoRowCount++;
@@ -228,17 +231,17 @@ int32_t DemoTraceDataDB::DemoSearchDatabase(const std::string &sql, bool print)
                 continue;
             }
             if (sqlVal == nullptr) {
-                printf("null\t");
+                std::cout << "null\t";
                 continue;
             }
             if (type == SQLITE_TEXT) {
-                printf("\"%s\"\t", sqlVal);
+                std::cout << "\"" << sqlVal << "\"\t";
             } else {
-                printf("%s\t", sqlVal);
+                std::cout << sqlVal << "\t";
             }
         }
         if (print) {
-            printf("\n");
+            std::cout << std::endl;
         }
     }
     sqlite3_finalize(demoStmt);

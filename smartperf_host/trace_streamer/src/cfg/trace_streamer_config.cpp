@@ -14,6 +14,8 @@
  */
 
 #include "trace_streamer_config.h"
+#include <iostream>
+
 #ifdef ENABLE_MEMORY
 #include "memory_plugin_common.pbreader.h"
 #endif
@@ -77,26 +79,26 @@ TraceStreamerConfig::TraceStreamerConfig()
 
 void TraceStreamerConfig::PrintInfo() const
 {
-    printf("---all kind of trace event info---\n");
+    std::cout << "---all kind of trace event info---" << std::endl;
     for (auto itor = eventNameMap_.begin(); itor != eventNameMap_.end(); itor++) {
-        printf("%s\n", itor->second.c_str());
+        std::cout << itor->second << std::endl;
     }
-    printf("\n");
-    printf("---subdir of process mem info---\n");
+    std::cout << std::endl;
+    std::cout << "---subdir of process mem info---" << std::endl;
     for (auto itor = memNameMap_.begin(); itor != memNameMap_.end(); itor++) {
-        printf("%s\n", itor->second.c_str());
+        std::cout << itor->second << std::endl;
     }
-    printf("\n");
-    printf("---subdir of sys mem info---\n");
+    std::cout << std::endl;
+    std::cout << "---subdir of sys mem info---" << std::endl;
     for (auto itor = sysMemNameMap_.begin(); itor != sysMemNameMap_.end(); itor++) {
-        printf("%s\n", itor->second.c_str());
+        std::cout << itor->second << std::endl;
     }
-    printf("\n");
-    printf("---subdir of sys vmem info---\n");
+    std::cout << std::endl;
+    std::cout << "---subdir of sys vmem info---" << std::endl;
     for (auto itor = sysVirtualMemNameMap_.begin(); itor != sysVirtualMemNameMap_.end(); itor++) {
-        printf("%s\n", itor->second.c_str());
+        std::cout << itor->second << std::endl;
     }
-    printf("\n");
+    std::cout << std::endl;
 }
 
 void TraceStreamerConfig::InitBinderEventNameMap()

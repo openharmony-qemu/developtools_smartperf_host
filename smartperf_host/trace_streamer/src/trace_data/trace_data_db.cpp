@@ -20,6 +20,8 @@
 #include <cstring>
 #include <fcntl.h>
 #include <functional>
+#include <iomanip>
+#include <iostream>
 #include <string_view>
 #include <unistd.h>
 #include <regex>
@@ -33,6 +35,7 @@
 #include "ts_common.h"
 
 namespace {
+const int32_t DISPLAY_PRECISION = 3;
 const std::string UPDATE_MEM_PROC_NAME =
     "update process set name = (select name from thread t where t.ipid = process.id and t.name is not null and "
     "is_main_thread = 1)";
@@ -126,7 +129,7 @@ int32_t TraceDataDB::CreatEmptyBatchDB(const std::string &outputName)
     {
         int32_t fd(base::OpenFile(outputName, O_CREAT | O_RDWR, TS_PERMISSION_RW));
         if (!fd) {
-            fprintf(stdout, "Failed to create file: %s", outputName.c_str());
+            TS_LOGE("Failed to create file: %s", outputName.c_str());
             return 1;
         }
         auto ret = ftruncate(fd, 0);
@@ -217,7 +220,7 @@ int32_t TraceDataDB::ExportDatabase(const std::string &outputName, ResultCallBac
     {
         int32_t fd(base::OpenFile(outputName, O_CREAT | O_RDWR, TS_PERMISSION_RW));
         if (!fd) {
-            fprintf(stdout, "Failed to create file: %s", outputName.c_str());
+            TS_LOGE("Failed to create file: %s", outputName.c_str());
             return 1;
         }
         auto ret = ftruncate(fd, 0);
@@ -324,7 +327,7 @@ std::vector<std::string> TraceDataDB::SearchData()
         } else if (line.find("-c:") != std::string::npos) {
             line = line.substr(strlen("-c:"));
             if (OperateDatabase(line) == SQLITE_OK) {
-                printf("operate SQL success\n");
+                std::cout << "operate SQL success" << std::endl;
             }
             continue;
         }
@@ -344,7 +347,7 @@ void TraceDataDB::ParseCommandLine(std::string &option, std::string line, std::v
         }
         values.push_back(left);
     }
-    printf("option:%s\n", option.c_str());
+    std::cout << "option:" << option << std::endl;
 }
 void TraceDataDB::PrintSearchResult(std::string line, bool printResult)
 {
@@ -352,7 +355,8 @@ void TraceDataDB::PrintSearchResult(std::string line, bool printResult)
     const auto start = steady_clock::now();
     int32_t rowCount = SearchDatabase(line, printResult);
     std::chrono::nanoseconds searchDur = duration_cast<nanoseconds>(steady_clock::now() - start);
-    printf("\"%s\"\n\tused %.3fms row: %d\n", line.c_str(), searchDur.count() / 1E6, rowCount);
+    std::cout << "\"" << line << "\"\n\tused " << std::fixed << std::setprecision(DISPLAY_PRECISION) <<
+              (searchDur.count() / 1E6) << "ms row: " << rowCount << std::endl;
 }
 int32_t TraceDataDB::SearchDatabase(std::string &sql, bool print)
 {
@@ -360,7 +364,7 @@ int32_t TraceDataDB::SearchDatabase(std::string &sql, bool print)
     int32_t rowCount = 0;
     sqlite3_stmt *stmt = nullptr;
     int32_t ret = sqlite3_prepare_v2(db_, sql.c_str(), static_cast<int32_t>(sql.size()), &stmt, nullptr);
-    printf("Executing sql: %s\n", sql.c_str());
+    std::cout << "Executing sql: " << sql << std::endl;
     if (ret != SQLITE_OK) {
         TS_LOGE("sqlite3_prepare_v2(%s) failed: %d:%s", sql.c_str(), ret, sqlite3_errmsg(db_));
         return 0;
@@ -369,9 +373,9 @@ int32_t TraceDataDB::SearchDatabase(std::string &sql, bool print)
     int32_t colCount = sqlite3_column_count(stmt);
     if (print) {
         for (int32_t i = 0; i < colCount; i++) {
-            printf("%s\t", sqlite3_column_name(stmt, i));
+            std::cout << sqlite3_column_name(stmt, i) << "\t";
         }
-        printf("\n");
+        std::cout << std::endl;
     }
 
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -383,17 +387,17 @@ int32_t TraceDataDB::SearchDatabase(std::string &sql, bool print)
                 continue;
             }
             if (p == nullptr) {
-                printf("null\t");
+                std::cout << "null\t";
                 continue;
             }
             if (type == SQLITE_TEXT) {
-                printf("\"%s\"\t", p);
+                std::cout << "\"" << p << "\"\t";
             } else {
-                printf("%s\t", p);
+                std::cout << p << "\t";
             }
         }
         if (print) {
-            printf("\n");
+            std::cout << std::endl;
         }
     }
     sqlite3_finalize(stmt);
