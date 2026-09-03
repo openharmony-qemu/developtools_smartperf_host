@@ -38,7 +38,6 @@ ide/src/trace/ (前端泳道渲染)
 | 任务 | 入口路径 |
 |------|----------|
 | 新增前端泳道 | `ide/src/trace/component/` → `ide/src/trace/database/data-trafic/` → `ide/src/trace/database/sql/` |
-| 新增内存泳道/堆快照泳道/Sheet 标签页 | 使用可用 agent skills（`add-custom-memory-lane`、`add-heap-snapshot-lane`、`add-memory-type-sheets`） |
 | 新增 trace 事件解析 | `parser/` → `filter/` → `trace_data/` → `table/`，详见 `docs/add_trace_event_guide.md`（6 步全流程） |
 | 修改 SQL 查询 | `ide/src/trace/database/sql/*.sql.ts` |
 | 修改 Worker 逻辑 | `ide/src/trace/database/ui-worker/`（Canvas 绘制）、`logic-worker/`（聚合计算） |
