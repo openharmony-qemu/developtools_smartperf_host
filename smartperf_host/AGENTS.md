@@ -33,13 +33,26 @@ ide/src/trace/ (前端泳道渲染)
 | `ide/test/` | 前端 Jest 单元测试（jsdom + jest-canvas-mock），测试文件与源码目录结构对应 |
 | `trace_streamer/test/unittest/` | 后端 C++ 单元测试（gtest），按模块分目录：filter/table/base/接口等 |
 
+### 常见任务速查
+
+| 任务 | 入口路径 |
+|------|----------|
+| 新增前端泳道 | `ide/src/trace/component/` → `ide/src/trace/database/data-trafic/` → `ide/src/trace/database/sql/` |
+| 新增 trace 事件解析 | `parser/` → `filter/` → `trace_data/` → `table/`，详见 `docs/add_trace_event_guide.md`（6 步全流程） |
+| 修改 SQL 查询 | `ide/src/trace/database/sql/*.sql.ts` |
+| 修改 Worker 逻辑 | `ide/src/trace/database/ui-worker/`（Canvas 绘制）、`logic-worker/`（聚合计算） |
+
 ## 知识路由
 
-| 遇到什么问题 | 先读 |
-|--------------|------|
-| 数据库表结构 | `docs/table_schema.md` |
-| 支持解析的trace事件 | `docs/trace_event_mapping.md` |
-| 添加新trace事件的解析逻辑 | `docs/add_trace_event_guide.md` |
+| 触发条件 | 先读 |
+|----------|------|
+| 查询/修改数据库表结构 | `docs/table_schema.md` |
+| 确认支持的 trace 事件 | `docs/trace_event_mapping.md` |
+| 新增 trace 事件解析逻辑 | `docs/add_trace_event_guide.md`（6 步全流程 + 涉及文件汇总） |
+| 改 `ide/src/trace/database/data-trafic/` | 该目录 Sender/Receiver 源码，理解消息协议再加泳道 |
+| 改 `ide/src/trace/database/sql/*.sql.ts` | `docs/table_schema.md` 确认列名/类型 |
+| 改 `trace_streamer/src/table/` | `docs/table_schema.md` 确认列定义顺序与 Index 枚举一致 |
+| 涉及内存类型枚举 | `docs/trace_event_mapping.md` + 下方 TraceType/MemoryType 词汇条目 |
 
 ### 领域词汇速查
 
@@ -53,6 +66,10 @@ ide/src/trace/ (前端泳道渲染)
 | TraceDataCache | 全局唯一数据中心，所有 Filter 写入、所有虚表读取都在此 |
 | 内存统计模式 |抓取内存时，按采样间隔进行上报，会按栈的维度进行聚合 |
 | 内存详细模式 | 抓取内存时，每一次申请释放都会进行上报 |
+
+### 编辑前声明
+
+开始编码前，先在回复中声明：① 任务类别（前端泳道/后端解析/SQL 查询/修复）；② 已读的路由文档；③ 相关约束（硬性约束/反模式中哪些适用）。未声明不得直接修改代码。
 
 ## 专家经验与约束
 
@@ -73,11 +90,21 @@ ide/src/trace/ (前端泳道渲染)
 - ❌ filter/ 绕过 TraceDataCache 直接写虚表（数据必须经 Filter→Cache 流入）
 - ❌ table/ 执行 Update/Insert（虚表只读，数据来源是 TraceDataCache）
 
+### 需评审变更（Ask before）
+
+以下变更必须先与维护者确认，不得自行实施：
+
+- 修改 WASM `reqBuffer` 大小或共享内存通信协议
+- 变更 `TraceDataCache` 公共 getter 签名或新增数据存储路径
+- 升级/替换 `ide/third-party/` 第三方依赖（sql.js 等，涉及 license 与版本兼容）
+- 修改前端三层 Worker 划分边界或跨层通信机制
+- 变更虚表表名/列顺序（影响前端 SQL 查询与历史 trace 兼容）
+
 ## 构建与验证
 
 ### 前端 IDE（`smartperf_host/ide/`）
 
-前置：Node≥16.15.1, npm≥8.13.2, Go≥1.13.8; sql.js v1.6.2 手动下载到 `third-party/`; WASM 产物放 `bin/`
+前置：Node≥16.15.1, npm≥8.13.2, Go≥1.13.8; sql.js v1.6.2 手动下载到 `ide/third-party/`（目录不存在需创建）; WASM 产物放 `bin/`
 
 ```bash
 npm install                  # 安装依赖
@@ -99,13 +126,27 @@ npm run build:prod           # 生产模式编译（含 Go 服务器，需 Go≥
 
 ⚠️ 部署访问必须 **https**，端口 9000。
 
+### 任务专项验证
+
+| 任务类型 | 最小验证 |
+|----------|----------|
+| 新增/修改泳道 | `npm run build:dev` 后浏览器加载 trace 确认泳道渲染 |
+| 修改 SQL 查询 | `npm test` 对应测试文件通过 |
+| 后端 Filter/Table | `./test.sh` 对应 gtest 模块通过 |
+| WASM 接口变更 | Linux 环境 `./build.sh wasm` + 前端 `npm test` 全量通过 |
+
+### 验证不可运行时的处理
+
+若当前平台无法执行某验证命令（如 Windows 无法运行 `./build.sh wasm`），须在最终回复中明确列出：未运行的命令、原因、建议在何环境补验。
+
 ## 完成标准
 
 1. 编译无错误无新的告警
 2. 测试用例全部通过
-3. 提交使用 `git commit -sm`
-4. 最终回复包含：变更文件列表、验证命令及结果、剩余风险
-5. 不包含无关的格式化、重构或顺手改动
+3. 运行「任务专项验证」表中对应任务的最小验证
+4. 提交使用 `git commit -sm`
+5. 最终回复包含：变更文件列表、验证命令及结果、剩余风险
+6. 不包含无关的格式化、重构或顺手改动
 
 
  
