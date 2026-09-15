@@ -17,7 +17,7 @@ const TypeManage = require('../typeManage.js');
 const WebSocket = require('ws');
 const winston = require('winston');
 const fs = require('fs');
-const { exec } = require('child_process')
+const { exec } = require('child_process');
 const { spawn } = require('child_process');
 const path = require('path');
 const $protobuf = require('protobufjs');
@@ -83,13 +83,13 @@ let longtraceFiles = [];
 const logger = winston.createLogger(require('../winston.config.js'));
 
 function init() {
-    logger.info('init record plugin')
+    logger.info('init record plugin');
     const appjs = require('../app.js');
     appjs.pluginSystem.registerPlugin(TypeManage.TypeConfig.RECORD_ARKTS_TYPE, process);
 }
 
-function process(session_id, cmd, message) {
-    sessionId = session_id;
+function process(sessionIdParam, cmd, message) {
+    sessionId = sessionIdParam;
     arktsBuffer = new ArrayBuffer(0);
     htraceBuffer = new ArrayBuffer(0);
     const params = JSON.parse(decode.decode(message));
@@ -101,12 +101,12 @@ function process(session_id, cmd, message) {
     maxDur = params.maxDur;
     serialNum = params.serialNum;
 
-    const maxDurMS = maxDur * 1000
+    const maxDurMS = maxDur * 1000;
     snapShotDur = params.snapShotDur;
     isSnapshot = snapShotDur > 0 ? true : false;
 
     snapShotCyclesNum = Math.ceil(maxDurMS / snapShotDur);
-    logger.info(`snapShot 图片的数量: ${snapShotCyclesNum}`)
+    logger.info(`snapShot 图片的数量: ${snapShotCyclesNum}`);
 
     console.log(params, '----------------------------params');
     type = params.type;
@@ -118,7 +118,7 @@ function process(session_id, cmd, message) {
     enableCpuProfiler = params.enableCpuProfiler;
     snapshotTimes = Math.floor(maxDur / snapshotTimeInterval);
     logger.info(`snapshotTimeInterval: ${snapshotTimeInterval}`);
-    logger.info(`snapshotTimes: ${snapshotTimes}`)
+    logger.info(`snapshotTimes: ${snapshotTimes}`);
     snapshotNum = 0;
     cpuProfilerMsg.initCmd = `{"id":3,"method":"Profiler.setSamplingInterval","params": {"interval":${cpuProfilerInterval}}`;
     snapshotMsg.beginCmd = `{ "id": 1, "method": "HeapProfiler.takeHeapSnapshot", "params": { "reportProgress": true, "captureNumericValue": ${captureNumericValue}, "exposeInternals": false } }`;
@@ -207,7 +207,7 @@ function process(session_id, cmd, message) {
         }
 
         if (isRecordHitrace && !isRecordArkTs && isSnapshot) {
-            logger.info(`'isRecordHitrace': ${isRecordHitrace}`)
+            logger.info(`'isRecordHitrace': ${isRecordHitrace}`);
             Promise.all([
                 pushConfigText(),
                 mkdirForSnapshot()
@@ -297,7 +297,7 @@ function delLongTrace() {
             logger.info(`Succeeded in killing the plug-in service`);
         });
         exec(`hdc shell rm -r /${ltOutput}/hiprofiler_data_*`, (error, stdout, stderr) => {
-            logger.info(`delLongTrace : ${error, stdout, stderr}`)
+            logger.info(`delLongTrace : ${error, stdout, stderr}`);
             if (error || (stderr && stderr.length > 0) || stdout.includes('[Fail]')) {
                 const errorMsg = new Uint8Array(encoder.encode(stdout || error || stderr));
                 sendMsg(errorMsg, 3);
@@ -431,7 +431,7 @@ function readAndSendFile(fileName, localFilePath, total) {
 }
 
 function combinedBufferData() {
-    let finalBuffer = new ArrayBuffer(arktsBuffer.byteLength + htraceBuffer.byteLength)
+    let finalBuffer = new ArrayBuffer(arktsBuffer.byteLength + htraceBuffer.byteLength);
     let traceView = new Uint8Array(finalBuffer);
     traceView.set(new Uint8Array(htraceBuffer), 0);
     traceView.set(new Uint8Array(arktsBuffer), htraceBuffer.byteLength);
@@ -457,7 +457,7 @@ function checkPortIfNeedRemove() {
                         let tcpStr = it.split('[Forward]')[0].split('tcp')[1].trim();
                         logger.info(`抓取arkts 被占用的端口：hdc -t ${serialNum} fport rm tcp${tcpStr}`);
                         exec(`hdc -t ${serialNum} fport rm tcp${tcpStr}`, (error, stdout, stderr) => {
-                            logger.info(`Remrove 被占用端口调用返回信息：stdout: ${stdout},error: ${error},stderr: ${stderr}, `)
+                            logger.info(`Remrove 被占用端口调用返回信息：stdout: ${stdout},error: ${error},stderr: ${stderr}, `);
                             if (stdout.includes('Remove forward ruler success')) {
                                 resolve(0);
                                 logger.info(`Remrove 被占用端口成功`);
@@ -494,14 +494,14 @@ function watchPort() {
                 logger.info(`通过 processName 查询 processId 成功: ${stdout}`);
                 processId = stdout;
                 let rmReleasefportStr = `hdc -t ${serialNum} fport rm tcp:24219 ark:` + processId + '@' + processName;
-                rmReleasefport = rmReleasefportStr.replace(/[\r\n]+/gm, "");
+                rmReleasefport = rmReleasefportStr.replace(/[\r\n]+/gm, '');
                 let rmDebuggerFportStr = `hdc -t ${serialNum} fport rm tcp:24220 ark:` + processId + '@Debugger';
-                rmDebuggerFport = rmDebuggerFportStr.replace(/[\r\n]+/gm, "");
+                rmDebuggerFport = rmDebuggerFportStr.replace(/[\r\n]+/gm, '');
 
                 let Releasefport = `hdc -t ${serialNum} fport tcp:24219 ark:` + processId + '@' + processName;
-                Releasefport = Releasefport.replace(/[\r\n]+/gm, "");
+                Releasefport = Releasefport.replace(/[\r\n]+/gm, '');
                 let Debuggerfport = `hdc -t ${serialNum} fport tcp:24220 ark:` + processId + '@Debugger';
-                Debuggerfport = Debuggerfport.replace(/[\r\n]+/gm, "");
+                Debuggerfport = Debuggerfport.replace(/[\r\n]+/gm, '');
                 exec(Releasefport, (error, stdout, stderr) => {
                     if (stdout.includes('result:OK')) {
                         logger.info(`监听 Release fport 成功`);
@@ -546,7 +546,7 @@ function recordArkts() {
         socket.on('open', function open() {
             clearTimeout(timer);
             logger.info(`WebSocket('ws://127.0.0.1:24220') 连接成功`);
-            exec(`hdc -t ${serialNum} shell timestamps`, (f_error, stdout, f_stderr) => {
+            exec(`hdc -t ${serialNum} shell timestamps`, (fError, stdout, fStderr) => {
                 if (stdout.includes('[Fail]')) {
                     reject(stdout);
                     const errorMsg = new Uint8Array(encoder.encode(stdout));
@@ -581,7 +581,7 @@ function recordArkts() {
                         }, durTime);
                     }
                     if (type === 'snapshot') {
-                        logger.info('开始抓取 snapshot arkts trace', snapshotTimeInterval * 1000)
+                        logger.info('开始抓取 snapshot arkts trace', snapshotTimeInterval * 1000);
                         socket.send(snapshotMsg.beginCmd);
                         let times = setInterval(() => {
                             socket.send(snapshotMsg.beginCmd);
@@ -592,14 +592,14 @@ function recordArkts() {
                         }, snapshotTimeInterval * 1000);
                     }
                     if (type === 'timeline') {
-                        logger.info('开始抓取 timeline arkts trace')
+                        logger.info('开始抓取 timeline arkts trace');
                         socket.send(timelineMsg.beginCmd);
                         setTimeout(() => {
                             socket.send(timelineMsg.finishCmd);
                         }, durTime);
                     }
                     if (type === 'cpuProf_snapshot') {
-                        logger.info(`开始抓取 cpuProf_snapshot arkts trace ${snapshotTimeInterval * 1000} durTime ${durTime}`)
+                        logger.info(`开始抓取 cpuProf_snapshot arkts trace ${snapshotTimeInterval * 1000} durTime ${durTime}`);
                         socket.send(cpuProfilerMsg.initCmd);
                         socket.send(cpuProfilerMsg.beginCmd);
                         socket.send(snapshotMsg.beginCmd);
@@ -608,7 +608,7 @@ function recordArkts() {
                             snapshotNum++;
                             logger.info(`snapshotNum: ${snapshotNum}`);
                             if (snapshotNum === snapshotTimes) {
-                                logger.info('cpuProf_snapshot clearInterval(times)')
+                                logger.info('cpuProf_snapshot clearInterval(times)');
                                 clearInterval(times);
                             }
                         }, snapshotTimeInterval * 1000);
@@ -618,7 +618,7 @@ function recordArkts() {
                         }, durTime);
                     }
                     if (type === 'cpuProf_timeline') {
-                        logger.info('开始抓取 cpuProf_timeline arkts trace')
+                        logger.info('开始抓取 cpuProf_timeline arkts trace');
                         socket.send(cpuProfilerMsg.initCmd);
                         socket.send(cpuProfilerMsg.beginCmd);
                         socket.send(timelineMsg.beginCmd);
@@ -640,7 +640,7 @@ function recordArkts() {
         });
         // 当WebSocket接收到服务器发送的消息时，会触发onmessage事件
         socket.onmessage = function (event) {
-            let data = JSON.parse(event.data)
+            let data = JSON.parse(event.data);
             resultArray.push(event.data);
             dateTimeArray.push(new Date().getTime() * 1000000 - diffRealTimeNSec);
 
@@ -707,7 +707,7 @@ function generateArktsTrace() {
             let buffer = ProfilerPluginData.encode(profilerPluginDataObj).finish();
             finalBufferArr.push(buffer);
             dataLen += (buffer.length + 4);
-        })
+        });
 
         let ArkTSConfig = heapConfigRoot.lookupType('js_heap_config.ArkTSConfig');
         let typeEnum = type.includes('snapshot') ? ArkTSConfig.HeapType.SNAPSHOT
@@ -720,7 +720,7 @@ function generateArktsTrace() {
             trackAllocations: trackAllocations,
             cpuProfilerInterval: cpuProfilerInterval,
             enableCpuProfiler: enableCpuProfiler,
-        })
+        });
         let ProfilerPluginData = commonTypesRoot.lookupType('common_types.ProfilerPluginData');
         let profilerPluginDataObj = ProfilerPluginData.fromObject({
             data: ArkTSConfig.encode(arkTSConfigObj).finish(),
@@ -739,7 +739,7 @@ function generateArktsTrace() {
             139, 133, 147, 69, 49, 82, 56, 243, 232, 201, 38, 239, 192, 241, 85, 223, 9, 148, 238, 213, 0, 0, 0, 0, 59, 77, 146, 229, 89, 0, 0, 0, 32, 120, 33, 249, 65, 7, 121, 23, 28, 5, 193,
             248, 65, 7, 121, 23, 67, 79, 146, 229, 89, 0, 0, 0, 121, 218, 49, 229, 89, 0, 0, 0, 79, 81, 146, 229, 89, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,])
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,]);
         let headerView = new DataView(headerBuffer.buffer);
         const segmentNum = resultArray.length * 2;
         headerView.setUint32(8, finalLength, true); //重写 length
@@ -750,7 +750,7 @@ function generateArktsTrace() {
             let timeStr = timeArr[0].trim() + timeArr[1];
             let clockType = ts.split(':')[0].trim();
             if (clockType === 'CLOCK_BOOTTIME') {
-                logger.info(`CLOCK_BOOTTIME;${timeStr}`)
+                logger.info(`CLOCK_BOOTTIME;${timeStr}`);
                 headerView.setBigUint64(60, BigInt(timeStr), true);
             } else if (clockType === 'CLOCK_REALTIME') {
                 headerView.setBigUint64(68, BigInt(timeStr), true);
@@ -763,7 +763,7 @@ function generateArktsTrace() {
             } else if (clockType === 'CLOCK_MONOTONIC_RAW') {
                 headerView.setBigUint64(100, BigInt(timeStr), true);
             }
-        })
+        });
 
         traceView.set(new Uint8Array(headerBuffer.buffer), 0);
         traceDataview.setUint32(1024, arkTSConfigBuffer.length, true);
@@ -778,7 +778,7 @@ function generateArktsTrace() {
         }
         arktsBuffer = traceBuffer;
         resolve(0);
-        logger.info('生成 arkts buffer 数据结束')
+        logger.info('生成 arkts buffer 数据结束');
         removePort();
         // sendMsg(traceView, 4);
     })
@@ -791,7 +791,7 @@ function removePort() {
 }
 
 function pushConfigText() {
-    logger.info('pushConfigText')
+    logger.info('pushConfigText');
     return new Promise((resolve, reject) => {
         fs.mkdir(directoryPath, { recursive: true }, (err) => {
             // 将Buffer数据写入文件
@@ -901,7 +901,7 @@ function mkdirForSnapshot() {
         let cmd = `hdc -t ${serialNum} shell mkdir /data/local/tmp/snapshot_${tmpTimeName}`;
         logger.info(`创建截图文件夹指令，cmd：${cmd}`);
         exec(cmd, (error, stdout, stderr) => {
-            logger.info(`mkdirForSnapshot : ${error, stdout, stderr}`)
+            logger.info(`mkdirForSnapshot : ${error, stdout, stderr}`);
             if (error || (stderr && stderr.length > 0) || stdout.includes('[Fail]')) {
                 const errorMsg = new Uint8Array(encoder.encode(stdout || error || stderr));
                 sendMsg(errorMsg, 3);
@@ -947,7 +947,7 @@ function snapshot(snapshotName) {
             };
         })
     } catch (error) {
-        reject(error)
+        reject(error);
     }
 }
 
@@ -974,7 +974,7 @@ function saveSnapshot() {
 }
 
 async function getSnapShotData(resolve, reject) {
-    logger.info(`图片下发开始`)
+    logger.info(`图片下发开始`);
     const dir = path.join(__dirname, `snapshot_${imageFileName}`);
     try {
         const files = await fs.promises.readdir(dir);
@@ -992,7 +992,7 @@ async function getSnapShotData(resolve, reject) {
         }
         const traceView = new TextEncoder().encode(JSON.stringify(imageList));
         sendMsg(traceView, 5);
-        logger.info(`图片下发完成`)
+        logger.info(`图片下发完成`);
         resolve(0);
         delSnapshotFolder();
     } catch (err) {

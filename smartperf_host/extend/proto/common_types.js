@@ -429,17 +429,29 @@ $root.ProfilerPluginConfig = (function() {
         }
         let err;
         err = verifyStringField(message, 'name');
-        if (err) { return err; }
+        if (err) {
+            return err;
+        }
         err = verifyStringField(message, 'pluginSha256');
-        if (err) { return err; }
+        if (err) {
+            return err;
+        }
         err = verifyIntegerField(message, 'sampleInterval');
-        if (err) { return err; }
+        if (err) {
+            return err;
+        }
         err = verifyBufferField(message, 'configData');
-        if (err) { return err; }
+        if (err) {
+            return err;
+        }
         err = verifyStringField(message, 'clock');
-        if (err) { return err; }
+        if (err) {
+            return err;
+        }
         err = verifyBooleanField(message, 'isProtobufSerialize');
-        if (err) { return err; }
+        if (err) {
+            return err;
+        }
         return null;
     };
 
@@ -1115,21 +1127,37 @@ $root.ProfilerPluginData = (function() {
         }
         let err;
         err = verifyStringField(message, 'name');
-        if (err) { return err; }
+        if (err) {
+            return err;
+        }
         err = verifyIntegerField(message, 'status');
-        if (err) { return err; }
+        if (err) {
+            return err;
+        }
         err = verifyBufferField(message, 'data');
-        if (err) { return err; }
+        if (err) {
+            return err;
+        }
         err = verifyClockId(message);
-        if (err) { return err; }
+        if (err) {
+            return err;
+        }
         err = verifyLongField(message, 'tvSec');
-        if (err) { return err; }
+        if (err) {
+            return err;
+        }
         err = verifyLongField(message, 'tvNsec');
-        if (err) { return err; }
+        if (err) {
+            return err;
+        }
         err = verifyStringField(message, 'version');
-        if (err) { return err; }
+        if (err) {
+            return err;
+        }
         err = verifyIntegerField(message, 'sampleInterval');
-        if (err) { return err; }
+        if (err) {
+            return err;
+        }
         return null;
     };
 

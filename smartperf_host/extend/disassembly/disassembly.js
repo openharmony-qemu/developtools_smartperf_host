@@ -20,11 +20,11 @@ const readline = require('readline');
 const { promisify } = require('util');
 const winston = require('winston');
 const execAsync = promisify(exec);
-const SAVE_CMD = 1;         // {fileName:str, buffer:str, bufferSize:num, totalSize:num, isLast:bool}
-const SAVE_BACK_CMD = 2;    // {result:num, msg:str}
-const QUERY_CMD = 3;        // {elfName:str, vaddr:str, func:str}
+const SAVE_CMD = 1; // {fileName:str, buffer:str, bufferSize:num, totalSize:num, isLast:bool}
+const SAVE_BACK_CMD = 2; // {result:num, msg:str}
+const QUERY_CMD = 3; // {elfName:str, vaddr:str, func:str}
 const QUERY_BACK_CMD = 4; // {result:num, msg:str}
-const DISASSEMBLY_QUERY_ELF_CMD = 5;// {elfName:str, vaddr:str, func:str}
+const DISASSEMBLY_QUERY_ELF_CMD = 5; // {elfName:str, vaddr:str, func:str}
 const logger = winston.createLogger(require('./../winston.config.js'));
 
 const decoder = new TextDecoder('utf-8'); // 'utf-8' 是常见的字符编码
@@ -258,7 +258,9 @@ function processAnDisassembly(sessionId, vaddr, func, anFilePath, elfName, eaddr
       }
       let ans = '';
       for (let ca of innerStdOut.split(`<${func}>:`)[1].split('\n')) {
-        if (ca.trim() === '') { continue }
+        if (ca.trim() === '') {
+            continue;
+        }
         let addr = (parseInt(ca.split(`:`)[0].replace(/\s+/g, ''), 16)).toString(16);
         let instruction = ca.split(`:`)[1];
         instruction = instruction.substring(instruction.indexOf(' '));
