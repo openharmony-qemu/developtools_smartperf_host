@@ -1,0 +1,2 @@
+net stop hismartperfhostextend.exe
+sc delete hismartperfhostextend.exe

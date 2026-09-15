@@ -1,0 +1,29 @@
+{
+  "name": "SmartPerf-extend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "npm run test:longtrace-all",
+    "test:longtrace-unit": "node --test ./test/trace-communication.test.js ./test/trace-runtime.test.js ./test/trace-nativehook-processor.test.js ./test/trace-business-handlers.test.js",
+    "test:longtrace-e2e": "node --test ./test/longtrace-dual-channel.e2e.test.js",
+    "test:longtrace-all": "npm run test:longtrace-unit && npm run test:longtrace-e2e"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "child_process": "^1.0.2"
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.16",
+    "iconv-lite": "^0.6.3",
+    "node-windows": "^1.0.0-beta.8",
+    "protobufjs": "^7.4.0",
+    "require.js": "^1.0.0",
+    "socket.io": "^4.7.5",
+    "winston": "^3.17.0",
+    "winston-daily-rotate-file": "^5.0.0",
+    "ws": "^8.18.0"
+  }
+}
