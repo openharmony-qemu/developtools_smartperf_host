@@ -94,20 +94,32 @@ function process(sessionIdParam, cmd, message) {
     htraceBuffer = new ArrayBuffer(0);
     const params = JSON.parse(decode.decode(message));
     logger.info(`获取到 params 参数`);
+    initParams(params);
+    if (isLongTrace) {
+        delLongTrace()
+            .then(pushConfigText)
+            .then(sendLongtrace)
+            .catch(error => {
+                logger.error(`longtrace处理失败: ${error}`);
+                const errorMsg = new Uint8Array(encoder.encode(error));
+                sendMsg(errorMsg, 3);
+            });
+    } else {
+        dispatchRecord();
+    }
+};
 
+function initParams(params) {
     isLongTrace = params.isLongTrace;
     isRecordArkTs = params.isRecordArkTs;
     isRecordHitrace = params.isRecordHitrace;
     maxDur = params.maxDur;
     serialNum = params.serialNum;
-
     const maxDurMS = maxDur * 1000;
     snapShotDur = params.snapShotDur;
     isSnapshot = snapShotDur > 0 ? true : false;
-
     snapShotCyclesNum = Math.ceil(maxDurMS / snapShotDur);
     logger.info(`snapShot 图片的数量: ${snapShotCyclesNum}`);
-
     console.log(params, '----------------------------params');
     type = params.type;
     processName = params.processName;
@@ -123,7 +135,6 @@ function process(sessionIdParam, cmd, message) {
     cpuProfilerMsg.initCmd = `{"id":3,"method":"Profiler.setSamplingInterval","params": {"interval":${cpuProfilerInterval}}`;
     snapshotMsg.beginCmd = `{ "id": 1, "method": "HeapProfiler.takeHeapSnapshot", "params": { "reportProgress": true, "captureNumericValue": ${captureNumericValue}, "exposeInternals": false } }`;
     timelineMsg.beginCmd = `{"id":1,"method":"HeapProfiler.startTrackingHeapObjects","params": {"trackAllocations": ${trackAllocations}}}`;
-
     output = params.output;
     traceName = output.split('/').reverse()[0];
     configText = params.htraceCmd.split('<<CONFIG')[1].split('CONFIG')[0];
@@ -131,157 +142,167 @@ function process(sessionIdParam, cmd, message) {
     killCmd = 'killall hiprofilerd hiprofiler_plugins native_daemon hiperf hiebpf hiprofiler_cmd';
     recordHitraceCmd = `hiprofiler_cmd -c /data/local/tmp/config.text  -o ${output} -t ${maxDur} -s -k`;
     totalLength = 0;
+}
 
-    if (isLongTrace) {
-        delLongTrace()
-            .then(pushConfigText)
-            .then(sendLongtrace)
-            .catch(error => {
-                logger.error(`longtrace处理失败: ${error}`);
-                const errorMsg = new Uint8Array(encoder.encode(error));
-                sendMsg(errorMsg, 3);
-            });
-    } else {
-        if (isRecordArkTs && !isRecordHitrace && !isSnapshot) {
-            Promise.all([
-                checkPortIfNeedRemove(),
-                watchPort()
-            ]).then(() => {
-                recordArkts().then(res => {
-                    const errorMsg = new Uint8Array(encoder.encode('Done'));
-                    sendMsg(errorMsg, 8);
-                    generateArktsTrace().then(res => {
-                        combinedBufferData();
-                    }).catch((error) => {
-                        logger.info(`单独抓取 arkts 报错：${error}`); // 处理错误情况
-                    });
-                }).catch((error) => {
-                    logger.info(`单独抓取 arkts 报错：${error}`); // 处理错误情况
-                });
+function dispatchRecord() {
+    if (isRecordArkTs && !isRecordHitrace && !isSnapshot) {
+        recordArktsOnly();
+    }
+    if (isRecordArkTs && !isRecordHitrace && isSnapshot) {
+        recordArktsWithSnapshot();
+    }
+    if (isRecordHitrace && !isRecordArkTs && !isSnapshot) {
+        recordHitraceOnly();
+    }
+    if (isRecordHitrace && !isRecordArkTs && isSnapshot) {
+        recordHitraceWithSnapshot();
+    }
+    if (isRecordArkTs && isRecordHitrace && !isSnapshot) {
+        recordBoth();
+    }
+    if (isRecordArkTs && isRecordHitrace && isSnapshot) {
+        recordBothWithSnapshot();
+    }
+}
+
+function recordArktsOnly() {
+    Promise.all([
+        checkPortIfNeedRemove(),
+        watchPort()
+    ]).then(() => {
+        recordArkts().then(res => {
+            const errorMsg = new Uint8Array(encoder.encode('Done'));
+            sendMsg(errorMsg, 8);
+            generateArktsTrace().then(res => {
+                combinedBufferData();
             }).catch((error) => {
                 logger.info(`单独抓取 arkts 报错：${error}`); // 处理错误情况
             });
-        }
+        }).catch((error) => {
+            logger.info(`单独抓取 arkts 报错：${error}`); // 处理错误情况
+        });
+    }).catch((error) => {
+        logger.info(`单独抓取 arkts 报错：${error}`); // 处理错误情况
+    });
+}
 
-        if (isRecordArkTs && !isRecordHitrace && isSnapshot) {
+function recordArktsWithSnapshot() {
+    Promise.all([
+        checkPortIfNeedRemove(),
+        watchPort(),
+        mkdirForSnapshot()
+    ]).then(() => {
+        recordArkts().then(res => {
+            const errorMsg = new Uint8Array(encoder.encode('Done'));
+            sendMsg(errorMsg, 8);
             Promise.all([
-                checkPortIfNeedRemove(),
-                watchPort(),
-                mkdirForSnapshot()
-            ]).then(() => {
-                recordArkts().then(res => {
-                    const errorMsg = new Uint8Array(encoder.encode('Done'));
-                    sendMsg(errorMsg, 8);
-                    Promise.all([
-                        generateArktsTrace(),
-                        saveSnapshot()
-                    ]).then(res => {
-                        combinedBufferData();
-                    }).catch((error) => {
-                        logger.info(`单独抓取 arkts + 截图 报错：${error} 0`); // 处理错误情况
-                    });
-                }).catch((error) => {
-                    logger.info(`单独抓取 arkts + 截图 报错：${error} 1`); // 处理错误情况
-                });
+                generateArktsTrace(),
+                saveSnapshot()
+            ]).then(res => {
+                combinedBufferData();
             }).catch((error) => {
-                logger.info(`单独抓取 arkts + 截图 报错：${error} 2`); // 处理错误情况
+                logger.info(`单独抓取 arkts + 截图 报错：${error} 0`); // 处理错误情况
             });
-        }
+        }).catch((error) => {
+            logger.info(`单独抓取 arkts + 截图 报错：${error} 1`); // 处理错误情况
+        });
+    }).catch((error) => {
+        logger.info(`单独抓取 arkts + 截图 报错：${error} 2`); // 处理错误情况
+    });
+}
 
-        if (isRecordHitrace && !isRecordArkTs && !isSnapshot) {
-            pushConfigText().then(() => {
-                recordHitrace().then(res => {
-                    const errorMsg = new Uint8Array(encoder.encode('Done'));
-                    sendMsg(errorMsg, 8);
-                    receiveHiTrace().then(res => {
-                        combinedBufferData();
-                    }).catch((error) => {
-                        logger.info(`单独抓取 hitrace 报错：${error} 0`); // 处理错误情况
-                    });
-                }).catch((error) => {
-                    logger.info(`单独抓取 hitrace 报错：${error} 1`); // 处理错误情况
-                });
+function recordHitraceOnly() {
+    pushConfigText().then(() => {
+        recordHitrace().then(res => {
+            const errorMsg = new Uint8Array(encoder.encode('Done'));
+            sendMsg(errorMsg, 8);
+            receiveHiTrace().then(res => {
+                combinedBufferData();
             }).catch((error) => {
-                logger.info(`单独抓取 hitrace 报错：${error} 2`); // 处理错误情况
+                logger.info(`单独抓取 hitrace 报错：${error} 0`); // 处理错误情况
             });
-        }
+        }).catch((error) => {
+            logger.info(`单独抓取 hitrace 报错：${error} 1`); // 处理错误情况
+        });
+    }).catch((error) => {
+        logger.info(`单独抓取 hitrace 报错：${error} 2`); // 处理错误情况
+    });
+}
 
-        if (isRecordHitrace && !isRecordArkTs && isSnapshot) {
-            logger.info(`'isRecordHitrace': ${isRecordHitrace}`);
+function recordHitraceWithSnapshot() {
+    logger.info(`'isRecordHitrace': ${isRecordHitrace}`);
+    Promise.all([
+        pushConfigText(),
+        mkdirForSnapshot()
+    ]).then(() => {
+        recordHitrace().then(res => {
+            const errorMsg = new Uint8Array(encoder.encode('Done'));
+            sendMsg(errorMsg, 8);
             Promise.all([
-                pushConfigText(),
-                mkdirForSnapshot()
-            ]).then(() => {
-                recordHitrace().then(res => {
-                    const errorMsg = new Uint8Array(encoder.encode('Done'));
-                    sendMsg(errorMsg, 8);
-                    Promise.all([
-                        saveSnapshot(),
-                        receiveHiTrace()
-                    ]).then(res => {
-                        combinedBufferData();
-                    }).catch((error) => {
-                        logger.info(`单独抓取 hitrace + 截图 报错：${error}`); // 处理错误情况
-                    });
-                }).catch((error) => {
-                    logger.info(`单独抓取 hitrace + 截图 报错：${error}`); // 处理错误情况
-                });
+                saveSnapshot(),
+                receiveHiTrace()
+            ]).then(res => {
+                combinedBufferData();
             }).catch((error) => {
                 logger.info(`单独抓取 hitrace + 截图 报错：${error}`); // 处理错误情况
             });
-        }
+        }).catch((error) => {
+            logger.info(`单独抓取 hitrace + 截图 报错：${error}`); // 处理错误情况
+        });
+    }).catch((error) => {
+        logger.info(`单独抓取 hitrace + 截图 报错：${error}`); // 处理错误情况
+    });
+}
 
-        if (isRecordArkTs && isRecordHitrace && !isSnapshot) {
+function recordBoth() {
+    Promise.all([
+        checkPortIfNeedRemove(),
+        watchPort(),
+        pushConfigText()
+    ]).then(() => {
+        recordHitrace().then(res => {
+            const errorMsg = new Uint8Array(encoder.encode('Done'));
+            sendMsg(errorMsg, 8);
             Promise.all([
-                checkPortIfNeedRemove(),
-                watchPort(),
-                pushConfigText()
-            ]).then(() => {
-                recordHitrace().then(res => {
-                    const errorMsg = new Uint8Array(encoder.encode('Done'));
-                    sendMsg(errorMsg, 8);
-                    Promise.all([
-                        receiveHiTrace()
-                    ]).then(res => {
-                        generateArktsTrace();
-                    }).then(res => {
-                        combinedBufferData();
-                    })
-                }).catch((error) => {
-                    logger.info(`同时抓取 hitrace 和 arkts trace 报错：${error}`); // 处理错误情况
-                });
-            }).catch((error) => {
-                logger.info(`同时抓取 hitrace 和 arkts trace 报错：${error}`); // 处理错误情况
+                receiveHiTrace()
+            ]).then(res => {
+                generateArktsTrace();
+            }).then(res => {
+                combinedBufferData();
             });
-        }
+        }).catch((error) => {
+            logger.info(`同时抓取 hitrace 和 arkts trace 报错：${error}`); // 处理错误情况
+        });
+    }).catch((error) => {
+        logger.info(`同时抓取 hitrace 和 arkts trace 报错：${error}`); // 处理错误情况
+    });
+}
 
-        if (isRecordArkTs && isRecordHitrace && isSnapshot) {
+function recordBothWithSnapshot() {
+    Promise.all([
+        checkPortIfNeedRemove(),
+        watchPort(),
+        pushConfigText(),
+        mkdirForSnapshot()
+    ]).then(() => {
+        recordHitrace().then(res => {
+            const errorMsg = new Uint8Array(encoder.encode('Done'));
+            sendMsg(errorMsg, 8);
             Promise.all([
-                checkPortIfNeedRemove(),
-                watchPort(),
-                pushConfigText(),
-                mkdirForSnapshot()
-            ]).then(() => {
-                recordHitrace().then(res => {
-                    const errorMsg = new Uint8Array(encoder.encode('Done'));
-                    sendMsg(errorMsg, 8);
-                    Promise.all([
-                        saveSnapshot(),
-                        receiveHiTrace()
-                    ]).then(res => {
-                        generateArktsTrace();
-                    }).then(res => {
-                        combinedBufferData();
-                    })
-                }).catch((error) => {
-                    logger.info(`同时抓取 hitrace 和 arkts trace + 截图 报错：${error}`); // 处理错误情况
-                });
-            }).catch((error) => {
-                logger.info(`同时抓取 hitrace 和 arkts trace + 截图 报错：${error}`); // 处理错误情况
+                saveSnapshot(),
+                receiveHiTrace()
+            ]).then(res => {
+                generateArktsTrace();
+            }).then(res => {
+                combinedBufferData();
             });
-        }
-    }
-};
+        }).catch((error) => {
+            logger.info(`同时抓取 hitrace 和 arkts trace + 截图 报错：${error}`); // 处理错误情况
+        });
+    }).catch((error) => {
+        logger.info(`同时抓取 hitrace 和 arkts trace + 截图 报错：${error}`); // 处理错误情况
+    });
+}
 
 function delLongTrace() {
     return new Promise((resolve, reject) => {
@@ -330,9 +351,8 @@ function recordLongtrace() {
             sendMsg(errorMsg, 3);
             reject(-1);
         });
-    })
+    });
 }
-
 
 function listLongtraceFiles() {
     return new Promise((resolve, reject) => {
@@ -467,7 +487,7 @@ function checkPortIfNeedRemove() {
                             }
                         });
                     }
-                })
+                });
             } else {
                 resolve(0);
             }
@@ -516,7 +536,7 @@ function watchPort() {
                                 removePort();
                                 logger.error(`监听 Debugger fport 失败信息：${errorMsg}`);
                             }
-                        })
+                        });
                     } else {
                         reject(-1);
                         const errorMsg = new Uint8Array(encoder.encode(stdout));
@@ -629,7 +649,7 @@ function recordArkts() {
                     }
 
                 }
-            })
+            });
         });
         socket.on('error', function error(err) {
             reject(`WebSocket('ws://127.0.0.1:24220') 错误：${err}`);
@@ -644,7 +664,7 @@ function recordArkts() {
             resultArray.push(event.data);
             dateTimeArray.push(new Date().getTime() * 1000000 - diffRealTimeNSec);
 
-            if (type.includes('cpuProf') && data.id == 3 && Object.keys(data.result).length > 0) {
+            if (type.includes('cpuProf') && data.id === 3 && Object.keys(data.result).length > 0) {
                 logger.info(`${type} : arkts 抓取完成`);
                 let cpuProfStartTime = data.result.profile.startTime * 1000;
                 let cpuProfEndTime = data.result.profile.endTime * 1000;
@@ -658,7 +678,7 @@ function recordArkts() {
                     sendMsg(errorMsg, 7);
                 }
             }
-            if (type === 'snapshot' && data.id == 1 && Object.keys(data.result).length === 0 && snapshotNum === snapshotTimes) {
+            if (type === 'snapshot' && data.id === 1 && Object.keys(data.result).length === 0 && snapshotNum === snapshotTimes) {
                 logger.info(`${type} : arkts 抓取完成`);
                 resolve(0);
                 if (!isRecordHitrace) {
@@ -666,7 +686,7 @@ function recordArkts() {
                     sendMsg(errorMsg, 7);
                 }
             }
-            if (type === 'timeline' && data.id == 2 && Object.keys(data.result).length === 0) {
+            if (type === 'timeline' && data.id === 2 && Object.keys(data.result).length === 0) {
                 logger.info(`${type} : arkts 抓取完成`);
                 resolve(0);
                 if (!isRecordHitrace) {
@@ -681,7 +701,7 @@ function recordArkts() {
             logger.info(`arkts 接收到的数据条数：${resultArray.length}`);
             logger.info(`arkts 接收到的数据时间条数：${dateTimeArray.length}`);
         };
-    })
+    });
 }
 
 function generateArktsTrace() {
@@ -735,11 +755,28 @@ function generateArktsTrace() {
         let traceView = new Uint8Array(traceBuffer);
         let traceDataview = new DataView(traceBuffer);
 
-        let headerBuffer = new Uint8Array([79, 72, 79, 83, 80, 82, 79, 70, 111, 210, 2, 0, 0, 0, 0, 0, 0, 0, 1, 0, 8, 0, 0, 0, 201, 195, 138, 20, 181, 249, 101, 247, 80, 50, 171, 217,
-            139, 133, 147, 69, 49, 82, 56, 243, 232, 201, 38, 239, 192, 241, 85, 223, 9, 148, 238, 213, 0, 0, 0, 0, 59, 77, 146, 229, 89, 0, 0, 0, 32, 120, 33, 249, 65, 7, 121, 23, 28, 5, 193,
-            248, 65, 7, 121, 23, 67, 79, 146, 229, 89, 0, 0, 0, 121, 218, 49, 229, 89, 0, 0, 0, 79, 81, 146, 229, 89, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,]);
+        let headerBuffer = new Uint8Array([
+            79, 72, 79, 83, 80, 82, 79, 70, 111, 210, 2, 0, 0, 0,
+            0, 0, 0, 0, 1, 0, 8, 0, 0, 0, 201, 195, 138, 20, 181,
+            249, 101, 247, 80, 50, 171, 217, 139, 133, 147, 69, 49, 82, 56, 243,
+            232, 201, 38, 239, 192, 241, 85, 223, 9, 148, 238, 213, 0, 0, 0,
+            0, 59, 77, 146, 229, 89, 0, 0, 0, 32, 120, 33, 249, 65, 7,
+            121, 23, 28, 5, 193, 248, 65, 7, 121, 23, 67, 79, 146, 229, 89,
+            0, 0, 0, 121, 218, 49, 229, 89, 0, 0, 0, 79, 81, 146, 229,
+            89, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0
+        ]);
         let headerView = new DataView(headerBuffer.buffer);
         const segmentNum = resultArray.length * 2;
         headerView.setUint32(8, finalLength, true); //重写 length
@@ -781,7 +818,7 @@ function generateArktsTrace() {
         logger.info('生成 arkts buffer 数据结束');
         removePort();
         // sendMsg(traceView, 4);
-    })
+    });
 }
 
 function removePort() {
@@ -852,7 +889,7 @@ function recordHitrace() {
                         const errorMsg = new Uint8Array(encoder.encode(err));
                         sendMsg(errorMsg, 3);
                         reject(-1);
-                    })
+                    });
                 }
             }
             if (data.includes('DONE')) {
@@ -870,7 +907,7 @@ function recordHitrace() {
             sendMsg(errorMsg, 3);
             reject(-1);
         });
-    })
+    });
 }
 
 function receiveHiTrace() {
@@ -945,7 +982,7 @@ function snapshot(snapshotName) {
                 sendMsg(errorMsg, 3);
                 reject(-1);
             };
-        })
+        });
     } catch (error) {
         reject(error);
     }
@@ -970,7 +1007,7 @@ function saveSnapshot() {
                 exec(`hdc -t ${serialNum} shell rm data/local/tmp/snapshot_${tmpTimeName}`);
             }
         });
-    })
+    });
 }
 
 async function getSnapShotData(resolve, reject) {
@@ -1009,6 +1046,7 @@ function extractTimeFunc(filename) {
     } else {
         console.error(`Invalid filename format: ${filename}`);
     }
+    return 0;
 }
 
 async function delSnapshotFolder() {
@@ -1033,4 +1071,4 @@ function sendMsg(traceView, cmd) {
 
 module.exports = {
     init
-}
+};
