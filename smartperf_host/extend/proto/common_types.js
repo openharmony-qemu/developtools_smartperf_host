@@ -11,6 +11,202 @@ const $util = $protobuf.util;
 // Exported root namespace
 let $root = $protobuf.roots.default || ($protobuf.roots.default = {});
 
+function verifyStringField(message, field) {
+    if (message[field] != null && Object.prototype.hasOwnProperty.call(message, field)) {
+        if (!$util.isString(message[field])) {
+            return field + ': string expected';
+        }
+    }
+    return null;
+}
+
+function verifyIntegerField(message, field) {
+    if (message[field] != null && Object.prototype.hasOwnProperty.call(message, field)) {
+        if (!$util.isInteger(message[field])) {
+            return field + ': integer expected';
+        }
+    }
+    return null;
+}
+
+function verifyBufferField(message, field) {
+    if (message[field] != null && Object.prototype.hasOwnProperty.call(message, field)) {
+        if (!(message[field] && typeof message[field].length === 'number' || $util.isString(message[field]))) {
+            return field + ': buffer expected';
+        }
+    }
+    return null;
+}
+
+function verifyBooleanField(message, field) {
+    if (message[field] != null && Object.prototype.hasOwnProperty.call(message, field)) {
+        if (typeof message[field] !== 'boolean') {
+            return field + ': boolean expected';
+        }
+    }
+    return null;
+}
+
+function verifyLongField(message, field) {
+    if (message[field] != null && Object.prototype.hasOwnProperty.call(message, field)) {
+        if (!$util.isInteger(message[field]) && !(message[field] && $util.isInteger(message[field].low) && $util.isInteger(message[field].high))) {
+            return field + ': integer|Long expected';
+        }
+    }
+    return null;
+}
+
+function verifyClockId(message) {
+    if (message.clockId != null && Object.prototype.hasOwnProperty.call(message, 'clockId')) {
+        switch (message.clockId) {
+        default:
+            return 'clockId: enum value expected';
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+        case 6:
+        case 7:
+        case 8:
+        case 9:
+        case 10:
+        case 11:
+            break;
+        }
+    }
+    return null;
+}
+
+function convertBufferFromObject(value) {
+    if (typeof value === 'string') {
+        let buf = $util.newBuffer($util.base64.length(value));
+        $util.base64.decode(value, buf, 0);
+        return buf;
+    } else if (value.length >= 0) {
+        return value;
+    }
+    return undefined;
+}
+
+function convertClockIdFromObject(value) {
+    switch (value) {
+    default:
+        if (typeof value === 'number') {
+            return value;
+        }
+        return undefined;
+    case 'CLOCKID_REALTIME':
+    case 0:
+        return 0;
+    case 'CLOCKID_MONOTONIC':
+    case 1:
+        return 1;
+    case 'CLOCKID_PROCESS_CPUTIME_ID':
+    case 2:
+        return 2;
+    case 'CLOCKID_THREAD_CPUTIME_ID':
+    case 3:
+        return 3;
+    case 'CLOCKID_MONOTONIC_RAW':
+    case 4:
+        return 4;
+    case 'CLOCKID_REALTIME_COARSE':
+    case 5:
+        return 5;
+    case 'CLOCKID_MONOTONIC_COARSE':
+    case 6:
+        return 6;
+    case 'CLOCKID_BOOTTIME':
+    case 7:
+        return 7;
+    case 'CLOCKID_REALTIME_ALARM':
+    case 8:
+        return 8;
+    case 'CLOCKID_BOOTTIME_ALARM':
+    case 9:
+        return 9;
+    case 'CLOCKID_SGI_CYCLE':
+    case 10:
+        return 10;
+    case 'CLOCKID_TAI':
+    case 11:
+        return 11;
+    }
+    return undefined;
+}
+
+function convertLongFromObject(value) {
+    if ($util.Long) {
+        let long = $util.Long.fromValue(value);
+        long.unsigned = true;
+        return long;
+    } else if (typeof value === 'string') {
+        return parseInt(value, 10);
+    } else if (typeof value === 'number') {
+        return value;
+    } else if (typeof value === 'object') {
+        return new $util.LongBits(value.low >>> 0, value.high >>> 0).toNumber(true);
+    }
+    return undefined;
+}
+
+function convertBufferToObject(value, options) {
+    return options.bytes === String
+        ? $util.base64.encode(value, 0, value.length)
+        : options.bytes === Array
+            ? Array.prototype.slice.call(value)
+            : value;
+}
+
+function convertClockIdToObject(value, options) {
+    return options.enums === String
+        ? ($root.ProfilerPluginData.ClockId[value] === undefined
+            ? value
+            : $root.ProfilerPluginData.ClockId[value])
+        : value;
+}
+
+function convertLongToObject(value, options) {
+    if (typeof value === 'number') {
+        return options.longs === String ? String(value) : value;
+    }
+    return options.longs === String
+        ? $util.Long.prototype.toString.call(value)
+        : options.longs === Number
+            ? new $util.LongBits(value.low >>> 0, value.high >>> 0).toNumber(true)
+            : value;
+}
+
+function initProfilerPluginDataDefaults(object, options) {
+    object.name = '';
+    object.status = 0;
+    if (options.bytes === String) {
+        object.data = '';
+    } else {
+        object.data = [];
+        if (options.bytes !== Array) {
+            object.data = $util.newBuffer(object.data);
+        }
+    }
+    object.clockId = options.enums === String ? 'CLOCKID_REALTIME' : 0;
+    if ($util.Long) {
+        let long = new $util.Long(0, 0, true);
+        object.tvSec = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+    } else {
+        object.tvSec = options.longs === String ? '0' : 0;
+    }
+    if ($util.Long) {
+        let long = new $util.Long(0, 0, true);
+        object.tvNsec = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+    } else {
+        object.tvNsec = options.longs === String ? '0' : 0;
+    }
+    object.version = '';
+    object.sampleInterval = 0;
+}
+
 $root.ProfilerPluginConfig = (function() {
 
     /**
@@ -231,36 +427,19 @@ $root.ProfilerPluginConfig = (function() {
         if (typeof message !== 'object' || message === null) {
             return 'object expected';
         }
-        if (message.name != null && Object.prototype.hasOwnProperty.call(message, 'name')) {
-            if (!$util.isString(message.name)) {
-                return 'name: string expected';
-            }
-        }
-        if (message.pluginSha256 != null && Object.prototype.hasOwnProperty.call(message, 'pluginSha256')) {
-            if (!$util.isString(message.pluginSha256)) {
-                return 'pluginSha256: string expected';
-            }
-        }
-        if (message.sampleInterval != null && Object.prototype.hasOwnProperty.call(message, 'sampleInterval')) {
-            if (!$util.isInteger(message.sampleInterval)) {
-                return 'sampleInterval: integer expected';
-            }
-        }
-        if (message.configData != null && Object.prototype.hasOwnProperty.call(message, 'configData')) {
-            if (!(message.configData && typeof message.configData.length === 'number' || $util.isString(message.configData))) {
-                return 'configData: buffer expected';
-            }
-        }
-        if (message.clock != null && Object.prototype.hasOwnProperty.call(message, 'clock')) {
-            if (!$util.isString(message.clock)) {
-                return 'clock: string expected';
-            }
-        }
-        if (message.isProtobufSerialize != null && Object.prototype.hasOwnProperty.call(message, 'isProtobufSerialize')) {
-            if (typeof message.isProtobufSerialize !== 'boolean') {
-                return 'isProtobufSerialize: boolean expected';
-            }
-        }
+        let err;
+        err = verifyStringField(message, 'name');
+        if (err) return err;
+        err = verifyStringField(message, 'pluginSha256');
+        if (err) return err;
+        err = verifyIntegerField(message, 'sampleInterval');
+        if (err) return err;
+        err = verifyBufferField(message, 'configData');
+        if (err) return err;
+        err = verifyStringField(message, 'clock');
+        if (err) return err;
+        err = verifyBooleanField(message, 'isProtobufSerialize');
+        if (err) return err;
         return null;
     };
 
@@ -934,60 +1113,23 @@ $root.ProfilerPluginData = (function() {
         if (typeof message !== 'object' || message === null) {
             return 'object expected';
         }
-        if (message.name != null && Object.prototype.hasOwnProperty.call(message, 'name')) {
-            if (!$util.isString(message.name)) {
-                return 'name: string expected';
-            }
-        }
-        if (message.status != null && Object.prototype.hasOwnProperty.call(message, 'status')) {
-            if (!$util.isInteger(message.status)) {
-                return 'status: integer expected';
-            }
-        }
-        if (message.data != null && Object.prototype.hasOwnProperty.call(message, 'data')) {
-            if (!(message.data && typeof message.data.length === 'number' || $util.isString(message.data))) {
-                return 'data: buffer expected';
-            }
-        }
-        if (message.clockId != null && Object.prototype.hasOwnProperty.call(message, 'clockId')) {
-            switch (message.clockId) {
-            default:
-                return 'clockId: enum value expected';
-            case 0:
-            case 1:
-            case 2:
-            case 3:
-            case 4:
-            case 5:
-            case 6:
-            case 7:
-            case 8:
-            case 9:
-            case 10:
-            case 11:
-                break;
-            }
-        }
-        if (message.tvSec != null && Object.prototype.hasOwnProperty.call(message, 'tvSec')) {
-            if (!$util.isInteger(message.tvSec) && !(message.tvSec && $util.isInteger(message.tvSec.low) && $util.isInteger(message.tvSec.high))) {
-                return 'tvSec: integer|Long expected';
-            }
-        }
-        if (message.tvNsec != null && Object.prototype.hasOwnProperty.call(message, 'tvNsec')) {
-            if (!$util.isInteger(message.tvNsec) && !(message.tvNsec && $util.isInteger(message.tvNsec.low) && $util.isInteger(message.tvNsec.high))) {
-                return 'tvNsec: integer|Long expected';
-            }
-        }
-        if (message.version != null && Object.prototype.hasOwnProperty.call(message, 'version')) {
-            if (!$util.isString(message.version)) {
-                return 'version: string expected';
-            }
-        }
-        if (message.sampleInterval != null && Object.prototype.hasOwnProperty.call(message, 'sampleInterval')) {
-            if (!$util.isInteger(message.sampleInterval)) {
-                return 'sampleInterval: integer expected';
-            }
-        }
+        let err;
+        err = verifyStringField(message, 'name');
+        if (err) return err;
+        err = verifyIntegerField(message, 'status');
+        if (err) return err;
+        err = verifyBufferField(message, 'data');
+        if (err) return err;
+        err = verifyClockId(message);
+        if (err) return err;
+        err = verifyLongField(message, 'tvSec');
+        if (err) return err;
+        err = verifyLongField(message, 'tvNsec');
+        if (err) return err;
+        err = verifyStringField(message, 'version');
+        if (err) return err;
+        err = verifyIntegerField(message, 'sampleInterval');
+        if (err) return err;
         return null;
     };
 
@@ -1011,88 +1153,25 @@ $root.ProfilerPluginData = (function() {
             message.status = object.status >>> 0;
         }
         if (object.data != null) {
-            if (typeof object.data === 'string') {
-                $util.base64.decode(object.data, message.data = $util.newBuffer($util.base64.length(object.data)), 0);
-            } else if (object.data.length >= 0) {
-                message.data = object.data;
+            let converted = convertBufferFromObject(object.data);
+            if (converted !== undefined) {
+                message.data = converted;
             }
         }
-        switch (object.clockId) {
-        default:
-            if (typeof object.clockId === 'number') {
-                message.clockId = object.clockId;
-                break;
-            }
-            break;
-        case 'CLOCKID_REALTIME':
-        case 0:
-            message.clockId = 0;
-            break;
-        case 'CLOCKID_MONOTONIC':
-        case 1:
-            message.clockId = 1;
-            break;
-        case 'CLOCKID_PROCESS_CPUTIME_ID':
-        case 2:
-            message.clockId = 2;
-            break;
-        case 'CLOCKID_THREAD_CPUTIME_ID':
-        case 3:
-            message.clockId = 3;
-            break;
-        case 'CLOCKID_MONOTONIC_RAW':
-        case 4:
-            message.clockId = 4;
-            break;
-        case 'CLOCKID_REALTIME_COARSE':
-        case 5:
-            message.clockId = 5;
-            break;
-        case 'CLOCKID_MONOTONIC_COARSE':
-        case 6:
-            message.clockId = 6;
-            break;
-        case 'CLOCKID_BOOTTIME':
-        case 7:
-            message.clockId = 7;
-            break;
-        case 'CLOCKID_REALTIME_ALARM':
-        case 8:
-            message.clockId = 8;
-            break;
-        case 'CLOCKID_BOOTTIME_ALARM':
-        case 9:
-            message.clockId = 9;
-            break;
-        case 'CLOCKID_SGI_CYCLE':
-        case 10:
-            message.clockId = 10;
-            break;
-        case 'CLOCKID_TAI':
-        case 11:
-            message.clockId = 11;
-            break;
+        let clockId = convertClockIdFromObject(object.clockId);
+        if (clockId !== undefined) {
+            message.clockId = clockId;
         }
         if (object.tvSec != null) {
-            if ($util.Long) {
-                (message.tvSec = $util.Long.fromValue(object.tvSec)).unsigned = true;
-            } else if (typeof object.tvSec === 'string') {
-                message.tvSec = parseInt(object.tvSec, 10);
-            } else if (typeof object.tvSec === 'number') {
-                message.tvSec = object.tvSec;
-            } else if (typeof object.tvSec === 'object') {
-                message.tvSec = new $util.LongBits(object.tvSec.low >>> 0, object.tvSec.high >>> 0).toNumber(true);
+            let converted = convertLongFromObject(object.tvSec);
+            if (converted !== undefined) {
+                message.tvSec = converted;
             }
         }
         if (object.tvNsec != null) {
-            if ($util.Long) {
-                (message.tvNsec = $util.Long.fromValue(object.tvNsec)).unsigned = true;
-            } else if (typeof object.tvNsec === 'string') {
-                message.tvNsec = parseInt(object.tvNsec, 10);
-            } else if (typeof object.tvNsec === 'number') {
-                message.tvNsec = object.tvNsec;
-            } else if (typeof object.tvNsec === 'object') {
-                message.tvNsec = new $util.LongBits(object.tvNsec.low >>> 0, object.tvNsec.high >>> 0).toNumber(true);
+            let converted = convertLongFromObject(object.tvNsec);
+            if (converted !== undefined) {
+                message.tvNsec = converted;
             }
         }
         if (object.version != null) {
@@ -1119,31 +1198,7 @@ $root.ProfilerPluginData = (function() {
         }
         let object = {};
         if (options.defaults) {
-            object.name = '';
-            object.status = 0;
-            if (options.bytes === String) {
-                object.data = '';
-            } else {
-                object.data = [];
-                if (options.bytes !== Array) {
-                    object.data = $util.newBuffer(object.data);
-                }
-            }
-            object.clockId = options.enums === String ? 'CLOCKID_REALTIME' : 0;
-            if ($util.Long) {
-                let long = new $util.Long(0, 0, true);
-                object.tvSec = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
-            } else {
-                object.tvSec = options.longs === String ? '0' : 0;
-            }
-            if ($util.Long) {
-                let long = new $util.Long(0, 0, true);
-                object.tvNsec = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
-            } else {
-                object.tvNsec = options.longs === String ? '0' : 0;
-            }
-            object.version = '';
-            object.sampleInterval = 0;
+            initProfilerPluginDataDefaults(object, options);
         }
         if (message.name != null && Object.prototype.hasOwnProperty.call(message, 'name')) {
             object.name = message.name;
@@ -1152,40 +1207,16 @@ $root.ProfilerPluginData = (function() {
             object.status = message.status;
         }
         if (message.data != null && Object.prototype.hasOwnProperty.call(message, 'data')) {
-            object.data = options.bytes === String
-                ? $util.base64.encode(message.data, 0, message.data.length)
-                : options.bytes === Array
-                    ? Array.prototype.slice.call(message.data)
-                    : message.data;
+            object.data = convertBufferToObject(message.data, options);
         }
         if (message.clockId != null && Object.prototype.hasOwnProperty.call(message, 'clockId')) {
-            object.clockId = options.enums === String
-                ? ($root.ProfilerPluginData.ClockId[message.clockId] === undefined
-                    ? message.clockId
-                    : $root.ProfilerPluginData.ClockId[message.clockId])
-                : message.clockId;
+            object.clockId = convertClockIdToObject(message.clockId, options);
         }
         if (message.tvSec != null && Object.prototype.hasOwnProperty.call(message, 'tvSec')) {
-            if (typeof message.tvSec === 'number') {
-                object.tvSec = options.longs === String ? String(message.tvSec) : message.tvSec;
-            } else {
-                object.tvSec = options.longs === String
-                    ? $util.Long.prototype.toString.call(message.tvSec)
-                    : options.longs === Number
-                        ? new $util.LongBits(message.tvSec.low >>> 0, message.tvSec.high >>> 0).toNumber(true)
-                        : message.tvSec;
-            }
+            object.tvSec = convertLongToObject(message.tvSec, options);
         }
         if (message.tvNsec != null && Object.prototype.hasOwnProperty.call(message, 'tvNsec')) {
-            if (typeof message.tvNsec === 'number') {
-                object.tvNsec = options.longs === String ? String(message.tvNsec) : message.tvNsec;
-            } else {
-                object.tvNsec = options.longs === String
-                    ? $util.Long.prototype.toString.call(message.tvNsec)
-                    : options.longs === Number
-                        ? new $util.LongBits(message.tvNsec.low >>> 0, message.tvNsec.high >>> 0).toNumber(true)
-                        : message.tvNsec;
-            }
+            object.tvNsec = convertLongToObject(message.tvNsec, options);
         }
         if (message.version != null && Object.prototype.hasOwnProperty.call(message, 'version')) {
             object.version = message.version;

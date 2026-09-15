@@ -38,7 +38,7 @@ class Utils {
         index += AuthMsg.TYPT_BYTE;
         dataView.setUint16(index, message.cmd ? message.cmd : 0);
         index += AuthMsg.CMD_BYTE;
-        dataView.setUint8(index, message.session_id ? message.session_id : 0);
+        dataView.setUint8(index, message.sessionId ? message.sessionId : 0);
         index += AuthMsg.SESSION_ID_BYTE;
         dataView.setUint32(index, splitUint64?.high32);
         index += AuthMsg.SESSION_TBYTE;
@@ -68,11 +68,11 @@ class Utils {
         decode = {
             type: dataView.getUint8(0),
             cmd: dataView.getUint16(1),
-            session_id: dataView.getUint8(3),
+            sessionId: dataView.getUint8(3),
             session: session,
             dataLength: dataView.getUint32(12),
             data: dataBytes
-        }
+        };
         return decode;
     }
 

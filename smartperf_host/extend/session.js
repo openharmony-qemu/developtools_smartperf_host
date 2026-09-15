@@ -40,7 +40,7 @@ class SessionJs {
             };
             sendSessionMsg.type = TypeManage.TypeConfig.LOGIN_TYPE;
             sendSessionMsg.cmd = ws.userData.sessionId ? Utils.AuthMsg.LOGIN_SUCCESS_CMD : Utils.AuthMsg.LOGIN_FAIL_CMD;
-            sendSessionMsg.session_id = ws.userData.sessionId ? ws.userData.sessionId : '';
+            sendSessionMsg.sessionId = ws.userData.sessionId ? ws.userData.sessionId : '';
             sendSessionMsg.session = ws.userData.sessionId ? SessionJs.sessionMap.get(ws.userData.sessionId)[0] : '';
             sendSessionMsg.dataLength = 0;
         };
@@ -54,9 +54,9 @@ class SessionJs {
     static checkSession(sessionId, session) {
         return SessionJs.sessionMap.has(sessionId) && SessionJs.sessionMap.get(sessionId)[0] === Number(session.toString());
     };
-    static clearSession(session_id) {
-        SessionJs.sessionMap.set(session_id, null);
-        logger.warn(`Session cleared,sessionId:${session_id}`);
+    static clearSession(sessionId) {
+        SessionJs.sessionMap.set(sessionId, null);
+        logger.warn(`Session cleared,sessionId:${sessionId}`);
     };
 };
 

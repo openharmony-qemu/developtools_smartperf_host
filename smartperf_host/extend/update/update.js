@@ -12,10 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const fs = require('fs')
+const fs = require('fs');
 const winston = require('winston');
 const path = require('path');
-const AdmZip = require('adm-zip')
+const AdmZip = require('adm-zip');
 const { exit } = require('process');
 const TypeManage = require('../typeManage.js');
 const Version = require('../version.js');

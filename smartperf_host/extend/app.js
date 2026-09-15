@@ -47,13 +47,13 @@ wss.on('connection', function connection(ws, req) {
         // type为0-7为内置，业务type从8开始
         if (decoderMessage.type > TypeManage.TypeConfig.MAX_BUILTIN_TYPE) {
             // 鉴权session和sessionId
-            let isAuthSuccess = SessionManage.SessionJs.checkSession(decoderMessage.session_id, decoderMessage.session);
+            let isAuthSuccess = SessionManage.SessionJs.checkSession(decoderMessage.sessionId, decoderMessage.session);
             if (!isAuthSuccess) {
-                logger.error(`${decoderMessage.session_id} Authentication failed`);
+                logger.error(`${decoderMessage.sessionId} Authentication failed`);
                 return;
             };
-            logger.info(`type:${decoderMessage.type},sessionId:${decoderMessage.session_id},cmd:${decoderMessage.cmd}`);
-            pluginSystem.execute(decoderMessage.type, 'process', decoderMessage.session_id, decoderMessage.cmd, decoderMessage.data);
+            logger.info(`type:${decoderMessage.type},sessionId:${decoderMessage.sessionId},cmd:${decoderMessage.cmd}`);
+            pluginSystem.execute(decoderMessage.type, 'process', decoderMessage.sessionId, decoderMessage.cmd, decoderMessage.data);
         };
         // type为会话信息
         if (decoderMessage.type === TypeManage.TypeConfig.LOGIN_TYPE) {
@@ -63,12 +63,12 @@ wss.on('connection', function connection(ws, req) {
         // type为升级
         if (decoderMessage.type === TypeManage.TypeConfig.UPDATE_TYPE) {
             // 鉴权session和sessionId
-            let isAuthSuccess = SessionManage.SessionJs.checkSession(decoderMessage.session_id, decoderMessage.session);
+            let isAuthSuccess = SessionManage.SessionJs.checkSession(decoderMessage.sessionId, decoderMessage.session);
             if (!isAuthSuccess) {
                 logger.error('Authentication failed');
                 return;
             };
-            pluginSystem.execute(decoderMessage.type, 'process', decoderMessage.session_id, decoderMessage.cmd, decoderMessage.data);
+            pluginSystem.execute(decoderMessage.type, 'process', decoderMessage.sessionId, decoderMessage.cmd, decoderMessage.data);
             return;
         }
         // type为心跳机制类型
@@ -110,7 +110,7 @@ function sendMsgToClient(type, sessionId, cmd, data) {
     let sendMsg = {};
     sendMsg.type = type;
     sendMsg.cmd = cmd;
-    sendMsg.session_id = sessionId;
+    sendMsg.sessionId = sessionId;
     sendMsg.session = SessionManage.SessionJs.sessionMap.get(sessionId)[0];
     sendMsg.dataLength = data.byteLength;
     sendMsg.data = data;

@@ -20,14 +20,14 @@ const readline = require('readline');
 const { promisify } = require('util');
 const winston = require('winston');
 const execAsync = promisify(exec);
-const SAVE_CMD = 1;         // {file_name:str, buffer:str, buffer_size:num, total_size:num, isLast:bool}
+const SAVE_CMD = 1;         // {fileName:str, buffer:str, bufferSize:num, totalSize:num, isLast:bool}
 const SAVE_BACK_CMD = 2;    // {result:num, msg:str}
 const QUERY_CMD = 3;        // {elfName:str, vaddr:str, func:str}
 const QUERY_BACK_CMD = 4;   // {result:num, msg:str}
 const DISASSEMBLY_QUERY_ELF_CMD = 5;// {elfName:str, vaddr:str, func:str}
 const logger = winston.createLogger(require('./../winston.config.js'));
 
-const decoder = new TextDecoder('utf-8');  // 'utf-8' 是常见的字符编码
+const decoder = new TextDecoder('utf-8'); // 'utf-8' 是常见的字符编码
 const textEncoder = new TextEncoder();
 let fileStreams = {}; // 用于存储文件的写入流
 
@@ -103,10 +103,10 @@ function save(sessionId, data) {
         const jsonLength = parseInt(jsonLengthStr, 10);
 		// 解析 JSON 字符串
         const jsonStringBytes = data.subarray(separatorIndex + 1, separatorIndex + 1 + jsonLength);
-        const { file_name, buffer_index, total_size, is_last: isLast } = JSON.parse(decoder.decode(jsonStringBytes));
+        const { file_name: fileName, buffer_index: bufferIndex, total_size: totalSize, is_last: isLast } = JSON.parse(decoder.decode(jsonStringBytes));
         // 文件数据从 JSON 结束位置之后开始
         const buffer = data.subarray(separatorIndex + 1 + jsonLength);
-        logger.info(`save file, file name: ${file_name}, index: ${buffer_index}`);
+        logger.info(`save file, file name: ${fileName}, index: ${bufferIndex}`);
 
         // 将 `buffer` 转换为 Uint8Array
         const fileBuffer = new Uint8Array(buffer);
@@ -115,30 +115,30 @@ function save(sessionId, data) {
         const sessionTempDir = path.join(TEMP_DIR, `session_${sessionId}`);
 
         // 如果是文件的第一个分片，初始化文件写入流
-        if (!fileStreams[sessionId]?.[file_name] || buffer_index === 0) {
+        if (!fileStreams[sessionId]?.[fileName] || bufferIndex === 0) {
           fs.mkdirSync(sessionTempDir, { recursive: true });
           // 初始化文件流映射
           fileStreams[sessionId] = fileStreams[sessionId] || {};
           // 创建一个临时文件路径
-          const tempFilePath = path.join(sessionTempDir, file_name);
-          fileStreams[sessionId][file_name] = fs.createWriteStream(tempFilePath, { flags: 'w' });
+          const tempFilePath = path.join(sessionTempDir, fileName);
+          fileStreams[sessionId][fileName] = fs.createWriteStream(tempFilePath, { flags: 'w' });
           logger.info(`初始化文件写入流: ${tempFilePath}`);
         }
 
         // 获取文件写入流, 将接收到的文件分片写入文件流
-        fileStreams[sessionId][file_name].write(fileBuffer);
+        fileStreams[sessionId][fileName].write(fileBuffer);
 
         // 如果接收到的是最后一个分片，关闭文件流
         if (isLast) {
-          processTheLastData(sessionId, file_name, sessionTempDir, total_size);
+          processTheLastData(sessionId, fileName, sessionTempDir, totalSize);
         }
-        sendUploadBackMsg(sessionId, SAVE_BACK_CMD, 0, file_name, buffer_index);
+        sendUploadBackMsg(sessionId, SAVE_BACK_CMD, 0, fileName, bufferIndex);
     } catch (error) {
         // 在出错时发送错误 ACK
         try {
             logger.error('Error in save function:', error);
-            const { file_name, buffer_index } = JSON.parse(decoder.decode(data));
-            sendUploadBackMsg(sessionId, SAVE_BACK_CMD, 1, file_name, buffer_index);
+            const { file_name: fileName, buffer_index: bufferIndex } = JSON.parse(decoder.decode(data));
+            sendUploadBackMsg(sessionId, SAVE_BACK_CMD, 1, fileName, bufferIndex);
         } catch (parseError) {
             logger.error('Error parsing JSON data for error ACK:', parseError);
         }
@@ -148,25 +148,25 @@ function save(sessionId, data) {
 /**
  * 处理最后一包分片数据
  */
- function processTheLastData(sessionId, file_name, sessionTempDir, total_size) {
-  const fileStream = fileStreams[sessionId][file_name];
+ function processTheLastData(sessionId, fileName, sessionTempDir, totalSize) {
+  const fileStream = fileStreams[sessionId][fileName];
   fileStream.end(() => {
-      const tempFilePath = path.join(sessionTempDir, file_name);
+      const tempFilePath = path.join(sessionTempDir, fileName);
 
       // 获取文件的实际大小
       const finalStats = fs.statSync(tempFilePath);
 
       // 检查文件大小是否与预期匹配
-      if (finalStats.size === total_size) {
-          logger.info(`文件 ${file_name} 大小匹配 (${finalStats.size} 字节)`);
+      if (finalStats.size === totalSize) {
+          logger.info(`文件 ${fileName} 大小匹配 (${finalStats.size} 字节)`);
       } else {
-          logger.warn(`文件 ${file_name} 大小不匹配: 预期 ${total_size} 字节, 实际 ${finalStats.size} 字节`);
+          logger.warn(`文件 ${fileName} 大小不匹配: 预期 ${totalSize} 字节, 实际 ${finalStats.size} 字节`);
       }
       // 删除文件流对象
-      delete fileStreams[sessionId][file_name];
+      delete fileStreams[sessionId][fileName];
 
-      if (/\.so(\.\d+)*$/.test(file_name)) {
-          processSoDisassembly(sessionId, file_name, sessionTempDir, tempFilePath);
+      if (/\.so(\.\d+)*$/.test(fileName)) {
+          processSoDisassembly(sessionId, fileName, sessionTempDir, tempFilePath);
       }
 
       // 如果该会话下没有其他文件，删除会话目录
@@ -216,7 +216,7 @@ function queryData(sessionId, data) {
             sendMsg(sessionId, QUERY_BACK_CMD, { code: 1, message: msg });
             return;
         }
-        if (func.includes('@')) { func = func.split('@')[0]; }
+        if (func.includes('@')) { func = func.split('@')[0] }
         extractInfoFromAnTxt(func, elfName, vaddr, sessionId, anFilePath);
     } else {
         let soInfoTxt = path.join(TEMP_DIR, `session_${sessionId}`, `${elfName.replace('.', '_')}.txt`);
@@ -258,7 +258,7 @@ function processAnDisassembly(sessionId, vaddr, func, anFilePath, elfName, eaddr
       }
       let ans = '';
       for (let ca of innerStdOut.split(`<${func}>:`)[1].split('\n')) {
-        if (ca.trim() === '') { continue; }
+        if (ca.trim() === '') { continue }
         let addr = (parseInt(ca.split(`:`)[0].replace(/\s+/g, ''), 16)).toString(16);
         let instruction = ca.split(`:`)[1];
         instruction = instruction.substring(instruction.indexOf(' '));

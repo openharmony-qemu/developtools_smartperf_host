@@ -248,46 +248,21 @@ $root.ArkTSConfig = (function() {
         if (typeof message !== 'object' || message === null) {
             return 'object expected';
         }
-        if (message.pid != null && Object.prototype.hasOwnProperty.call(message, 'pid')) {
-            if (!$util.isInteger(message.pid)) {
-                return 'pid: integer expected';
-            }
-        }
-        if (message.type != null && Object.prototype.hasOwnProperty.call(message, 'type')) {
-            switch (message.type) {
-            default:
-                return 'type: enum value expected';
-            case 0:
-            case 1:
-            case -1:
-                break;
-            }
-        }
-        if (message.interval != null && Object.prototype.hasOwnProperty.call(message, 'interval')) {
-            if (!$util.isInteger(message.interval)) {
-                return 'interval: integer expected';
-            }
-        }
-        if (message.captureNumericValue != null && Object.prototype.hasOwnProperty.call(message, 'captureNumericValue')) {
-            if (typeof message.captureNumericValue !== 'boolean') {
-                return 'captureNumericValue: boolean expected';
-            }
-        }
-        if (message.trackAllocations != null && Object.prototype.hasOwnProperty.call(message, 'trackAllocations')) {
-            if (typeof message.trackAllocations !== 'boolean') {
-                return 'trackAllocations: boolean expected';
-            }
-        }
-        if (message.enableCpuProfiler != null && Object.prototype.hasOwnProperty.call(message, 'enableCpuProfiler')) {
-            if (typeof message.enableCpuProfiler !== 'boolean') {
-                return 'enableCpuProfiler: boolean expected';
-            }
-        }
-        if (message.cpuProfilerInterval != null && Object.prototype.hasOwnProperty.call(message, 'cpuProfilerInterval')) {
-            if (!$util.isInteger(message.cpuProfilerInterval)) {
-                return 'cpuProfilerInterval: integer expected';
-            }
-        }
+        let err;
+        err = verifyIntegerField(message, 'pid');
+        if (err) return err;
+        err = verifyHeapTypeField(message, 'type');
+        if (err) return err;
+        err = verifyIntegerField(message, 'interval');
+        if (err) return err;
+        err = verifyBooleanField(message, 'captureNumericValue');
+        if (err) return err;
+        err = verifyBooleanField(message, 'trackAllocations');
+        if (err) return err;
+        err = verifyBooleanField(message, 'enableCpuProfiler');
+        if (err) return err;
+        err = verifyIntegerField(message, 'cpuProfilerInterval');
+        if (err) return err;
         return null;
     };
 
@@ -438,6 +413,38 @@ $root.ArkTSConfig = (function() {
         values[valuesById[-1] = 'INVALID'] = -1;
         return values;
     })();
+
+    function verifyIntegerField(message, field) {
+        if (message[field] != null && Object.prototype.hasOwnProperty.call(message, field)) {
+            if (!$util.isInteger(message[field])) {
+                return field + ': integer expected';
+            }
+        }
+        return null;
+    }
+
+    function verifyBooleanField(message, field) {
+        if (message[field] != null && Object.prototype.hasOwnProperty.call(message, field)) {
+            if (typeof message[field] !== 'boolean') {
+                return field + ': boolean expected';
+            }
+        }
+        return null;
+    }
+
+    function verifyHeapTypeField(message, field) {
+        if (message[field] != null && Object.prototype.hasOwnProperty.call(message, field)) {
+            switch (message[field]) {
+            default:
+                return field + ': enum value expected';
+            case 0:
+            case 1:
+            case -1:
+                break;
+            }
+        }
+        return null;
+    }
 
     return ArkTSConfig;
 })();

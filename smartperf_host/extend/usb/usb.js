@@ -83,7 +83,7 @@ function sendSerialNumb(sessionId, cmd) {
             let message = {
                 code: 0,
                 message: serialNumArr
-            }
+            };
             sendMsg(sessionId, SN_CMD, message);
         }
     });
@@ -95,8 +95,8 @@ function getProcess(sessionId, data, cmd) {
     let sendSerialNum = decoder.decode(data).trim();
     console.log(sendSerialNum);
     // 查询进程信息
-    exec(`hdc -t ${sendSerialNum} shell ps -A -opid,cmd`, (p_error, pStdout, p_stderr) => {
-        if (p_error || (p_stderr && p_stderr.length > 0)) {
+    exec(`hdc -t ${sendSerialNum} shell ps -A -opid,cmd`, (pError, pStdout, pStderr) => {
+        if (pError || (pStderr && pStderr.length > 0)) {
             logger.error(`Failed to retrieve process.${TypeManage.TypeConfig.USB_TYPE},sessionId:${sessionId},cmd:${cmd}`);
             return;
         };
@@ -122,7 +122,7 @@ function sendMsg(sessionId, cmd, message) {
 function getCpuCunt(sessionId, data, cmd) {
     const decoder = new TextDecoder();
     let sendSerialNum = decoder.decode(data).trim();
-    console.log(`hdc -t ${sendSerialNum} shell grep -c 'processor' /proc/cpuinfo`)
+    console.log(`hdc -t ${sendSerialNum} shell grep -c 'processor' /proc/cpuinfo`);
     exec(`hdc -t ${sendSerialNum} shell grep -c 'processor' /proc/cpuinfo`, (error, stdout, stderr) => {
         if (error || (stderr && stderr.length > 0)) {
             logger.error(`Failed to retrieve CpuCount.${TypeManage.TypeConfig.USB_TYPE},sessionId:${sessionId},cmd:${cmd}`);
