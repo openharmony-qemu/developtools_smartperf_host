@@ -68,7 +68,7 @@ describe('MemoryEnum Test', () => {
     expect(MemoryBasicType.NATIVE_MEMORY[5]).toEqual('Dart Heap');
     expect(MemoryBasicType.NATIVE_MEMORY[6]).toEqual('Arkts Static Heap');
     expect(MemoryBasicType.NATIVE_MEMORY[7]).toEqual('RN Heap');
-    expect(NATIVE_MEMORY_HEAP_INDICES).toEqual([2, 3, 4, 5, 6, 7, 8]);
+    expect(NATIVE_MEMORY_HEAP_INDICES).toEqual([2, 3, 4, 5, 6, 7, 8, 9, 10]);
   });
 
   it('NativeMemoryGroupConfigTest06', function () {
@@ -281,5 +281,100 @@ describe('MemoryEnum Test', () => {
     expect(result).toContain(MemoryStatisticType.ARKTS_STATIC_HEAP);
     expect(result).toContain(MemoryStatisticType.DART_HEAP);
     expect(result).toContain(MemoryStatisticType.RN);
+  });
+
+  it('MemoryStatisticTypeTest24 - V8_HEAP and PA_HEAP enum values', function () {
+    expect(MemoryStatisticType.V8_HEAP).toEqual(22);
+    expect(MemoryStatisticType.PA_HEAP).toEqual(23);
+  });
+
+  it('MemoryTypeTest25 - V8_HEAP and PA_HEAP event name constants', function () {
+    expect(MemoryType.V8_HEAP_Alloc_NAME).toEqual('V8_HEAP_Alloc_Event');
+    expect(MemoryType.V8_HEAP_Free_NAME).toEqual('V8_HEAP_Free_Event');
+    expect(MemoryType.PA_HEAP_Alloc_NAME).toEqual('PA_HEAP_Alloc_Event');
+    expect(MemoryType.PA_HEAP_Free_NAME).toEqual('PA_HEAP_Free_Event');
+  });
+
+  it('MemoryBasicTypeTest26 - NATIVE_MEMORY contains V8 Heap and PA Heap', function () {
+    expect(MemoryBasicType.NATIVE_MEMORY[9]).toEqual('V8 Heap');
+    expect(MemoryBasicType.NATIVE_MEMORY[10]).toEqual('PA Heap');
+    expect(NATIVE_MEMORY_HEAP_INDICES).toContain(9);
+    expect(NATIVE_MEMORY_HEAP_INDICES).toContain(10);
+  });
+
+  it('MemoryConfigTest27 - filters contain V8/PA alloc events', function () {
+    expect(memoryConfig[MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY].filters).toContain('V8_HEAP_Alloc_Event');
+    expect(memoryConfig[MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY].filters).toContain('PA_HEAP_Alloc_Event');
+  });
+
+  it('StatisticTypeMapTest28 - V8_HEAP and PA_HEAP mappings', function () {
+    expect(statisticTypeMap[22]).toEqual('v8Heap');
+    expect(statisticTypeMap[23]).toEqual('paHeap');
+  });
+
+  it('HandlerConfigTest29 - V8/PA suffixes', function () {
+    const nativeHandler = handlerConfig.find(h => h.rowType === MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY);
+    expect(nativeHandler).toBeDefined();
+    expect(nativeHandler!.suffixes).toContainEqual({ key: "v8Heap", suffix: "9" });
+    expect(nativeHandler!.suffixes).toContainEqual({ key: "paHeap", suffix: "10" });
+  });
+
+  it('GetEventTypeNameFromTypeIdTest30 - V8/PA type id to event name', function () {
+    expect(getEventTypeNameFromTypeId(MemoryStatisticType.V8_HEAP)).toEqual('V8_HEAP_Alloc_Event');
+    expect(getEventTypeNameFromTypeId(MemoryStatisticType.PA_HEAP)).toEqual('PA_HEAP_Alloc_Event');
+  });
+
+  it('GetCurrentTypesTest31 - V8 Heap alloc event filter', function () {
+    let selectParam = {
+      nativeMemory: ['V8 Heap'],
+      nativeMemoryStatistic: [],
+      otherSource: [],
+      otherSourceStatistic: [],
+      gpuMemory: [],
+      gpuMemoryStatistic: [],
+    };
+    let result = getCurrentTypes(selectParam, MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY, false, false);
+    expect(result).toContain('V8_HEAP_Alloc_Event');
+  });
+
+  it('GetCurrentTypesTest32 - V8 Heap alloc and free events', function () {
+    let selectParam = {
+      nativeMemory: ['V8 Heap'],
+      nativeMemoryStatistic: [],
+      otherSource: [],
+      otherSourceStatistic: [],
+      gpuMemory: [],
+      gpuMemoryStatistic: [],
+    };
+    let result = getCurrentTypes(selectParam, MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY, false, true);
+    expect(result).toContain('V8_HEAP_Alloc_Event');
+    expect(result).toContain('V8_HEAP_Free_Event');
+  });
+
+  it('GetCurrentTypesTest33 - PA Heap alloc event filter', function () {
+    let selectParam = {
+      nativeMemory: ['PA Heap'],
+      nativeMemoryStatistic: [],
+      otherSource: [],
+      otherSourceStatistic: [],
+      gpuMemory: [],
+      gpuMemoryStatistic: [],
+    };
+    let result = getCurrentTypes(selectParam, MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY, false, false);
+    expect(result).toContain('PA_HEAP_Alloc_Event');
+  });
+
+  it('GetCurrentTypesTest34 - PA Heap alloc and free events', function () {
+    let selectParam = {
+      nativeMemory: ['PA Heap'],
+      nativeMemoryStatistic: [],
+      otherSource: [],
+      otherSourceStatistic: [],
+      gpuMemory: [],
+      gpuMemoryStatistic: [],
+    };
+    let result = getCurrentTypes(selectParam, MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY, false, true);
+    expect(result).toContain('PA_HEAP_Alloc_Event');
+    expect(result).toContain('PA_HEAP_Free_Event');
   });
 });
