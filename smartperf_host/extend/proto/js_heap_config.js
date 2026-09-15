@@ -250,19 +250,19 @@ $root.ArkTSConfig = (function() {
         }
         let err;
         err = verifyIntegerField(message, 'pid');
-        if (err) return err;
+        if (err) { return err; }
         err = verifyHeapTypeField(message, 'type');
-        if (err) return err;
+        if (err) { return err; }
         err = verifyIntegerField(message, 'interval');
-        if (err) return err;
+        if (err) { return err; }
         err = verifyBooleanField(message, 'captureNumericValue');
-        if (err) return err;
+        if (err) { return err; }
         err = verifyBooleanField(message, 'trackAllocations');
-        if (err) return err;
+        if (err) { return err; }
         err = verifyBooleanField(message, 'enableCpuProfiler');
-        if (err) return err;
+        if (err) { return err; }
         err = verifyIntegerField(message, 'cpuProfilerInterval');
-        if (err) return err;
+        if (err) { return err; }
         return null;
     };
 

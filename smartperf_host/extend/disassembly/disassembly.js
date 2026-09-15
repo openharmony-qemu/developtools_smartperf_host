@@ -23,7 +23,7 @@ const execAsync = promisify(exec);
 const SAVE_CMD = 1;         // {fileName:str, buffer:str, bufferSize:num, totalSize:num, isLast:bool}
 const SAVE_BACK_CMD = 2;    // {result:num, msg:str}
 const QUERY_CMD = 3;        // {elfName:str, vaddr:str, func:str}
-const QUERY_BACK_CMD = 4;   // {result:num, msg:str}
+const QUERY_BACK_CMD = 4; // {result:num, msg:str}
 const DISASSEMBLY_QUERY_ELF_CMD = 5;// {elfName:str, vaddr:str, func:str}
 const logger = winston.createLogger(require('./../winston.config.js'));
 
