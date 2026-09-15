@@ -504,7 +504,7 @@ function watchPort() {
                 reject(-1);
                 const errorMsg = new Uint8Array(encoder.encode(stdout));
                 sendMsg(errorMsg, 3);
-                logger.error(`通过 processName 查询 processId 失败信息：${errorMsg}`)
+                logger.error(`通过 processName 查询 processId 失败信息：${errorMsg}`);
             } else if (stdout === '' || stdout.includes('pidof: Unknown')) {
                 reject(-1);
                 const errorMsg = new Uint8Array(encoder.encode('Ark Ts 页面输入包名不正确，请重新输入正确的包名。'));
