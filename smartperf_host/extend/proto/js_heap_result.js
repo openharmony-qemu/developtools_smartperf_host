@@ -1,13 +1,15 @@
 /*eslint-disable block-scoped-var, id-length, no-control-regex, no-magic-numbers, no-prototype-builtins, no-redeclare, no-shadow, no-var, sort-vars*/
-"use strict";
+'use strict';
 
-var $protobuf = require("protobufjs/minimal");
+const $protobuf = require('protobufjs/minimal');
 
 // Common aliases
-var $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
+const $Reader = $protobuf.Reader;
+const $Writer = $protobuf.Writer;
+const $util = $protobuf.util;
 
 // Exported root namespace
-var $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
+let $root = $protobuf.roots.default || ($protobuf.roots.default = {});
 
 $root.ArkTSResult = (function() {
 
@@ -27,10 +29,13 @@ $root.ArkTSResult = (function() {
      * @param {IArkTSResult=} [properties] Properties to set
      */
     function ArkTSResult(properties) {
-        if (properties)
-            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                if (properties[keys[i]] != null)
+        if (properties) {
+            for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i) {
+                if (properties[keys[i]] != null) {
                     this[keys[i]] = properties[keys[i]];
+                }
+            }
+        }
     }
 
     /**
@@ -63,10 +68,12 @@ $root.ArkTSResult = (function() {
      * @returns {$protobuf.Writer} Writer
      */
     ArkTSResult.encode = function encode(message, writer) {
-        if (!writer)
+        if (!writer) {
             writer = $Writer.create();
-        if (message.result != null && Object.hasOwnProperty.call(message, "result"))
+        }
+        if (message.result != null && Object.hasOwnProperty.call(message, 'result')) {
             writer.uint32(/* id 1, wireType 2 =*/10).bytes(message.result);
+        }
         return writer;
     };
 
@@ -95,11 +102,13 @@ $root.ArkTSResult = (function() {
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
     ArkTSResult.decode = function decode(reader, length) {
-        if (!(reader instanceof $Reader))
+        if (!(reader instanceof $Reader)) {
             reader = $Reader.create(reader);
-        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.ArkTSResult();
+        }
+        let end = length === undefined ? reader.len : reader.pos + length;
+        let message = new $root.ArkTSResult();
         while (reader.pos < end) {
-            var tag = reader.uint32();
+            let tag = reader.uint32();
             switch (tag >>> 3) {
             case 1: {
                     message.result = reader.bytes();
@@ -124,8 +133,9 @@ $root.ArkTSResult = (function() {
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
     ArkTSResult.decodeDelimited = function decodeDelimited(reader) {
-        if (!(reader instanceof $Reader))
+        if (!(reader instanceof $Reader)) {
             reader = new $Reader(reader);
+        }
         return this.decode(reader, reader.uint32());
     };
 
@@ -138,11 +148,14 @@ $root.ArkTSResult = (function() {
      * @returns {string|null} `null` if valid, otherwise the reason why it is not
      */
     ArkTSResult.verify = function verify(message) {
-        if (typeof message !== "object" || message === null)
-            return "object expected";
-        if (message.result != null && message.hasOwnProperty("result"))
-            if (!(message.result && typeof message.result.length === "number" || $util.isString(message.result)))
-                return "result: buffer expected";
+        if (typeof message !== 'object' || message === null) {
+            return 'object expected';
+        }
+        if (message.result != null && Object.prototype.hasOwnProperty.call(message, 'result')) {
+            if (!(message.result && typeof message.result.length === 'number' || $util.isString(message.result))) {
+                return 'result: buffer expected';
+            }
+        }
         return null;
     };
 
@@ -155,14 +168,17 @@ $root.ArkTSResult = (function() {
      * @returns {ArkTSResult} ArkTSResult
      */
     ArkTSResult.fromObject = function fromObject(object) {
-        if (object instanceof $root.ArkTSResult)
+        if (object instanceof $root.ArkTSResult) {
             return object;
-        var message = new $root.ArkTSResult();
-        if (object.result != null)
-            if (typeof object.result === "string")
+        }
+        let message = new $root.ArkTSResult();
+        if (object.result != null) {
+            if (typeof object.result === 'string') {
                 $util.base64.decode(object.result, message.result = $util.newBuffer($util.base64.length(object.result)), 0);
-            else if (object.result.length >= 0)
+            } else if (object.result.length >= 0) {
                 message.result = object.result;
+            }
+        }
         return message;
     };
 
@@ -176,19 +192,27 @@ $root.ArkTSResult = (function() {
      * @returns {Object.<string,*>} Plain object
      */
     ArkTSResult.toObject = function toObject(message, options) {
-        if (!options)
+        if (!options) {
             options = {};
-        var object = {};
-        if (options.defaults)
-            if (options.bytes === String)
-                object.result = "";
-            else {
+        }
+        let object = {};
+        if (options.defaults) {
+            if (options.bytes === String) {
+                object.result = '';
+            } else {
                 object.result = [];
-                if (options.bytes !== Array)
+                if (options.bytes !== Array) {
                     object.result = $util.newBuffer(object.result);
+                }
             }
-        if (message.result != null && message.hasOwnProperty("result"))
-            object.result = options.bytes === String ? $util.base64.encode(message.result, 0, message.result.length) : options.bytes === Array ? Array.prototype.slice.call(message.result) : message.result;
+        }
+        if (message.result != null && Object.prototype.hasOwnProperty.call(message, 'result')) {
+            object.result = options.bytes === String
+                ? $util.base64.encode(message.result, 0, message.result.length)
+                : options.bytes === Array
+                    ? Array.prototype.slice.call(message.result)
+                    : message.result;
+        }
         return object;
     };
 
@@ -213,9 +237,9 @@ $root.ArkTSResult = (function() {
      */
     ArkTSResult.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
         if (typeUrlPrefix === undefined) {
-            typeUrlPrefix = "type.googleapis.com";
+            typeUrlPrefix = 'type.googleapis.com';
         }
-        return typeUrlPrefix + "/ArkTSResult";
+        return typeUrlPrefix + '/ArkTSResult';
     };
 
     return ArkTSResult;

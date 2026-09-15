@@ -29,7 +29,7 @@ class Utils {
     //模块传进来的数据
     static encode(message) {
         let splitUint64 = message.session ? Utils.splitUint64ToUint32s(BigInt(message.session)) : { high32: 0, low32: 0 };// 需处理64bit(session)
-        let totalByteLength = AuthMsg.MESSAGE_BYTE + (message.data_lenght ? message.data_lenght : 0);
+        let totalByteLength = AuthMsg.MESSAGE_BYTE + (message.dataLength ? message.dataLength : 0);
         let combinedBuffer = new ArrayBuffer(totalByteLength);// 一个更大的ArrayBuffer，合并前20个字节和data
         let headBuffer = new ArrayBuffer(AuthMsg.MESSAGE_BYTE);
         let dataView = new DataView(headBuffer);
@@ -44,14 +44,14 @@ class Utils {
         index += AuthMsg.SESSION_TBYTE;
         dataView.setUint32(index, splitUint64?.low32);
         index += AuthMsg.SESSION_TBYTE;
-        dataView.setUint32(index, message.data_lenght ? message.data_lenght : 0);
+        dataView.setUint32(index, message.dataLength ? message.dataLength : 0);
         // 处理合并message.data
         let existingArray = new Uint8Array(headBuffer); // 将处理好的前20个字节 
         let combinedArray = new Uint8Array(combinedBuffer);
         // 分别将前20个字节和data对应的字节流set至combinedBuffer
         combinedArray.set(existingArray, 0);
         combinedArray.set(message.data ? message.data : new Uint8Array(0), headBuffer.byteLength);
-        return combinedBuffer
+        return combinedBuffer;
     }
 
     // onmessage接收到的数据解码
@@ -70,10 +70,10 @@ class Utils {
             cmd: dataView.getUint16(1),
             session_id: dataView.getUint8(3),
             session: session,
-            data_lenght: dataView.getUint32(12),
+            dataLength: dataView.getUint32(12),
             data: dataBytes
         }
-        return decode
+        return decode;
     }
 
     // 处理64bit 需要拆分成两个32bit

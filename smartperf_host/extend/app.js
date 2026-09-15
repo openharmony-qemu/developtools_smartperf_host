@@ -112,7 +112,7 @@ function sendMsgToClient(type, sessionId, cmd, data) {
     sendMsg.cmd = cmd;
     sendMsg.session_id = sessionId;
     sendMsg.session = SessionManage.SessionJs.sessionMap.get(sessionId)[0];
-    sendMsg.data_lenght = data.byteLength;
+    sendMsg.dataLength = data.byteLength;
     sendMsg.data = data;
     ws.send(Utils.Utils.encode(sendMsg));
 }

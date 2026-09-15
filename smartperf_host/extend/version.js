@@ -12,10 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-class version {
+class Version {
     static version = '1.1.4'; //版本号
 }
 
 module.exports = {
-    version
-}
+    version: Version
+};

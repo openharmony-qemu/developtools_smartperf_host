@@ -18,18 +18,18 @@ const { exec } = require('child_process');
 const TypeManage = require('../typeManage.js');
 const readline = require('readline');
 const { promisify } = require('util');
-const winston = require("winston");
+const winston = require('winston');
 const execAsync = promisify(exec);
-const SAVE_CMD = 1;         // {file_name:str, buffer:str, buffer_size:num, total_size:num, is_last:bool}
+const SAVE_CMD = 1;         // {file_name:str, buffer:str, buffer_size:num, total_size:num, isLast:bool}
 const SAVE_BACK_CMD = 2;    // {result:num, msg:str}
-const QUERY_CMD = 3;        // {elf_name:str, vaddr:str, func:str}
+const QUERY_CMD = 3;        // {elfName:str, vaddr:str, func:str}
 const QUERY_BACK_CMD = 4;   // {result:num, msg:str}
-const DISASSEMBLY_QUERY_ELF_CMD = 5;// {elf_name:str, vaddr:str, func:str}
+const DISASSEMBLY_QUERY_ELF_CMD = 5;// {elfName:str, vaddr:str, func:str}
 const logger = winston.createLogger(require('./../winston.config.js'));
 
 const decoder = new TextDecoder('utf-8');  // 'utf-8' 是常见的字符编码
 const textEncoder = new TextEncoder();
-let fileStreams = {};  // 用于存储文件的写入流
+let fileStreams = {}; // 用于存储文件的写入流
 
 const TEMP_DIR = path.join(__dirname, 'temp_files');
 
@@ -52,49 +52,49 @@ function init() {
  * SAVE_CMD     —— 写入ELF文件
  * QUERY_CMD    —— 提取汇编代码
  */
-function process(session_id, cmd, data) {
+function process(sessionId, cmd, data) {
     if (cmd === SAVE_CMD) {
-        save(session_id, data);
+        save(sessionId, data);
     } else if (cmd === QUERY_CMD) {
-        queryData(session_id, data);
+        queryData(sessionId, data);
     } else if (cmd === DISASSEMBLY_QUERY_ELF_CMD) {
-        checkElf(session_id, data);
+        checkElf(sessionId, data);
     }
 }
 
 /**
  * 搜索so/an文件
  */
-function checkElf(session_id, data) {
+function checkElf(sessionId, data) {
     const decodedData = decoder.decode(data);
     const jsonData = JSON.parse(decodedData);
-    let { elf_name, vaddr, func } = jsonData;
-    if (elf_name.endsWith('.an')) {
-        let anFilePath = path.join(TEMP_DIR, `session_${session_id}`, elf_name);
+    let { elf_name: elfName, vaddr, func } = jsonData;
+    if (elfName.endsWith('.an')) {
+        let anFilePath = path.join(TEMP_DIR, `session_${sessionId}`, elfName);
         if (!fs.existsSync(anFilePath)) {
-            const msg = `FileNotFoundError: please import "${elf_name}"`;
+            const msg = `FileNotFoundError: please import "${elfName}"`;
             logger.error('error：' + msg);
-            sendMsg(session_id, DISASSEMBLY_QUERY_ELF_CMD, { code: 1, message: msg });
+            sendMsg(sessionId, DISASSEMBLY_QUERY_ELF_CMD, { code: 1, message: msg });
             return;
         } else {
-            sendMsg(session_id, DISASSEMBLY_QUERY_ELF_CMD, { code: 0, message: 'OK' });
+            sendMsg(sessionId, DISASSEMBLY_QUERY_ELF_CMD, { code: 0, message: 'OK' });
         }
     } else {
-        let soInfoTxt = path.join(TEMP_DIR, `session_${session_id}`, `${elf_name.replace('.', '_')}.txt`);
+        let soInfoTxt = path.join(TEMP_DIR, `session_${sessionId}`, `${elfName.replace('.', '_')}.txt`);
         if (!fs.existsSync(soInfoTxt)) {
-            const msg = `FileNotFoundError: please import "${elf_name}"`;
+            const msg = `FileNotFoundError: please import "${elfName}"`;
             logger.error('error：' + msg);
-            sendMsg(session_id, DISASSEMBLY_QUERY_ELF_CMD, { code: 1, message: msg });
+            sendMsg(sessionId, DISASSEMBLY_QUERY_ELF_CMD, { code: 1, message: msg });
             return;
         } else {
-            sendMsg(session_id, DISASSEMBLY_QUERY_ELF_CMD, { code: 0, message: 'OK' });
+            sendMsg(sessionId, DISASSEMBLY_QUERY_ELF_CMD, { code: 0, message: 'OK' });
         }
     }
 }
 /**
  * 写入ELF文件
  */
-function save(session_id, data) {
+function save(sessionId, data) {
     try {
         // 假设 `decoder` 是已定义的 TextDecoder 实例
         const separatorIndex = data.indexOf('|'.charCodeAt(0));
@@ -103,7 +103,7 @@ function save(session_id, data) {
         const jsonLength = parseInt(jsonLengthStr, 10);
 		// 解析 JSON 字符串
         const jsonStringBytes = data.subarray(separatorIndex + 1, separatorIndex + 1 + jsonLength);
-        const { file_name, buffer_index, total_size, is_last} = JSON.parse(decoder.decode(jsonStringBytes));
+        const { file_name, buffer_index, total_size, is_last: isLast } = JSON.parse(decoder.decode(jsonStringBytes));
         // 文件数据从 JSON 结束位置之后开始
         const buffer = data.subarray(separatorIndex + 1 + jsonLength);
         logger.info(`save file, file name: ${file_name}, index: ${buffer_index}`);
@@ -112,35 +112,35 @@ function save(session_id, data) {
         const fileBuffer = new Uint8Array(buffer);
 
         // 创建会话对应的临时目录路径
-        const sessionTempDir = path.join(TEMP_DIR, `session_${session_id}`);
+        const sessionTempDir = path.join(TEMP_DIR, `session_${sessionId}`);
 
         // 如果是文件的第一个分片，初始化文件写入流
-        if (!fileStreams[session_id]?.[file_name] || buffer_index === 0) {
+        if (!fileStreams[sessionId]?.[file_name] || buffer_index === 0) {
           fs.mkdirSync(sessionTempDir, { recursive: true });
           // 初始化文件流映射
-          fileStreams[session_id] = fileStreams[session_id] || {};
+          fileStreams[sessionId] = fileStreams[sessionId] || {};
           // 创建一个临时文件路径
           const tempFilePath = path.join(sessionTempDir, file_name);
-          fileStreams[session_id][file_name] = fs.createWriteStream(tempFilePath, { flags: 'w' });
+          fileStreams[sessionId][file_name] = fs.createWriteStream(tempFilePath, { flags: 'w' });
           logger.info(`初始化文件写入流: ${tempFilePath}`);
         }
 
         // 获取文件写入流, 将接收到的文件分片写入文件流
-        fileStreams[session_id][file_name].write(fileBuffer);
+        fileStreams[sessionId][file_name].write(fileBuffer);
 
         // 如果接收到的是最后一个分片，关闭文件流
-        if (is_last) {
-          processTheLastData(session_id, file_name, sessionTempDir, total_size);
+        if (isLast) {
+          processTheLastData(sessionId, file_name, sessionTempDir, total_size);
         }
-        sendUploadBackMsg(session_id, SAVE_BACK_CMD, 0, file_name, buffer_index);
+        sendUploadBackMsg(sessionId, SAVE_BACK_CMD, 0, file_name, buffer_index);
     } catch (error) {
         // 在出错时发送错误 ACK
         try {
-            logger.error("Error in save function:", error);
+            logger.error('Error in save function:', error);
             const { file_name, buffer_index } = JSON.parse(decoder.decode(data));
-            sendUploadBackMsg(session_id, SAVE_BACK_CMD, 1, file_name, buffer_index);
+            sendUploadBackMsg(sessionId, SAVE_BACK_CMD, 1, file_name, buffer_index);
         } catch (parseError) {
-            logger.error("Error parsing JSON data for error ACK:", parseError);
+            logger.error('Error parsing JSON data for error ACK:', parseError);
         }
     }
 }
@@ -148,8 +148,8 @@ function save(session_id, data) {
 /**
  * 处理最后一包分片数据
  */
- function processTheLastData(session_id, file_name, sessionTempDir, total_size) {
-  const fileStream = fileStreams[session_id][file_name];
+ function processTheLastData(sessionId, file_name, sessionTempDir, total_size) {
+  const fileStream = fileStreams[sessionId][file_name];
   fileStream.end(() => {
       const tempFilePath = path.join(sessionTempDir, file_name);
 
@@ -163,127 +163,131 @@ function save(session_id, data) {
           logger.warn(`文件 ${file_name} 大小不匹配: 预期 ${total_size} 字节, 实际 ${finalStats.size} 字节`);
       }
       // 删除文件流对象
-      delete fileStreams[session_id][file_name];
+      delete fileStreams[sessionId][file_name];
 
       if (/\.so(\.\d+)*$/.test(file_name)) {
-          // ------------------!!! .so文件反汇编预处理逻辑：执行"objdump -d --section=.text xxxx.so >xxxx.txt"
-          // 预处理so文件信息存入同名txt文件 !!!---------------------------
-          // 指定临时存储文件，若不存在预先创建空文件，并指定文件为UTF-8编码
-          const soInfoTxt = path.join(sessionTempDir, `${file_name.replace('.', '_')}.txt`);
-          fs.writeFileSync(soInfoTxt, '', { encoding: 'utf8' });
-          // 执行objdump反汇编将信息输入临时存储文件
-          exec(`${objdumpPath} -d --section=.text ${tempFilePath} >${soInfoTxt}`, (iError, iStdOut, iStdErr) => {
-              if (iError || iStdErr) {
-                  const msg = `SoTxtBuildError(Build Disassembly txt for file:"${file_name}" Error!): [${iError ? iError.message : iStdErr.toString()}]`;
-                  logger.error('异常：' + msg);
-                  sendMsg(session_id, QUERY_BACK_CMD, { code: 1, message: msg });
-              }
-          });
+          processSoDisassembly(sessionId, file_name, sessionTempDir, tempFilePath);
       }
 
       // 如果该会话下没有其他文件，删除会话目录
-      if (Object.keys(fileStreams[session_id]).length === 0) {
-          delete fileStreams[session_id];
+      if (Object.keys(fileStreams[sessionId]).length === 0) {
+          delete fileStreams[sessionId];
       }
   });
 }
 
+function processSoDisassembly(sessionId, fileName, sessionTempDir, tempFilePath) {
+    const soInfoTxt = path.join(sessionTempDir, `${fileName.replace('.', '_')}.txt`);
+    fs.writeFileSync(soInfoTxt, '', { encoding: 'utf8' });
+    exec(`${objdumpPath} -d --section=.text ${tempFilePath} >${soInfoTxt}`, (iError, iStdOut, iStdErr) => {
+        if (iError || iStdErr) {
+            const msg = `SoTxtBuildError(Build Disassembly txt for file:"${fileName}" Error!): [${iError ? iError.message : iStdErr.toString()}]`;
+            logger.error('异常：' + msg);
+            sendMsg(sessionId, QUERY_BACK_CMD, { code: 1, message: msg });
+        }
+    });
+}
 
-function sendUploadBackMsg(session_id, cmd, code, fileName, bufferIndex) {
+
+function sendUploadBackMsg(sessionId, cmd, code, fileName, bufferIndex) {
     const app = require('../app.js');
     let jsonString = JSON.stringify({
         resultCode: code,
         fileName: fileName,
         bufferIndex: bufferIndex
     });
-    app.sendMsgToClient(TypeManage.TypeConfig.DISASSEMBLY_TYPE, session_id, cmd, textEncoder.encode(jsonString));
+    app.sendMsgToClient(TypeManage.TypeConfig.DISASSEMBLY_TYPE, sessionId, cmd, textEncoder.encode(jsonString));
 }
 
 
 /**
  * 提取汇编代码
  */
-function queryData(session_id, data) {
+function queryData(sessionId, data) {
     const decodedData = decoder.decode(data);
     const jsonData = JSON.parse(decodedData);
-    logger.info('get query disassembly request：' + jsonData)
-    let { elf_name, vaddr, func } = jsonData;
-    if (elf_name.endsWith('.an')) {
-        let anFilePath = path.join(TEMP_DIR, `session_${session_id}`, elf_name);
+    logger.info('get query disassembly request：' + jsonData);
+    let { elf_name: elfName, vaddr, func } = jsonData;
+    if (elfName.endsWith('.an')) {
+        let anFilePath = path.join(TEMP_DIR, `session_${sessionId}`, elfName);
         if (!fs.existsSync(anFilePath)) {
-            const msg = `FileNotFoundError: please import "${elf_name}"`;
+            const msg = `FileNotFoundError: please import "${elfName}"`;
             logger.error('error：' + msg);
-            sendMsg(session_id, QUERY_BACK_CMD, { code: 1, message: msg });
+            sendMsg(sessionId, QUERY_BACK_CMD, { code: 1, message: msg });
             return;
         }
-        if (func.includes('@')) func = func.split('@')[0];
-        extractInfoFromAnTxt(func, elf_name, vaddr, session_id, anFilePath);
+        if (func.includes('@')) { func = func.split('@')[0]; }
+        extractInfoFromAnTxt(func, elfName, vaddr, sessionId, anFilePath);
     } else {
-        let soInfoTxt = path.join(TEMP_DIR, `session_${session_id}`, `${elf_name.replace('.', '_')}.txt`);
+        let soInfoTxt = path.join(TEMP_DIR, `session_${sessionId}`, `${elfName.replace('.', '_')}.txt`);
         if (!fs.existsSync(soInfoTxt)) {
-            const msg = `FileNotFoundError: please import "${elf_name}"`;
+            const msg = `FileNotFoundError: please import "${elfName}"`;
             logger.error('error：' + msg);
-            sendMsg(session_id, QUERY_BACK_CMD, { code: 1, message: msg });
+            sendMsg(sessionId, QUERY_BACK_CMD, { code: 1, message: msg });
             return;
         }
-        extractCompileInfoFromSoTxt(func, elf_name, vaddr, session_id, soInfoTxt);
+        extractCompileInfoFromSoTxt(func, elfName, vaddr, sessionId, soInfoTxt);
     }
 }
 
-function processAnFileFindTextName(session_id, vaddr, func, textName, anFilePath, elf_name, eaddr) {
+function processAnFileFindTextName(sessionId, vaddr, func, textName, anFilePath, elfName, eaddr) {
   exec(`${objdumpPath} -h ${anFilePath} | findstr -i ${textName}`,
     (miderError, miderStdOut, miderStdErr) => {
       if (miderError || (miderStdErr && miderStdErr.length > 0)) {
-        const msg = `MiderExecError(Get Text Info List for textName:"${textName}" in file:`
-            + `${elf_name} Error!):[${miderError ? miderError.message : miderStdErr.toString()}]`;
+        const msg = `MiderExecError(Get Text Info List for textName:"${textName}" in file:` +
+            `${elfName} Error!):[${miderError ? miderError.message : miderStdErr.toString()}]`;
         logger.error('error：' + msg);
-        sendMsg(session_id, QUERY_BACK_CMD, { code: 1, message: msg });
+        sendMsg(sessionId, QUERY_BACK_CMD, { code: 1, message: msg });
         return;
       }
       let textAddrOff = `0x${miderStdOut.split(/\s+/g)[6]}`;
-      exec(`${objdumpPath} -d ${anFilePath} --start-address=0x${parseInt(vaddr).toString(16)} --stop-address=0x${eaddr.toString(16)}`,
-        (innerError, innerStdOut, innerStdErr) => {
-          if (innerError || (innerStdErr && innerStdErr.length > 0)) {
-            const msg = `InnerExecError(Get All Symbols from func:"${func}" `
-                + `in file:${elf_name} in Address-Range:[0x${vaddr.toString(16)}, 0x${eaddr.toString(16)}`
-                + `] Error!): [${innerError ? innerError.message : innerStdErr.toString()}]`;
-            logger.error('error：' + msg);
-            sendMsg(session_id, QUERY_BACK_CMD, { code: 1, message: msg, off: textAddrOff });
-            return;
-          }
-          let ans = '';
-          for (let ca of innerStdOut.split(`<${func}>:`)[1].split('\n')) {
-            if (ca.trim() === '') continue;
-            let addr = (parseInt(ca.split(`:`)[0].replace(/\s+/g, ''), 16)).toString(16);
-            let instruction = ca.split(`:`)[1];
-            instruction = instruction.substring(instruction.indexOf(' '));
-            instruction = instruction.replace(/\s+/g, ' ').trim();
-            ans += `{\"addr\":\"0x${addr}\", \"instruction\":\"${instruction}\"},`;
-          }
-          sendMsg(session_id, QUERY_BACK_CMD, { code: 0, message: `[${ans.slice(0, -1)}]`, off: textAddrOff });
-        });
+      processAnDisassembly(sessionId, vaddr, func, anFilePath, elfName, eaddr, textAddrOff);
+    });
+}
+
+function processAnDisassembly(sessionId, vaddr, func, anFilePath, elfName, eaddr, textAddrOff) {
+  exec(`${objdumpPath} -d ${anFilePath} --start-address=0x${parseInt(vaddr).toString(16)} --stop-address=0x${eaddr.toString(16)}`,
+    (innerError, innerStdOut, innerStdErr) => {
+      if (innerError || (innerStdErr && innerStdErr.length > 0)) {
+        const msg = `InnerExecError(Get All Symbols from func:"${func}" ` +
+            `in file:${elfName} in Address-Range:[0x${vaddr.toString(16)}, 0x${eaddr.toString(16)}` +
+            `] Error!): [${innerError ? innerError.message : innerStdErr.toString()}]`;
+        logger.error('error：' + msg);
+        sendMsg(sessionId, QUERY_BACK_CMD, { code: 1, message: msg, off: textAddrOff });
+        return;
+      }
+      let ans = '';
+      for (let ca of innerStdOut.split(`<${func}>:`)[1].split('\n')) {
+        if (ca.trim() === '') { continue; }
+        let addr = (parseInt(ca.split(`:`)[0].replace(/\s+/g, ''), 16)).toString(16);
+        let instruction = ca.split(`:`)[1];
+        instruction = instruction.substring(instruction.indexOf(' '));
+        instruction = instruction.replace(/\s+/g, ' ').trim();
+        ans += `{\"addr\":\"0x${addr}\", \"instruction\":\"${instruction}\"},`;
+      }
+      sendMsg(sessionId, QUERY_BACK_CMD, { code: 0, message: `[${ans.slice(0, -1)}]`, off: textAddrOff });
     });
 }
 
 /**
  * 提取an汇编代码
  */
-function extractInfoFromAnTxt(func, elf_name, vaddr, session_id, anFilePath) {
+function extractInfoFromAnTxt(func, elfName, vaddr, sessionId, anFilePath) {
   exec(`${objdumpPath} -t ${anFilePath} | findstr ${func}`,
     (outerError, outerStdOut, outerStdErr) => {
         if (outerError || (outerStdErr && outerStdErr.length > 0)) {
-            const msg = `OuterExecError(In Using 'findstr' searching func:"${func}" `
-                + `from file:"${elf_name}" to get func-size for calculating the stop-address in needing): [`
-                + `${outerError ? outerError.message : outerStdErr.toString()}]`;
+            const msg = `OuterExecError(In Using 'findstr' searching func:"${func}" ` +
+                `from file:"${elfName}" to get func-size for calculating the stop-address in needing): [` +
+                `${outerError ? outerError.message : outerStdErr.toString()}]`;
             logger.error('error：' + msg);
-            sendMsg(session_id, QUERY_BACK_CMD, { code: 1, message: msg });
+            sendMsg(sessionId, QUERY_BACK_CMD, { code: 1, message: msg });
             return;
         }
-        if (outerStdOut === "") {
-            const msg = `OuterExecError(Return "" when searching func:"${func}" `
-                + `from file:"${elf_name}" and got nothing!)`;
+        if (outerStdOut === '') {
+            const msg = `OuterExecError(Return '' when searching func:"${func}" ` +
+                `from file:"${elfName}" and got nothing!)`;
             logger.error('error：' + msg);
-            sendMsg(session_id, QUERY_BACK_CMD, { code: 1, message: msg });
+            sendMsg(sessionId, QUERY_BACK_CMD, { code: 1, message: msg });
             return;
         }
         let eaddr = 0;
@@ -297,21 +301,21 @@ function extractInfoFromAnTxt(func, elf_name, vaddr, session_id, anFilePath) {
             }
         }
         if (eaddr === 0 || parseInt(vaddr, 10) >= eaddr) {
-            const msg = `AddressError(Get addresses from func:"${func}" in file:"${elf_name}" `
-                + `Error!): [start-address:"0x${vaddr.toString(16)}" `
-                + `isn't smaller than stop-address:"0x${eaddr.toString(16)}"]`;
+            const msg = `AddressError(Get addresses from func:"${func}" in file:"${elfName}" ` +
+                `Error!): [start-address:"0x${vaddr.toString(16)}" ` +
+                `isn't smaller than stop-address:"0x${eaddr.toString(16)}"]`;
             logger.error('error：' + msg);
-            sendMsg(session_id, QUERY_BACK_CMD, { code: 1, message: msg });
+            sendMsg(sessionId, QUERY_BACK_CMD, { code: 1, message: msg });
             return;
         }
-        processAnFileFindTextName(session_id, vaddr, func, textName, anFilePath, elf_name, eaddr);
+        processAnFileFindTextName(sessionId, vaddr, func, textName, anFilePath, elfName, eaddr);
     });
 }
 
 /**
  * 提取so汇编代码
  */
- function extractCompileInfoFromSoTxt(func, elf_name, vaddr, session_id, soInfoTxt) {
+ function extractCompileInfoFromSoTxt(func, elfName, vaddr, sessionId, soInfoTxt) {
   let fsRS = fs.createReadStream(soInfoTxt, { encoding: 'utf8' });
   const rl = readline.createInterface({
       input: fsRS,
@@ -319,40 +323,44 @@ function extractInfoFromAnTxt(func, elf_name, vaddr, session_id, anFilePath) {
   });
   const target = parseInt(vaddr, 10).toString(16).padStart(16, '0');
   const prefix = '00';
-  let isInTargetRange = false;
+  const state = { isInTargetRange: false };
   resultString = '';
   let addrArray = [];
   rl.on('line', (line) => {
       try {
-          if (isInTargetRange) {
-              if (line.startsWith(prefix)) {
-                  isInTargetRange = false;
-                  rl.close();
-              } else if (line.trim() !== '') {
-                const [addressPart, instructionPart] = line.split(':');
-                const addr = addressPart.replace(/\s+/g, '');
-                const instruction = instructionPart.substring(instructionPart.indexOf(' ')).replace(/\s+/g, ' ').trim();
-                addrArray.push(`0x${addr}`);
-                resultString += `{"addr":"0x${addr}", "instruction":"${instruction}"},`;
-              }
-          }
-          if (!isInTargetRange && line.startsWith(target)) {
-              isInTargetRange = true;
-          }
+          processSoLine(line, state, prefix, target, rl, addrArray);
       } catch (error) {
           const errMsg = `Reading failed.Error):[${error.message}]`;
       }
   });
-  processCloseData(rl, fsRS, func, elf_name, vaddr, session_id, addrArray);
+  processCloseData(rl, fsRS, func, elfName, vaddr, sessionId, addrArray);
 }
 
-function processCloseData(rl, fsRS, func, elf_name, vaddr, session_id, addrArray) {
+function processSoLine(line, state, prefix, target, rl, addrArray) {
+    if (state.isInTargetRange) {
+        if (line.startsWith(prefix)) {
+            state.isInTargetRange = false;
+            rl.close();
+        } else if (line.trim() !== '') {
+            const [addressPart, instructionPart] = line.split(':');
+            const addr = addressPart.replace(/\s+/g, '');
+            const instruction = instructionPart.substring(instructionPart.indexOf(' ')).replace(/\s+/g, ' ').trim();
+            addrArray.push(`0x${addr}`);
+            resultString += `{"addr":"0x${addr}", "instruction":"${instruction}"},`;
+        }
+    }
+    if (!state.isInTargetRange && line.startsWith(target)) {
+        state.isInTargetRange = true;
+    }
+}
+
+function processCloseData(rl, fsRS, func, elfName, vaddr, sessionId, addrArray) {
   rl.on('close', async () => {
       fsRS.close();
       if (addrArray.length === 0) {
-          const msg = `No addresses found in the target range for elf_name:"${elf_name}" and vaddr:"${vaddr}".`;
+          const msg = `No addresses found in the target range for elfName:"${elfName}" and vaddr:"${vaddr}".`;
           logger.error('error：' + msg);
-          sendMsg(session_id, QUERY_BACK_CMD, { code: 1, message: msg });
+          sendMsg(sessionId, QUERY_BACK_CMD, { code: 1, message: msg });
           return;
       }
       // Limit the number of addresses per batch
@@ -366,7 +374,7 @@ function processCloseData(rl, fsRS, func, elf_name, vaddr, session_id, addrArray
               const batchArgs = batch.map(addr => `${addr}`).join(' ');
 
               // Execute addr2line for the current batch
-              const soFilePath = path.join(TEMP_DIR, `session_${session_id}`, elf_name);
+              const soFilePath = path.join(TEMP_DIR, `session_${sessionId}`, elfName);
               const sourceLines = await executeAddr2line(batchArgs, soFilePath);
 
               // Append to allSourceLines
@@ -376,7 +384,7 @@ function processCloseData(rl, fsRS, func, elf_name, vaddr, session_id, addrArray
           if (allSourceLines.length !== addrArray.length) {
               const msg = `MismatchError: Total number of addr2line outputs (${allSourceLines.length}) does not match number of addresses (${addrArray.length}).`;
               logger.error('error：' + msg);
-              sendMsg(session_id, QUERY_BACK_CMD, { code: 1, message: msg, func, elf_name });
+              sendMsg(sessionId, QUERY_BACK_CMD, { code: 1, message: msg, func, elfName });
               return;
           }
           // Combine the source lines with the existing resultString
@@ -389,11 +397,11 @@ function processCloseData(rl, fsRS, func, elf_name, vaddr, session_id, addrArray
               finalResult += `{"addr":"${addr}", "instruction":"${instruction}", "sourceLine":"${source}"},`;
           }
           finalResult = finalResult.slice(0, -1) + ']'; // Remove the trailing comma and close the array
-          sendMsg(session_id, QUERY_BACK_CMD, { code: 0, message: finalResult, func, elf_name });
+          sendMsg(sessionId, QUERY_BACK_CMD, { code: 0, message: finalResult, func, elfName });
       } catch (error) {
-          const msg = `AddrError(addr2line -e ${elf_name} Error): [${error.message}]`;
+          const msg = `AddrError(addr2line -e ${elfName} Error): [${error.message}]`;
           logger.error('error：' + msg);
-          sendMsg(session_id, QUERY_BACK_CMD, { code: 1, message: msg, func, elf_name });
+          sendMsg(sessionId, QUERY_BACK_CMD, { code: 1, message: msg, func, elfName });
       }
   });
 }
@@ -437,22 +445,22 @@ async function executeAddr2line(batchArgs, soFilePath) {
 /*
  * 将信息发送至 HiSmartPerf-Host
  */
-function sendMsg(session_id, cmd, message) {
+function sendMsg(sessionId, cmd, message) {
     const app = require('../app.js');
     let jsonString = JSON.stringify({
         resultCode: message.code,
         resultMessage: message.message,
-        elfName: message.elf_name ? message.elf_name : '',
+        elfName: message.elfName ? message.elfName : '',
         functionName: message.func ? message.func : '',
         anFileOff: message.off ? message.off : ''
     });
-    app.sendMsgToClient(TypeManage.TypeConfig.DISASSEMBLY_TYPE, session_id, cmd, textEncoder.encode(jsonString));
+    app.sendMsgToClient(TypeManage.TypeConfig.DISASSEMBLY_TYPE, sessionId, cmd, textEncoder.encode(jsonString));
 }
 
 // 删除session对应的文件
-function clear(session_id) {
+function clear(sessionId) {
     try {
-        const sessionTempDir = path.join(TEMP_DIR, `session_${session_id}`);
+        const sessionTempDir = path.join(TEMP_DIR, `session_${sessionId}`);
 
         if (fs.existsSync(sessionTempDir)) {
             fs.rmSync(sessionTempDir, { recursive: true, force: true });
@@ -462,14 +470,14 @@ function clear(session_id) {
         }
 
         // 清理文件流映射
-        if (fileStreams[session_id]) {
-            for (const fileName in fileStreams[session_id]) {
-                fileStreams[session_id][fileName].close();
+        if (fileStreams[sessionId]) {
+            for (const fileName in fileStreams[sessionId]) {
+                fileStreams[sessionId][fileName].close();
             }
-            delete fileStreams[session_id];
+            delete fileStreams[sessionId];
         }
     } catch (error) {
-        logger.error(`清理会话 ${session_id} 时出错:`, error);
+        logger.error(`清理会话 ${sessionId} 时出错:`, error);
     }
 }
 

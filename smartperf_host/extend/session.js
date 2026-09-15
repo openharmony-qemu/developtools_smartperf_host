@@ -42,7 +42,7 @@ class SessionJs {
             sendSessionMsg.cmd = ws.userData.sessionId ? Utils.AuthMsg.LOGIN_SUCCESS_CMD : Utils.AuthMsg.LOGIN_FAIL_CMD;
             sendSessionMsg.session_id = ws.userData.sessionId ? ws.userData.sessionId : '';
             sendSessionMsg.session = ws.userData.sessionId ? SessionJs.sessionMap.get(ws.userData.sessionId)[0] : '';
-            sendSessionMsg.data_lenght = 0;
+            sendSessionMsg.dataLength = 0;
         };
         if(ws.userData.sessionId){
             logger.info(`Successfully applied for session,sessionId:${ws.userData.sessionId}`);
@@ -52,7 +52,7 @@ class SessionJs {
         ws.send(Utils.Utils.encode(sendSessionMsg));
     };
     static checkSession(sessionId, session) {
-        return SessionJs.sessionMap.has(sessionId) && SessionJs.sessionMap.get(sessionId)[0] === Number(session.toString())
+        return SessionJs.sessionMap.has(sessionId) && SessionJs.sessionMap.get(sessionId)[0] === Number(session.toString());
     };
     static clearSession(session_id) {
         SessionJs.sessionMap.set(session_id, null);

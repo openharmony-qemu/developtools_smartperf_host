@@ -1,13 +1,15 @@
 /*eslint-disable block-scoped-var, id-length, no-control-regex, no-magic-numbers, no-prototype-builtins, no-redeclare, no-shadow, no-var, sort-vars*/
-"use strict";
+'use strict';
 
-var $protobuf = require("protobufjs/minimal");
+const $protobuf = require('protobufjs/minimal');
 
 // Common aliases
-var $Reader = $protobuf.Reader, $Writer = $protobuf.Writer, $util = $protobuf.util;
+const $Reader = $protobuf.Reader;
+const $Writer = $protobuf.Writer;
+const $util = $protobuf.util;
 
 // Exported root namespace
-var $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
+let $root = $protobuf.roots.default || ($protobuf.roots.default = {});
 
 $root.ArkTSConfig = (function() {
 
@@ -33,10 +35,14 @@ $root.ArkTSConfig = (function() {
      * @param {IArkTSConfig=} [properties] Properties to set
      */
     function ArkTSConfig(properties) {
-        if (properties)
-            for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                if (properties[keys[i]] != null)
+        if (properties) {
+            let keys = Object.keys(properties);
+            for (let i = 0; i < keys.length; ++i) {
+                if (properties[keys[i]] != null) {
                     this[keys[i]] = properties[keys[i]];
+                }
+            }
+        }
     }
 
     /**
@@ -117,22 +123,30 @@ $root.ArkTSConfig = (function() {
      * @returns {$protobuf.Writer} Writer
      */
     ArkTSConfig.encode = function encode(message, writer) {
-        if (!writer)
+        if (!writer) {
             writer = $Writer.create();
-        if (message.pid != null && Object.hasOwnProperty.call(message, "pid"))
+        }
+        if (message.pid != null && Object.hasOwnProperty.call(message, 'pid')) {
             writer.uint32(/* id 1, wireType 0 =*/8).int32(message.pid);
-        if (message.type != null && Object.hasOwnProperty.call(message, "type"))
+        }
+        if (message.type != null && Object.hasOwnProperty.call(message, 'type')) {
             writer.uint32(/* id 2, wireType 0 =*/16).int32(message.type);
-        if (message.interval != null && Object.hasOwnProperty.call(message, "interval"))
+        }
+        if (message.interval != null && Object.hasOwnProperty.call(message, 'interval')) {
             writer.uint32(/* id 3, wireType 0 =*/24).uint32(message.interval);
-        if (message.captureNumericValue != null && Object.hasOwnProperty.call(message, "captureNumericValue"))
+        }
+        if (message.captureNumericValue != null && Object.hasOwnProperty.call(message, 'captureNumericValue')) {
             writer.uint32(/* id 4, wireType 0 =*/32).bool(message.captureNumericValue);
-        if (message.trackAllocations != null && Object.hasOwnProperty.call(message, "trackAllocations"))
+        }
+        if (message.trackAllocations != null && Object.hasOwnProperty.call(message, 'trackAllocations')) {
             writer.uint32(/* id 5, wireType 0 =*/40).bool(message.trackAllocations);
-        if (message.enableCpuProfiler != null && Object.hasOwnProperty.call(message, "enableCpuProfiler"))
+        }
+        if (message.enableCpuProfiler != null && Object.hasOwnProperty.call(message, 'enableCpuProfiler')) {
             writer.uint32(/* id 6, wireType 0 =*/48).bool(message.enableCpuProfiler);
-        if (message.cpuProfilerInterval != null && Object.hasOwnProperty.call(message, "cpuProfilerInterval"))
+        }
+        if (message.cpuProfilerInterval != null && Object.hasOwnProperty.call(message, 'cpuProfilerInterval')) {
             writer.uint32(/* id 7, wireType 0 =*/56).uint32(message.cpuProfilerInterval);
+        }
         return writer;
     };
 
@@ -161,11 +175,13 @@ $root.ArkTSConfig = (function() {
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
     ArkTSConfig.decode = function decode(reader, length) {
-        if (!(reader instanceof $Reader))
+        if (!(reader instanceof $Reader)) {
             reader = $Reader.create(reader);
-        var end = length === undefined ? reader.len : reader.pos + length, message = new $root.ArkTSConfig();
+        }
+        let end = length === undefined ? reader.len : reader.pos + length;
+        let message = new $root.ArkTSConfig();
         while (reader.pos < end) {
-            var tag = reader.uint32();
+            let tag = reader.uint32();
             switch (tag >>> 3) {
             case 1: {
                     message.pid = reader.int32();
@@ -214,8 +230,9 @@ $root.ArkTSConfig = (function() {
      * @throws {$protobuf.util.ProtocolError} If required fields are missing
      */
     ArkTSConfig.decodeDelimited = function decodeDelimited(reader) {
-        if (!(reader instanceof $Reader))
+        if (!(reader instanceof $Reader)) {
             reader = new $Reader(reader);
+        }
         return this.decode(reader, reader.uint32());
     };
 
@@ -228,35 +245,49 @@ $root.ArkTSConfig = (function() {
      * @returns {string|null} `null` if valid, otherwise the reason why it is not
      */
     ArkTSConfig.verify = function verify(message) {
-        if (typeof message !== "object" || message === null)
-            return "object expected";
-        if (message.pid != null && message.hasOwnProperty("pid"))
-            if (!$util.isInteger(message.pid))
-                return "pid: integer expected";
-        if (message.type != null && message.hasOwnProperty("type"))
+        if (typeof message !== 'object' || message === null) {
+            return 'object expected';
+        }
+        if (message.pid != null && Object.prototype.hasOwnProperty.call(message, 'pid')) {
+            if (!$util.isInteger(message.pid)) {
+                return 'pid: integer expected';
+            }
+        }
+        if (message.type != null && Object.prototype.hasOwnProperty.call(message, 'type')) {
             switch (message.type) {
             default:
-                return "type: enum value expected";
+                return 'type: enum value expected';
             case 0:
             case 1:
             case -1:
                 break;
             }
-        if (message.interval != null && message.hasOwnProperty("interval"))
-            if (!$util.isInteger(message.interval))
-                return "interval: integer expected";
-        if (message.captureNumericValue != null && message.hasOwnProperty("captureNumericValue"))
-            if (typeof message.captureNumericValue !== "boolean")
-                return "captureNumericValue: boolean expected";
-        if (message.trackAllocations != null && message.hasOwnProperty("trackAllocations"))
-            if (typeof message.trackAllocations !== "boolean")
-                return "trackAllocations: boolean expected";
-        if (message.enableCpuProfiler != null && message.hasOwnProperty("enableCpuProfiler"))
-            if (typeof message.enableCpuProfiler !== "boolean")
-                return "enableCpuProfiler: boolean expected";
-        if (message.cpuProfilerInterval != null && message.hasOwnProperty("cpuProfilerInterval"))
-            if (!$util.isInteger(message.cpuProfilerInterval))
-                return "cpuProfilerInterval: integer expected";
+        }
+        if (message.interval != null && Object.prototype.hasOwnProperty.call(message, 'interval')) {
+            if (!$util.isInteger(message.interval)) {
+                return 'interval: integer expected';
+            }
+        }
+        if (message.captureNumericValue != null && Object.prototype.hasOwnProperty.call(message, 'captureNumericValue')) {
+            if (typeof message.captureNumericValue !== 'boolean') {
+                return 'captureNumericValue: boolean expected';
+            }
+        }
+        if (message.trackAllocations != null && Object.prototype.hasOwnProperty.call(message, 'trackAllocations')) {
+            if (typeof message.trackAllocations !== 'boolean') {
+                return 'trackAllocations: boolean expected';
+            }
+        }
+        if (message.enableCpuProfiler != null && Object.prototype.hasOwnProperty.call(message, 'enableCpuProfiler')) {
+            if (typeof message.enableCpuProfiler !== 'boolean') {
+                return 'enableCpuProfiler: boolean expected';
+            }
+        }
+        if (message.cpuProfilerInterval != null && Object.prototype.hasOwnProperty.call(message, 'cpuProfilerInterval')) {
+            if (!$util.isInteger(message.cpuProfilerInterval)) {
+                return 'cpuProfilerInterval: integer expected';
+            }
+        }
         return null;
     };
 
@@ -269,41 +300,48 @@ $root.ArkTSConfig = (function() {
      * @returns {ArkTSConfig} ArkTSConfig
      */
     ArkTSConfig.fromObject = function fromObject(object) {
-        if (object instanceof $root.ArkTSConfig)
+        if (object instanceof $root.ArkTSConfig) {
             return object;
-        var message = new $root.ArkTSConfig();
-        if (object.pid != null)
+        }
+        let message = new $root.ArkTSConfig();
+        if (object.pid != null) {
             message.pid = object.pid | 0;
+        }
         switch (object.type) {
         default:
-            if (typeof object.type === "number") {
+            if (typeof object.type === 'number') {
                 message.type = object.type;
                 break;
             }
             break;
-        case "SNAPSHOT":
+        case 'SNAPSHOT':
         case 0:
             message.type = 0;
             break;
-        case "TIMELINE":
+        case 'TIMELINE':
         case 1:
             message.type = 1;
             break;
-        case "INVALID":
+        case 'INVALID':
         case -1:
             message.type = -1;
             break;
         }
-        if (object.interval != null)
+        if (object.interval != null) {
             message.interval = object.interval >>> 0;
-        if (object.captureNumericValue != null)
+        }
+        if (object.captureNumericValue != null) {
             message.captureNumericValue = Boolean(object.captureNumericValue);
-        if (object.trackAllocations != null)
+        }
+        if (object.trackAllocations != null) {
             message.trackAllocations = Boolean(object.trackAllocations);
-        if (object.enableCpuProfiler != null)
+        }
+        if (object.enableCpuProfiler != null) {
             message.enableCpuProfiler = Boolean(object.enableCpuProfiler);
-        if (object.cpuProfilerInterval != null)
+        }
+        if (object.cpuProfilerInterval != null) {
             message.cpuProfilerInterval = object.cpuProfilerInterval >>> 0;
+        }
         return message;
     };
 
@@ -317,32 +355,44 @@ $root.ArkTSConfig = (function() {
      * @returns {Object.<string,*>} Plain object
      */
     ArkTSConfig.toObject = function toObject(message, options) {
-        if (!options)
+        if (!options) {
             options = {};
-        var object = {};
+        }
+        let object = {};
         if (options.defaults) {
             object.pid = 0;
-            object.type = options.enums === String ? "SNAPSHOT" : 0;
+            object.type = options.enums === String ? 'SNAPSHOT' : 0;
             object.interval = 0;
             object.captureNumericValue = false;
             object.trackAllocations = false;
             object.enableCpuProfiler = false;
             object.cpuProfilerInterval = 0;
         }
-        if (message.pid != null && message.hasOwnProperty("pid"))
+        if (message.pid != null && Object.prototype.hasOwnProperty.call(message, 'pid')) {
             object.pid = message.pid;
-        if (message.type != null && message.hasOwnProperty("type"))
-            object.type = options.enums === String ? $root.ArkTSConfig.HeapType[message.type] === undefined ? message.type : $root.ArkTSConfig.HeapType[message.type] : message.type;
-        if (message.interval != null && message.hasOwnProperty("interval"))
+        }
+        if (message.type != null && Object.prototype.hasOwnProperty.call(message, 'type')) {
+            object.type = options.enums === String
+                ? $root.ArkTSConfig.HeapType[message.type] === undefined
+                    ? message.type
+                    : $root.ArkTSConfig.HeapType[message.type]
+                : message.type;
+        }
+        if (message.interval != null && Object.prototype.hasOwnProperty.call(message, 'interval')) {
             object.interval = message.interval;
-        if (message.captureNumericValue != null && message.hasOwnProperty("captureNumericValue"))
+        }
+        if (message.captureNumericValue != null && Object.prototype.hasOwnProperty.call(message, 'captureNumericValue')) {
             object.captureNumericValue = message.captureNumericValue;
-        if (message.trackAllocations != null && message.hasOwnProperty("trackAllocations"))
+        }
+        if (message.trackAllocations != null && Object.prototype.hasOwnProperty.call(message, 'trackAllocations')) {
             object.trackAllocations = message.trackAllocations;
-        if (message.enableCpuProfiler != null && message.hasOwnProperty("enableCpuProfiler"))
+        }
+        if (message.enableCpuProfiler != null && Object.prototype.hasOwnProperty.call(message, 'enableCpuProfiler')) {
             object.enableCpuProfiler = message.enableCpuProfiler;
-        if (message.cpuProfilerInterval != null && message.hasOwnProperty("cpuProfilerInterval"))
+        }
+        if (message.cpuProfilerInterval != null && Object.prototype.hasOwnProperty.call(message, 'cpuProfilerInterval')) {
             object.cpuProfilerInterval = message.cpuProfilerInterval;
+        }
         return object;
     };
 
@@ -367,9 +417,9 @@ $root.ArkTSConfig = (function() {
      */
     ArkTSConfig.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
         if (typeUrlPrefix === undefined) {
-            typeUrlPrefix = "type.googleapis.com";
+            typeUrlPrefix = 'type.googleapis.com';
         }
-        return typeUrlPrefix + "/ArkTSConfig";
+        return typeUrlPrefix + '/ArkTSConfig';
     };
 
     /**
@@ -381,10 +431,11 @@ $root.ArkTSConfig = (function() {
      * @property {number} INVALID=-1 INVALID value
      */
     ArkTSConfig.HeapType = (function() {
-        var valuesById = {}, values = Object.create(valuesById);
-        values[valuesById[0] = "SNAPSHOT"] = 0;
-        values[valuesById[1] = "TIMELINE"] = 1;
-        values[valuesById[-1] = "INVALID"] = -1;
+        let valuesById = {};
+        let values = Object.create(valuesById);
+        values[valuesById[0] = 'SNAPSHOT'] = 0;
+        values[valuesById[1] = 'TIMELINE'] = 1;
+        values[valuesById[-1] = 'INVALID'] = -1;
         return values;
     })();
 

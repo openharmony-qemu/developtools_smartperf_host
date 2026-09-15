@@ -37,44 +37,44 @@ function init() {
     apps.pluginSystem.registerPlugin(TypeManage.TypeConfig.USB_TYPE, process);
 }
 
-function process(session_id, cmd, data) {
+function process(sessionId, cmd, data) {
     switch (cmd) {
         case SN_CMD:
-            logger.info(`to get SN.type:${TypeManage.TypeConfig.USB_TYPE},sessionId:${session_id},cmd:${cmd}`);
-            sendSerialNumb(session_id, cmd);
+            logger.info(`to get SN.type:${TypeManage.TypeConfig.USB_TYPE},sessionId:${sessionId},cmd:${cmd}`);
+            sendSerialNumb(sessionId, cmd);
             break;
         case GET_PROCESS:
-            logger.info(`to get process.type:${TypeManage.TypeConfig.USB_TYPE},sessionId:${session_id},cmd:${cmd}`);
-            getProcess(session_id, data, cmd);
+            logger.info(`to get process.type:${TypeManage.TypeConfig.USB_TYPE},sessionId:${sessionId},cmd:${cmd}`);
+            getProcess(sessionId, data, cmd);
             break;
         case GET_CPU_COUNT_CMD:
-            logger.info(`to get CPU count.type:${TypeManage.TypeConfig.USB_TYPE},sessionId:${session_id},cmd:${cmd}`);
-            getCpuCunt(session_id, data, cmd);
+            logger.info(`to get CPU count.type:${TypeManage.TypeConfig.USB_TYPE},sessionId:${sessionId},cmd:${cmd}`);
+            getCpuCunt(sessionId, data, cmd);
             break;
         case GET_EVENT_CMD:
-            logger.info(`to get eventName.type:${TypeManage.TypeConfig.USB_TYPE},sessionId:${session_id},cmd:${cmd}`);
-            getEvent(session_id, data, cmd);
+            logger.info(`to get eventName.type:${TypeManage.TypeConfig.USB_TYPE},sessionId:${sessionId},cmd:${cmd}`);
+            getEvent(sessionId, data, cmd);
             break;
         case GET_APP_CMD:
-            logger.info(`to get APP name.type:${TypeManage.TypeConfig.USB_TYPE},sessionId:${session_id},cmd:${cmd}`);
-            getApp(session_id, data, cmd);
+            logger.info(`to get APP name.type:${TypeManage.TypeConfig.USB_TYPE},sessionId:${sessionId},cmd:${cmd}`);
+            getApp(sessionId, data, cmd);
             break;
         case GET_VERSION:
-            logger.info(`to get device version.type:${TypeManage.TypeConfig.USB_TYPE},sessionId:${session_id},cmd:${cmd}`);
-            getVersion(session_id, data, cmd);
+            logger.info(`to get device version.type:${TypeManage.TypeConfig.USB_TYPE},sessionId:${sessionId},cmd:${cmd}`);
+            getVersion(sessionId, data, cmd);
             break;
         case GET_HISY_CMD:
-            logger.info(`to get hisystem event.type:${TypeManage.TypeConfig.USB_TYPE},sessionId:${session_id},cmd:${cmd}`);
-            getHisystem(session_id, data, cmd);
+            logger.info(`to get hisystem event.type:${TypeManage.TypeConfig.USB_TYPE},sessionId:${sessionId},cmd:${cmd}`);
+            getHisystem(sessionId, data, cmd);
             break;
     }
 }
 
 // 获取SN号
-function sendSerialNumb(session_id, cmd) {
+function sendSerialNumb(sessionId, cmd) {
     exec('hdc list targets', (error, stdout, stderr) => {
         if (error || (stderr && stderr.length > 0)) {
-            logger.error(`Failed to obtain SN.${TypeManage.TypeConfig.USB_TYPE},sessionId:${session_id},cmd:${cmd}`)
+            logger.error(`Failed to obtain SN.${TypeManage.TypeConfig.USB_TYPE},sessionId:${sessionId},cmd:${cmd}`);
             return;
         };
         let serialNumArr = stdout.split('\r\n');
@@ -84,98 +84,98 @@ function sendSerialNumb(session_id, cmd) {
                 code: 0,
                 message: serialNumArr
             }
-            sendMsg(session_id, SN_CMD, message);
+            sendMsg(sessionId, SN_CMD, message);
         }
-    })
+    });
 }
 
 // 获取进程信息
-function getProcess(session_id, data, cmd) {
+function getProcess(sessionId, data, cmd) {
     const decoder = new TextDecoder();
     let sendSerialNum = decoder.decode(data).trim();
     console.log(sendSerialNum);
     // 查询进程信息
-    exec(`hdc -t ${sendSerialNum} shell ps -A -opid,cmd`, (p_error, p_stdout, p_stderr) => {
+    exec(`hdc -t ${sendSerialNum} shell ps -A -opid,cmd`, (p_error, pStdout, p_stderr) => {
         if (p_error || (p_stderr && p_stderr.length > 0)) {
-            logger.error(`Failed to retrieve process.${TypeManage.TypeConfig.USB_TYPE},sessionId:${session_id},cmd:${cmd}`)
+            logger.error(`Failed to retrieve process.${TypeManage.TypeConfig.USB_TYPE},sessionId:${sessionId},cmd:${cmd}`);
             return;
         };
         let message = {
             code: 0,
-            message: p_stdout
+            message: pStdout
         };
-        sendMsg(session_id, GET_PROCESS, message);
-    })
+        sendMsg(sessionId, GET_PROCESS, message);
+    });
 }
 
 // 将信息send至客户端
-function sendMsg(session_id, cmd, message) {
+function sendMsg(sessionId, cmd, message) {
     const app = require('../app');
     let jsonString = JSON.stringify({
         resultCode: message.code,
         resultMessage: message.message
     });
-    app.sendMsgToClient(TypeManage.TypeConfig.USB_TYPE, session_id, cmd, new TextEncoder().encode(jsonString));
+    app.sendMsgToClient(TypeManage.TypeConfig.USB_TYPE, sessionId, cmd, new TextEncoder().encode(jsonString));
 }
 
 // 获取指定设备的CPU数
-function getCpuCunt(session_id, data, cmd) {
+function getCpuCunt(sessionId, data, cmd) {
     const decoder = new TextDecoder();
     let sendSerialNum = decoder.decode(data).trim();
     console.log(`hdc -t ${sendSerialNum} shell grep -c 'processor' /proc/cpuinfo`)
     exec(`hdc -t ${sendSerialNum} shell grep -c 'processor' /proc/cpuinfo`, (error, stdout, stderr) => {
         if (error || (stderr && stderr.length > 0)) {
-            logger.error(`Failed to retrieve CpuCount.${TypeManage.TypeConfig.USB_TYPE},sessionId:${session_id},cmd:${cmd}`)
+            logger.error(`Failed to retrieve CpuCount.${TypeManage.TypeConfig.USB_TYPE},sessionId:${sessionId},cmd:${cmd}`);
             return;
         };
         let message = {
             code: 0,
             message: stdout
         };
-        sendMsg(session_id, GET_CPU_COUNT_CMD, message);
-    })
+        sendMsg(sessionId, GET_CPU_COUNT_CMD, message);
+    });
 }
 
 // 获取指定设备中关于hiperf的事件列表
-function getEvent(session_id, data, cmd) {
+function getEvent(sessionId, data, cmd) {
     const decoder = new TextDecoder();
     let sendSerialNum = decoder.decode(data).trim();
     exec(`hdc -t ${sendSerialNum} shell hiperf list`, (error, stdout, stderr) => {
         if (error || (stderr && stderr.length > 0)) {
-            logger.error(`Failed to retrieve Event.${TypeManage.TypeConfig.USB_TYPE},sessionId:${session_id},cmd:${cmd}`)
+            logger.error(`Failed to retrieve Event.${TypeManage.TypeConfig.USB_TYPE},sessionId:${sessionId},cmd:${cmd}`);
             return;
         };
         let message = {
             code: 0,
             message: stdout
         };
-        sendMsg(session_id, GET_EVENT_CMD, message);
-    })
+        sendMsg(sessionId, GET_EVENT_CMD, message);
+    });
 }
 
-function getApp(session_id, data, cmd) {
+function getApp(sessionId, data, cmd) {
     const decoder = new TextDecoder();
     let sendSerialNum = decoder.decode(data).trim();
     exec(`hdc -t ${sendSerialNum} shell bm dump -a`, (error, stdout, stderr) => {
         if (error || (stderr && stderr.length > 0)) {
-            logger.error(`Failed to obtain app.${TypeManage.TypeConfig.USB_TYPE},sessionId:${session_id},cmd:${cmd}`)
+            logger.error(`Failed to obtain app.${TypeManage.TypeConfig.USB_TYPE},sessionId:${sessionId},cmd:${cmd}`);
             return;
         };
         let message = {
             code: 0,
             message: stdout
         };
-        sendMsg(session_id, GET_APP_CMD, message);
-    })
+        sendMsg(sessionId, GET_APP_CMD, message);
+    });
 }
 
 // 获取设备版本号
-function getVersion(session_id, data, cmd) {
+function getVersion(sessionId, data, cmd) {
     const decoder = new TextDecoder();
     let sendSerialNum = decoder.decode(data).trim();
     exec(`hdc -t ${sendSerialNum} shell param get const.product.software.version`, (error, stdout, stderr) => {
         if (error || (stderr && stderr.length > 0)) {
-            logger.error(`Failed to obtain device version.${TypeManage.TypeConfig.USB_TYPE},sessionId:${session_id},cmd:${cmd}`)
+            logger.error(`Failed to obtain device version.${TypeManage.TypeConfig.USB_TYPE},sessionId:${sessionId},cmd:${cmd}`);
             return;
         };
         console.log(stdout);
@@ -183,15 +183,15 @@ function getVersion(session_id, data, cmd) {
             code: 0,
             message: stdout
         };
-        sendMsg(session_id, GET_VERSION, message);
-    })
+        sendMsg(sessionId, GET_VERSION, message);
+    });
 }
 
-function getHisystem(session_id, data) {
+function getHisystem(sessionId, data) {
     const filePath = 'c:\\hisysevent.def';
     exec(`hdc file recv -cwd c:\ ${hisyseventPath} ./`, (error, stdout, stderr) => {
         if (error || (stderr && stderr.length > 0)) {
-            logger.error(`Failed : ${TypeManage.TypeConfig.USB_TYPE},sessionId:${session_id},cmd:${cmd}`)
+            logger.error(`Failed : ${TypeManage.TypeConfig.USB_TYPE},sessionId:${sessionId},cmd:${cmd}`);
             return;
         }
         fs.readFile(filePath, 'utf8', (readError, fileContent) => {
@@ -201,18 +201,18 @@ function getHisystem(session_id, data) {
                     code: 1,
                     message: readError.message
                 };
-                sendMsg(session_id, GET_HISY_CMD, errorMessage);
+                sendMsg(sessionId, GET_HISY_CMD, errorMessage);
                 return;
             }
             const message = {
                 code: 0,
                 message: fileContent
             };
-            sendMsg(session_id, GET_HISY_CMD, message);
+            sendMsg(sessionId, GET_HISY_CMD, message);
         });
     });
 }
 
 module.exports = {
     init
-}
+};

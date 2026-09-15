@@ -16,7 +16,7 @@ const fs = require('fs');
 const winston = require('winston');
 const path = require('path');
 const { exec } = require('child_process');
-const iconv = require("iconv-lite");
+const iconv = require('iconv-lite');
 const TypeManage = require('../typeManage.js');
 const SAVE_CMD = 1;
 const DIAGNOSIS_CMD = 3;
@@ -36,15 +36,15 @@ function init() {
  * 写入DB
  * 诊断
  */
-function process(session_id, cmd, data) {
-    let filePath = path.join(__dirname, 'db_cache', `${session_id}.db`);// 拼接路径
+function process(sessionId, cmd, data) {
+    let filePath = path.join(__dirname, 'db_cache', `${sessionId}.db`);// 拼接路径
     let dirPath = path.dirname(filePath);// 获取db文件所在的目录
     if (cmd === SAVE_CMD) {
-        logger.info(`Preparing to write to DB,sessionId:${session_id},cmd:${SAVE_CMD}`)
-        save(dirPath, filePath, session_id, data);
+        logger.info(`Preparing to write to DB,sessionId:${sessionId},cmd:${SAVE_CMD}`);
+        save(dirPath, filePath, sessionId, data);
     } else if (cmd === DIAGNOSIS_CMD) {
-        logger.info(`Obtain diagnostic report results,sessionId:${session_id},cmd:${DIAGNOSIS_CMD}`)
-        diagnosis(dirPath, filePath, session_id, data);
+        logger.info(`Obtain diagnostic report results,sessionId:${sessionId},cmd:${DIAGNOSIS_CMD}`);
+        diagnosis(dirPath, filePath, sessionId, data);
     }
 }
 
@@ -53,11 +53,11 @@ function process(session_id, cmd, data) {
  * 检查db_cache对应的目录是否存在，不存在时创建目录，反之直接写入DB
  * 写入DB文件
  */
-function save(dirPath, filePath, session_id, data) {
+function save(dirPath, filePath, sessionId, data) {
     let message = { code: -1, message: '' };
     fs.mkdir(dirPath, { recursive: true }, (err) => {
         if (err) {
-            logger.error(`Directory creation failed:${err},sessionId:${session_id},cmd:${SAVE_CMD}`);
+            logger.error(`Directory creation failed:${err},sessionId:${sessionId},cmd:${SAVE_CMD}`);
             return;
         }
         let dataBuffer = Buffer.from(data);
@@ -65,13 +65,13 @@ function save(dirPath, filePath, session_id, data) {
             if (err) {
                 message.code = 1;
                 message.message = 'File write failed';
-                logger.error(`File write failed,sessionId:${session_id},cmd:${SAVE_CMD}`);
+                logger.error(`File write failed,sessionId:${sessionId},cmd:${SAVE_CMD}`);
             } else {
                 message.code = 0;
                 message.message = 'File written successfully';
-                logger.info(`File written successfully,sessionId:${session_id},cmd:${SAVE_CMD}`);
+                logger.info(`File written successfully,sessionId:${sessionId},cmd:${SAVE_CMD}`);
             }
-            sendMsg(session_id, SAVE_BACK_CMD, message);
+            sendMsg(sessionId, SAVE_BACK_CMD, message);
         });
     });
 }
@@ -83,29 +83,29 @@ function save(dirPath, filePath, session_id, data) {
  * 调用算法库
  * 获取诊断结果 
  */
-function diagnosis(dirPath, filePath, session_id, data) {
+function diagnosis(dirPath, filePath, sessionId, data) {
     let message = { code: -1, message: '' };
     fs.access(dirPath, fs.constants.F_OK, (errDir) => {
         if (errDir) {
             message.code = 1;
             message.message = 'DB file not imported';
-            logger.error(`DB file not imported,unable to find DB folder,sessionId:${session_id},cmd:${DIAGNOSIS_CMD}`);
-            sendMsg(session_id, DIAGNOSIS_BACK_CMD, message);
+            logger.error(`DB file not imported,unable to find DB folder,sessionId:${sessionId},cmd:${DIAGNOSIS_CMD}`);
+            sendMsg(sessionId, DIAGNOSIS_BACK_CMD, message);
             return;
         }
         fs.access(filePath, fs.constants.F_OK, (errFile) => {
             if (errFile) {
                 message.code = 1;
                 message.message = 'DB file not imported';
-                logger.error(`DB file not imported,unable to find DB file,sessionId:${session_id},cmd:${DIAGNOSIS_CMD}`);
-                sendMsg(session_id, DIAGNOSIS_BACK_CMD, message);
+                logger.error(`DB file not imported,unable to find DB file,sessionId:${sessionId},cmd:${DIAGNOSIS_CMD}`);
+                sendMsg(sessionId, DIAGNOSIS_BACK_CMD, message);
                 return;
             }
             if (!data) {
                 message.code = 1;
                 message.message = 'Time range not provided';
-                logger.error(`Time range not provided,sessionId:${session_id},cmd:${DIAGNOSIS_CMD}`);
-                sendMsg(session_id, DIAGNOSIS_BACK_CMD, message);
+                logger.error(`Time range not provided,sessionId:${sessionId},cmd:${DIAGNOSIS_CMD}`);
+                sendMsg(sessionId, DIAGNOSIS_BACK_CMD, message);
                 return; 
             }
             const decoder = new TextDecoder();
@@ -114,20 +114,20 @@ function diagnosis(dirPath, filePath, session_id, data) {
             const str = hasKeys(timeRange) ? ` --time_range "${timeRange.startTime},${timeRange.endTime}"` : '';
             // 文件存在时，调用算法库，获取诊断结果
             const mainExePath = path.join(__dirname, '..', 'bin', 'main.exe');
-            let command = `"${mainExePath.replace(/\\/g, "/")}" --db_path "${filePath.replace(/\\/g, "/")}"${str}`;
-            exec(command, {encoding: 'buffer',maxBuffer: 1024 * 1024 * 500}, (error, stdout, stderr) => {
+            let command = `"${mainExePath.replace(/\\/g, '/')}" --db_path "${filePath.replace(/\\/g, '/')}"${str}`;
+            exec(command, {encoding: 'buffer', maxBuffer: 1024 * 1024 * 500}, (error, stdout, stderr) => {
                 if (error || (stderr && stderr.length > 0)) {
                     message.code = 1;
                     message.message = `error: ${error ? error.message : stderr.toString()}`;
-                    logger.error(`error: ${error ? error.message : stderr.toString()},sessionId:${session_id},cmd:${DIAGNOSIS_CMD},command:${command}`);
-                    sendMsg(session_id, DIAGNOSIS_BACK_CMD, message);
+                    logger.error(`error: ${error ? error.message : stderr.toString()},sessionId:${sessionId},cmd:${DIAGNOSIS_CMD},command:${command}`);
+                    sendMsg(sessionId, DIAGNOSIS_BACK_CMD, message);
                     return;
                 }
                 message.code = 0;
                 message.message = iconv.decode(stdout, 'gbk');// 字节流解码成字符串
-                logger.info(`Successfully obtained diagnostic results,sessionId:${session_id}`)
-                sendMsg(session_id, DIAGNOSIS_BACK_CMD, message);
-            })
+                logger.info(`Successfully obtained diagnostic results,sessionId:${sessionId}`);
+                sendMsg(sessionId, DIAGNOSIS_BACK_CMD, message);
+            });
         });
     });
 }
@@ -135,7 +135,7 @@ function diagnosis(dirPath, filePath, session_id, data) {
 // 诊断时判断data中是否包含时间范围，以及时间范围是否为空
 function hasKeys(obj) {
     // 判断是否含有startTime和endTime
-    if (obj.hasOwnProperty('startTime') && obj.hasOwnProperty('endTime')) {
+    if (Object.prototype.hasOwnProperty.call(obj, 'startTime') && Object.prototype.hasOwnProperty.call(obj, 'endTime')) {
         const startTimeNotEmpty = obj.startTime !== '' && obj.startTime != null;
         const endTimeNotEmpty = obj.endTime !== '' && obj.endTime != null;
         // 判断两个值是否都不为空
@@ -145,43 +145,43 @@ function hasKeys(obj) {
 }
 
 // 将信息send至服务器
-function sendMsg(session_id, cmd, message) {
+function sendMsg(sessionId, cmd, message) {
     const app = require('../app');
     let jsonString = JSON.stringify({
         resultCode: message.code,
         resultMessage: message.message
     });
-    app.sendMsgToClient(TypeManage.TypeConfig.AI_TYPE, session_id, cmd, new TextEncoder().encode(jsonString));
+    app.sendMsgToClient(TypeManage.TypeConfig.AI_TYPE, sessionId, cmd, new TextEncoder().encode(jsonString));
 }
 
 // 删除session对应的文件
-function clear(session_id) {
+function clear(sessionId) {
     // 拼接路径
-    let filePath = path.join(__dirname, 'db_cache', `${session_id}.db`);
+    let filePath = path.join(__dirname, 'db_cache', `${sessionId}.db`);
     // 先判断文件路径是否存在
     fs.access(filePath, fs.constants.F_OK, (err) => {
         // 不存在直接return
         if (err) {
-            logger.error(`${err},sessionId:${session_id}`);
+            logger.error(`${err},sessionId:${sessionId}`);
             return;
         }
         // 存在则继续删除
         fs.unlink(filePath, (err) => {
             if (err) {
-                logger.error(`File deletion failed:${err},sessionId:${session_id}`);
+                logger.error(`File deletion failed:${err},sessionId:${sessionId}`);
             }
         });
-    })
+    });
 }
 function deleteDirPath() {
     let dirPath = path.join(__dirname, 'db_cache');
     fs.rm(dirPath, { recursive: true, force: true }, (err) => {
         if (err) {
-            logger.error(`Failed to delete folder cached db:${err},sessionId:${session_id}`);
+            logger.error(`Failed to delete folder cached db:${err},sessionId:${sessionId}`);
         }
-    })
+    });
 }
 
 module.exports = {
     init
-}
+};
