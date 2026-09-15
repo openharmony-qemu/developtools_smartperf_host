@@ -71,7 +71,7 @@ $root.ArkTSResult = (function() {
         if (!writer) {
             writer = $Writer.create();
         }
-        if (message.result != null && Object.hasOwnProperty.call(message, 'result')) {
+        if (message.result != null && Object.prototype.hasOwnProperty.call(message, 'result')) {
             writer.uint32(/* id 1, wireType 2 =*/10).bytes(message.result);
         }
         return writer;

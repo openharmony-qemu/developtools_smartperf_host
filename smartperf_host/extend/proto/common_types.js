@@ -312,22 +312,22 @@ $root.ProfilerPluginConfig = (function() {
         if (!writer) {
             writer = $Writer.create();
         }
-        if (message.name != null && Object.hasOwnProperty.call(message, 'name')) {
+        if (message.name != null && Object.prototype.hasOwnProperty.call(message, 'name')) {
             writer.uint32(/* id 1, wireType 2 =*/10).string(message.name);
         }
-        if (message.pluginSha256 != null && Object.hasOwnProperty.call(message, 'pluginSha256')) {
+        if (message.pluginSha256 != null && Object.prototype.hasOwnProperty.call(message, 'pluginSha256')) {
             writer.uint32(/* id 2, wireType 2 =*/18).string(message.pluginSha256);
         }
-        if (message.sampleInterval != null && Object.hasOwnProperty.call(message, 'sampleInterval')) {
+        if (message.sampleInterval != null && Object.prototype.hasOwnProperty.call(message, 'sampleInterval')) {
             writer.uint32(/* id 3, wireType 0 =*/24).uint32(message.sampleInterval);
         }
-        if (message.configData != null && Object.hasOwnProperty.call(message, 'configData')) {
+        if (message.configData != null && Object.prototype.hasOwnProperty.call(message, 'configData')) {
             writer.uint32(/* id 4, wireType 2 =*/34).bytes(message.configData);
         }
-        if (message.clock != null && Object.hasOwnProperty.call(message, 'clock')) {
+        if (message.clock != null && Object.prototype.hasOwnProperty.call(message, 'clock')) {
             writer.uint32(/* id 5, wireType 2 =*/42).string(message.clock);
         }
-        if (message.isProtobufSerialize != null && Object.hasOwnProperty.call(message, 'isProtobufSerialize')) {
+        if (message.isProtobufSerialize != null && Object.prototype.hasOwnProperty.call(message, 'isProtobufSerialize')) {
             writer.uint32(/* id 6, wireType 0 =*/48).bool(message.isProtobufSerialize);
         }
         return writer;
@@ -645,10 +645,10 @@ $root.ProfilerPluginState = (function() {
         if (!writer) {
             writer = $Writer.create();
         }
-        if (message.name != null && Object.hasOwnProperty.call(message, 'name')) {
+        if (message.name != null && Object.prototype.hasOwnProperty.call(message, 'name')) {
             writer.uint32(/* id 1, wireType 2 =*/10).string(message.name);
         }
-        if (message.state != null && Object.hasOwnProperty.call(message, 'state')) {
+        if (message.state != null && Object.prototype.hasOwnProperty.call(message, 'state')) {
             writer.uint32(/* id 2, wireType 0 =*/16).int32(message.state);
         }
         return writer;
@@ -996,28 +996,28 @@ $root.ProfilerPluginData = (function() {
         if (!writer) {
             writer = $Writer.create();
         }
-        if (message.name != null && Object.hasOwnProperty.call(message, 'name')) {
+        if (message.name != null && Object.prototype.hasOwnProperty.call(message, 'name')) {
             writer.uint32(/* id 1, wireType 2 =*/10).string(message.name);
         }
-        if (message.status != null && Object.hasOwnProperty.call(message, 'status')) {
+        if (message.status != null && Object.prototype.hasOwnProperty.call(message, 'status')) {
             writer.uint32(/* id 2, wireType 0 =*/16).uint32(message.status);
         }
-        if (message.data != null && Object.hasOwnProperty.call(message, 'data')) {
+        if (message.data != null && Object.prototype.hasOwnProperty.call(message, 'data')) {
             writer.uint32(/* id 3, wireType 2 =*/26).bytes(message.data);
         }
-        if (message.clockId != null && Object.hasOwnProperty.call(message, 'clockId')) {
+        if (message.clockId != null && Object.prototype.hasOwnProperty.call(message, 'clockId')) {
             writer.uint32(/* id 4, wireType 0 =*/32).int32(message.clockId);
         }
-        if (message.tvSec != null && Object.hasOwnProperty.call(message, 'tvSec')) {
+        if (message.tvSec != null && Object.prototype.hasOwnProperty.call(message, 'tvSec')) {
             writer.uint32(/* id 5, wireType 0 =*/40).uint64(message.tvSec);
         }
-        if (message.tvNsec != null && Object.hasOwnProperty.call(message, 'tvNsec')) {
+        if (message.tvNsec != null && Object.prototype.hasOwnProperty.call(message, 'tvNsec')) {
             writer.uint32(/* id 6, wireType 0 =*/48).uint64(message.tvNsec);
         }
-        if (message.version != null && Object.hasOwnProperty.call(message, 'version')) {
+        if (message.version != null && Object.prototype.hasOwnProperty.call(message, 'version')) {
             writer.uint32(/* id 7, wireType 2 =*/58).string(message.version);
         }
-        if (message.sampleInterval != null && Object.hasOwnProperty.call(message, 'sampleInterval')) {
+        if (message.sampleInterval != null && Object.prototype.hasOwnProperty.call(message, 'sampleInterval')) {
             writer.uint32(/* id 8, wireType 0 =*/64).uint32(message.sampleInterval);
         }
         return writer;

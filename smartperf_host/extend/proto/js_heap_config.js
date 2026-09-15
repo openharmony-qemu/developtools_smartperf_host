@@ -126,25 +126,25 @@ $root.ArkTSConfig = (function() {
         if (!writer) {
             writer = $Writer.create();
         }
-        if (message.pid != null && Object.hasOwnProperty.call(message, 'pid')) {
+        if (message.pid != null && Object.prototype.hasOwnProperty.call(message, 'pid')) {
             writer.uint32(/* id 1, wireType 0 =*/8).int32(message.pid);
         }
-        if (message.type != null && Object.hasOwnProperty.call(message, 'type')) {
+        if (message.type != null && Object.prototype.hasOwnProperty.call(message, 'type')) {
             writer.uint32(/* id 2, wireType 0 =*/16).int32(message.type);
         }
-        if (message.interval != null && Object.hasOwnProperty.call(message, 'interval')) {
+        if (message.interval != null && Object.prototype.hasOwnProperty.call(message, 'interval')) {
             writer.uint32(/* id 3, wireType 0 =*/24).uint32(message.interval);
         }
-        if (message.captureNumericValue != null && Object.hasOwnProperty.call(message, 'captureNumericValue')) {
+        if (message.captureNumericValue != null && Object.prototype.hasOwnProperty.call(message, 'captureNumericValue')) {
             writer.uint32(/* id 4, wireType 0 =*/32).bool(message.captureNumericValue);
         }
-        if (message.trackAllocations != null && Object.hasOwnProperty.call(message, 'trackAllocations')) {
+        if (message.trackAllocations != null && Object.prototype.hasOwnProperty.call(message, 'trackAllocations')) {
             writer.uint32(/* id 5, wireType 0 =*/40).bool(message.trackAllocations);
         }
-        if (message.enableCpuProfiler != null && Object.hasOwnProperty.call(message, 'enableCpuProfiler')) {
+        if (message.enableCpuProfiler != null && Object.prototype.hasOwnProperty.call(message, 'enableCpuProfiler')) {
             writer.uint32(/* id 6, wireType 0 =*/48).bool(message.enableCpuProfiler);
         }
-        if (message.cpuProfilerInterval != null && Object.hasOwnProperty.call(message, 'cpuProfilerInterval')) {
+        if (message.cpuProfilerInterval != null && Object.prototype.hasOwnProperty.call(message, 'cpuProfilerInterval')) {
             writer.uint32(/* id 7, wireType 0 =*/56).uint32(message.cpuProfilerInterval);
         }
         return writer;
