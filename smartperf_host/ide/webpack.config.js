@@ -26,6 +26,7 @@ const { exec } = require('child_process');
 const fs = require('fs');
 
 const supportPlatform = ['windows', 'linux', 'darwin'];
+const supportArm64Platform = [{ name: 'ohos', goos: 'linux' }];
 
 function runCommand(command) {
   return new Promise((resolve, reject) => {
@@ -95,6 +96,18 @@ function buildMultiPlatform() {
     }
     const buildCmd = `${setEnv} go build -o ${generateFile} ${serverSrc}`;
     console.log(`compile ${platform} server ...`);
+    childProcess.execSync(buildCmd);
+  }
+  for (const target of supportArm64Platform) {
+    const generateFile = path.normalize(path.join(outPath, '/', `main_${target.name}_arm64`));
+    let setEnv = '';
+    if (os.type() === 'Windows_NT') {
+      setEnv += `SET CGO_ENABLED=0&&SET GOOS=${target.goos}&&SET GOARCH=arm64&&`;
+    } else {
+      setEnv += `CGO_ENABLED=0 GOOS=${target.goos} GOARCH=arm64`;
+    }
+    const buildCmd = `${setEnv} go build -o ${generateFile} ${serverSrc}`;
+    console.log(`compile ${target.name} arm64 server ...`);
     childProcess.execSync(buildCmd);
   }
 }
