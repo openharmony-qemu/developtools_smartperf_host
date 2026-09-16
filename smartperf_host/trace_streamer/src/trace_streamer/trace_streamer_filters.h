@@ -17,6 +17,7 @@
 #define TRACE_STREAMERTOKEN_H
 
 #include <memory>
+#include "trace_streamer/export_config/export_config.h"
 namespace SysTuning {
 namespace TraceStreamer {
 class AnimationFilter;
@@ -76,6 +77,7 @@ public:
 #ifdef ENABLE_HIPERF
     std::unique_ptr<PerfDataFilter> perfDataFilter_;
 #endif
+    std::shared_ptr<ExportConfig> exportConfig_ = {};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

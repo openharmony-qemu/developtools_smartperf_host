@@ -146,10 +146,12 @@ int32_t TraceDataDB::CreatEmptyBatchDB(const std::string &outputName)
     for (auto itor = internalTables_.begin(); itor != internalTables_.end(); itor++) {
         if (*itor == "meta" && !exportMetaTable_) {
             continue;
-        } else {
-            std::string exportSql("CREATE TABLE systuning_export." + (*itor) + "_ AS SELECT * FROM " + *itor);
-            ExecuteSql(exportSql);
         }
+        if (!exportFilter_.empty() && !exportFilter_.count(*itor)) {
+            continue;
+        }
+        std::string exportSql("CREATE TABLE systuning_export." + (*itor) + "_ AS SELECT * FROM " + *itor);
+        ExecuteSql(exportSql);
     }
     std::string detachSql("DETACH DATABASE systuning_export");
     ExecuteSql(detachSql);
@@ -175,22 +177,26 @@ int32_t TraceDataDB::BatchExportDatabase(const std::string &outputName)
     for (auto itor = internalTables_.begin(); itor != internalTables_.end(); itor++) {
         if (*itor == "meta" && !exportMetaTable_) {
             continue;
+        }
+        if (!exportFilter_.empty() && !exportFilter_.count(*itor)) {
+            continue;
+        }
+        if (needClearTable_.count(*itor)) {
+            std::string clearSql("DELETE FROM systuning_export." + (*itor) + "_");
+            ExecuteSql(clearSql);
+        }
+        if (tableToCompletedSize_.count(*itor)) {
+            std::string exportSql("INSERT INTO systuning_export." + (*itor) + "_ SELECT * FROM " + *itor +
+                                  " LIMIT " + std::to_string(tableToCompletedSize_.at(*itor)));
+            ExecuteSql(exportSql);
         } else {
-            if (needClearTable_.count(*itor)) {
-                std::string clearSql("DELETE FROM systuning_export." + (*itor) + "_");
-                ExecuteSql(clearSql);
-            }
-            if (tableToCompletedSize_.count(*itor)) {
-                std::string exportSql("INSERT INTO systuning_export." + (*itor) + "_ SELECT * FROM " + *itor +
-                                      " LIMIT " + std::to_string(tableToCompletedSize_.at(*itor)));
-                ExecuteSql(exportSql);
-            } else {
-                std::string exportSql("INSERT INTO systuning_export." + (*itor) + "_ SELECT * FROM " + *itor);
-                ExecuteSql(exportSql);
-            }
+            std::string exportSql("INSERT INTO systuning_export." + (*itor) + "_ SELECT * FROM " + *itor);
+            ExecuteSql(exportSql);
         }
     }
-    ExecuteSql(CREATE_BATCH_EXPORT_DB_ARGS_VIEW);
+    if (exportFilter_.empty() || exportFilter_.count("args")) {
+        ExecuteSql(CREATE_BATCH_EXPORT_DB_ARGS_VIEW);
+    }
     std::string detachSql("DETACH DATABASE systuning_export");
     ExecuteSql(detachSql);
     return 0;
@@ -207,10 +213,12 @@ void TraceDataDB::RevertTableName(const std::string &outputName)
     for (auto itor = internalTables_.begin(); itor != internalTables_.end(); itor++) {
         if (*itor == "meta" && !exportMetaTable_) {
             continue;
-        } else {
-            std::string revertTableNameSql("ALTER TABLE systuning_export." + (*itor) + "_ RENAME TO  " + (*itor));
-            ExecuteSql(revertTableNameSql);
         }
+        if (!exportFilter_.empty() && !exportFilter_.count(*itor)) {
+            continue;
+        }
+        std::string revertTableNameSql("ALTER TABLE systuning_export." + (*itor) + "_ RENAME TO  " + (*itor));
+        ExecuteSql(revertTableNameSql);
     }
     std::string detachSql("DETACH DATABASE systuning_export");
     ExecuteSql(detachSql);
@@ -239,12 +247,16 @@ int32_t TraceDataDB::ExportDatabase(const std::string &outputName, ResultCallBac
     for (auto itor = internalTables_.begin(); itor != internalTables_.end(); itor++) {
         if (*itor == "meta" && !exportMetaTable_) {
             continue;
-        } else {
-            std::string exportSql("CREATE TABLE systuning_export." + (*itor) + " AS SELECT * FROM " + *itor);
-            ExecuteSql(exportSql);
         }
+        if (!exportFilter_.empty() && !exportFilter_.count(*itor)) {
+            continue;
+        }
+        std::string exportSql("CREATE TABLE systuning_export." + (*itor) + " AS SELECT * FROM " + *itor);
+        ExecuteSql(exportSql);
     }
-    ExecuteSql(CREATE_EXPORT_DB_ARGS_VIEW);
+    if (exportFilter_.empty() || exportFilter_.count("args")) {
+        ExecuteSql(CREATE_EXPORT_DB_ARGS_VIEW);
+    }
     std::string detachSql("DETACH DATABASE systuning_export");
     ExecuteSql(detachSql);
 

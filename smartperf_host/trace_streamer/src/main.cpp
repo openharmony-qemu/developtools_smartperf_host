@@ -378,6 +378,7 @@ struct TraceExportOption {
     uint8_t parserThreadNum = INVALID_UINT8;
     bool needClearLongTraceCache = true;
     std::string soFilesDir;
+    std::string exportConfigPath;
 };
 bool CheckFinal(char **argv, TraceExportOption &traceExportOption)
 {
@@ -513,6 +514,11 @@ bool ParseOtherArgs(int argc, char **argv, TraceExportOption &traceExportOption,
         return true;
     } else if (!strcmp(argv[i], "-nm") || !strcmp(argv[i], "--nometa")) {
         traceExportOption.exportMetaTable = false;
+        i++;
+        return true;
+    } else if (!strcmp(argv[i], "--export-config")) {
+        TS_CHECK_TRUE_RET(CheckArgc(argc, argv, ++i), false);
+        traceExportOption.exportConfigPath = std::string(argv[i]);
         i++;
         return true;
     } else if (!strcmp(argv[i], "-m") || !strcmp(argv[i], "--run-metrics")) {
@@ -747,6 +753,14 @@ int main(int argc, char **argv)
     TS_CHECK_TRUE_RET(CheckAndParseArgs(argc, argv, traceExportOption), 1);
     TraceStreamerSelector ts;
     Init(ts, traceExportOption);
+    if (!traceExportOption.exportConfigPath.empty()) {
+        ExportConfig config;
+        if (!config.LoadConfig(traceExportOption.exportConfigPath)) {
+            TS_LOGE("Failed to load export config: %s", traceExportOption.exportConfigPath.c_str());
+            return 1;
+        }
+        ts.SetExportConfig(config);
+    }
 #ifndef IS_WASM
     if (!traceExportOption.longTraceDir.empty()) {
         ParseLongTrace(ts, traceExportOption);

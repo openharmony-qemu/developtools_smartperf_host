@@ -349,6 +349,9 @@ void TraceStreamerSelector::InitializeParser()
 {
     if (fileType_ == TRACE_FILETYPE_H_TRACE || fileType_ == TRACE_FILETYPE_PERF) {
         pbreaderParser_ = std::make_unique<PbreaderParser>(traceDataCache_.get(), streamFilters_.get());
+        if (!allowedPluginIndices_.empty()) {
+            pbreaderParser_->SetAllowedPlugins(allowedPluginIndices_);
+        }
 #ifdef ENABLE_ARKTS
         pbreaderParser_->EnableFileSeparate(enableFileSeparate_);
 #endif
@@ -442,6 +445,15 @@ bool TraceStreamerSelector::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> dat
 void TraceStreamerSelector::EnableMetaTable(bool enabled)
 {
     traceDataCache_->EnableMetaTable(enabled);
+}
+
+void TraceStreamerSelector::SetExportConfig(const ExportConfig &config)
+{
+    streamFilters_->exportConfig_ = std::make_shared<ExportConfig>(config);
+    traceDataCache_->SetExportFilter(config.GetExportFilter());
+    for (const auto &name : config.GetAllowedPluginNames()) {
+        allowedPluginIndices_.insert(traceDataCache_->GetDataIndex(name));
+    }
 }
 
 void TraceStreamerSelector::EnableFileSave(bool enabled)

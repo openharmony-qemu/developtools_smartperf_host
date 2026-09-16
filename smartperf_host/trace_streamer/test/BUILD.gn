@@ -80,6 +80,7 @@ if (is_test) {
       "unittest/rawtrace/rawtrace_parser_test.cpp",
       "unittest/table/filesystem_io_table_test.cpp",
       "unittest/table/table_test.cpp",
+      "unittest/trace_streamer/export_config_test.cpp",
     ]
 
     deps = [

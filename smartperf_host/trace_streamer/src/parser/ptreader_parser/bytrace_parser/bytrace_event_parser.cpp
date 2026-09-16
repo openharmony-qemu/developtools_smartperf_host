@@ -1319,6 +1319,9 @@ void BytraceEventParser::FilterAllEvents()
 
 void BytraceEventParser::BeginFilterEvents(EventInfo *event)
 {
+    if (streamFilters_->exportConfig_ && !streamFilters_->exportConfig_->IsEventNeeded(event->line.eventName)) {
+        return;
+    }
     auto it = eventToFunctionMap_.find(event->line.eventName);
     if (it != eventToFunctionMap_.end()) {
         uint32_t tgid = event->line.tgid;

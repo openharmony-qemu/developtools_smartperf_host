@@ -106,6 +106,10 @@ class PbreaderParser : public ParserBase, public HtracePluginTimeParser {
 public:
     PbreaderParser(TraceDataCache *dataCache, const TraceStreamerFilters *filters);
     ~PbreaderParser();
+    void SetAllowedPlugins(const std::set<DataIndex> &allowedPlugins)
+    {
+        supportPluginNameIndex_ = allowedPlugins;
+    }
     void ParseTraceDataSegment(std::unique_ptr<uint8_t[]> bufferStr, size_t size, bool isFinish = false) override;
     bool ReparseSymbolFileAndResymbolization(const std::string &directory, const std::string &fileName);
     void WaitForParserEnd();

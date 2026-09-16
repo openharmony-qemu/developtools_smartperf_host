@@ -64,6 +64,10 @@ public:
     void SetCancel(bool cancel);
     void AppendNewTable(std::string tableName);
     void EnableMetaTable(bool enabled);
+    void SetExportFilter(const std::set<std::string> &filter)
+    {
+        exportFilter_ = filter;
+    }
     bool Cancel() const
     {
         return cancelQuery_;
@@ -89,6 +93,7 @@ private:
 private:
     std::list<std::string> internalTables_ = {};
     bool exportMetaTable_ = true;
+    std::set<std::string> exportFilter_ = {};
     bool pared_ = false;
     bool cancelQuery_ = false;
     std::string wasmDBName_;
