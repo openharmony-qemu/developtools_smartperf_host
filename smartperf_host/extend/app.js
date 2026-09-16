@@ -20,6 +20,17 @@ const TypeManage = require('./typeManage.js');
 // 创建logger
 const logger = winston.createLogger(require('./winston.config.js'));
 const wss = new WebSocket.Server({ port: `${Utils.AuthMsg.SW_PORT}`, maxPayload: 1024 * 1024 * 500 });
+// WebSocket连接保活：定期发送ping检测并清理死连接
+const keepAliveInterval = setInterval(() => {
+    wss.clients.forEach((ws) => {
+        if (ws.isAlive === false) return ws.terminate();
+        ws.isAlive = false;
+        ws.ping();
+    });
+}, 30000);
+wss.on('close', () => {
+    clearInterval(keepAliveInterval);
+});
 // 当发生错误时触发
 wss.on('error', function error(err) {
     if (err.code === 'EADDRINUSE') {
@@ -37,6 +48,8 @@ wss.on('connection', function connection(ws, req) {
     }
     // WebSocket的一个属性，用于控制 WebSocket 连接如何处理接收到的二进制数据;
     ws.binaryType = 'arraybuffer';
+    ws.isAlive = true;
+    ws.on('pong', () => { ws.isAlive = true; });
     // 接收来自客户端的消息
     ws.on('message', function incoming(message) {
         // 判断头部字节数

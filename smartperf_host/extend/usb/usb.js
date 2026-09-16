@@ -17,7 +17,9 @@ global.navigator = {
 };
 const { exec } = require('child_process');
 const fs = require('fs');
+const path = require('path');
 const TypeManage = require('../typeManage.js');
+const platform = require('../platform.js');
 const winston = require('winston');
 const SN_CMD = 1;
 const GET_PROCESS = 2;
@@ -77,7 +79,7 @@ function sendSerialNumb(sessionId, cmd) {
             logger.error(`Failed to obtain SN.${TypeManage.TypeConfig.USB_TYPE},sessionId:${sessionId},cmd:${cmd}`);
             return;
         };
-        let serialNumArr = stdout.split('\r\n');
+        let serialNumArr = platform.splitLines(stdout);
         serialNumArr = serialNumArr.slice(0, serialNumArr.length - 1);
         if (stdout) {
             let message = {
@@ -188,8 +190,8 @@ function getVersion(sessionId, data, cmd) {
 }
 
 function getHisystem(sessionId, data) {
-    const filePath = 'c:\\hisysevent.def';
-    exec(`hdc file recv -cwd c:\ ${hisyseventPath} ./`, (error, stdout, stderr) => {
+    const filePath = path.join(platform.tempDir, 'hisysevent.def');
+    exec(`hdc file recv ${hisyseventPath} ${filePath}`, (error, stdout, stderr) => {
         if (error || (stderr && stderr.length > 0)) {
             logger.error(`Failed : ${TypeManage.TypeConfig.USB_TYPE},sessionId:${sessionId},cmd:${cmd}`);
             return;

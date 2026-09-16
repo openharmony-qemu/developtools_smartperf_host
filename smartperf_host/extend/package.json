@@ -4,7 +4,8 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "test": "npm run test:longtrace-all",
+    "test": "npm run test:adaptation && npm run test:longtrace-all",
+    "test:adaptation": "node --test ./test/platform.test.js ./test/module-adaptation.test.js ./test/startup-adaptation.test.js",
     "test:longtrace-unit": "node --test ./test/trace-communication.test.js ./test/trace-runtime.test.js ./test/trace-nativehook-processor.test.js ./test/trace-business-handlers.test.js",
     "test:longtrace-e2e": "node --test ./test/longtrace-dual-channel.e2e.test.js",
     "test:longtrace-all": "npm run test:longtrace-unit && npm run test:longtrace-e2e"

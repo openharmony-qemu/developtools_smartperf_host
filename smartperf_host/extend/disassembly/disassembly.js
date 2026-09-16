@@ -16,6 +16,7 @@ const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
 const TypeManage = require('../typeManage.js');
+const platform = require('../platform.js');
 const readline = require('readline');
 const { promisify } = require('util');
 const winston = require('winston');
@@ -33,9 +34,9 @@ let fileStreams = {}; // 用于存储文件的写入流
 
 const TEMP_DIR = path.join(__dirname, 'temp_files');
 
-// objdump.exe、addr2line.exe路径，固定在项目根目录下
-const objdumpPath = path.join(__dirname, '../bin/objdump.exe');
-const addr2linePath = path.join(__dirname, '../bin/addr2line.exe');
+// objdump、addr2line路径，通过平台抽象层获取
+const objdumpPath = platform.objdumpPath;
+const addr2linePath = platform.addr2linePath;
 let resultString = '';
 
 if (!fs.existsSync(TEMP_DIR)) {
@@ -231,7 +232,7 @@ function queryData(sessionId, data) {
 }
 
 function processAnFileFindTextName(sessionId, vaddr, func, textName, anFilePath, elfName, eaddr) {
-  exec(`${objdumpPath} -h ${anFilePath} | findstr -i ${textName}`,
+  exec(`${objdumpPath} -h ${anFilePath} | ${platform.searchCmd} -i ${textName}`,
     (miderError, miderStdOut, miderStdErr) => {
       if (miderError || (miderStdErr && miderStdErr.length > 0)) {
         const msg = `MiderExecError(Get Text Info List for textName:"${textName}" in file:` +
@@ -275,10 +276,10 @@ function processAnDisassembly(sessionId, vaddr, func, anFilePath, elfName, eaddr
  * 提取an汇编代码
  */
 function extractInfoFromAnTxt(func, elfName, vaddr, sessionId, anFilePath) {
-  exec(`${objdumpPath} -t ${anFilePath} | findstr ${func}`,
+  exec(`${objdumpPath} -t ${anFilePath} | ${platform.searchCmd} ${func}`,
     (outerError, outerStdOut, outerStdErr) => {
         if (outerError || (outerStdErr && outerStdErr.length > 0)) {
-            const msg = `OuterExecError(In Using 'findstr' searching func:"${func}" ` +
+            const msg = `OuterExecError(In Using '${platform.searchCmd}' searching func:"${func}" ` +
                 `from file:"${elfName}" to get func-size for calculating the stop-address in needing): [` +
                 `${outerError ? outerError.message : outerStdErr.toString()}]`;
             logger.error('error：' + msg);
