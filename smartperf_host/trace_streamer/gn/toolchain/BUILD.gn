@@ -27,7 +27,7 @@ declare_args() {
     extra_asmflags = ""
     asm = "gcc.exe"
     pic = ""
-  } else if (target_os == "ohos") {
+  } else if (target_os == "ohos" || target_os == "ohospc") {
     # --target=arm-linux-ohos for arm32, or --target=aarch64-linux-ohos for arm64
     OHOS_TARGET_ARCH = "--target=aarch64-linux-ohos"
     cc = "../../tools/ohos-sdk/linux/native/llvm/bin/clang $OHOS_TARGET_ARCH"

@@ -16,7 +16,7 @@ echo "target_operator = $target_operator"
 if [ "$target" != "trace" ] && [ "$target" != "linux" ] && [ "$target" != "windows" ] &&
     [ "$target" != "macx" ] && [ "$target" != "trace_streamer" ] && [ "$target" != "wasm" ] &&
     [ "$target" != "test" ] && [ "$target" != "spb" ] && [ "$target" != "fuzz" ] &&
-    [ "$target" != "protoc" ] && [ "$target" != "sdkdemo" ] && [ "$target" != "sdkdemotest" ] && [ "$target" != "ohos" ];then
+    [ "$target" != "protoc" ] && [ "$target" != "sdkdemo" ] && [ "$target" != "sdkdemotest" ] && [ "$target" != "ohos" ] && [ "$target" != "ohospc" ];then
     echo "failed"
     exit
 fi
