@@ -257,6 +257,25 @@ func getPidByPort(portNumber int) int {
 	return resPid
 }
 
+func getPidByPortOther(portNumber int) int {
+	resPid := -1
+	var out bytes.Buffer
+	cmdRes := exec.Command("lsof", "-i", fmt.Sprintf(":%d", portNumber), "-t")
+	cmdRes.Stdout = &out
+	cmdRes.Run()
+	cmdResStr := strings.TrimSpace(out.String())
+	if cmdResStr != "" {
+		lines := strings.Split(cmdResStr, "\n")
+		pid, err := strconv.Atoi(strings.TrimSpace(lines[0]))
+		if err != nil {
+			resPid = -1
+		} else {
+			resPid = pid
+		}
+	}
+	return resPid
+}
+
 type LoggerReq struct {
 	FileName string `json:"fileName"`
 	FileSize string `json:"fileSize"`
@@ -355,7 +374,7 @@ func getServerConfig(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	serverConfig.Mux.RLock()
 	defer serverConfig.Mux.RUnlock()
-	data, err := json.Marshal(serverConfig)
+	data, err := json.Marshal(&serverConfig)
 	if err != nil {
 		http.Error(w, "failed to marshal config: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -666,7 +685,7 @@ func isDarwin() bool {
 func getCurrentAbPath() string {
 	dir := getExecutePath()
 	tmpDir, _ := filepath.EvalSymlinks(os.TempDir())
-	if strings.Contains(dir, tmpDir) {
+	if tmpDir != "" && strings.Contains(dir, tmpDir) {
 		return getCallerPath()
 	}
 	return dir
@@ -685,7 +704,11 @@ func getExecutePath() string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	res, _ := filepath.EvalSymlinks(filepath.Dir(pth))
+	dir := filepath.Dir(pth)
+	res, err := filepath.EvalSymlinks(dir)
+	if err != nil {
+		return dir
+	}
 	return res
 }
 
@@ -695,6 +718,11 @@ func checkPort(port int) {
 		if pid != -1 {
 			res := exec.Command("cmd", "/c", fmt.Sprintf("taskkill /F /PID %d /T", pid))
 			res.Run()
+		}
+	} else {
+		pid := getPidByPortOther(port)
+		if pid != -1 {
+			exec.Command("kill", "-9", strconv.Itoa(pid)).Run()
 		}
 	}
 }
