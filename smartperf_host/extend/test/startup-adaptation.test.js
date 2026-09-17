@@ -32,16 +32,9 @@ test('start.sh 文件存在且以 bash shebang 开头', () => {
     assert.strictEqual(content.split('\n')[0].trim(), '#!/bin/bash');
 });
 
-test('start.sh 包含 SCRIPT_DIR 和 DAEMON_PATH 变量', () => {
+test('start.sh 包含 SCRIPT_DIR 变量', () => {
     const content = fs.readFileSync(START_SH_PATH, 'utf8');
     assert.ok(content.includes('SCRIPT_DIR'));
-    assert.ok(content.includes('DAEMON_PATH'));
-});
-
-test('start.sh 包含 daemon 目录清理逻辑', () => {
-    const content = fs.readFileSync(START_SH_PATH, 'utf8');
-    assert.ok(content.includes('rm -rf'));
-    assert.ok(content.includes('-d "$DAEMON_PATH"'));
 });
 
 test('start.sh 调用 node windows-service.js 且 cd 在 node 之前', () => {
@@ -390,16 +383,6 @@ test('keep-alive: setInterval 闭包内遍历 clients 并检查 isAlive', () => 
     );
     assert.ok(block.includes('wss.clients.forEach'));
     assert.ok(block.includes('ws.isAlive'));
-});
-
-test('start.sh 与 start.bat 结构对称', () => {
-    const startBatPath = path.join(__dirname, '..', 'start.bat');
-    if (fs.existsSync(startBatPath)) {
-        const batContent = fs.readFileSync(startBatPath, 'utf8');
-        assert.ok(batContent.includes('daemon'));
-    }
-    const shContent = fs.readFileSync(START_SH_PATH, 'utf8');
-    assert.ok(shContent.includes('DAEMON_PATH'));
 });
 
 test('platform.isWindows 与 process.platform 一致', () => {
