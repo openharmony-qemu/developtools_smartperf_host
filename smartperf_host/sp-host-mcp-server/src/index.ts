@@ -1,7 +1,22 @@
+/*
+ * Copyright (C) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { TraceEngine } from './traceEngine';
-import { BrowserBridge } from './browserBridge';
+import { BrowserBridge, EXTENSION_PORT } from './browserBridge';
 import { registerTraceTools } from './tools/traceTools';
 import { registerJankTools } from './tools/jankTools';
 import { registerMemoryTools } from './tools/memoryTools';
@@ -23,7 +38,7 @@ const engine = new TraceEngine(
 );
 
 const bridge = new BrowserBridge({
-  port: parseInt(process.env.SP_AGENT_EXT_PORT || '19099', 10),
+  port: parseInt(process.env.SP_AGENT_EXT_PORT || String(EXTENSION_PORT), 10),
   autoConnect: false,
 });
 
@@ -35,8 +50,8 @@ bridge.on('disconnected', () => {
   console.error('[sp-agent] Disconnected from extension service');
 });
 
-bridge.on('error', (err) => {
-  console.error('[sp-agent] Extension service error:', err?.message || err);
+bridge.on('error', (err: unknown) => {
+  console.error('[sp-agent] Extension service error:', err instanceof Error ? err.message : String(err));
 });
 
 registerTraceTools(server, engine);
@@ -55,8 +70,8 @@ server.connect(transport).then(() => {
   if (process.env.TRACE_FILE) {
     console.error(`[sp-agent] Default trace file: ${process.env.TRACE_FILE}`);
   }
-}).catch((err) => {
-  console.error('[sp-agent] Failed to start:', err);
+}).catch((err: unknown) => {
+  console.error('[sp-agent] Failed to start:', err instanceof Error ? err.message : String(err));
   process.exit(1);
 });
 

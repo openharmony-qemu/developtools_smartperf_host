@@ -1,9 +1,24 @@
+/*
+ * Copyright (C) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import * as fs from 'fs';
+import * as path from 'path';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { TraceEngine } from '../traceEngine';
 import { SpExecuteWorkflowSchema, SpListWorkflowsSchema } from '../zodSchemas';
 import { SpToolDescriptions } from '../toolDescriptions';
-import * as fs from 'fs';
-import * as path from 'path';
 import triageJankSql from '../sqlScripts/triage_jank.sql';
 import triageMemorySql from '../sqlScripts/triage_memory.sql';
 import triageCpuSql from '../sqlScripts/triage_cpu.sql';
@@ -56,74 +71,113 @@ interface Workflow {
   steps: WorkflowStep[];
 }
 
+interface TextContent {
+  type: string;
+  text: string;
+}
+
 function loadWorkflow(name: string): Workflow | null {
   const p = path.join(WORKFLOWS_DIR, `${name}.json`);
-  if (!fs.existsSync(p)) return null;
+  if (!fs.existsSync(p)) {
+    return null;
+  }
   return JSON.parse(fs.readFileSync(p, 'utf-8'));
 }
 
-function resolveFieldValue(mapping: string, results: Map<string, any>): unknown {
+function extractContentText(stepResult: unknown): unknown {
+  if (stepResult === null || stepResult === undefined || typeof stepResult !== 'object' || !('content' in stepResult)) {
+    return stepResult;
+  }
+  const contentArr = (stepResult as { content?: TextContent[] }).content;
+  if (!Array.isArray(contentArr)) {
+    return stepResult;
+  }
+  const textItem = contentArr.find((c) => c.type === 'text');
+  if (!textItem || typeof textItem.text !== 'string') {
+    return stepResult;
+  }
+  try {
+    return JSON.parse(textItem.text);
+  } catch (e: unknown) {
+    return undefined;
+  }
+}
+
+function walkFieldPath(current: unknown, parts: string[]): unknown {
+  let value = current;
+  for (const part of parts) {
+    if (value === null || value === undefined) {
+      return undefined;
+    }
+    value = (value as Record<string, unknown>)[part];
+  }
+  return value;
+}
+
+function resolveFieldValue(mapping: string, results: Map<string, unknown>): unknown {
   const match = mapping.match(/^\$\{(\w+)\.content\.?([^}]*)\}$/);
-  if (!match) return mapping;
+  if (!match) {
+    return mapping;
+  }
   const stepId = match[1];
   const fieldPath = match[2];
   const stepResult = results.get(stepId);
-  if (!stepResult) return undefined;
-  if (!fieldPath) return stepResult;
+  if (!stepResult) {
+    return undefined;
+  }
+  if (!fieldPath) {
+    return stepResult;
+  }
 
   const parts = fieldPath.split('.');
-  let current: unknown = stepResult;
-
-  if (current != null && typeof current === 'object' && 'content' in current) {
-    const contentArr = (current as any).content;
-    if (Array.isArray(contentArr)) {
-      const textItem = contentArr.find((c: any) => c.type === 'text');
-      if (textItem && typeof textItem.text === 'string') {
-        try {
-          current = JSON.parse(textItem.text);
-        } catch {
-          return undefined;
-        }
-      }
-    }
-  }
-
-  for (const part of parts) {
-    if (current == null) return undefined;
-    current = (current as any)[part];
-  }
-  return current;
+  let current = extractContentText(stepResult);
+  return walkFieldPath(current, parts);
 }
 
 const WORKFLOW_NAMES = ['full-triage', 'jank-deep-dive', 'memory-leak-hunt', 'cpu-sched-analysis'];
 
 export function registerWorkflowTools(server: McpServer, engine: TraceEngine): void {
-  server.tool('sp-execute-workflow', SpToolDescriptions.spExecuteWorkflow, SpExecuteWorkflowSchema, async ({ name, args }) => {
-    const workflow = loadWorkflow(name);
-    if (!workflow) {
-      return { content: [{ type: 'text', text: `Workflow "${name}" not found. Available: ${WORKFLOW_NAMES.join(', ')}` }], isError: true };
-    }
-    const stepResults = new Map<string, any>();
-    const outputs: any[] = [];
-    let hasError = false;
+  server.tool(
+    'sp-execute-workflow',
+    SpToolDescriptions.spExecuteWorkflow,
+    SpExecuteWorkflowSchema,
+    async ({ name, args }) => {
+      const workflow = loadWorkflow(name);
+      if (!workflow) {
+        return {
+          content: [{
+            type: 'text',
+            text: `Workflow "${name}" not found. Available: ${WORKFLOW_NAMES.join(', ')}`,
+          }],
+          isError: true,
+        };
+      }
+      const stepResults = new Map<string, unknown>();
+      const outputs: Array<Record<string, unknown>> = [];
+      let hasError = false;
 
-    const groups = groupSteps(workflow.steps);
-    for (const group of groups) {
-      if (group.length === 1 && !group[0].parallel) {
-        const result = await executeStep(group[0], args || {}, stepResults, engine);
-        outputs.push(result);
-        if (result.isError) hasError = true;
-      } else {
-        const results = await Promise.all(group.map(step => executeStep(step, args || {}, stepResults, engine)));
-        for (const r of results) {
-          outputs.push(r);
-          if (r.isError) hasError = true;
+      const groups = groupSteps(workflow.steps);
+      for (const group of groups) {
+        if (group.length === 1 && !group[0].parallel) {
+          const result = await executeStep(group[0], args || {}, stepResults, engine);
+          outputs.push(result);
+          if (result.isError) {
+            hasError = true;
+          }
+        } else {
+          const results = await Promise.all(group.map(step => executeStep(step, args || {}, stepResults, engine)));
+          for (const r of results) {
+            outputs.push(r);
+            if (r.isError) {
+              hasError = true;
+            }
+          }
         }
       }
-    }
 
-    return { content: [{ type: 'text', text: JSON.stringify(outputs) }], isError: hasError || undefined };
-  });
+      return { content: [{ type: 'text', text: JSON.stringify(outputs) }], isError: hasError || undefined };
+    }
+  );
 
   server.tool('sp-list-workflows', SpToolDescriptions.spListWorkflows, SpListWorkflowsSchema, async () => {
     const workflows = WORKFLOW_NAMES.map(n => {
@@ -148,12 +202,19 @@ function groupSteps(steps: WorkflowStep[]): WorkflowStep[][] {
       groups.push([step]);
     }
   }
-  if (currentGroup.length > 0) groups.push(currentGroup);
+  if (currentGroup.length > 0) {
+    groups.push(currentGroup);
+  }
   return groups;
 }
 
-async function executeStep(step: WorkflowStep, globalArgs: Record<string, unknown>, stepResults: Map<string, any>, engine: TraceEngine): Promise<any> {
-  let stepArgs = { ...step.args, ...globalArgs };
+async function executeStep(
+  step: WorkflowStep,
+  globalArgs: Record<string, unknown>,
+  stepResults: Map<string, unknown>,
+  engine: TraceEngine
+): Promise<Record<string, unknown>> {
+  const stepArgs = { ...step.args, ...globalArgs };
   if (step.argsMapping) {
     for (const [argKey, mapping] of Object.entries(step.argsMapping)) {
       const resolved = resolveFieldValue(mapping, stepResults);
@@ -171,7 +232,7 @@ async function executeStep(step: WorkflowStep, globalArgs: Record<string, unknow
   try {
     const parsed = JSON.parse(result.content[0].text);
     return { step: step.id, tool: step.tool, result: parsed };
-  } catch {
+  } catch (e: unknown) {
     return { step: step.id, tool: step.tool, result: result.content[0].text };
   }
 }

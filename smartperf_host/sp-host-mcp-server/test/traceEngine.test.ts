@@ -1,8 +1,23 @@
-import { TraceEngine } from '../src/traceEngine';
+/*
+ * Copyright (C) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import Database from 'better-sqlite3';
+import { TraceEngine } from '../src/traceEngine';
 
 jest.mock('child_process', () => ({
   execFile: jest.fn(() => ({})),
@@ -26,7 +41,7 @@ describe('TraceEngine', () => {
 
   afterEach(() => {
     engine.closeDb();
-    try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
+    try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch (e: unknown) { /* 忽略清理错误 */ }
   });
 
   it('getTraceFile returns the configured trace file', () => {
@@ -41,7 +56,7 @@ describe('TraceEngine', () => {
   });
 
   it('query returns error when trace_streamer export fails', async () => {
-    mockExecFile.mockImplementation((_cmd: any, _args: any, _opts: any, cb: Function) => {
+    mockExecFile.mockImplementation((_cmd: unknown, _args: unknown, _opts: unknown, cb: (err: Error | null) => void) => {
       cb(new Error('trace_streamer not found'));
       return {};
     });
@@ -52,7 +67,7 @@ describe('TraceEngine', () => {
   });
 
   it('query returns error when DB file not created after export', async () => {
-    mockExecFile.mockImplementation((_cmd: any, _args: any, _opts: any, cb: Function) => {
+    mockExecFile.mockImplementation((_cmd: unknown, _args: unknown, _opts: unknown, cb: (err: Error | null) => void) => {
       cb(null);
       return {};
     });

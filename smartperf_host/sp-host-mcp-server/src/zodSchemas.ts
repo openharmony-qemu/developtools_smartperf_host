@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { z } from 'zod';
 
 export const SpSetTraceFileSchema = { traceFile: z.string() };
@@ -36,8 +51,8 @@ export const SpShowQueryResultSchema = { query: z.string(), title: z.string().op
 
 export const SpGetCurrentTraceSchema = {};
 
-export const SpRegisterSkillSchema = { name: z.string(), description: z.string(), schema: z.record(z.any()), sqlTemplate: z.string(), domain: z.string().optional() };
-export const SpExecuteSkillSchema = { name: z.string(), params: z.record(z.any()).optional() };
+export const SpRegisterSkillSchema = { name: z.string(), description: z.string(), schema: z.record(z.unknown()), sqlTemplate: z.string(), domain: z.string().optional() };
+export const SpExecuteSkillSchema = { name: z.string(), params: z.record(z.unknown()).optional() };
 export const SpListSkillsSchema = {};
 export const SpDeleteSkillSchema = { name: z.string() };
 
@@ -45,5 +60,5 @@ export const SpSearchKnowledgeSchema = { query: z.string(), topK: z.number().opt
 export const SpUploadKnowledgeSchema = { name: z.string(), content: z.string(), type: z.string() };
 export const SpDeleteKnowledgeSchema = { name: z.string() };
 
-export const SpExecuteWorkflowSchema = { name: z.string(), args: z.record(z.any()).optional() };
+export const SpExecuteWorkflowSchema = { name: z.string(), args: z.record(z.unknown()).optional() };
 export const SpListWorkflowsSchema = {};

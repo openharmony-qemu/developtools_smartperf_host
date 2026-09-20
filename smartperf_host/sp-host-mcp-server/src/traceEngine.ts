@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { execFile } from 'child_process';
 import { promisify } from 'util';
 import * as os from 'os';
@@ -13,7 +28,12 @@ export interface SpToolResult {
   readonly isError?: boolean;
 }
 
+interface TableCount {
+  cnt: number;
+}
+
 const MAX_ROWS = 5000;
+const TRACE_STREAMER_EXPORT_TIMEOUT_MS = 90000;
 
 export class TraceEngine {
   private traceFile: string;
@@ -54,10 +74,10 @@ export class TraceEngine {
       this.traceFile = '';
       this.dbFromBrowser = true;
       this.dbReady = Promise.resolve(this.db);
-      const tables = this.db.prepare("SELECT count(*) as cnt FROM sqlite_schema WHERE type='table'").get() as any;
+      const tables = this.db.prepare("SELECT count(*) as cnt FROM sqlite_schema WHERE type='table'").get() as TableCount;
       return { content: [{ type: 'text', text: `DB file loaded: ${dbPath} (${tables.cnt} tables)` }] };
-    } catch (e: any) {
-      return { content: [{ type: 'text', text: `Failed to open DB: ${e.message || e}` }], isError: true };
+    } catch (e: unknown) {
+      return { content: [{ type: 'text', text: `Failed to open DB: ${e instanceof Error ? e.message : String(e)}` }], isError: true };
     }
   }
 
@@ -76,8 +96,8 @@ export class TraceEngine {
     let database: Database.Database;
     try {
       database = await this.ensureDb();
-    } catch (e: any) {
-      return { content: [{ type: 'text', text: `DB error: ${e.message || e}` }], isError: true };
+    } catch (e: unknown) {
+      return { content: [{ type: 'text', text: `DB error: ${e instanceof Error ? e.message : String(e)}` }], isError: true };
     }
     try {
       const stmt = database.prepare(sql);
@@ -86,8 +106,8 @@ export class TraceEngine {
         return { content: [{ type: 'text', text: `Query returned ${rows.length} rows, max ${MAX_ROWS}. Use aggregate queries.` }], isError: true };
       }
       return { content: [{ type: 'text', text: JSON.stringify(rows) }] };
-    } catch (e: any) {
-      return { content: [{ type: 'text', text: `SQL error: ${e.message || e}` }], isError: true };
+    } catch (e: unknown) {
+      return { content: [{ type: 'text', text: `SQL error: ${e instanceof Error ? e.message : String(e)}` }], isError: true };
     }
   }
 
@@ -97,8 +117,8 @@ export class TraceEngine {
   }
 
   private async ensureDb(): Promise<Database.Database> {
-    if (this.db && this.dbFile) return this.db;
-    if (this.dbReady) return this.dbReady;
+    if (this.db && this.dbFile) { return this.db; }
+    if (this.dbReady) { return this.dbReady; }
 
     const gen = this.dbGeneration;
     this.dbReady = (async () => {
@@ -110,12 +130,12 @@ export class TraceEngine {
       if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
       const dbPath = path.join(tmpDir, `trace-${Date.now()}-${process.pid}.db`);
       try {
-        await execFileAsync(this.traceStreamerPath, [this.traceFile, '-e', dbPath], { timeout: 120000 });
-      } catch (e: any) {
-        throw new Error(`Failed to export trace DB: ${e.message || e}`);
+        await execFileAsync(this.traceStreamerPath, [this.traceFile, '-e', dbPath], { timeout: TRACE_STREAMER_EXPORT_TIMEOUT_MS });
+      } catch (e: unknown) {
+        throw new Error(`Failed to export trace DB: ${e instanceof Error ? e.message : String(e)}`);
       }
       if (this.dbGeneration !== gen) {
-        try { fs.unlinkSync(dbPath); } catch {}
+        try { fs.unlinkSync(dbPath); } catch (e: unknown) { console.warn('[sp-agent] Temp DB cleanup failed:', e instanceof Error ? e.message : String(e)); }
         throw new Error('Trace file was changed during export.');
       }
       if (!fs.existsSync(dbPath)) {
@@ -128,7 +148,7 @@ export class TraceEngine {
 
     try {
       return await this.dbReady;
-    } catch (e) {
+    } catch (e: unknown) {
       this.dbReady = null;
       this.dbFile = null;
       throw e;
@@ -137,11 +157,11 @@ export class TraceEngine {
 
   closeDb(): void {
     if (this.db) {
-      try { this.db.close(); } catch {}
+      try { this.db.close(); } catch (e: unknown) { console.warn('[sp-agent] DB close failed:', e instanceof Error ? e.message : String(e)); }
       this.db = null;
     }
     if (this.dbFile && !this.dbFromBrowser) {
-      try { fs.unlinkSync(this.dbFile); } catch {}
+      try { fs.unlinkSync(this.dbFile); } catch (e: unknown) { console.warn('[sp-agent] DB file cleanup failed:', e instanceof Error ? e.message : String(e)); }
     }
     this.dbFile = null;
     this.dbReady = null;
@@ -153,7 +173,10 @@ export class TraceEngine {
   }
 
   async listTables(): Promise<SpToolResult> {
-    return this.query("SELECT name, type FROM sqlite_schema WHERE type IN ('table','view') AND name NOT LIKE 'sqlite_%' ORDER BY name");
+    return this.query(
+      "SELECT name, type FROM sqlite_schema WHERE type IN ('table','view') " +
+      "AND name NOT LIKE 'sqlite_%' ORDER BY name"
+    );
   }
 
   async listTableStructure(table: string): Promise<SpToolResult> {
