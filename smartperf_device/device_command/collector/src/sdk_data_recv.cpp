@@ -376,8 +376,8 @@ namespace OHOS {
             std::string filed;
             std::string curvalue;
             std::string cursystem;
-            int indexFour = 4;
-            int indexFive = 5;
+            const size_t indexFour = 4;
+            const size_t indexFive = 5;
             std::vector<std::string> vec;
             size_t endPos = sdkStr.find("\r\n");
             if (endPos != std::string::npos) {
@@ -387,13 +387,16 @@ namespace OHOS {
             while (getline(ss, filed, ',')) {
                 vec.push_back(filed);
             }
-            for (size_t i = 0; i < vec.size(); i++) {
-                curvalue = vec[indexFour];
-                cursystem = vec[indexFive];
-                if (curvalue != "0" && cursystem != "0") {
-                    sdkFps = curvalue;
-                    sdkSystime = cursystem;
-                }
+            if (vec.size() <= indexFive) {
+                LOGE("GetSdkFpsAndSystime:invalid sdkStr: failed count(%zu) less thanrequired(%zu)",
+                    vec.size(), indexFive + 1);
+                return;
+            }
+            curvalue = vec[indexFour];
+            cursystem = vec[indexFive];
+            if (curvalue != "0" && cursystem != "0") {
+                sdkFps = curvalue;
+                sdkSystime = cursystem;
             }
         }
 

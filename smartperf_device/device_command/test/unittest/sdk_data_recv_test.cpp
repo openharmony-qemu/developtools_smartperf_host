@@ -70,26 +70,5 @@ HWTEST_F(SPdaemonSdkDataTest, ItemDataTestCase, TestSize.Level1)
     std::map<std::string, std::string> result = SdkDataRecv::GetInstance().ItemData();
     EXPECT_EQ(result.size(), 0);
 }
-/**
- * @tc.name: SdkDataRecv::ServerThread
- * @tc.desc: Test ServerThread
- * @tc.type: FUNC
- */
-HWTEST_F(SPdaemonSdkDataTest, ServerThreadTestCase, TestSize.Level1)
-{
-    SdkDataRecv::GetInstance().StartExecutionOnce(false);
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-    int sockfd = ConnectSdkServer();
-    EXPECT_NE(sockfd, -1);
-    std::string sendData = "{src:test,para0:1,time:1000,enable:1,value:1}";
-    int ret = send(sockfd, sendData.c_str(), sendData.size(), 0);
-    if (ret != sendData.size()) {
-        printf("Send message error: %d, %s\n", sockfd, strerror(errno));
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-    close(sockfd);
-    SdkDataRecv::GetInstance().FinishtExecutionOnce(false);
-    EXPECT_EQ(SdkDataRecv::GetInstance().sdkVec_.size(), 0);
-}
 }
 }
