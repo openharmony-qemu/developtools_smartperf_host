@@ -285,6 +285,7 @@ export class SpQuerySQL extends BaseElement {
     this.shadowRoot
       ?.querySelectorAll<LitIcon>('.runButton')
       .forEach((it) => it.addEventListener('click', this.runSqlListener));
+    document.addEventListener('sp-agent-show-query', this.agentQueryListener as EventListener);
   }
 
   runSqlListener = (e: Event): void => {
@@ -338,7 +339,24 @@ export class SpQuerySQL extends BaseElement {
     this.selector!.removeEventListener('input', this.inputSqlListener);
     this.selector!.removeEventListener('change', this.inputSqlListener);
     this.selector!.removeEventListener('keydown', this.deleteSqlListener);
+    document.removeEventListener('sp-agent-show-query', this.agentQueryListener as EventListener);
   }
+
+  agentQueryListener = (e: CustomEvent): void => {
+    this.scrollTo(0, 0);
+    this.statDataArray = [];
+    this.keyList = [];
+    this.response!.innerHTML = '';
+    this.queryTableEl!.innerHTML = '';
+    this.pagination!.style.display = 'none';
+    if (e.detail?.query) {
+      this.selector!.value = e.detail.query;
+      this.isSupportSql = this.checkSafetySelectSql();
+      if (this.isSupportSql) {
+        this.executeSql(e.detail.query);
+      }
+    }
+  };
 
   attributeChangedCallback(name: string, oldValue: string, newValue: string): void {
     let queryDataSty: HTMLDivElement | undefined | null = this.queryTableEl?.shadowRoot?.querySelector(
