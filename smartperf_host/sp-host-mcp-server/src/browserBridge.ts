@@ -95,7 +95,9 @@ export class BrowserBridge extends EventEmitter {
   }
 
   async connect(): Promise<void> {
-    if (this.connected || this.connecting) { return; }
+    if (this.connected || this.connecting) {
+      return;
+    }
     this.connecting = true;
     try {
       await this.doConnect();
@@ -131,7 +133,11 @@ export class BrowserBridge extends EventEmitter {
   private pendingCallbacks = new Map<number, PendingCallback>();
   private cmdCounter = 0;
 
-  async sendUiCommand(cmd: number, payload: Record<string, unknown>, timeoutMs = DEFAULT_UI_CMD_TIMEOUT_MS): Promise<{ sent: boolean; result?: BrowserResponse }> {
+  async sendUiCommand(
+    cmd: number,
+    payload: Record<string, unknown>,
+    timeoutMs = DEFAULT_UI_CMD_TIMEOUT_MS
+  ): Promise<{ sent: boolean; result?: BrowserResponse }> {
     if (!this.isConnected()) {
       try {
         await this.connect();
@@ -181,7 +187,9 @@ export class BrowserBridge extends EventEmitter {
     const startTime = Date.now();
     return new Promise((resolve) => {
       const timer = setTimeout(() => {
-        if (progressTimer) clearInterval(progressTimer);
+        if (progressTimer) {
+          clearInterval(progressTimer);
+        }
         this.pendingCallbacks.delete(trackingId);
         resolve({ sent: true, result: { success: false, code: ERROR_CODE, message: 'DB export timeout' } });
       }, timeoutMs);
@@ -196,7 +204,9 @@ export class BrowserBridge extends EventEmitter {
         trackingId,
         resolve: (responsePayload: unknown) => {
           clearTimeout(timer);
-          if (progressTimer) clearInterval(progressTimer);
+          if (progressTimer) {
+            clearInterval(progressTimer);
+          }
           resolve({ sent: true, result: responsePayload as BrowserResponse });
         },
         timer,
@@ -204,37 +214,41 @@ export class BrowserBridge extends EventEmitter {
     });
   }
 
+  private dispatchAgentMessage(msg: DecodedMessage): void {
+    const dataStr = new TextDecoder().decode(msg.data);
+    let payload: Record<string, unknown>;
+    let isBinary = false;
+    try {
+      payload = JSON.parse(dataStr);
+    } catch (e: unknown) {
+      isBinary = true;
+      payload = { raw: dataStr };
+    }
+    this.emit('browser-response', { cmd: msg.cmd, sessionId: msg.sessionId, payload });
+    const trackingId = payload?._trackingId;
+    if (trackingId !== null && trackingId !== undefined) {
+      const cb = this.pendingCallbacks.get(Number(trackingId));
+      if (cb) {
+        this.pendingCallbacks.delete(Number(trackingId));
+        cb.resolve(payload);
+      }
+    } else if (this.pendingCallbacks.size > 0) {
+      const entries = Array.from(this.pendingCallbacks.entries());
+      const [id, cb] = entries[entries.length - 1];
+      this.pendingCallbacks.delete(id);
+      if (isBinary) {
+        cb.resolve({ code: ERROR_CODE, success: false, message: 'Received binary DB data without file path - extension service may not have processed it correctly' });
+      } else {
+        cb.resolve(payload);
+      }
+    }
+  }
+
   private handleMessage(raw: Buffer): void {
     try {
       const msg = this.decodeMessage(raw);
       if (msg.type === AGENT_TYPE) {
-        const dataStr = new TextDecoder().decode(msg.data);
-        let payload: Record<string, unknown>;
-        let isBinary = false;
-        try {
-          payload = JSON.parse(dataStr);
-        } catch (e: unknown) {
-          isBinary = true;
-          payload = { raw: dataStr };
-        }
-        this.emit('browser-response', { cmd: msg.cmd, sessionId: msg.sessionId, payload });
-        const trackingId = payload?._trackingId;
-        if (trackingId !== null && trackingId !== undefined) {
-          const cb = this.pendingCallbacks.get(Number(trackingId));
-          if (cb) {
-            this.pendingCallbacks.delete(Number(trackingId));
-            cb.resolve(payload);
-          }
-        } else if (this.pendingCallbacks.size > 0) {
-          const entries = Array.from(this.pendingCallbacks.entries());
-          const [id, cb] = entries[entries.length - 1];
-          this.pendingCallbacks.delete(id);
-          if (isBinary) {
-            cb.resolve({ code: ERROR_CODE, success: false, message: 'Received binary DB data without file path - extension service may not have processed it correctly' });
-          } else {
-            cb.resolve(payload);
-          }
-        }
+        this.dispatchAgentMessage(msg);
       }
     } catch (e: unknown) {
       console.error('[sp-agent] Message decode failed:', e instanceof Error ? e.message : String(e));
@@ -276,14 +290,41 @@ export class BrowserBridge extends EventEmitter {
     });
   }
 
+  private handleLoginMessage(
+    raw: Buffer,
+    resolve: () => void,
+    reject: (e: Error) => void,
+    cleanup: () => void
+  ): void {
+    try {
+      const msg = this.decodeMessage(raw);
+      if (msg.type === SYS_MSG_TYPE && msg.cmd === LOGIN_SUCCESS_CMD) {
+        this.sessionId = msg.sessionId;
+        this.session = msg.session;
+        cleanup();
+        resolve();
+      } else if (msg.type === SYS_MSG_TYPE && msg.cmd === LOGIN_FAIL_CMD) {
+        cleanup();
+        this.ws?.close();
+        reject(new Error('Login failed: session limit reached'));
+      }
+    } catch (e: unknown) {
+      console.warn('[sp-agent] Login message parse failed:', e instanceof Error ? e.message : String(e));
+    }
+  }
+
   private async login(): Promise<void> {
     return new Promise((resolve, reject) => {
       let loginHandler: ((raw: Buffer) => void) | null = null;
       let timer: NodeJS.Timeout | null = null;
 
       const cleanup = () => {
-        if (loginHandler && this.ws) { this.ws.off('message', loginHandler); }
-        if (timer) clearTimeout(timer);
+        if (loginHandler && this.ws) {
+          this.ws.off('message', loginHandler);
+        }
+        if (timer) {
+          clearTimeout(timer);
+        }
         loginHandler = null;
         timer = null;
       };
@@ -295,21 +336,7 @@ export class BrowserBridge extends EventEmitter {
       }, LOGIN_TIMEOUT_MS);
 
       loginHandler = (raw: Buffer) => {
-        try {
-          const msg = this.decodeMessage(raw);
-          if (msg.type === SYS_MSG_TYPE && msg.cmd === LOGIN_SUCCESS_CMD) {
-            this.sessionId = msg.sessionId;
-            this.session = msg.session;
-            cleanup();
-            resolve();
-          } else if (msg.type === SYS_MSG_TYPE && msg.cmd === LOGIN_FAIL_CMD) {
-            cleanup();
-            this.ws?.close();
-            reject(new Error('Login failed: session limit reached'));
-          }
-        } catch (e: unknown) {
-          console.warn('[sp-agent] Login message parse failed:', e instanceof Error ? e.message : String(e));
-        }
+        this.handleLoginMessage(raw, resolve, reject, cleanup);
       };
 
       this.ws!.on('message', loginHandler);

@@ -34,23 +34,33 @@ function stripCommentedOptionalClauses(sql: string, params: Record<string, unkno
   return result;
 }
 
+function buildReplacement(key: string, value: unknown): string {
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) {
+      throw new Error(`Invalid number param :${key}: ${value}`);
+    }
+    return String(value);
+  }
+  if (typeof value === 'string') {
+    const escaped = value.replace(/'/g, "''");
+    return `'${escaped}'`;
+  }
+  if (Array.isArray(value) && value.every(v => typeof v === 'number' && Number.isFinite(v))) {
+    return `(${value.join(',')})`;
+  }
+  throw new Error(`Unsupported param type for :${key}: ${typeof value}`);
+}
+
 function substituteParamValues(sql: string, params: Record<string, unknown>): string {
   let result = sql;
   for (const [key, value] of Object.entries(params)) {
-    if (value === null || value === undefined) continue;
+    if (value === null || value === undefined) {
+      continue;
+    }
     const escapedKey = escapeRegexKey(key);
     const paramRegex = new RegExp(`:${escapedKey}\\b`, 'g');
-    if (typeof value === 'number') {
-      if (!Number.isFinite(value)) throw new Error(`Invalid number param :${key}: ${value}`);
-      result = result.replace(paramRegex, () => String(value));
-    } else if (typeof value === 'string') {
-      const escaped = value.replace(/'/g, "''");
-      result = result.replace(paramRegex, () => `'${escaped}'`);
-    } else if (Array.isArray(value) && value.every(v => typeof v === 'number' && Number.isFinite(v))) {
-      result = result.replace(paramRegex, () => `(${value.join(',')})`);
-    } else {
-      throw new Error(`Unsupported param type for :${key}: ${typeof value}`);
-    }
+    const replacement = buildReplacement(key, value);
+    result = result.replace(paramRegex, () => replacement);
   }
   return result;
 }

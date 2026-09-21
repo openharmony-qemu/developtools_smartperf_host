@@ -117,8 +117,12 @@ export class TraceEngine {
   }
 
   private async ensureDb(): Promise<Database.Database> {
-    if (this.db && this.dbFile) { return this.db; }
-    if (this.dbReady) { return this.dbReady; }
+    if (this.db && this.dbFile) {
+      return this.db;
+    }
+    if (this.dbReady) {
+      return this.dbReady;
+    }
 
     const gen = this.dbGeneration;
     this.dbReady = (async () => {
@@ -127,7 +131,9 @@ export class TraceEngine {
         throw new Error(`Trace file not found: ${this.traceFile}`);
       }
       const tmpDir = path.join(os.tmpdir(), 'sp-agent');
-      if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+      if (!fs.existsSync(tmpDir)) {
+        fs.mkdirSync(tmpDir, { recursive: true });
+      }
       const dbPath = path.join(tmpDir, `trace-${Date.now()}-${process.pid}.db`);
       try {
         await execFileAsync(this.traceStreamerPath, [this.traceFile, '-e', dbPath], { timeout: TRACE_STREAMER_EXPORT_TIMEOUT_MS });
@@ -135,7 +141,11 @@ export class TraceEngine {
         throw new Error(`Failed to export trace DB: ${e instanceof Error ? e.message : String(e)}`);
       }
       if (this.dbGeneration !== gen) {
-        try { fs.unlinkSync(dbPath); } catch (e: unknown) { console.warn('[sp-agent] Temp DB cleanup failed:', e instanceof Error ? e.message : String(e)); }
+        try {
+          fs.unlinkSync(dbPath);
+        } catch (e: unknown) {
+          console.warn('[sp-agent] Temp DB cleanup failed:', e instanceof Error ? e.message : String(e));
+        }
         throw new Error('Trace file was changed during export.');
       }
       if (!fs.existsSync(dbPath)) {
@@ -157,11 +167,19 @@ export class TraceEngine {
 
   closeDb(): void {
     if (this.db) {
-      try { this.db.close(); } catch (e: unknown) { console.warn('[sp-agent] DB close failed:', e instanceof Error ? e.message : String(e)); }
+      try {
+        this.db.close();
+      } catch (e: unknown) {
+        console.warn('[sp-agent] DB close failed:', e instanceof Error ? e.message : String(e));
+      }
       this.db = null;
     }
     if (this.dbFile && !this.dbFromBrowser) {
-      try { fs.unlinkSync(this.dbFile); } catch (e: unknown) { console.warn('[sp-agent] DB file cleanup failed:', e instanceof Error ? e.message : String(e)); }
+      try {
+        fs.unlinkSync(this.dbFile);
+      } catch (e: unknown) {
+        console.warn('[sp-agent] DB file cleanup failed:', e instanceof Error ? e.message : String(e));
+      }
     }
     this.dbFile = null;
     this.dbReady = null;

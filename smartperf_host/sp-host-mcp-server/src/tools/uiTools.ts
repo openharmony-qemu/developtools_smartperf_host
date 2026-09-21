@@ -38,14 +38,20 @@ interface McpExtra {
   sendNotification?: (notification: { method: string; params: Record<string, unknown> }) => Promise<void>;
 }
 
-async function handleGetCurrentTrace(bridge: BrowserBridge, engine: TraceEngine, extra?: McpExtra): Promise<{ content: Array<{ type: 'text'; text: string }>; isError?: boolean }> {
-  if (!bridge.isConnected()) {
-    return { content: [{ type: 'text', text: 'Extension service not connected. sp-get-current-trace requires the extension service and browser to be running. Start the extension service first, then retry.' }], isError: true };
+interface ExportResult {
+  success?: boolean;
+  code?: number;
+  message?: string;
+}
+
+function createProgressNotifier(extra?: McpExtra): ((elapsedMs: number) => void) | undefined {
+  if (!extra?.sendNotification) {
+    return undefined;
   }
-  const onProgress = (elapsedMs: number) => {
-    const progressToken = extra?._meta?.progressToken;
-    if (extra?.sendNotification && progressToken !== null && progressToken !== undefined) {
-      extra.sendNotification({
+  return (elapsedMs: number) => {
+    const progressToken = extra._meta?.progressToken;
+    if (progressToken !== null && progressToken !== undefined) {
+      extra.sendNotification!({
         method: 'notifications/progress',
         params: { progressToken, progress: elapsedMs, total: 90000 },
       }).catch((e: unknown) => {
@@ -53,7 +59,13 @@ async function handleGetCurrentTrace(bridge: BrowserBridge, engine: TraceEngine,
       });
     }
   };
-  const { sent, result } = await bridge.requestExportDb(onProgress);
+}
+
+async function handleExportDbResult(
+  sent: boolean,
+  result: ExportResult | undefined,
+  engine: TraceEngine
+): Promise<{ content: Array<{ type: 'text'; text: string }>; isError?: boolean }> {
   if (!sent) {
     return { content: [{ type: 'text', text: 'Extension service not available. Start the extension service and open SP Host in browser with a trace file loaded.' }], isError: true };
   }
@@ -61,9 +73,7 @@ async function handleGetCurrentTrace(bridge: BrowserBridge, engine: TraceEngine,
     return { content: [{ type: 'text', text: `Failed to get trace from browser: ${result.message}` }], isError: true };
   }
   if (result?.code === EXPORT_DB_SUCCESS_CODE && result?.message) {
-    const dbPath = result.message;
-    const loadResult = await engine.setDbFile(dbPath);
-    return loadResult;
+    return engine.setDbFile(result.message);
   }
   if (!result?.success && result?.message) {
     return { content: [{ type: 'text', text: `Failed to get trace from browser: ${result.message}` }], isError: true };
@@ -71,45 +81,70 @@ async function handleGetCurrentTrace(bridge: BrowserBridge, engine: TraceEngine,
   return { content: [{ type: 'text', text: `Unexpected response: ${JSON.stringify(result)}` }], isError: true };
 }
 
+async function handleGetCurrentTrace(bridge: BrowserBridge, engine: TraceEngine, extra?: McpExtra): Promise<{ content: Array<{ type: 'text'; text: string }>; isError?: boolean }> {
+  if (!bridge.isConnected()) {
+    return { content: [{ type: 'text', text: 'Extension service not connected. sp-get-current-trace requires the extension service and browser to be running. Start the extension service first, then retry.' }], isError: true };
+  }
+  const onProgress = createProgressNotifier(extra);
+  const { sent, result } = await bridge.requestExportDb(onProgress);
+  return handleExportDbResult(sent, result as ExportResult | undefined, engine);
+}
+
 export function registerUiTools(server: McpServer, bridge: BrowserBridge, engine: TraceEngine): void {
   server.tool('sp-show-timeline', SpToolDescriptions.spShowTimeline, SpShowTimelineSchema, async (args) => {
-    if (!bridge.isConnected()) { return notConnectedResult(); }
+    if (!bridge.isConnected()) {
+      return notConnectedResult();
+    }
     const { sent, result } = await bridge.sendUiCommand(UI_CMD.SHOW_TIMELINE, {
       startTime: args.startTime,
       endTime: args.endTime,
       ipid: args.ipid,
     });
-    if (!sent) { return { content: [{ type: 'text', text: 'Failed to send command.' }], isError: true }; }
+    if (!sent) {
+      return { content: [{ type: 'text', text: 'Failed to send command.' }], isError: true };
+    }
     return { content: [{ type: 'text', text: result ? `Browser response: ${JSON.stringify(result)}` : 'Timeline command sent to browser.' }] };
   });
 
   server.tool('sp-select-process', SpToolDescriptions.spSelectProcess, SpSelectProcessSchema, async (args) => {
-    if (!bridge.isConnected()) { return notConnectedResult(); }
+    if (!bridge.isConnected()) {
+      return notConnectedResult();
+    }
     const { sent, result } = await bridge.sendUiCommand(UI_CMD.SELECT_PROCESS, {
       ipid: args.ipid,
       processName: args.processName,
     });
-    if (!sent) { return { content: [{ type: 'text', text: 'Failed to send command.' }], isError: true }; }
+    if (!sent) {
+      return { content: [{ type: 'text', text: 'Failed to send command.' }], isError: true };
+    }
     return { content: [{ type: 'text', text: result ? `Browser response: ${JSON.stringify(result)}` : 'Select process command sent to browser.' }] };
   });
 
   server.tool('sp-focus-range', SpToolDescriptions.spFocusRange, SpFocusRangeSchema, async (args) => {
-    if (!bridge.isConnected()) { return notConnectedResult(); }
+    if (!bridge.isConnected()) {
+      return notConnectedResult();
+    }
     const { sent, result } = await bridge.sendUiCommand(UI_CMD.FOCUS_RANGE, {
       startTime: args.startTime,
       endTime: args.endTime,
     });
-    if (!sent) { return { content: [{ type: 'text', text: 'Failed to send command.' }], isError: true }; }
+    if (!sent) {
+      return { content: [{ type: 'text', text: 'Failed to send command.' }], isError: true };
+    }
     return { content: [{ type: 'text', text: result ? `Browser response: ${JSON.stringify(result)}` : 'Focus range command sent to browser.' }] };
   });
 
   server.tool('sp-show-query-result', SpToolDescriptions.spShowQueryResult, SpShowQueryResultSchema, async (args) => {
-    if (!bridge.isConnected()) { return notConnectedResult(); }
+    if (!bridge.isConnected()) {
+      return notConnectedResult();
+    }
     const { sent, result } = await bridge.sendUiCommand(UI_CMD.SHOW_QUERY_RESULT, {
       query: args.query,
       title: args.title,
     });
-    if (!sent) { return { content: [{ type: 'text', text: 'Failed to send command.' }], isError: true }; }
+    if (!sent) {
+      return { content: [{ type: 'text', text: 'Failed to send command.' }], isError: true };
+    }
     return { content: [{ type: 'text', text: result ? `Browser response: ${JSON.stringify(result)}` : 'Show query result command sent to browser.' }] };
   });
 

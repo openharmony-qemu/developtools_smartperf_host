@@ -32,38 +32,52 @@ function validateName(name: string): void {
 }
 
 function ensureKnowledgeDir(): void {
-  if (!fs.existsSync(KNOWLEDGE_DIR)) fs.mkdirSync(KNOWLEDGE_DIR, { recursive: true });
+  if (!fs.existsSync(KNOWLEDGE_DIR)) {
+    fs.mkdirSync(KNOWLEDGE_DIR, { recursive: true });
+  }
+}
+
+function countTermMatches(terms: string[], contentLower: string): number {
+  let score = 0;
+  for (const term of terms) {
+    const idx = contentLower.indexOf(term);
+    if (idx >= 0) {
+      score += 1;
+    }
+  }
+  return score;
+}
+
+function searchKnowledge(query: string, topK: number): Array<{ name: string; snippet: string; score: number }> {
+  ensureKnowledgeDir();
+  const files = fs.readdirSync(KNOWLEDGE_DIR).filter(f => f.endsWith('.md') || f.endsWith('.txt') || f.endsWith('.json'));
+  const results: Array<{ name: string; snippet: string; score: number }> = [];
+  const queryLower = query.toLowerCase();
+  const terms = queryLower.split(/\s+/);
+  for (const file of files) {
+    try {
+      const content = fs.readFileSync(path.join(KNOWLEDGE_DIR, file), 'utf-8');
+      const contentLower = content.toLowerCase();
+      const score = countTermMatches(terms, contentLower);
+      if (score > 0) {
+        const firstMatch = contentLower.indexOf(terms[0]);
+        const start = Math.max(0, firstMatch - KNOWLEDGE_SNIPPET_BEFORE_CHARS);
+        const end = Math.min(content.length, firstMatch + KNOWLEDGE_SNIPPET_AFTER_CHARS);
+        results.push({ name: file, snippet: content.slice(start, end), score });
+      }
+    } catch (e: unknown) {
+      console.warn('[sp-agent] Failed to read knowledge file:', file, e instanceof Error ? e.message : String(e));
+    }
+  }
+  results.sort((a, b) => b.score - a.score);
+  return results.slice(0, topK);
 }
 
 export function registerKnowledgeTools(server: McpServer): void {
   server.tool('sp-search-knowledge', SpToolDescriptions.spSearchKnowledge, SpSearchKnowledgeSchema, async ({ query, topK }) => {
-    ensureKnowledgeDir();
     const k = topK || DEFAULT_KNOWLEDGE_SEARCH_TOP_K;
-    const files = fs.readdirSync(KNOWLEDGE_DIR).filter(f => f.endsWith('.md') || f.endsWith('.txt') || f.endsWith('.json'));
-    const results: Array<{ name: string; snippet: string; score: number }> = [];
-    const queryLower = query.toLowerCase();
-    for (const file of files) {
-      try {
-        const content = fs.readFileSync(path.join(KNOWLEDGE_DIR, file), 'utf-8');
-        const contentLower = content.toLowerCase();
-        let score = 0;
-        const terms = queryLower.split(/\s+/);
-        for (const term of terms) {
-          const idx = contentLower.indexOf(term);
-          if (idx >= 0) score += 1;
-        }
-        if (score > 0) {
-          const firstMatch = contentLower.indexOf(queryLower.split(/\s+/)[0]);
-          const start = Math.max(0, firstMatch - KNOWLEDGE_SNIPPET_BEFORE_CHARS);
-          const end = Math.min(content.length, firstMatch + KNOWLEDGE_SNIPPET_AFTER_CHARS);
-          results.push({ name: file, snippet: content.slice(start, end), score });
-        }
-      } catch (e: unknown) {
-        console.warn('[sp-agent] Failed to read knowledge file:', file, e instanceof Error ? e.message : String(e));
-      }
-    }
-    results.sort((a, b) => b.score - a.score);
-    return { content: [{ type: 'text', text: JSON.stringify(results.slice(0, k)) }] };
+    const results = searchKnowledge(query, k);
+    return { content: [{ type: 'text', text: JSON.stringify(results) }] };
   });
 
   server.tool('sp-upload-knowledge', SpToolDescriptions.spUploadKnowledge, SpUploadKnowledgeSchema, async ({ name, content, type }) => {

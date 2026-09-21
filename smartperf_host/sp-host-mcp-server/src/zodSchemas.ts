@@ -51,7 +51,13 @@ export const SpShowQueryResultSchema = { query: z.string(), title: z.string().op
 
 export const SpGetCurrentTraceSchema = {};
 
-export const SpRegisterSkillSchema = { name: z.string(), description: z.string(), schema: z.record(z.unknown()), sqlTemplate: z.string(), domain: z.string().optional() };
+export const SpRegisterSkillSchema = {
+  name: z.string(),
+  description: z.string(),
+  schema: z.record(z.unknown()),
+  sqlTemplate: z.string(),
+  domain: z.string().optional(),
+};
 export const SpExecuteSkillSchema = { name: z.string(), params: z.record(z.unknown()).optional() };
 export const SpListSkillsSchema = {};
 export const SpDeleteSkillSchema = { name: z.string() };

@@ -136,6 +136,39 @@ function resolveFieldValue(mapping: string, results: Map<string, unknown>): unkn
 
 const WORKFLOW_NAMES = ['full-triage', 'jank-deep-dive', 'memory-leak-hunt', 'cpu-sched-analysis'];
 
+async function executeStepGroup(
+  group: WorkflowStep[],
+  globalArgs: Record<string, unknown>,
+  stepResults: Map<string, unknown>,
+  engine: TraceEngine
+): Promise<Array<Record<string, unknown>>> {
+  if (group.length === 1 && !group[0].parallel) {
+    return [await executeStep(group[0], globalArgs, stepResults, engine)];
+  }
+  return Promise.all(group.map(step => executeStep(step, globalArgs, stepResults, engine)));
+}
+
+async function executeAllSteps(
+  workflow: Workflow,
+  globalArgs: Record<string, unknown>,
+  engine: TraceEngine
+): Promise<{ outputs: Array<Record<string, unknown>>; hasError: boolean }> {
+  const stepResults = new Map<string, unknown>();
+  const outputs: Array<Record<string, unknown>> = [];
+  let hasError = false;
+
+  const groups = groupSteps(workflow.steps);
+  for (const group of groups) {
+    const results = await executeStepGroup(group, globalArgs, stepResults, engine);
+    outputs.push(...results);
+    if (results.some(r => Boolean(r.isError))) {
+      hasError = true;
+    }
+  }
+
+  return { outputs, hasError };
+}
+
 export function registerWorkflowTools(server: McpServer, engine: TraceEngine): void {
   server.tool(
     'sp-execute-workflow',
@@ -152,29 +185,7 @@ export function registerWorkflowTools(server: McpServer, engine: TraceEngine): v
           isError: true,
         };
       }
-      const stepResults = new Map<string, unknown>();
-      const outputs: Array<Record<string, unknown>> = [];
-      let hasError = false;
-
-      const groups = groupSteps(workflow.steps);
-      for (const group of groups) {
-        if (group.length === 1 && !group[0].parallel) {
-          const result = await executeStep(group[0], args || {}, stepResults, engine);
-          outputs.push(result);
-          if (result.isError) {
-            hasError = true;
-          }
-        } else {
-          const results = await Promise.all(group.map(step => executeStep(step, args || {}, stepResults, engine)));
-          for (const r of results) {
-            outputs.push(r);
-            if (r.isError) {
-              hasError = true;
-            }
-          }
-        }
-      }
-
+      const { outputs, hasError } = await executeAllSteps(workflow, args || {}, engine);
       return { content: [{ type: 'text', text: JSON.stringify(outputs) }], isError: hasError || undefined };
     }
   );

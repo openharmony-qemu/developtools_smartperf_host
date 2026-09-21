@@ -60,9 +60,13 @@ export class SpAgentListener {
   private registered = false;
 
   register(): void {
-    if (this.registered) { return; }
+    if (this.registered) {
+      return;
+    }
     const wsManager = WebSocketManager.getInstance();
-    if (!wsManager) { return; }
+    if (!wsManager) {
+      return;
+    }
 
     wsManager.registerMessageListener(
       AGENT_TYPE,
@@ -119,7 +123,9 @@ export class SpAgentListener {
 
   private getSpSystemTrace(): SpSystemTrace | null {
     const app = document.querySelector('body > sp-application') as SpApplication | null;
-    if (!app?.shadowRoot) { return null; }
+    if (!app?.shadowRoot) {
+      return null;
+    }
     return app.shadowRoot.querySelector('#sp-system-trace') as SpSystemTrace | null;
   }
 
@@ -200,7 +206,9 @@ export class SpAgentListener {
   }
 
   private scrollToProcessByIpid(trace: SpSystemTrace, ipid: number): void {
-    if (!trace?.rowsEL) { return; }
+    if (!trace?.rowsEL) {
+      return;
+    }
 
     const processRows = trace.rowsEL.querySelectorAll("trace-row[row-type='process'][folder]");
     for (const row of processRows) {
