@@ -85,32 +85,6 @@ export class TraceEngine {
     return this.traceFile;
   }
 
-  async query(sql: string, options?: { allowPragma?: boolean }): Promise<SpToolResult> {
-    const upperSql = sql.replace(/'(?:''|[^'])*'/g, "''").toUpperCase();
-    if (/\b(ATTACH|DETACH)\b/.test(upperSql)) {
-      return { content: [{ type: 'text', text: 'ATTACH/DETACH are not allowed in queries.' }], isError: true };
-    }
-    if (!options?.allowPragma && /\bPRAGMA\b/.test(upperSql)) {
-      return { content: [{ type: 'text', text: 'PRAGMA is not allowed in user queries. Use sp-list-table-structure instead.' }], isError: true };
-    }
-    let database: Database.Database;
-    try {
-      database = await this.ensureDb();
-    } catch (e: unknown) {
-      return { content: [{ type: 'text', text: `DB error: ${e instanceof Error ? e.message : String(e)}` }], isError: true };
-    }
-    try {
-      const stmt = database.prepare(sql);
-      const rows = stmt.all();
-      if (rows.length > MAX_ROWS) {
-        return { content: [{ type: 'text', text: `Query returned ${rows.length} rows, max ${MAX_ROWS}. Use aggregate queries.` }], isError: true };
-      }
-      return { content: [{ type: 'text', text: JSON.stringify(rows) }] };
-    } catch (e: unknown) {
-      return { content: [{ type: 'text', text: `SQL error: ${e instanceof Error ? e.message : String(e)}` }], isError: true };
-    }
-  }
-
   async queryWithParams(sqlTemplate: string, params: Record<string, unknown>): Promise<SpToolResult> {
     const sql = resolvePlaceholders(sqlTemplate, params);
     return this.query(sql);
@@ -126,7 +100,9 @@ export class TraceEngine {
 
     const gen = this.dbGeneration;
     this.dbReady = (async () => {
-      if (!this.traceFile) throw new Error('No trace file set. Use sp-set-trace-file first.');
+      if (!this.traceFile) {
+        throw new Error('No trace file set. Use sp-set-trace-file first.');
+      }
       if (!fs.existsSync(this.traceFile)) {
         throw new Error(`Trace file not found: ${this.traceFile}`);
       }
@@ -200,5 +176,31 @@ export class TraceEngine {
   async listTableStructure(table: string): Promise<SpToolResult> {
     const safeTable = table.replace(/'/g, "''");
     return this.query(`pragma table_info('${safeTable}')`, { allowPragma: true });
+  }
+
+  async query(sql: string, options?: { allowPragma?: boolean }): Promise<SpToolResult> {
+    const upperSql = sql.replace(/'(?:''|[^'])*'/g, "''").toUpperCase();
+    if (/\b(ATTACH|DETACH)\b/.test(upperSql)) {
+      return { content: [{ type: 'text', text: 'ATTACH/DETACH are not allowed in queries.' }], isError: true };
+    }
+    if (!options?.allowPragma && /\bPRAGMA\b/.test(upperSql)) {
+      return { content: [{ type: 'text', text: 'PRAGMA is not allowed in user queries. Use sp-list-table-structure instead.' }], isError: true };
+    }
+    let database: Database.Database;
+    try {
+      database = await this.ensureDb();
+    } catch (e: unknown) {
+      return { content: [{ type: 'text', text: `DB error: ${e instanceof Error ? e.message : String(e)}` }], isError: true };
+    }
+    try {
+      const stmt = database.prepare(sql);
+      const rows = stmt.all();
+      if (rows.length > MAX_ROWS) {
+        return { content: [{ type: 'text', text: `Query returned ${rows.length} rows, max ${MAX_ROWS}. Use aggregate queries.` }], isError: true };
+      }
+      return { content: [{ type: 'text', text: JSON.stringify(rows) }] };
+    } catch (e: unknown) {
+      return { content: [{ type: 'text', text: `SQL error: ${e instanceof Error ? e.message : String(e)}` }], isError: true };
+    }
   }
 }

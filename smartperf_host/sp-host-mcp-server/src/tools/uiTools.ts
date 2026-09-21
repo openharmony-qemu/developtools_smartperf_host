@@ -90,63 +90,40 @@ async function handleGetCurrentTrace(bridge: BrowserBridge, engine: TraceEngine,
   return handleExportDbResult(sent, result as ExportResult | undefined, engine);
 }
 
+async function handleUiCommand(
+  bridge: BrowserBridge,
+  cmd: number,
+  payload: Record<string, unknown>,
+  successMessage: string
+): Promise<{ content: Array<{ type: 'text'; text: string }>; isError?: boolean }> {
+  if (!bridge.isConnected()) {
+    return notConnectedResult();
+  }
+  const { sent, result } = await bridge.sendUiCommand(cmd, payload);
+  if (!sent) {
+    return { content: [{ type: 'text', text: 'Failed to send command.' }], isError: true };
+  }
+  return { content: [{ type: 'text', text: result ? `Browser response: ${JSON.stringify(result)}` : successMessage }] };
+}
+
 export function registerUiTools(server: McpServer, bridge: BrowserBridge, engine: TraceEngine): void {
-  server.tool('sp-show-timeline', SpToolDescriptions.spShowTimeline, SpShowTimelineSchema, async (args) => {
-    if (!bridge.isConnected()) {
-      return notConnectedResult();
-    }
-    const { sent, result } = await bridge.sendUiCommand(UI_CMD.SHOW_TIMELINE, {
-      startTime: args.startTime,
-      endTime: args.endTime,
-      ipid: args.ipid,
-    });
-    if (!sent) {
-      return { content: [{ type: 'text', text: 'Failed to send command.' }], isError: true };
-    }
-    return { content: [{ type: 'text', text: result ? `Browser response: ${JSON.stringify(result)}` : 'Timeline command sent to browser.' }] };
-  });
+  server.tool('sp-show-timeline', SpToolDescriptions.spShowTimeline, SpShowTimelineSchema, async (args) =>
+    handleUiCommand(bridge, UI_CMD.SHOW_TIMELINE, { startTime: args.startTime, endTime: args.endTime, ipid: args.ipid }, 'Timeline command sent to browser.')
+  );
 
-  server.tool('sp-select-process', SpToolDescriptions.spSelectProcess, SpSelectProcessSchema, async (args) => {
-    if (!bridge.isConnected()) {
-      return notConnectedResult();
-    }
-    const { sent, result } = await bridge.sendUiCommand(UI_CMD.SELECT_PROCESS, {
-      ipid: args.ipid,
-      processName: args.processName,
-    });
-    if (!sent) {
-      return { content: [{ type: 'text', text: 'Failed to send command.' }], isError: true };
-    }
-    return { content: [{ type: 'text', text: result ? `Browser response: ${JSON.stringify(result)}` : 'Select process command sent to browser.' }] };
-  });
+  server.tool('sp-select-process', SpToolDescriptions.spSelectProcess, SpSelectProcessSchema, async (args) =>
+    handleUiCommand(bridge, UI_CMD.SELECT_PROCESS, { ipid: args.ipid, processName: args.processName }, 'Select process command sent to browser.')
+  );
 
-  server.tool('sp-focus-range', SpToolDescriptions.spFocusRange, SpFocusRangeSchema, async (args) => {
-    if (!bridge.isConnected()) {
-      return notConnectedResult();
-    }
-    const { sent, result } = await bridge.sendUiCommand(UI_CMD.FOCUS_RANGE, {
-      startTime: args.startTime,
-      endTime: args.endTime,
-    });
-    if (!sent) {
-      return { content: [{ type: 'text', text: 'Failed to send command.' }], isError: true };
-    }
-    return { content: [{ type: 'text', text: result ? `Browser response: ${JSON.stringify(result)}` : 'Focus range command sent to browser.' }] };
-  });
+  server.tool('sp-focus-range', SpToolDescriptions.spFocusRange, SpFocusRangeSchema, async (args) =>
+    handleUiCommand(bridge, UI_CMD.FOCUS_RANGE, { startTime: args.startTime, endTime: args.endTime }, 'Focus range command sent to browser.')
+  );
 
-  server.tool('sp-show-query-result', SpToolDescriptions.spShowQueryResult, SpShowQueryResultSchema, async (args) => {
-    if (!bridge.isConnected()) {
-      return notConnectedResult();
-    }
-    const { sent, result } = await bridge.sendUiCommand(UI_CMD.SHOW_QUERY_RESULT, {
-      query: args.query,
-      title: args.title,
-    });
-    if (!sent) {
-      return { content: [{ type: 'text', text: 'Failed to send command.' }], isError: true };
-    }
-    return { content: [{ type: 'text', text: result ? `Browser response: ${JSON.stringify(result)}` : 'Show query result command sent to browser.' }] };
-  });
+  server.tool('sp-show-query-result', SpToolDescriptions.spShowQueryResult, SpShowQueryResultSchema, async (args) =>
+    handleUiCommand(bridge, UI_CMD.SHOW_QUERY_RESULT, { query: args.query, title: args.title }, 'Show query result command sent to browser.')
+  );
 
-  server.tool('sp-get-current-trace', SpToolDescriptions.spGetCurrentTrace, SpGetCurrentTraceSchema, async (_args, extra) => handleGetCurrentTrace(bridge, engine, extra));
+  server.tool('sp-get-current-trace', SpToolDescriptions.spGetCurrentTrace, SpGetCurrentTraceSchema, async (_args, extra) =>
+    handleGetCurrentTrace(bridge, engine, extra)
+  );
 }

@@ -60,30 +60,6 @@ function validateName(name: string): void {
   }
 }
 
-function validateSqlSafety(sql: string): boolean {
-  const withoutStrings = sql.replace(/'(?:''|[^'])*'/g, "''");
-  const cleaned = withoutStrings
-    .replace(/\/\*[\s\S]*?\*\//g, ' ')
-    .replace(/--[^\n]*/g, ' ')
-    .toUpperCase();
-
-  const forbidden = /\b(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE|ATTACH|DETACH|PRAGMA)\b/;
-  if (forbidden.test(cleaned)) {
-    return false;
-  }
-
-  const trimmed = cleaned.trim();
-  if (trimmed.includes(';')) {
-    return false;
-  }
-
-  if (!/^\s*(SELECT|WITH)\b/i.test(sql.trim())) {
-    return false;
-  }
-
-  return true;
-}
-
 function isBuiltinTool(name: string): boolean {
   return BUILTIN_PREFIXES.some(p => name.startsWith(p));
 }
@@ -186,4 +162,28 @@ export function loadSkillSql(
 ): Promise<{ content: Array<{ type: 'text'; text: string }>; isError?: boolean }> {
   const sql = resolvePlaceholders(sqlTemplate, params);
   return engine.query(sql) as Promise<{ content: Array<{ type: 'text'; text: string }>; isError?: boolean }>;
+}
+
+function validateSqlSafety(sql: string): boolean {
+  const withoutStrings = sql.replace(/'(?:''|[^'])*'/g, "''");
+  const cleaned = withoutStrings
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/--[^\n]*/g, ' ')
+    .toUpperCase();
+
+  const forbidden = /\b(DROP|DELETE|UPDATE|INSERT|ALTER|CREATE|ATTACH|DETACH|PRAGMA)\b/;
+  if (forbidden.test(cleaned)) {
+    return false;
+  }
+
+  const trimmed = cleaned.trim();
+  if (trimmed.includes(';')) {
+    return false;
+  }
+
+  if (!/^\s*(SELECT|WITH)\b/i.test(sql.trim())) {
+    return false;
+  }
+
+  return true;
 }
