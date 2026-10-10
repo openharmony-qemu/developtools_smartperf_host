@@ -13,13 +13,16 @@
  * limitations under the License.
  */
 
-#include "export_config.h"
-
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <queue>
+#include <unordered_set>
 #include <vector>
+
 #include "json.hpp"
+
+#include "export_config.h"
 
 namespace SysTuning {
 namespace TraceStreamer {
@@ -37,19 +40,25 @@ const std::set<std::string> BASE_TABLES = {
 };
 
 const std::map<std::string, std::set<std::string>> CATEGORY_TABLES = {
-    {"ftrace", {"sched_slice", "thread_state", "callstack", "irq", "filesystem_io",
-                "measure", "syscall", "dma_fence", "instant", "raw", "timerfd_wakeup"}},
+    {"ftrace", {"raw", "instant", "sched_slice", "thread_state", "callstack", "irq",
+                "hidump", "syscall", "log", "sys_event_filter", "diskio", "cpu_usage",
+                "live_process", "dma_fence", "timerfd_wakeup", "filesystem_io",
+                "frame_slice", "frame_maps", "gpu_slice", "task_pool", "app_startup",
+                "static_initalize", "animation", "dynamic_frame", "device_info",
+                "measure", "cpu_measure_filter", "clock_event_filter", "clk_event_filter",
+                "process_measure", "process_measure_filter", "measure_filter"}},
     {"network", {"network", "network_time_information", "network_information"}},
-    {"ebpf", {"ebpf"}},
+    {"ebpf", {"ebpf_callstack", "bio_latency_sample", "file_system_sample", "paged_memory_sample"}},
     {"native_memory", {"native_hook", "native_hook_frame", "native_hook_statistic"}},
     {"arkts", {"js_config", "js_heap_files", "js_heap_edges", "js_heap_info",
                "js_heap_location", "js_heap_nodes", "js_heap_sample", "js_heap_string",
                "js_heap_trace_function_info", "js_heap_trace_node", "js_cpu_profiler_node",
                "js_cpu_profiler_sample"}},
-    {"hiperf", {"perf"}},
+    {"hiperf", {"perf_report", "perf_sample", "perf_callchain", "perf_thread", "perf_files", "perf_napi_async"}},
     {"memory", {"smaps", "memory_ashmem", "memory_dma", "memory_process_gpu",
-                "memory_window_gpu", "memory_cpu", "memory_profile", "memory_rs_image"}},
-    {"hisys_event", {"hisys_event_measure", "hisys_all_event"}},
+                "memory_window_gpu", "memory_cpu", "memory_profile", "memory_rs_image",
+                "sys_mem_measure", "process_measure", "process_measure_filter", "measure_filter"}},
+    {"hisys_event", {"app_name", "hisys_event_measure", "device_state", "hisys_all_event"}},
     {"xpower", {"xpower_measure", "xpower_app_statistic", "xpower_app_detail_cpu",
                 "xpower_app_detail_gpu", "xpower_app_detail_wifi", "xpower_app_detail_display",
                 "xpower_component_top"}},
@@ -102,7 +111,7 @@ const std::map<std::string, std::set<std::string>> EVENT_TO_TABLES = {
     {"workqueue_execute_end", {"callstack"}},
     {"dma_fence_init", {"dma_fence"}},
     {"dma_fence_destroy", {"dma_fence"}},
-    {"dma_fence_enable", {"dma_fence"}},
+    {"dma_fence_enable_signal", {"dma_fence"}},
     {"dma_fence_signaled", {"dma_fence"}},
     {"timerfd_wakeup", {"timerfd_wakeup"}},
     {"clock_set_rate", {"measure"}},
@@ -116,6 +125,11 @@ const std::map<std::string, std::set<std::string>> EVENT_TO_TABLES = {
     {"regulator_disable", {"measure"}},
     {"regulator_disable_complete", {"measure"}},
     {"task_rename", {"thread"}},
+    {"sched_blocked_reason", {"thread_state"}},
+    {"suspend_resume", {"stat"}},
+    {"task_newtask", {"stat"}},
+    {"sched_process_exit", {"thread"}},
+    {"sched_process_free", {"thread"}},
     {"hmfs_read_enter", {"filesystem_io"}},
     {"hmfs_read_exit", {"filesystem_io"}},
     {"hmfs_write_enter", {"filesystem_io"}},
@@ -139,12 +153,80 @@ const std::map<std::string, std::set<std::string>> PLUGIN_TO_TABLES = {
                       "js_heap_location", "js_heap_nodes", "js_heap_sample", "js_heap_string",
                       "js_heap_trace_function_info", "js_heap_trace_node", "js_cpu_profiler_node",
                       "js_cpu_profiler_sample"}},
-    {"hisysevent-plugin", {"hisys_event_measure", "hisys_all_event"}},
+    {"hisysevent-plugin", {"hisys_event_measure", "hisys_all_event", "app_name", "device_state"}},
     {"hilog-plugin", {"log"}},
     {"xpower-plugin", {"xpower_measure", "xpower_app_statistic", "xpower_app_detail_cpu",
-                        "xpower_app_detail_gpu", "xpower_app_detail_wifi",
-                        "xpower_app_detail_display", "xpower_component_top"}},
+                       "xpower_app_detail_gpu", "xpower_app_detail_wifi",
+                       "xpower_app_detail_display", "xpower_component_top"}},
     {"stream-plugin", {"stream"}},
+};
+
+const std::map<std::string, std::set<std::string>> TABLE_DEPS = {
+    {"process", {"data_dict"}},
+    {"thread", {"data_dict"}},
+    {"args", {"data_dict"}},
+    {"symbols", {"data_dict"}},
+    {"raw", {"thread"}},
+    {"instant", {"thread", "data_dict"}},
+    {"sched_slice", {"process", "thread", "args"}},
+    {"thread_state", {"thread", "args", "stat"}},
+    {"callstack", {"thread", "args", "data_dict"}},
+    {"irq", {"thread", "args", "data_dict"}},
+    {"syscall", {"thread", "data_dict"}},
+    {"log", {"data_dict"}},
+    {"dma_fence", {"data_dict"}},
+    {"timerfd_wakeup", {"data_dict"}},
+    {"filesystem_io", {"thread", "process"}},
+    {"network_time_information", {"thread", "process"}},
+    {"ebpf_callstack", {"symbols", "data_dict"}},
+    {"bio_latency_sample", {"process", "thread", "data_dict"}},
+    {"file_system_sample", {"process", "thread", "data_dict"}},
+    {"paged_memory_sample", {"process", "thread", "data_dict"}},
+    {"native_hook", {"process", "thread", "symbols", "data_dict"}},
+    {"native_hook_frame", {"symbols"}},
+    {"native_hook_statistic", {"process", "symbols", "data_dict"}},
+    {"measure", {"measure_filter", "data_dict"}},
+    {"cpu_measure_filter", {"data_dict"}},
+    {"measure_filter", {"args"}},
+    {"process_measure", {"process", "thread", "process_measure_filter", "data_dict"}},
+    {"process_measure_filter", {"process", "data_dict"}},
+    {"clock_event_filter", {"data_dict"}},
+    {"clk_event_filter", {"data_dict"}},
+    {"xpower_measure", {"measure_filter", "data_dict"}},
+    {"perf_report", {"data_dict"}},
+    {"perf_sample", {"data_dict"}},
+    {"perf_callchain", {"symbols"}},
+    {"perf_thread", {"data_dict"}},
+    {"perf_files", {"data_dict"}},
+    {"perf_napi_async", {"thread", "data_dict"}},
+    {"app_startup", {"thread", "process", "data_dict"}},
+    {"static_initalize", {"thread", "process", "data_dict"}},
+    {"animation", {"data_dict"}},
+    {"dynamic_frame", {"data_dict"}},
+    {"task_pool", {"thread"}},
+    {"device_info", {"data_dict"}},
+    {"frame_slice", {"process", "thread"}},
+    {"smaps", {"process"}},
+    {"memory_ashmem", {"process"}},
+    {"memory_dma", {"process"}},
+    {"memory_process_gpu", {"process", "thread"}},
+    {"memory_window_gpu", {"process"}},
+    {"memory_rs_image", {"process"}},
+    {"hisys_event_measure", {"data_dict"}},
+    {"app_name", {"data_dict"}},
+    {"device_state", {"data_dict"}},
+    {"hisys_all_event", {"data_dict"}},
+    {"xpower_app_statistic", {"data_dict"}},
+    {"xpower_app_detail_display", {"data_dict"}},
+    {"xpower_app_detail_cpu", {"data_dict"}},
+    {"xpower_app_detail_gpu", {"data_dict"}},
+    {"xpower_app_detail_wifi", {"data_dict"}},
+    {"xpower_component_top", {"data_dict"}},
+    {"hidump", {"data_dict"}},
+    {"diskio", {"data_dict"}},
+    {"cpu_usage", {"data_dict"}},
+    {"network", {"data_dict"}},
+    {"sys_event_filter", {"data_dict"}},
 };
 
 const std::map<std::string, std::set<std::string>> PLUGIN_NAME_VARIANTS = {
@@ -158,49 +240,112 @@ const std::map<std::string, std::set<std::string>> PLUGIN_NAME_VARIANTS = {
     {"ffrt-profiler", {"ffrt-profiler", "ffrt-profiler_config"}},
     {"network-profiler", {"network-profiler", "network-profiler_config"}},
 };
+
+bool ParseJsonFile(const std::string &configPath, nlohmann::json &j, std::string &err)
+{
+    std::ifstream ifs(configPath);
+    if (!ifs.is_open()) {
+        err = "Cannot open config file: " + configPath;
+        return false;
+    }
+    ifs >> j;
+    if (ifs.fail()) {
+        err = "JSON parse error";
+        return false;
+    }
+    return true;
+}
+
+void ParseCategories(const nlohmann::json &j, std::set<std::string> &out)
+{
+    if (!j.contains("categories")) {
+        return;
+    }
+    for (const auto &cat : j["categories"]) {
+        out.insert(cat.get<std::string>());
+    }
+}
+
+void ParseTables(const nlohmann::json &j, std::set<std::string> &out)
+{
+    if (!j.contains("tables")) {
+        return;
+    }
+    for (const auto &tbl : j["tables"]) {
+        out.insert(tbl.get<std::string>());
+    }
+}
+
+bool ValidateNotEmpty(const std::set<std::string> &categories,
+                      const std::set<std::string> &exportTables,
+                      std::string &err)
+{
+    if (!categories.empty()) {
+        return true;
+    }
+    if (!exportTables.empty()) {
+        return true;
+    }
+    err = "Both categories and tables are empty in config";
+    return false;
+}
+
+bool HasAnyCategory(const std::set<std::string> &deps, const std::set<std::string> &cats)
+{
+    for (const auto &dep : deps) {
+        if (cats.count(dep)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool IsBaseTableNeeded(const std::string &baseTable, const std::set<std::string> &cats)
+{
+    if (GLOBAL_BASE_TABLES.count(baseTable) || ALWAYS_BASE_TABLES.count(baseTable)) {
+        return true;
+    }
+    auto depIt = BASE_TABLE_DEPS.find(baseTable);
+    if (depIt == BASE_TABLE_DEPS.end()) {
+        return false;
+    }
+    return HasAnyCategory(depIt->second, cats);
+}
+
+void EnqueueUnresolvedDeps(const std::string &tbl, std::set<std::string> &resolved,
+                           std::queue<std::string> &pending)
+{
+    auto it = TABLE_DEPS.find(tbl);
+    if (it == TABLE_DEPS.end()) {
+        return;
+    }
+    for (const auto &dep : it->second) {
+        if (!resolved.count(dep)) {
+            pending.push(dep);
+        }
+    }
+}
 } // namespace
 
 bool ExportConfig::LoadConfig(const std::string &configPath)
 {
-    std::ifstream ifs(configPath);
-    if (!ifs.is_open()) {
-        lastError_ = "Cannot open config file: " + configPath;
-        std::cerr << lastError_ << std::endl;
-        return false;
-    }
-
     nlohmann::json j;
-    try {
-        ifs >> j;
-    } catch (const std::exception &e) {
-        lastError_ = std::string("JSON parse error: ") + e.what();
+    if (!ParseJsonFile(configPath, j, lastError_)) {
         std::cerr << lastError_ << std::endl;
         return false;
     }
-
-    if (j.contains("categories")) {
-        for (const auto &cat : j["categories"]) {
-            categories_.insert(cat.get<std::string>());
-        }
-    }
-    if (j.contains("tables")) {
-        for (const auto &tbl : j["tables"]) {
-            exportTables_.insert(tbl.get<std::string>());
-        }
-    }
-
+    ParseCategories(j, categories_);
+    ParseTables(j, exportTables_);
     if (categories_.empty() && exportTables_.empty()) {
-        lastError_ = "Both categories and tables are empty in config";
-        std::cerr << lastError_ << std::endl;
-        return false;
+        hasConfig_ = false;
+        return true;
     }
-
     if (!ValidateCategories()) {
         return false;
     }
-
     ComputeExportFilter();
     ComputeAllowedPluginNames();
+    hasConfig_ = true;
     return true;
 }
 
@@ -219,68 +364,62 @@ bool ExportConfig::ValidateCategories()
 void ExportConfig::AddBaseTables(const std::set<std::string> &cats)
 {
     for (const auto &baseTable : BASE_TABLES) {
-        bool need = false;
-        if (GLOBAL_BASE_TABLES.count(baseTable)) {
-            need = true;
-        } else if (ALWAYS_BASE_TABLES.count(baseTable)) {
-            need = true;
-        } else {
-            auto depIt = BASE_TABLE_DEPS.find(baseTable);
-            if (depIt != BASE_TABLE_DEPS.end()) {
-                for (const auto &dep : depIt->second) {
-                    if (cats.count(dep)) {
-                        need = true;
-                        break;
-                    }
-                }
-            }
-        }
-        if (need) {
+        if (IsBaseTableNeeded(baseTable, cats)) {
             exportFilter_.insert(baseTable);
         }
     }
+}
 
-    if (!cats.empty()) {
-        auto depIt = BASE_TABLE_DEPS.find("thread");
-        if (depIt != BASE_TABLE_DEPS.end() && depIt->second.count("callstack")) {
-            exportFilter_.insert("thread");
+void ExportConfig::ResolveTableDeps(const std::string &table, std::set<std::string> &resolved)
+{
+    std::queue<std::string> pending;
+    pending.push(table);
+    while (!pending.empty()) {
+        std::string tbl = pending.front();
+        pending.pop();
+        if (!resolved.insert(tbl).second) {
+            continue;
         }
+        EnqueueUnresolvedDeps(tbl, resolved, pending);
     }
 }
 
 void ExportConfig::ComputeExportFilter()
 {
-    if (!categories_.empty()) {
-        AddBaseTables(categories_);
-    }
+    AddTablesFromCategories();
+    AddTablesFromExplicitTables();
+}
 
+void ExportConfig::AddTablesFromCategories()
+{
+    if (categories_.empty()) {
+        return;
+    }
+    AddBaseTables(categories_);
     for (const auto &cat : categories_) {
-        auto it = CATEGORY_TABLES.find(cat);
-        if (it != CATEGORY_TABLES.end()) {
-            for (const auto &tbl : it->second) {
-                exportFilter_.insert(tbl);
-            }
-        }
+        ResolveCategoryTables(cat);
     }
+}
 
+void ExportConfig::ResolveCategoryTables(const std::string &cat)
+{
+    auto it = CATEGORY_TABLES.find(cat);
+    if (it == CATEGORY_TABLES.end()) {
+        return;
+    }
+    for (const auto &tbl : it->second) {
+        ResolveTableDeps(tbl, exportFilter_);
+    }
+}
+
+void ExportConfig::AddTablesFromExplicitTables()
+{
+    if (exportTables_.empty()) {
+        return;
+    }
+    AddBaseTables({});
     for (const auto &tbl : exportTables_) {
-        exportFilter_.insert(tbl);
-        if (tbl == "callstack") {
-            exportFilter_.insert("args");
-            exportFilter_.insert("data_dict");
-            exportFilter_.insert("thread");
-        }
-    }
-
-    if (!categories_.empty() || !exportTables_.empty()) {
-        exportFilter_.insert("stat");
-        exportFilter_.insert("datasource_clockid");
-    }
-
-    if (exportTables_.count("callstack") || categories_.count("ftrace")) {
-        exportFilter_.insert("args");
-        exportFilter_.insert("data_dict");
-        exportFilter_.insert("thread");
+        ResolveTableDeps(tbl, exportFilter_);
     }
 }
 
@@ -289,21 +428,30 @@ void ExportConfig::ComputeAllowedPluginNames()
     if (exportFilter_.empty()) {
         return;
     }
-
     for (const auto &[pluginName, pluginTables] : PLUGIN_TO_TABLES) {
-        for (const auto &tbl : pluginTables) {
-            if (exportFilter_.count(tbl)) {
-                auto varIt = PLUGIN_NAME_VARIANTS.find(pluginName);
-                if (varIt != PLUGIN_NAME_VARIANTS.end()) {
-                    for (const auto &variant : varIt->second) {
-                        allowedPluginNames_.insert(variant);
-                    }
-                } else {
-                    allowedPluginNames_.insert(pluginName);
-                }
-                break;
-            }
+        AddPluginIfNeeded(pluginName, pluginTables);
+    }
+}
+
+void ExportConfig::AddPluginIfNeeded(const std::string &pluginName, const std::set<std::string> &pluginTables)
+{
+    for (const auto &tbl : pluginTables) {
+        if (exportFilter_.count(tbl)) {
+            AddPluginVariants(pluginName);
+            return;
         }
+    }
+}
+
+void ExportConfig::AddPluginVariants(const std::string &pluginName)
+{
+    auto varIt = PLUGIN_NAME_VARIANTS.find(pluginName);
+    if (varIt != PLUGIN_NAME_VARIANTS.end()) {
+        for (const auto &variant : varIt->second) {
+            allowedPluginNames_.insert(variant);
+        }
+    } else {
+        allowedPluginNames_.insert(pluginName);
     }
 }
 
@@ -322,18 +470,46 @@ bool ExportConfig::IsEventNeeded(const std::string &eventName) const
     if (exportFilter_.empty()) {
         return true;
     }
-
     auto it = EVENT_TO_TABLES.find(eventName);
     if (it == EVENT_TO_TABLES.end()) {
         return true;
     }
+    return IsAnyTableNeeded(it->second);
+}
 
-    for (const auto &tbl : it->second) {
+bool ExportConfig::IsHiperfNeeded() const
+{
+    if (exportFilter_.empty()) {
+        return true;
+    }
+    static const std::set<std::string> perfTables = {
+        "perf_sample", "perf_callchain", "perf_report",
+        "perf_thread", "perf_files", "perf_napi_async"
+    };
+    for (const auto &tbl : perfTables) {
         if (exportFilter_.count(tbl)) {
             return true;
         }
     }
     return false;
+}
+
+bool ExportConfig::IsAnyTableNeeded(const std::set<std::string> &tables) const
+{
+    if (exportFilter_.empty()) {
+        return true;
+    }
+    for (const auto &tbl : tables) {
+        if (exportFilter_.count(tbl)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool ExportConfig::HasConfig() const
+{
+    return hasConfig_;
 }
 
 } // namespace TraceStreamer

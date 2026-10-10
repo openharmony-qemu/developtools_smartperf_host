@@ -1330,7 +1330,6 @@ void BytraceEventParser::BeginFilterEvents(EventInfo *event)
         if (tgid) {
             streamFilters_->processFilter_->UpdateOrCreateThreadWithPidAndName(event->line.pid, tgid, event->line.task);
         } else {
-            // When tgid is zero, only use tid create thread
             streamFilters_->processFilter_->GetOrCreateThreadWithPid(event->line.pid, tgid);
         }
         if (it->second(args, event->line)) {

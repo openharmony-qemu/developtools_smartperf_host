@@ -479,19 +479,54 @@ bool CheckAndSetLongTraceDir(TraceExportOption &traceExportOption, int argc, cha
     traceExportOption.longTraceDir = std::string(argv[index]);
     return true;
 }
+int ParseConfigArgs(int argc, char **argv, TraceExportOption &traceExportOption, int &i)
+{
+    if (!strcmp(argv[i], "--export-config")) {
+        TS_CHECK_TRUE_RET(CheckArgc(argc, argv, ++i), -1);
+        traceExportOption.exportConfigPath = std::string(argv[i]);
+        i++;
+        return 1;
+    }
+    if (!strcmp(argv[i], "-m") || !strcmp(argv[i], "--run-metrics")) {
+        TS_CHECK_TRUE_RET(CheckAndSetMetrics(traceExportOption, argc, argv, i), -1);
+        i++;
+        return 1;
+    }
+    return 0;
+}
+bool ParseFlagArgs(int argc, char **argv, TraceExportOption &traceExportOption, int &i)
+{
+    if (!strcmp(argv[i], "--ext")) {
+        g_extendField = true;
+    } else if (!strcmp(argv[i], "-lnc")) {
+        traceExportOption.needClearLongTraceCache = false;
+    } else if (!strcmp(argv[i], "-s") || !strcmp(argv[i], "--s")) {
+        traceExportOption.separateFile = true;
+    } else if (!strcmp(argv[i], "-nt") || !strcmp(argv[i], "--nothreads")) {
+        traceExportOption.closeMutiThread = true;
+    } else if (!strcmp(argv[i], "-nm") || !strcmp(argv[i], "--nometa")) {
+        traceExportOption.exportMetaTable = false;
+    } else {
+        return false;
+    }
+    i++;
+    return true;
+}
 bool ParseOtherArgs(int argc, char **argv, TraceExportOption &traceExportOption, int &i)
 {
+    int configResult = ParseConfigArgs(argc, argv, traceExportOption, i);
+    if (configResult == 1) {
+        return true;
+    }
+    if (configResult == -1) {
+        return false;
+    }
+    if (ParseFlagArgs(argc, argv, traceExportOption, i)) {
+        return true;
+    }
     if (!strcmp(argv[i], "-i") || !strcmp(argv[i], "--info")) {
         PrintInformation();
         i++;
-    } else if (!strcmp(argv[i], "--ext")) {
-        g_extendField = true;
-        i++;
-        return true;
-    } else if (!strcmp(argv[i], "-lnc")) {
-        traceExportOption.needClearLongTraceCache = false;
-        i++;
-        return true;
     } else if (!strcmp(argv[i], "-l") || !strcmp(argv[i], "--level")) {
         TS_CHECK_TRUE_RET(CheckAndSetLogLevel(argc, argv, i), false);
         i++;
@@ -500,29 +535,8 @@ bool ParseOtherArgs(int argc, char **argv, TraceExportOption &traceExportOption,
         PrintAbilityInfo();
         i++;
         return false;
-    } else if (!strcmp(argv[i], "-s") || !strcmp(argv[i], "--s")) {
-        traceExportOption.separateFile = true;
-        i++;  // consume option
-        return true;
     } else if (!strcmp(argv[i], "-tn") || !strcmp(argv[i], "--threadnum")) {
         TS_CHECK_TRUE_RET(CheckAndSetThreadNum(traceExportOption, argc, argv, i), false);
-        i++;
-        return true;
-    } else if (!strcmp(argv[i], "-nt") || !strcmp(argv[i], "--nothreads")) {
-        traceExportOption.closeMutiThread = true;
-        i++;
-        return true;
-    } else if (!strcmp(argv[i], "-nm") || !strcmp(argv[i], "--nometa")) {
-        traceExportOption.exportMetaTable = false;
-        i++;
-        return true;
-    } else if (!strcmp(argv[i], "--export-config")) {
-        TS_CHECK_TRUE_RET(CheckArgc(argc, argv, ++i), false);
-        traceExportOption.exportConfigPath = std::string(argv[i]);
-        i++;
-        return true;
-    } else if (!strcmp(argv[i], "-m") || !strcmp(argv[i], "--run-metrics")) {
-        TS_CHECK_TRUE_RET(CheckAndSetMetrics(traceExportOption, argc, argv, i), false);
         i++;
         return true;
     } else if (!strcmp(argv[i], "-v") || !strcmp(argv[i], "--version")) {
@@ -743,6 +757,25 @@ void Init(TraceStreamerSelector &ts, const TraceExportOption &traceExportOption)
         ts.GetTraceDataCache()->parserThreadNum_ = traceExportOption.parserThreadNum;
     }
 }
+bool LoadAndSetExportConfig(TraceStreamerSelector &ts, const TraceExportOption &traceExportOption)
+{
+    ExportConfig config;
+    if (!config.LoadConfig(traceExportOption.exportConfigPath)) {
+        TS_LOGE("Failed to load export config: %s", traceExportOption.exportConfigPath.c_str());
+        return false;
+    }
+    ts.SetExportConfig(config);
+    return true;
+}
+void ProcessMetrics(TraceStreamerSelector &ts, const TraceExportOption &traceExportOption)
+{
+    MetaData *metaData = ts.GetMetaData();
+    metaData->SetOutputFileName("command line mode");
+    metaData->SetParserToolVersion(TRACE_STREAMER_VERSION.c_str());
+    metaData->SetParserToolPublishDateTime(TRACE_STREAMER_PUBLISH_VERSION.c_str());
+    metaData->SetTraceDataSize(g_loadSize);
+    ts.ParserAndPrintMetrics(traceExportOption.metricsIndex);
+}
 
 } // namespace TraceStreamer
 } // namespace SysTuning
@@ -754,12 +787,7 @@ int main(int argc, char **argv)
     TraceStreamerSelector ts;
     Init(ts, traceExportOption);
     if (!traceExportOption.exportConfigPath.empty()) {
-        ExportConfig config;
-        if (!config.LoadConfig(traceExportOption.exportConfigPath)) {
-            TS_LOGE("Failed to load export config: %s", traceExportOption.exportConfigPath.c_str());
-            return 1;
-        }
-        ts.SetExportConfig(config);
+        TS_CHECK_TRUE_RET(LoadAndSetExportConfig(ts, traceExportOption), 1);
     }
 #ifndef IS_WASM
     if (!traceExportOption.longTraceDir.empty()) {
@@ -794,12 +822,7 @@ int main(int argc, char **argv)
         ExportStatusToLog(traceExportOption.sqliteFilePath, GetAnalysisResult());
     }
     if (!traceExportOption.metricsIndex.empty()) {
-        MetaData *metaData = ts.GetMetaData();
-        metaData->SetOutputFileName("command line mode");
-        metaData->SetParserToolVersion(TRACE_STREAMER_VERSION.c_str());
-        metaData->SetParserToolPublishDateTime(TRACE_STREAMER_PUBLISH_VERSION.c_str());
-        metaData->SetTraceDataSize(g_loadSize);
-        ts.ParserAndPrintMetrics(traceExportOption.metricsIndex);
+        ProcessMetrics(ts, traceExportOption);
     }
     if (!traceExportOption.sqlOperatorFilePath.empty()) {
         ts.ReadSqlFileAndPrintResult(traceExportOption.sqlOperatorFilePath);

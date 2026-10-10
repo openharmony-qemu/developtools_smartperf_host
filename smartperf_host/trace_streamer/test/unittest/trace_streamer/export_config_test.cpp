@@ -15,10 +15,10 @@
 
 #include <hwext/gtest-ext.h>
 #include <hwext/gtest-tag.h>
+#include <filesystem>
 #include <fstream>
 #include <string>
 
-#define private public
 #include "trace_streamer/export_config/export_config.h"
 
 using namespace testing::ext;
@@ -36,6 +36,9 @@ constexpr const char *BOTH_EMPTY_CONFIG = R"({"categories": [], "tables": []})";
 void WriteTestFile(const std::string &path, const std::string &content)
 {
     std::ofstream ofs(path);
+    if (!ofs.is_open()) {
+        return;
+    }
     ofs << content;
     ofs.close();
 }
@@ -45,22 +48,20 @@ class ExportConfigTest : public ::testing::Test {
 public:
     void SetUp()
     {
-        std::string cmd = "mkdir -p " + std::string(TEST_CONFIG_DIR);
-        (void)system(cmd.c_str());
+        std::filesystem::create_directories(std::string(TEST_CONFIG_DIR));
     }
 
     void TearDown()
     {
-        std::string cmd = "rm -rf " + std::string(TEST_CONFIG_DIR);
-        (void)system(cmd.c_str());
+        std::filesystem::remove_all(std::string(TEST_CONFIG_DIR));
     }
 };
 
 /**
  * @tc.name: ExportConfigTest001
  * @tc.desc: Test base table dependency completion with categories=["network"]
- *           exportFilter should contain process+thread+stat+datasource_clockid,
- *           but NOT args/data_dict
+ *           exportFilter should contain process+thread+stat+datasource_clockid+data_dict,
+ *           but NOT args
  */
 HWTEST_F(ExportConfigTest, ExportConfigTest001, TestSize.Level1)
 {
@@ -77,13 +78,14 @@ HWTEST_F(ExportConfigTest, ExportConfigTest001, TestSize.Level1)
     EXPECT_NE(filter.find("datasource_clockid"), filter.end());
 
     EXPECT_EQ(filter.find("args"), filter.end());
-    EXPECT_EQ(filter.find("data_dict"), filter.end());
+    EXPECT_NE(filter.find("data_dict"), filter.end());
 }
 
 /**
  * @tc.name: ExportConfigTest002
  * @tc.desc: Test base table dependency completion with tables=["callstack"]
- *           exportFilter should contain callstack+args+data_dict+stat+thread+datasource_clockid (6 tables)
+ *           exportFilter should contain callstack+args+data_dict+thread
+ *           + stat+datasource_clockid (GLOBAL base tables always included)
  */
 HWTEST_F(ExportConfigTest, ExportConfigTest002, TestSize.Level1)
 {
@@ -97,8 +99,8 @@ HWTEST_F(ExportConfigTest, ExportConfigTest002, TestSize.Level1)
     EXPECT_NE(filter.find("callstack"), filter.end());
     EXPECT_NE(filter.find("args"), filter.end());
     EXPECT_NE(filter.find("data_dict"), filter.end());
-    EXPECT_NE(filter.find("stat"), filter.end());
     EXPECT_NE(filter.find("thread"), filter.end());
+    EXPECT_NE(filter.find("stat"), filter.end());
     EXPECT_NE(filter.find("datasource_clockid"), filter.end());
 }
 
@@ -139,6 +141,14 @@ HWTEST_F(ExportConfigTest, ExportConfigTest004, TestSize.Level1)
     EXPECT_NE(filter.find("instant"), filter.end());
     EXPECT_NE(filter.find("raw"), filter.end());
     EXPECT_NE(filter.find("timerfd_wakeup"), filter.end());
+    EXPECT_NE(filter.find("hidump"), filter.end());
+    EXPECT_NE(filter.find("log"), filter.end());
+    EXPECT_NE(filter.find("diskio"), filter.end());
+    EXPECT_NE(filter.find("cpu_usage"), filter.end());
+    EXPECT_NE(filter.find("live_process"), filter.end());
+    EXPECT_NE(filter.find("frame_slice"), filter.end());
+    EXPECT_NE(filter.find("task_pool"), filter.end());
+    EXPECT_NE(filter.find("measure_filter"), filter.end());
 
     EXPECT_NE(filter.find("process"), filter.end());
     EXPECT_NE(filter.find("thread"), filter.end());
@@ -151,7 +161,8 @@ HWTEST_F(ExportConfigTest, ExportConfigTest004, TestSize.Level1)
 
 /**
  * @tc.name: ExportConfigTest005
- * @tc.desc: Test empty config (both categories and tables empty) returns false
+ * @tc.desc: Test empty config {} is treated as no config (full export)
+ *           LoadConfig returns true, HasConfig returns false (per R-1)
  */
 HWTEST_F(ExportConfigTest, ExportConfigTest005, TestSize.Level1)
 {
@@ -159,12 +170,14 @@ HWTEST_F(ExportConfigTest, ExportConfigTest005, TestSize.Level1)
     WriteTestFile(configPath, EMPTY_CONFIG);
 
     ExportConfig config;
-    EXPECT_FALSE(config.LoadConfig(configPath));
+    EXPECT_TRUE(config.LoadConfig(configPath));
+    EXPECT_FALSE(config.HasConfig());
 }
 
 /**
  * @tc.name: ExportConfigTest006
- * @tc.desc: Test both empty arrays config returns false
+ * @tc.desc: Test both empty arrays config is treated as no config (full export)
+ *           LoadConfig returns true, HasConfig returns false (per R-1)
  */
 HWTEST_F(ExportConfigTest, ExportConfigTest006, TestSize.Level1)
 {
@@ -172,7 +185,8 @@ HWTEST_F(ExportConfigTest, ExportConfigTest006, TestSize.Level1)
     WriteTestFile(configPath, BOTH_EMPTY_CONFIG);
 
     ExportConfig config;
-    EXPECT_FALSE(config.LoadConfig(configPath));
+    EXPECT_TRUE(config.LoadConfig(configPath));
+    EXPECT_FALSE(config.HasConfig());
 }
 
 /**
@@ -305,5 +319,5 @@ HWTEST_F(ExportConfigTest, ExportConfigTest014, TestSize.Level1)
     EXPECT_NE(filter.find("callstack"), filter.end());
     EXPECT_NE(filter.find("args"), filter.end());
     EXPECT_NE(filter.find("data_dict"), filter.end());
-    EXPECT_NE(filter.find("stat"), filter.end());
+    EXPECT_NE(filter.find("thread"), filter.end());
 }

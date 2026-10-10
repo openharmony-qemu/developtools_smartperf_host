@@ -19,6 +19,7 @@
 #include <limits>
 #include <map>
 #include <queue>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <thread>
@@ -205,6 +206,16 @@ private:
     void InitHiPluginNameIndex();
     void WaitForHPluginParserEnd();
     void WaitForOtherPluginParserEnd();
+    void WaitForExtraPluginParserEnd();
+    bool ParseBufferSegments(std::deque<uint8_t>::iterator &packagesBegin, size_t &currentLength);
+    void FilterCoreDataType(PbreaderDataSegment &seg, bool &haveSplitSeg);
+    void FilterMemLogDataType(PbreaderDataSegment &seg, bool &haveSplitSeg);
+    void FilterExtraDataType(PbreaderDataSegment &seg, bool &haveSplitSeg);
+    void FilterSysEventDataType(PbreaderDataSegment &seg, bool &haveSplitSeg);
+    bool ShouldProcessTables(const std::set<std::string> &tables) const
+    {
+        return !streamFilters_->exportConfig_ || streamFilters_->exportConfig_->IsAnyTableNeeded(tables);
+    }
     bool GetHeaderAndUpdateLengthMark(std::deque<uint8_t>::iterator &packagesBegin, size_t &currentLength);
     bool ParseSegLengthAndEnsureSegDataEnough(std::deque<uint8_t>::iterator &packagesBegin, size_t &currentLength);
 #ifdef ENABLE_MEMORY
@@ -270,6 +281,7 @@ private:
 #endif
     bool SpliteConfigData(const std::string &pluginName, const PbreaderDataSegment &dataSeg);
     bool InitProfilerTraceFileHeader();
+    bool SkipDisabledPluginData(std::deque<uint8_t>::iterator &packagesBegin, size_t &currentLength);
     void ParseDataByPluginName(PbreaderDataSegment &dataSeg,
                                DataIndex pulginNameIndex,
                                const ProtoReader::ProfilerPluginData_Reader &pluginDataZero,

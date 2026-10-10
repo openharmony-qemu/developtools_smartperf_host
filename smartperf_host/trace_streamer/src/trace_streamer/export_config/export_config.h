@@ -31,18 +31,28 @@ public:
     const std::set<std::string> &GetExportFilter() const;
     const std::set<std::string> &GetAllowedPluginNames() const;
     bool IsEventNeeded(const std::string &eventName) const;
+    bool IsHiperfNeeded() const;
+    bool IsAnyTableNeeded(const std::set<std::string> &tables) const;
+    bool HasConfig() const;
 
 private:
     void ComputeExportFilter();
+    void AddTablesFromCategories();
+    void ResolveCategoryTables(const std::string &cat);
+    void AddTablesFromExplicitTables();
     void ComputeAllowedPluginNames();
+    void AddPluginIfNeeded(const std::string &pluginName, const std::set<std::string> &pluginTables);
+    void AddPluginVariants(const std::string &pluginName);
     bool ValidateCategories();
     void AddBaseTables(const std::set<std::string> &categories);
+    void ResolveTableDeps(const std::string &table, std::set<std::string> &resolved);
 
     std::set<std::string> categories_;
     std::set<std::string> exportTables_;
     std::set<std::string> exportFilter_;
     std::set<std::string> allowedPluginNames_;
     std::string lastError_;
+    bool hasConfig_ = false;
 };
 } // namespace TraceStreamer
 } // namespace SysTuning

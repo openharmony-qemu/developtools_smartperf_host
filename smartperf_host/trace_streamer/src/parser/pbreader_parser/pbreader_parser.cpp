@@ -243,22 +243,31 @@ bool PbreaderParser::ReparseSymbolFileAndResymbolization(const std::string &dire
 inline void PbreaderParser::WaitForHPluginParserEnd()
 {
 #ifdef ENABLE_HTRACE
-    htraceCpuDetailParser_->FilterAllEvents();
+    if (ShouldProcessTables({"sched_slice", "thread_state", "callstack", "irq", "filesystem_io",
+                             "measure", "syscall", "dma_fence", "instant", "raw", "timerfd_wakeup"})) {
+        htraceCpuDetailParser_->FilterAllEvents();
+    }
     traceDataCache_->GetDataSourceClockIdData()->SetDataSourceClockId(DATA_SOURCE_TYPE_TRACE,
                                                                       dataSourceTypeTraceClockid_);
     streamFilters_->processFilter_->UpdateProcessNameByNameToTid(commDict_);
 #endif
 #ifdef ENABLE_HILOG
-    pbreaderHiLogParser_->Finish();
+    if (ShouldProcessTables({"log"})) {
+        pbreaderHiLogParser_->Finish();
+    }
     traceDataCache_->GetDataSourceClockIdData()->SetDataSourceClockId(DATA_SOURCE_TYPE_HILOG,
                                                                       dataSourceTypeHilogClockid_);
 #endif
 #ifdef ENABLE_HTDUMP
-    pbreaderHidumpParser_->Finish();
+    if (ShouldProcessTables({"hidump"})) {
+        pbreaderHidumpParser_->Finish();
+    }
     traceDataCache_->GetDataSourceClockIdData()->SetDataSourceClockId(DATA_SOURCE_TYPE_FPS, dataSourceTypeFpsClockid_);
 #endif
 #ifdef ENABLE_HISYSEVENT
-    hisyseventParser_->Finish();
+    if (ShouldProcessTables({"hisys_event_measure", "hisys_all_event"})) {
+        hisyseventParser_->Finish();
+    }
     traceDataCache_->GetDataSourceClockIdData()->SetDataSourceClockId(DATA_SOURCE_TYPE_HISYSEVENT,
                                                                       dataSourceTypeHisyseventClockid_);
 #endif
@@ -267,47 +276,77 @@ inline void PbreaderParser::WaitForHPluginParserEnd()
 inline void PbreaderParser::WaitForOtherPluginParserEnd()
 {
 #ifdef ENABLE_NATIVE_HOOK
-    pbreaderNativeHookParser_->FinishParseNativeHookData();
-    pbreaderNativeHookParser_->Finish();
+    if (ShouldProcessTables({"native_hook", "native_hook_frame", "native_hook_statistic"})) {
+        pbreaderNativeHookParser_->FinishParseNativeHookData();
+        pbreaderNativeHookParser_->Finish();
+    }
     traceDataCache_->GetDataSourceClockIdData()->SetDataSourceClockId(DATA_SOURCE_TYPE_NATIVEHOOK,
                                                                       dataSourceTypeNativeHookClockid_);
 #endif
 #ifdef ENABLE_CPUDATA
-    cpuUsageParser_->Finish();
+    if (ShouldProcessTables({"cpu_usage"})) {
+        cpuUsageParser_->Finish();
+    }
     traceDataCache_->GetDataSourceClockIdData()->SetDataSourceClockId(DATA_SOURCE_TYPE_CPU, dataSourceTypeCpuClockid_);
 #endif
 #ifdef ENABLE_NETWORK
-    networkParser_->Finish();
+    if (ShouldProcessTables({"network"})) {
+        networkParser_->Finish();
+    }
     traceDataCache_->GetDataSourceClockIdData()->SetDataSourceClockId(DATA_SOURCE_TYPE_NETWORK,
                                                                       dataSourceTypeNetworkClockid_);
 #endif
 #ifdef ENABLE_PROCESS
-    processParser_->Finish();
+    if (ShouldProcessTables({"live_process"})) {
+        processParser_->Finish();
+    }
     traceDataCache_->GetDataSourceClockIdData()->SetDataSourceClockId(DATA_SOURCE_TYPE_PROCESS,
                                                                       dataSourceTypeProcessClockid_);
 #endif
+    WaitForExtraPluginParserEnd();
+}
+
+void PbreaderParser::WaitForExtraPluginParserEnd()
+{
 #ifdef ENABLE_DISKIO
-    diskIOParser_->Finish();
+    if (ShouldProcessTables({"diskio"})) {
+        diskIOParser_->Finish();
+    }
     traceDataCache_->GetDataSourceClockIdData()->SetDataSourceClockId(DATA_SOURCE_TYPE_DISKIO,
                                                                       dataSourceTypeDiskioClockid_);
 #endif
 #ifdef ENABLE_ARKTS
-    jsMemoryParser_->Finish();
+    if (ShouldProcessTables({"js_config", "js_heap_files", "js_heap_edges", "js_heap_info",
+        "js_heap_location", "js_heap_nodes", "js_heap_sample", "js_heap_string",
+        "js_heap_trace_function_info", "js_heap_trace_node", "js_cpu_profiler_node",
+        "js_cpu_profiler_sample"})) {
+        jsMemoryParser_->Finish();
+    }
     traceDataCache_->GetDataSourceClockIdData()->SetDataSourceClockId(DATA_SOURCE_TYPE_JSMEMORY,
                                                                       dataSourceTypeJSMemoryClockid_);
 #endif
 #ifdef ENABLE_EBPF
-    ebpfDataParser_->Finish(); // keep final upate perf and ebpf data time range
+    if (ShouldProcessTables({"ebpf_callstack", "bio_latency_sample", "file_system_sample", "paged_memory_sample"})) {
+        ebpfDataParser_->Finish(); // keep final upate perf and ebpf data time range
+    }
 #endif
 #ifdef ENABLE_HIPERF
-    perfDataParser_->Finish();
+    if (ShouldProcessTables({"perf_report", "perf_sample", "perf_callchain",
+        "perf_thread", "perf_files", "perf_napi_async"})) {
+        perfDataParser_->Finish();
+    }
 #endif
 #ifdef ENABLE_MEMORY
-    pbreaderMemParser_->Finish();
+    if (ShouldProcessTables({"smaps", "memory_ashmem", "memory_dma", "memory_process_gpu",
+        "memory_window_gpu", "memory_cpu", "memory_profile", "memory_rs_image"})) {
+        pbreaderMemParser_->Finish();
+    }
     traceDataCache_->GetDataSourceClockIdData()->SetDataSourceClockId(DATA_SOURCE_TYPE_MEM, dataSourceTypeMemClockid_);
 #endif
 #ifdef ENABLE_NETWORK_PROFILER
-    networkProfilerParser_->Finish();
+    if (ShouldProcessTables({"network_time_information", "network_information"})) {
+        networkProfilerParser_->Finish();
+    }
 #endif
 }
 
@@ -374,91 +413,142 @@ void PbreaderParser::EnableFileSeparate(bool enabled)
     jsMemoryParser_->EnableSaveFile(enabled);
 }
 #endif
-void PbreaderParser::FilterData(PbreaderDataSegment &seg, bool isSplitFile)
+void PbreaderParser::FilterCoreDataType(PbreaderDataSegment &seg, bool &haveSplitSeg)
 {
-    bool haveSplitSeg = false;
     if (seg.dataType == DATA_SOURCE_TYPE_TRACE) {
 #ifdef ENABLE_HTRACE
-        htraceCpuDetailParser_->FilterAllEventsReader();
+        if (ShouldProcessTables({"sched_slice", "thread_state", "callstack", "irq", "filesystem_io",
+            "measure", "syscall", "dma_fence", "instant", "raw", "timerfd_wakeup"})) {
+            htraceCpuDetailParser_->FilterAllEventsReader();
+        }
 #endif
-    }
+    } else if (seg.dataType == DATA_SOURCE_TYPE_FFRT) {
 #ifdef ENABLE_FFRT
-    else if (seg.dataType == DATA_SOURCE_TYPE_FFRT) {
-        pbreaderFfrtParser_->FilterAllEventsReader();
-    }
+        if (ShouldProcessTables({"callstack", "thread_state"})) {
+            pbreaderFfrtParser_->FilterAllEventsReader();
+        }
 #endif
+    } else if (seg.dataType == DATA_SOURCE_TYPE_NATIVEHOOK) {
 #ifdef ENABLE_NATIVE_HOOK
-    else if (seg.dataType == DATA_SOURCE_TYPE_NATIVEHOOK) {
-        pbreaderNativeHookParser_->Parse(seg, haveSplitSeg);
+        if (ShouldProcessTables({"native_hook", "native_hook_frame", "native_hook_statistic"})) {
+            pbreaderNativeHookParser_->Parse(seg, haveSplitSeg);
+        }
     } else if (seg.dataType == DATA_SOURCE_TYPE_NATIVEHOOK_CONFIG) {
         pbreaderNativeHookParser_->ParseConfigInfo(seg);
-    }
 #endif
+    }
+}
+void PbreaderParser::FilterMemLogDataType(PbreaderDataSegment &seg, bool &haveSplitSeg)
+{
 #ifdef ENABLE_MEMORY
-    else if (seg.dataType == DATA_SOURCE_TYPE_MEM) {
-        pbreaderMemParser_->Parse(seg, seg.timeStamp, seg.clockId);
+    if (seg.dataType == DATA_SOURCE_TYPE_MEM) {
+        if (ShouldProcessTables({"smaps", "memory_ashmem", "memory_dma", "memory_process_gpu",
+            "memory_window_gpu", "memory_cpu", "memory_profile", "memory_rs_image"})) {
+            pbreaderMemParser_->Parse(seg, seg.timeStamp, seg.clockId);
+        }
     } else if (seg.dataType == DATA_SOURCE_TYPE_MEM_CONFIG) {
         pbreaderMemParser_->ParseMemoryConfig(seg);
     }
 #endif
 #ifdef ENABLE_HILOG
-    else if (seg.dataType == DATA_SOURCE_TYPE_HILOG) {
-        pbreaderHiLogParser_->Parse(seg.protoData, haveSplitSeg);
+    if (seg.dataType == DATA_SOURCE_TYPE_HILOG) {
+        if (ShouldProcessTables({"log"})) {
+            pbreaderHiLogParser_->Parse(seg.protoData, haveSplitSeg);
+        }
     }
 #endif
 #ifdef ENABLE_CPUDATA
-    else if (seg.dataType == DATA_SOURCE_TYPE_CPU) {
-        cpuUsageParser_->Parse(seg.protoData, seg.timeStamp);
+    if (seg.dataType == DATA_SOURCE_TYPE_CPU) {
+        if (ShouldProcessTables({"cpu_usage"})) {
+            cpuUsageParser_->Parse(seg.protoData, seg.timeStamp);
+        }
     }
 #endif
 #ifdef ENABLE_HTDUMP
-    else if (seg.dataType == DATA_SOURCE_TYPE_FPS) {
-        pbreaderHidumpParser_->Parse(seg.protoData);
-        dataSourceTypeFpsClockid_ = pbreaderHidumpParser_->ClockId();
+    if (seg.dataType == DATA_SOURCE_TYPE_FPS) {
+        if (ShouldProcessTables({"hidump"})) {
+            pbreaderHidumpParser_->Parse(seg.protoData);
+            dataSourceTypeFpsClockid_ = pbreaderHidumpParser_->ClockId();
+        }
     }
 #endif
+}
+void PbreaderParser::FilterExtraDataType(PbreaderDataSegment &seg, bool &haveSplitSeg)
+{
 #ifdef ENABLE_NETWORK
-    else if (seg.dataType == DATA_SOURCE_TYPE_NETWORK) {
-        networkParser_->Parse(seg.protoData, seg.timeStamp);
+    if (seg.dataType == DATA_SOURCE_TYPE_NETWORK) {
+        if (ShouldProcessTables({"network"})) {
+            networkParser_->Parse(seg.protoData, seg.timeStamp);
+        }
     }
 #endif
 #ifdef ENABLE_PROCESS
-    else if (seg.dataType == DATA_SOURCE_TYPE_PROCESS) {
-        processParser_->Parse(seg.protoData, seg.timeStamp);
+    if (seg.dataType == DATA_SOURCE_TYPE_PROCESS) {
+        if (ShouldProcessTables({"live_process"})) {
+            processParser_->Parse(seg.protoData, seg.timeStamp);
+        }
     }
 #endif
 #ifdef ENABLE_DISKIO
-    else if (seg.dataType == DATA_SOURCE_TYPE_DISKIO) {
-        diskIOParser_->Parse(seg.protoData, seg.timeStamp);
+    if (seg.dataType == DATA_SOURCE_TYPE_DISKIO) {
+        if (ShouldProcessTables({"diskio"})) {
+            diskIOParser_->Parse(seg.protoData, seg.timeStamp);
+        }
     }
 #endif
 #ifdef ENABLE_ARKTS
-    else if (seg.dataType == DATA_SOURCE_TYPE_JSMEMORY) {
-        jsMemoryParser_->Parse(seg.protoData, seg.timeStamp, traceDataCache_->SplitFileMinTime(),
-                               traceDataCache_->SplitFileMaxTime(), profilerPluginData_);
-    } else if (seg.dataType == DATA_SOURCE_TYPE_JSMEMORY_CONFIG) {
+    if (seg.dataType == DATA_SOURCE_TYPE_JSMEMORY) {
+        if (ShouldProcessTables({"js_config", "js_heap_files", "js_heap_edges", "js_heap_info",
+            "js_heap_location", "js_heap_nodes", "js_heap_sample", "js_heap_string",
+            "js_heap_trace_function_info", "js_heap_trace_node", "js_cpu_profiler_node",
+            "js_cpu_profiler_sample"})) {
+            jsMemoryParser_->Parse(seg.protoData, seg.timeStamp, traceDataCache_->SplitFileMinTime(),
+                                   traceDataCache_->SplitFileMaxTime(), profilerPluginData_);
+        }
+    }
+    if (seg.dataType == DATA_SOURCE_TYPE_JSMEMORY_CONFIG) {
         jsMemoryParser_->ParseJSMemoryConfig(seg.protoData);
     }
 #endif
+}
+void PbreaderParser::FilterSysEventDataType(PbreaderDataSegment &seg, bool &haveSplitSeg)
+{
 #ifdef ENABLE_HISYSEVENT
-    else if (seg.dataType == DATA_SOURCE_TYPE_HISYSEVENT) {
-        ProtoReader::HisyseventInfo_Reader hisyseventInfo(seg.protoData.data_, seg.protoData.size_);
-        hisyseventParser_->Parse(&hisyseventInfo, seg.timeStamp, haveSplitSeg);
-    } else if (seg.dataType == DATA_SOURCE_TYPE_HISYSEVENT_CONFIG) {
+    if (seg.dataType == DATA_SOURCE_TYPE_HISYSEVENT) {
+        if (ShouldProcessTables({"hisys_event_measure", "hisys_all_event"})) {
+            ProtoReader::HisyseventInfo_Reader hisyseventInfo(seg.protoData.data_, seg.protoData.size_);
+            hisyseventParser_->Parse(&hisyseventInfo, seg.timeStamp, haveSplitSeg);
+        }
+    }
+    if (seg.dataType == DATA_SOURCE_TYPE_HISYSEVENT_CONFIG) {
         ProtoReader::HisyseventConfig_Reader hisyseventConfig(seg.protoData.data_, seg.protoData.size_);
         hisyseventParser_->Parse(&hisyseventConfig, seg.timeStamp);
     }
 #endif
 #ifdef ENABLE_XPOWER
-    else if (seg.dataType == DATA_SOURCE_TYPE_XPOWER) {
-        xpowerParser_->Parse(seg, seg.timeStamp, seg.clockId);
+    if (seg.dataType == DATA_SOURCE_TYPE_XPOWER) {
+        if (ShouldProcessTables({"xpower_measure", "xpower_app_statistic", "xpower_app_detail_cpu",
+            "xpower_app_detail_gpu", "xpower_app_detail_wifi",
+            "xpower_app_detail_display", "xpower_component_top"})) {
+            xpowerParser_->Parse(seg, seg.timeStamp, seg.clockId);
+        }
     }
 #endif
 #ifdef ENABLE_STREAM_EXTEND
-    else if (seg.dataType == DATA_SOURCE_TYPE_STREAM) {
-        pbreaderStreamParser_->Parse(seg);
+    if (seg.dataType == DATA_SOURCE_TYPE_STREAM) {
+        if (ShouldProcessTables({"stream"})) {
+            pbreaderStreamParser_->Parse(seg);
+        }
     }
 #endif
+}
+void PbreaderParser::FilterData(PbreaderDataSegment &seg, bool isSplitFile)
+{
+    bool haveSplitSeg = false;
+    FilterCoreDataType(seg, haveSplitSeg);
+    FilterMemLogDataType(seg, haveSplitSeg);
+    FilterExtraDataType(seg, haveSplitSeg);
+    FilterSysEventDataType(seg, haveSplitSeg);
     if (traceDataCache_->isSplitFile_ && haveSplitSeg) {
         mPbreaderSplitData_.emplace(splitFileOffset_, nextLength_ + packetSegLength_);
     }
@@ -1002,7 +1092,7 @@ bool PbreaderParser::GetHeaderAndUpdateLengthMark(std::deque<uint8_t>::iterator 
         packagesBuffer_.erase(packagesBuffer_.begin(), packagesBuffer_.begin() + packetHeaderLength_);
         processedDataLen_ += packetHeaderLength_;
         currentLength -= packetHeaderLength_;
-        packagesBegin += packetHeaderLength_;
+        packagesBegin = packagesBuffer_.begin();
         parsedFileOffset_ += packetHeaderLength_;
         pbreaderCurentLength_ = profilerDataLength_ - packetHeaderLength_;
         hasGotHeader_ = true;
@@ -1051,30 +1141,30 @@ bool PbreaderParser::ParseSegLengthAndEnsureSegDataEnough(std::deque<uint8_t>::i
     }
     return true;
 }
-bool PbreaderParser::ParseDataRecursively(std::deque<uint8_t>::iterator &packagesBegin, size_t &currentLength)
+bool PbreaderParser::SkipDisabledPluginData(std::deque<uint8_t>::iterator &packagesBegin, size_t &currentLength)
 {
-    TS_CHECK_TRUE_RET(GetHeaderAndUpdateLengthMark(packagesBegin, currentLength), false);
-#ifdef ENABLE_HIPERF
-    if (profilerDataType_ == ProfilerTraceFileHeader::HIPERF_DATA) {
-        return ParseHiperfData(packagesBegin, currentLength);
+    if (profilerDataLength_ < packetHeaderLength_) {
+        TS_LOGE("profilerDataLength_ < packetHeaderLength_, skip failed");
+        return false;
     }
-#endif
-    if (profilerDataType_ == ProfilerTraceFileHeader::STANDALONE_DATA) {
-        if (EBPF_PLUGIN_NAME.compare(standalonePluginName_) == 0) {
-#ifdef ENABLE_EBPF
-            return CalcEbpfCutOffset(packagesBegin, currentLength);
-#else
-            return false;
-#endif
-        } else {
-#if IS_WASM
-            TS_CHECK_TRUE_RET(ParseSDKData(), false); // 三方sdk逻辑待验证。
-#endif
-        }
+    size_t dataSize = profilerDataLength_ - packetHeaderLength_;
+    if (currentLength >= dataSize) {
+        packagesBegin += dataSize;
+        currentLength -= dataSize;
+        packagesBuffer_.erase(packagesBuffer_.begin(), packagesBegin);
+        packagesBegin = packagesBuffer_.begin();
+        hasGotHeader_ = false;
+        profilerDataType_ = ProfilerTraceFileHeader::UNKNOW_TYPE;
+        return true;
     }
-    std::string bufferLine;
-    while (true) {
+    return false;
+}
+bool PbreaderParser::ParseBufferSegments(std::deque<uint8_t>::iterator &packagesBegin, size_t &currentLength)
+{
+    bool hasMoreSegments = true;
+    while (hasMoreSegments) {
         TS_CHECK_TRUE_RET(ParseSegLengthAndEnsureSegDataEnough(packagesBegin, currentLength), true);
+        std::string bufferLine;
         bufferLine.assign(packagesBegin, packagesBegin + nextLength_);
         ParseTraceDataItem(bufferLine);
         hasGotSegLength_ = false;
@@ -1082,8 +1172,9 @@ bool PbreaderParser::ParseDataRecursively(std::deque<uint8_t>::iterator &package
         currentLength -= nextLength_;
         parsedFileOffset_ += nextLength_;
         if (nextLength_ > pbreaderCurentLength_) {
-            TS_LOGE("fatal error, data length not match nextLength_:%u, pbreaderCurentLength_:%" PRIu64 "", nextLength_,
-                    pbreaderCurentLength_);
+            TS_LOGE("fatal error, data length not match nextLength_:%u, "
+                    "pbreaderCurentLength_:%" PRIu64 "",
+                    nextLength_, pbreaderCurentLength_);
         }
         pbreaderCurentLength_ -= nextLength_;
         if (pbreaderCurentLength_ == 0) {
@@ -1092,7 +1183,49 @@ bool PbreaderParser::ParseDataRecursively(std::deque<uint8_t>::iterator &package
             packagesBuffer_.erase(packagesBuffer_.begin(), packagesBegin);
             profilerDataType_ = ProfilerTraceFileHeader::UNKNOW_TYPE;
             TS_LOGD("read proto finished!");
-            return ParseDataRecursively(packagesBegin, currentLength);
+            hasMoreSegments = false;
+        }
+    }
+    return false;
+}
+
+bool PbreaderParser::ParseDataRecursively(std::deque<uint8_t>::iterator &packagesBegin, size_t &currentLength)
+{
+    while (true) {
+        TS_CHECK_TRUE_RET(GetHeaderAndUpdateLengthMark(packagesBegin, currentLength), false);
+#ifdef ENABLE_HIPERF
+        if (profilerDataType_ == ProfilerTraceFileHeader::HIPERF_DATA) {
+            if (!streamFilters_->exportConfig_ || streamFilters_->exportConfig_->IsHiperfNeeded()) {
+                return ParseHiperfData(packagesBegin, currentLength);
+            }
+            if (SkipDisabledPluginData(packagesBegin, currentLength)) {
+                continue;
+            }
+            return false;
+        }
+#endif
+        if (profilerDataType_ == ProfilerTraceFileHeader::STANDALONE_DATA &&
+            EBPF_PLUGIN_NAME.compare(standalonePluginName_) == 0) {
+#ifdef ENABLE_EBPF
+            if (ShouldProcessTables({"ebpf_callstack", "bio_latency_sample",
+                                     "file_system_sample", "paged_memory_sample"})) {
+                return CalcEbpfCutOffset(packagesBegin, currentLength);
+            }
+            if (SkipDisabledPluginData(packagesBegin, currentLength)) {
+                continue;
+            }
+            return false;
+#else
+            return false;
+#endif
+        }
+        if (profilerDataType_ == ProfilerTraceFileHeader::STANDALONE_DATA) {
+#if IS_WASM
+            TS_CHECK_TRUE_RET(ParseSDKData(), false); // 三方sdk逻辑待验证。
+#endif
+        }
+        if (ParseBufferSegments(packagesBegin, currentLength)) {
+            return true;
         }
     }
     return true;

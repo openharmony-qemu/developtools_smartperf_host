@@ -103,7 +103,7 @@ void TraceDataDB::EnableMetaTable(bool enabled)
 void TraceDataDB::SendDatabase(ResultCallBack resultCallBack)
 {
     int32_t fd(base::OpenFile(wasmDBName_, O_RDWR, TS_PERMISSION_RW));
-    if (!fd) {
+    if (fd < 0) {
         TS_LOGD("Failed to open file: %s", wasmDBName_.c_str());
         return;
     }
@@ -128,7 +128,7 @@ int32_t TraceDataDB::CreatEmptyBatchDB(const std::string &outputName)
 {
     {
         int32_t fd(base::OpenFile(outputName, O_CREAT | O_RDWR, TS_PERMISSION_RW));
-        if (!fd) {
+        if (fd < 0) {
             TS_LOGE("Failed to create file: %s", outputName.c_str());
             return 1;
         }
@@ -147,7 +147,7 @@ int32_t TraceDataDB::CreatEmptyBatchDB(const std::string &outputName)
         if (*itor == "meta" && !exportMetaTable_) {
             continue;
         }
-        if (!exportFilter_.empty() && !exportFilter_.count(*itor)) {
+        if (!ShouldExportTable(*itor)) {
             continue;
         }
         std::string exportSql("CREATE TABLE systuning_export." + (*itor) + "_ AS SELECT * FROM " + *itor);
@@ -178,7 +178,7 @@ int32_t TraceDataDB::BatchExportDatabase(const std::string &outputName)
         if (*itor == "meta" && !exportMetaTable_) {
             continue;
         }
-        if (!exportFilter_.empty() && !exportFilter_.count(*itor)) {
+        if (!ShouldExportTable(*itor)) {
             continue;
         }
         if (needClearTable_.count(*itor)) {
@@ -194,7 +194,7 @@ int32_t TraceDataDB::BatchExportDatabase(const std::string &outputName)
             ExecuteSql(exportSql);
         }
     }
-    if (exportFilter_.empty() || exportFilter_.count("args")) {
+    if (ShouldExportTable("args")) {
         ExecuteSql(CREATE_BATCH_EXPORT_DB_ARGS_VIEW);
     }
     std::string detachSql("DETACH DATABASE systuning_export");
@@ -214,7 +214,7 @@ void TraceDataDB::RevertTableName(const std::string &outputName)
         if (*itor == "meta" && !exportMetaTable_) {
             continue;
         }
-        if (!exportFilter_.empty() && !exportFilter_.count(*itor)) {
+        if (!ShouldExportTable(*itor)) {
             continue;
         }
         std::string revertTableNameSql("ALTER TABLE systuning_export." + (*itor) + "_ RENAME TO  " + (*itor));
@@ -227,7 +227,7 @@ int32_t TraceDataDB::ExportDatabase(const std::string &outputName, ResultCallBac
 {
     {
         int32_t fd(base::OpenFile(outputName, O_CREAT | O_RDWR, TS_PERMISSION_RW));
-        if (!fd) {
+        if (fd < 0) {
             TS_LOGE("Failed to create file: %s", outputName.c_str());
             return 1;
         }
@@ -248,13 +248,13 @@ int32_t TraceDataDB::ExportDatabase(const std::string &outputName, ResultCallBac
         if (*itor == "meta" && !exportMetaTable_) {
             continue;
         }
-        if (!exportFilter_.empty() && !exportFilter_.count(*itor)) {
+        if (!ShouldExportTable(*itor)) {
             continue;
         }
         std::string exportSql("CREATE TABLE systuning_export." + (*itor) + " AS SELECT * FROM " + *itor);
         ExecuteSql(exportSql);
     }
-    if (exportFilter_.empty() || exportFilter_.count("args")) {
+    if (ShouldExportTable("args")) {
         ExecuteSql(CREATE_EXPORT_DB_ARGS_VIEW);
     }
     std::string detachSql("DETACH DATABASE systuning_export");

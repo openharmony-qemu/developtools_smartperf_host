@@ -44,12 +44,24 @@ TraceStreamerFilters::TraceStreamerFilters() = default;
 TraceStreamerFilters::~TraceStreamerFilters() = default;
 void TraceStreamerFilters::FilterClear()
 {
-    binderFilter_->Clear();
-    sliceFilter_->Clear();
-    cpuFilter_->Clear();
-    irqFilter_->Clear();
-    frameFilter_->Clear();
-    syscallFilter_->Clear();
+    if (binderFilter_) {
+        binderFilter_->Clear();
+    }
+    if (sliceFilter_) {
+        sliceFilter_->Clear();
+    }
+    if (cpuFilter_) {
+        cpuFilter_->Clear();
+    }
+    if (irqFilter_) {
+        irqFilter_->Clear();
+    }
+    if (frameFilter_) {
+        frameFilter_->Clear();
+    }
+    if (syscallFilter_) {
+        syscallFilter_->Clear();
+    }
 }
 } // namespace TraceStreamer
 } // namespace SysTuning
