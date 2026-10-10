@@ -260,7 +260,9 @@ void TraceStreamerSelector::WaitForParserEnd()
     }
 #endif
     traceDataCache_->UpdateTraceRange();
-    if (streamFilters_->configFilter_->GetSwitchConfig().AnimationConfigEnabled()) {
+    if (streamFilters_->configFilter_ &&
+        streamFilters_->configFilter_->GetSwitchConfig().AnimationConfigEnabled() &&
+        streamFilters_->animationFilter_) {
         streamFilters_->animationFilter_->UpdateFrameInfo();
         streamFilters_->animationFilter_->UpdateDynamicFrameInfo();
     }
@@ -268,8 +270,11 @@ void TraceStreamerSelector::WaitForParserEnd()
     ComputeDataDictStrHash();
 #endif
 }
-void TraceStreamerSelector ::GetConfigFile()
+void TraceStreamerSelector::GetConfigFile()
 {
+    if (!streamFilters_->configFilter_) {
+        return;
+    }
     std::ifstream configReading("config/config.json");
     if (!configReading.is_open()) {
         TS_LOGE("Open config file failed!Please make sure that config/config.json exists.");
@@ -349,6 +354,9 @@ void TraceStreamerSelector::InitializeParser()
 {
     if (fileType_ == TRACE_FILETYPE_H_TRACE || fileType_ == TRACE_FILETYPE_PERF) {
         pbreaderParser_ = std::make_unique<PbreaderParser>(traceDataCache_.get(), streamFilters_.get());
+        if (!allowedPluginIndices_.empty()) {
+            pbreaderParser_->SetAllowedPlugins(allowedPluginIndices_);
+        }
 #ifdef ENABLE_ARKTS
         pbreaderParser_->EnableFileSeparate(enableFileSeparate_);
 #endif
@@ -442,6 +450,15 @@ bool TraceStreamerSelector::ParseTraceDataSegment(std::unique_ptr<uint8_t[]> dat
 void TraceStreamerSelector::EnableMetaTable(bool enabled)
 {
     traceDataCache_->EnableMetaTable(enabled);
+}
+
+void TraceStreamerSelector::SetExportConfig(const ExportConfig &config)
+{
+    streamFilters_->exportConfig_ = std::make_shared<ExportConfig>(config);
+    traceDataCache_->SetExportFilter(config.GetExportFilter(), config.HasConfig());
+    for (const auto &name : config.GetAllowedPluginNames()) {
+        allowedPluginIndices_.insert(traceDataCache_->GetDataIndex(name));
+    }
 }
 
 void TraceStreamerSelector::EnableFileSave(bool enabled)
@@ -607,10 +624,15 @@ void TraceStreamerSelector::UpdateRawTraceCutStartTsStatus(bool status)
 }
 void TraceStreamerSelector::SetConfigFile(std::string &filePath)
 {
-    streamFilters_->configFilter_->SetConfig(filePath);
+    if (streamFilters_->configFilter_) {
+        streamFilters_->configFilter_->SetConfig(filePath);
+    }
 }
 bool TraceStreamerSelector::GetFfrtConfig()
 {
+    if (!streamFilters_->configFilter_) {
+        return false;
+    }
     return streamFilters_->configFilter_->GetSwitchConfig().FfrtConfigEnabled();
 }
 bool TraceStreamerSelector::LoadQueryFile(const std::string &sqlOperator, std::vector<std::string> &sqlStrings)

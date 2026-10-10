@@ -1261,6 +1261,12 @@ void HtraceEventParser::ProtoReaderDealEvent(EventInfo *eventInfo)
     if (eventInfo->pid != INVALID_INT32 && eventInfo->tgid != INVALID_INT32) {
         streamFilters_->processFilter_->GetOrCreateThreadWithPid(eventInfo->pid, eventInfo->tgid);
     }
+    if (streamFilters_->exportConfig_) {
+        auto nameIt = config_.eventNameMap_.find(eventInfo->eventType);
+        if (nameIt != config_.eventNameMap_.end() && !streamFilters_->exportConfig_->IsEventNeeded(nameIt->second)) {
+            return;
+        }
+    }
     auto eventToFuncItor = eventToFunctionMap_.find(eventInfo->eventType);
     if (eventToFuncItor != eventToFunctionMap_.end()) {
         eventToFuncItor->second(*eventInfo);

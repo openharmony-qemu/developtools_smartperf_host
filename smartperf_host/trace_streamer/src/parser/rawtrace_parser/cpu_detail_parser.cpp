@@ -302,6 +302,9 @@ void CpuDetailParser::DealEvent(const RawTraceEventInfo &event)
         streamFilters_->processFilter_->GetOrCreateThreadWithPid(eventTid_, eventPid_);
     }
     const auto &eventName = FtraceEventProcessor::GetInstance().GetEventNameById(event.eventId);
+    if (streamFilters_->exportConfig_ && !streamFilters_->exportConfig_->IsEventNeeded(eventName)) {
+        return;
+    }
     auto iter = eventToFunctionMap_.find(eventName);
     if (iter != eventToFunctionMap_.end()) {
         iter->second(event);
