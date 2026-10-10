@@ -22,25 +22,25 @@ namespace SysTuning {
 namespace base {
 static bool IsOperatorPrefix(const std::string &str, size_t pos)
 {
-    constexpr size_t OPERATOR_LEN = 8;
-    if (pos < OPERATOR_LEN) {
+    constexpr size_t operatorLen = 8;
+    if (pos < operatorLen) {
         return false;
     }
-    return str.compare(pos - OPERATOR_LEN, OPERATOR_LEN, "operator") == 0;
+    return str.compare(pos - operatorLen, operatorLen, "operator") == 0;
 }
 
 static void NormalizeDoubleGreaterThan(std::string &result)
 {
-    constexpr size_t DOUBLE_GT_LEN = 2;
-    constexpr size_t SPACED_GT_LEN = 3;
+    constexpr size_t doubleGtLen = 2;
+    constexpr size_t spacedGtLen = 3;
     size_t pos = 0;
     while ((pos = result.find(">>", pos)) != std::string::npos) {
         if (IsOperatorPrefix(result, pos)) {
-            pos += DOUBLE_GT_LEN;
+            pos += doubleGtLen;
             continue;
         }
-        result.replace(pos, DOUBLE_GT_LEN, "> >");
-        pos += SPACED_GT_LEN - 1;
+        result.replace(pos, doubleGtLen, "> >");
+        pos += spacedGtLen - 1;
     }
 }
 
