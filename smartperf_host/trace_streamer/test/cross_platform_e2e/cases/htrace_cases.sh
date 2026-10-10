@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+HTRACE_LARGE_FILE_THRESHOLD_MB=100
+
 run_htrace_cases() {
     local ref_platform="$1"
     local target_platform="$2"
@@ -44,11 +46,20 @@ run_htrace_cases() {
         fi
     done
 
+    run_htrace_large_file "$resource_dir" "$ref_platform" \
+        "$target_platform" "$compare_mode"
+}
+
+run_htrace_large_file() {
+    local resource_dir="$1"
+    local ref_platform="$2"
+    local target_platform="$3"
+    local compare_mode="$4"
     local large_file="$resource_dir/pbreader.htrace"
     if [[ -f "$large_file" ]]; then
         local file_size
         file_size=$(du -m "$large_file" | cut -f1)
-        if [[ "$file_size" -gt 100 ]]; then
+        if [[ "$file_size" -gt "$HTRACE_LARGE_FILE_THRESHOLD_MB" ]]; then
             log_warn "pbreader.htrace is ${file_size}MB, running may take long"
         fi
         run_cross_platform_comparison \
@@ -86,4 +97,11 @@ run_htrace_single_platform() {
             record_result "$case_name" "skip" "input not found: $file_path"
         fi
     done
+
+    local large_file="$resource_dir/pbreader.htrace"
+    if [[ -f "$large_file" ]]; then
+        run_single_platform "$platform" "$large_file" "htrace_pbreader_large_$platform" "0"
+    else
+        record_result "htrace_pbreader_large_$platform" "skip" "large htrace not found"
+    fi
 }

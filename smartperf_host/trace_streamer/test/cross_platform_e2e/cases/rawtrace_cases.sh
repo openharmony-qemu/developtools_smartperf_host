@@ -20,52 +20,31 @@ run_rawtrace_cases() {
     resource_dir=$(get_resource_dir)
     log_section "Rawtrace Format Cross-Platform Tests"
 
-    local rawtrace_bin="$resource_dir/rawtrace.bin"
-    if [[ -f "$rawtrace_bin" ]]; then
-        run_cross_platform_comparison \
-            "$rawtrace_bin" \
-            "rawtrace_bin" \
-            "$ref_platform" \
-            "$target_platform" \
-            "$compare_mode"
-    else
-        record_result "rawtrace_bin" "skip" "input not found: $rawtrace_bin"
-    fi
+    run_rawtrace_case "$resource_dir/rawtrace.bin" "rawtrace_bin" \
+        "$ref_platform" "$target_platform" "$compare_mode"
+    run_rawtrace_case "$resource_dir/rawtrace.data" "rawtrace_data" \
+        "$ref_platform" "$target_platform" "$compare_mode"
+    run_rawtrace_case "$resource_dir/htrace.bin" "rawtrace_htrace_bin" \
+        "$ref_platform" "$target_platform" "$compare_mode"
+    run_rawtrace_case "$resource_dir/perfCompressed.data" "rawtrace_perf_compressed" \
+        "$ref_platform" "$target_platform" "$compare_mode"
+}
 
-    local rawtrace_data="$resource_dir/rawtrace.data"
-    if [[ -f "$rawtrace_data" ]]; then
+run_rawtrace_case() {
+    local file_path="$1"
+    local case_name="$2"
+    local ref_platform="$3"
+    local target_platform="$4"
+    local compare_mode="$5"
+    if [[ -f "$file_path" ]]; then
         run_cross_platform_comparison \
-            "$rawtrace_data" \
-            "rawtrace_data" \
+            "$file_path" \
+            "$case_name" \
             "$ref_platform" \
             "$target_platform" \
             "$compare_mode"
     else
-        record_result "rawtrace_data" "skip" "input not found: $rawtrace_data"
-    fi
-
-    local htrace_bin="$resource_dir/htrace.bin"
-    if [[ -f "$htrace_bin" ]]; then
-        run_cross_platform_comparison \
-            "$htrace_bin" \
-            "rawtrace_htrace_bin" \
-            "$ref_platform" \
-            "$target_platform" \
-            "$compare_mode"
-    else
-        record_result "rawtrace_htrace_bin" "skip" "input not found: $htrace_bin"
-    fi
-
-    local perf_data="$resource_dir/perfCompressed.data"
-    if [[ -f "$perf_data" ]]; then
-        run_cross_platform_comparison \
-            "$perf_data" \
-            "rawtrace_perf_compressed" \
-            "$ref_platform" \
-            "$target_platform" \
-            "$compare_mode"
-    else
-        record_result "rawtrace_perf_compressed" "skip" "input not found: $perf_data"
+        record_result "$case_name" "skip" "input not found: $file_path"
     fi
 }
 
@@ -87,5 +66,19 @@ run_rawtrace_single_platform() {
         run_single_platform "$platform" "$rawtrace_data" "rawtrace_data_$platform" "0"
     else
         record_result "rawtrace_data_$platform" "skip" "input not found"
+    fi
+
+    local htrace_bin="$resource_dir/htrace.bin"
+    if [[ -f "$htrace_bin" ]]; then
+        run_single_platform "$platform" "$htrace_bin" "rawtrace_htrace_bin_$platform" "0"
+    else
+        record_result "rawtrace_htrace_bin_$platform" "skip" "input not found"
+    fi
+
+    local perf_compressed="$resource_dir/perfCompressed.data"
+    if [[ -f "$perf_compressed" ]]; then
+        run_single_platform "$platform" "$perf_compressed" "rawtrace_perf_compressed_$platform" "0"
+    else
+        record_result "rawtrace_perf_compressed_$platform" "skip" "input not found"
     fi
 }

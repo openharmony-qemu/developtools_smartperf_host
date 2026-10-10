@@ -15,17 +15,67 @@
 #include "string_help.h"
 #include <cctype>
 #include <cstdint>
+#include <cstdlib>
+#include <cstring>
+#include "log.h"
 namespace SysTuning {
 namespace base {
+static bool IsOperatorPrefix(const std::string &str, size_t pos)
+{
+    constexpr size_t OPERATOR_LEN = 8;
+    if (pos < OPERATOR_LEN) {
+        return false;
+    }
+    return str.compare(pos - OPERATOR_LEN, OPERATOR_LEN, "operator") == 0;
+}
+
+static void NormalizeDoubleGreaterThan(std::string &result)
+{
+    constexpr size_t DOUBLE_GT_LEN = 2;
+    constexpr size_t SPACED_GT_LEN = 3;
+    size_t pos = 0;
+    while ((pos = result.find(">>", pos)) != std::string::npos) {
+        if (IsOperatorPrefix(result, pos)) {
+            pos += DOUBLE_GT_LEN;
+            continue;
+        }
+        result.replace(pos, DOUBLE_GT_LEN, "> >");
+        pos += SPACED_GT_LEN - 1;
+    }
+}
+
+static char *AllocAndCopyDemangled(const std::string &str, const char *fallback)
+{
+    char *ret = static_cast<char *>(malloc(str.size() + 1));
+    if (!ret) {
+        TS_LOGE("malloc failed, size: %zu", str.size() + 1);
+        return const_cast<char *>(fallback);
+    }
+    if (memcpy_s(ret, str.size() + 1, str.c_str(), str.size() + 1) != EOK) {
+        TS_LOGE("memcpy_s failed");
+        free(ret);
+        return const_cast<char *>(fallback);
+    }
+    return ret;
+}
+
 char *GetDemangleSymbolIndex(const char *mangled)
 {
+    if (mangled == nullptr) {
+        return nullptr;
+    }
     int status = 0;
     auto demangle = abi::__cxa_demangle(mangled, nullptr, nullptr, &status);
-    if (status) { // status != 0 failed
+    if (status) {
         return const_cast<char *>(mangled);
-    } else {
-        return demangle;
     }
+    std::string result(demangle);
+    NormalizeDoubleGreaterThan(result);
+    if (result != demangle) {
+        free(demangle);
+        return AllocAndCopyDemangled(result, mangled);
+    }
+    return demangle;
 }
 
 bool StartWith(const std::string &str, const std::string &res)

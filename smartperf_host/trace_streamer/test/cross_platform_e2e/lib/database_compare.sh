@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+readonly DB_DEFAULT_FLOAT_TOLERANCE=6
 SQLITE3_BIN="${SQLITE3_BIN:-sqlite3}"
-DB_COMPARE_FLOAT_TOLERANCE="${DB_COMPARE_FLOAT_TOLERANCE:-6}"
+DB_COMPARE_FLOAT_TOLERANCE="${DB_COMPARE_FLOAT_TOLERANCE:-$DB_DEFAULT_FLOAT_TOLERANCE}"
+DB_NOT_FOUND_SENTINEL="-1"
 
 db_get_tables() {
     local db_file="$1"
@@ -37,10 +39,10 @@ db_count_rows() {
     local db_file="$1"
     local table="$2"
     if [[ ! -f "$db_file" ]]; then
-        echo "-1"
+        echo "$DB_NOT_FOUND_SENTINEL"
         return 1
     fi
-    "$SQLITE3_BIN" "$db_file" "SELECT COUNT(*) FROM $table;" 2>/dev/null
+    "$SQLITE3_BIN" "$db_file" "SELECT COUNT(*) FROM \"$table\";" 2>/dev/null
 }
 
 db_dump() {
@@ -68,7 +70,7 @@ db_dump_table() {
         echo ""
         return 1
     fi
-    "$SQLITE3_BIN" "$db_file" "SELECT * FROM $table ORDER BY 1;" 2>/dev/null
+    "$SQLITE3_BIN" "$db_file" "SELECT * FROM \"$table\" ORDER BY 1;" 2>/dev/null
 }
 
 db_normalize_dump() {
@@ -85,6 +87,21 @@ db_normalize_dump() {
         "$dump_file" 2>/dev/null | sort
 }
 
+_check_empty_schema() {
+    local schema1="$1"
+    local schema2="$2"
+    local case_name="$3"
+    if [[ -z "$schema1" && -z "$schema2" ]]; then
+        record_result "$case_name" "fail" "both schemas empty"
+        return 1
+    fi
+    if [[ -z "$schema1" || -z "$schema2" ]]; then
+        record_result "$case_name" "fail" "one schema empty (db1=${#schema1}, db2=${#schema2})"
+        return 1
+    fi
+    return 0
+}
+
 db_compare_schema() {
     local db1="$1"
     local db2="$2"
@@ -92,12 +109,7 @@ db_compare_schema() {
     local schema1 schema2
     schema1=$(db_get_schema "$db1")
     schema2=$(db_get_schema "$db2")
-    if [[ -z "$schema1" && -z "$schema2" ]]; then
-        record_result "$case_name" "fail" "both schemas empty"
-        return 1
-    fi
-    if [[ -z "$schema1" || -z "$schema2" ]]; then
-        record_result "$case_name" "fail" "one schema empty (db1=${#schema1}, db2=${#schema2})"
+    if ! _check_empty_schema "$schema1" "$schema2" "$case_name"; then
         return 1
     fi
     if [[ "$schema1" == "$schema2" ]]; then
@@ -210,36 +222,55 @@ db_compare_data_normalized() {
     fi
 }
 
+db_compare_data() {
+    local db1="$1"
+    local db2="$2"
+    local case_prefix="$3"
+    local mode="$4"
+    case "$mode" in
+        exact)
+            db_compare_data_exact "$db1" "$db2" "${case_prefix}_data"
+            ;;
+        normalized)
+            db_compare_data_normalized "$db1" "$db2" "${case_prefix}_data_norm"
+            ;;
+        both)
+            if ! db_compare_data_exact "$db1" "$db2" "${case_prefix}_data_exact"; then
+                log_warn "exact comparison failed, trying normalized"
+                db_compare_data_normalized "$db1" "$db2" "${case_prefix}_data_norm"
+            fi
+            ;;
+    esac
+}
+
+_db_compare_structure() {
+    local db1="$1"
+    local db2="$2"
+    local case_prefix="$3"
+    local fail=0
+    if ! db_compare_table_list "$db1" "$db2" "${case_prefix}_table_list"; then
+        fail=1
+    fi
+    if ! db_compare_schema "$db1" "$db2" "${case_prefix}_schema"; then
+        fail=1
+    fi
+    return $fail
+}
+
 db_compare_all() {
     local db1="$1"
     local db2="$2"
     local case_prefix="$3"
     local mode="${4:-exact}"
     local overall_fail=0
-    if ! db_compare_table_list "$db1" "$db2" "${case_prefix}_table_list"; then
-        overall_fail=1
-    fi
-    if ! db_compare_schema "$db1" "$db2" "${case_prefix}_schema"; then
+    if ! _db_compare_structure "$db1" "$db2" "$case_prefix"; then
         overall_fail=1
     fi
     if ! db_compare_row_counts "$db1" "$db2" "${case_prefix}_row_counts"; then
         overall_fail=1
     fi
-    if [[ "$mode" == "exact" ]]; then
-        if ! db_compare_data_exact "$db1" "$db2" "${case_prefix}_data"; then
-            overall_fail=1
-        fi
-    elif [[ "$mode" == "normalized" ]]; then
-        if ! db_compare_data_normalized "$db1" "$db2" "${case_prefix}_data_norm"; then
-            overall_fail=1
-        fi
-    elif [[ "$mode" == "both" ]]; then
-        if ! db_compare_data_exact "$db1" "$db2" "${case_prefix}_data_exact"; then
-            log_warn "exact comparison failed, trying normalized"
-            if ! db_compare_data_normalized "$db1" "$db2" "${case_prefix}_data_norm"; then
-                overall_fail=1
-            fi
-        fi
+    if ! db_compare_data "$db1" "$db2" "$case_prefix" "$mode"; then
+        overall_fail=1
     fi
     return $overall_fail
 }
@@ -265,7 +296,7 @@ db_export_to_csv() {
     mkdir -p "$output_dir"
     for table in $tables; do
         local csv_file="$output_dir/${table}.csv"
-        "$SQLITE3_BIN" -header -csv "$db_file" "SELECT * FROM $table;" > "$csv_file" 2>/dev/null
+        "$SQLITE3_BIN" -header -csv "$db_file" "SELECT * FROM \"$table\";" > "$csv_file" 2>/dev/null
     done
     echo "Exported $(echo "$tables" | wc -l) tables to $output_dir"
 }

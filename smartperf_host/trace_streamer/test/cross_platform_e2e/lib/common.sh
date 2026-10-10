@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+TITLE_PADDING=4
 E2E_TEST_PASS_COUNT=0
 E2E_TEST_FAIL_COUNT=0
 E2E_TEST_SKIP_COUNT=0
@@ -75,7 +76,7 @@ log_section() {
     local title="$1"
     local len=${#title}
     local line=""
-    for ((i=0; i<len+4; i++)); do line+="="; done
+    for ((i=0; i<len+TITLE_PADDING; i++)); do line+="="; done
     echo ""
     echo -e "${COLOR_BLUE}$line${COLOR_RESET}"
     echo -e "${COLOR_BLUE}  $title  ${COLOR_RESET}"
@@ -117,7 +118,9 @@ init_test_env() {
     root=$(get_trace_streamer_root)
     E2E_TMP_DIR="$root/test/cross_platform_e2e/tmp"
     E2E_OUTPUT_DIR="$root/test/cross_platform_e2e/output"
-    rm -rf "$E2E_TMP_DIR"
+    if [[ -n "$E2E_TMP_DIR" ]]; then
+        rm -rf "$E2E_TMP_DIR"
+    fi
     mkdir -p "$E2E_TMP_DIR"
     mkdir -p "$E2E_OUTPUT_DIR"
 }
@@ -221,6 +224,36 @@ assert_binary_arch() {
     fi
 }
 
+print_detailed_results() {
+    echo ""
+    echo "  Detailed Results:"
+    printf "  %-8s %-40s %s\n" "Status" "Case" "Detail"
+    printf "  %-8s %-40s %s\n" "------" "----" "------"
+    for result in "${E2E_TEST_RESULTS[@]}"; do
+        local status name detail
+        IFS='|' read -r status name detail <<< "$result"
+        local color=""
+        case "$status" in
+            pass) color="$COLOR_GREEN" ;;
+            fail) color="$COLOR_RED" ;;
+            skip) color="$COLOR_YELLOW" ;;
+        esac
+        printf "  ${color}%-8s${COLOR_RESET} %-40s %s\n" "$status" "$name" "$detail"
+    done
+}
+
+_print_summary_status() {
+    local fail="$1"
+    local skip="$2"
+    if [[ $fail -eq 0 && $skip -eq 0 ]]; then
+        echo -e "\n  ${COLOR_GREEN}All tests passed!${COLOR_RESET}"
+    elif [[ $fail -eq 0 ]]; then
+        echo -e "\n  ${COLOR_YELLOW}All executed tests passed ($skip skipped)${COLOR_RESET}"
+    else
+        echo -e "\n  ${COLOR_RED}$fail test(s) failed${COLOR_RESET}"
+    fi
+}
+
 print_summary() {
     local total=$E2E_TEST_TOTAL_COUNT
     local pass=$E2E_TEST_PASS_COUNT
@@ -231,29 +264,9 @@ print_summary() {
     echo -e "  ${COLOR_GREEN}Pass:   $pass${COLOR_RESET}"
     echo -e "  ${COLOR_RED}Fail:   $fail${COLOR_RESET}"
     echo -e "  ${COLOR_YELLOW}Skip:   $skip${COLOR_RESET}"
-    if [[ $fail -eq 0 && $skip -eq 0 ]]; then
-        echo -e "\n  ${COLOR_GREEN}All tests passed!${COLOR_RESET}"
-    elif [[ $fail -eq 0 ]]; then
-        echo -e "\n  ${COLOR_YELLOW}All executed tests passed ($skip skipped)${COLOR_RESET}"
-    else
-        echo -e "\n  ${COLOR_RED}$fail test(s) failed${COLOR_RESET}"
-    fi
+    _print_summary_status "$fail" "$skip"
     if [[ ${#E2E_TEST_RESULTS[@]} -gt 0 ]]; then
-        echo ""
-        echo "  Detailed Results:"
-        printf "  %-8s %-40s %s\n" "Status" "Case" "Detail"
-        printf "  %-8s %-40s %s\n" "------" "----" "------"
-        for result in "${E2E_TEST_RESULTS[@]}"; do
-            local status name detail
-            IFS='|' read -r status name detail <<< "$result"
-            local color=""
-            case "$status" in
-                pass) color="$COLOR_GREEN" ;;
-                fail) color="$COLOR_RED" ;;
-                skip) color="$COLOR_YELLOW" ;;
-            esac
-            printf "  ${color}%-8s${COLOR_RESET} %-40s %s\n" "$status" "$name" "$detail"
-        done
+        print_detailed_results
     fi
 }
 

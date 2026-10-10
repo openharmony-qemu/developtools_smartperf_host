@@ -87,7 +87,9 @@ toolchain("wasm") {
 
   tool("cc") {
     depfiles = "{{output}}.d"
-    command = "$cc_wrapper $cc -MMD -MF $depfiles {{defines}} {{include_dirs}} {{cflags}} {{cflags_c}} ${external_cflags} -c {{source}} -o {{output}}"
+    command =
+        "$cc_wrapper $cc -MMD -MF $depfiles {{defines}} {{include_dirs}} " +
+        "{{cflags}} {{cflags_c}} ${external_cflags} -c {{source}} -o {{output}}"
     outputfiles =
         "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o"
     outputs = [ outputfiles ]
@@ -96,7 +98,10 @@ toolchain("wasm") {
 
   tool("cxx") {
     depfiles = "{{output}}.d"  # must be defined
-    command = "$cc_wrapper $cxx -MMD -MF $depfiles {{defines}} {{include_dirs}} {{cflags}} {{cflags_cc}}  ${external_cflags} ${external_cxxflags} -c {{source}} -o {{output}}"
+    command =
+        "$cc_wrapper $cxx -MMD -MF $depfiles {{defines}} {{include_dirs}} " +
+        "{{cflags}} {{cflags_cc}}  ${external_cflags} ${external_cxxflags} " +
+        "-c {{source}} -o {{output}}"
 
     outputfiles =
         "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o"
@@ -123,7 +128,9 @@ toolchain("wasm") {
     unstripped_so = outputfiles
     rpath = ""
     outputs = [ outputfiles ]
-    command = "$cc_wrapper $cxx $ld_arg -shared {{ldflags}} ${external_ldflags} {{inputs}} {{solibs}} {{libs}} $rpath -o {{output}}"
+    command =
+        "$cc_wrapper $cxx $ld_arg -shared {{ldflags}} ${external_ldflags} " +
+        "{{inputs}} {{solibs}} {{libs}} $rpath -o {{output}}"
     output_prefix = "lib"
     description = "step: link $unstripped_so"
     default_output_extension = ".so"
@@ -152,7 +159,8 @@ toolchain("gcc_like") {
 
   tool("cxx") {
     depfile = "{{output}}.d"  # must be defined
-    command = "$cxx -o {{output}} -MMD -MF $depfile {{defines}} $pic {{include_dirs}} {{cflags}} {{cflags_cc}} -c {{source}}"
+    command = "$cxx -o {{output}} -MMD -MF $depfile {{defines}} $pic " +
+              "{{include_dirs}} {{cflags}} {{cflags_cc}} -c {{source}}"
     outputfiles =
         "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o"
     outputs = [ outputfiles ]
@@ -161,7 +169,8 @@ toolchain("gcc_like") {
 
   tool("cc") {
     depfile = "{{output}}.d"
-    command = "$cc -o {{output}} -MMD -MF $depfile {{defines}} $pic {{include_dirs}} {{cflags}} {{cflags_c}} -c {{source}}"
+    command = "$cc -o {{output}} -MMD -MF $depfile {{defines}} $pic " +
+              "{{include_dirs}} {{cflags}} {{cflags_c}} -c {{source}}"
     outputfiles =
         "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o"
     outputs = [ outputfiles ]
@@ -169,7 +178,9 @@ toolchain("gcc_like") {
   }
   tool("asm") {
     depfile = "{{output}}.d"
-    command = "$asm -o {{output}} -MMD -MF $depfile ${rebuild_string}{{defines}} {{include_dirs}} {{asmflags}}${extra_asmflags} -c {{source}}"
+    command =
+        "$asm -o {{output}} -MMD -MF $depfile ${rebuild_string}{{defines}} " +
+        "{{include_dirs}} {{asmflags}}${extra_asmflags} -c {{source}}"
     depsformat = "gcc"
     outputfiles =
         "{{source_out_dir}}/{{target_output_name}}.{{source_name_part}}.o"
@@ -201,9 +212,9 @@ toolchain("gcc_like") {
     if (is_mac) {
       command = "$cxx -o {{output}} {{ldflags}} {{inputs}} {{solibs}} {{libs}}"
     } else if (is_win) {
-      command = "$cxx {{ldflags}} -o {{output}} --static -Wl,--start-group {{inputs}} {{solibs}} {{libs}} -Wl,--end-group -lshell32 -lole32 -luuid -ladvapi32"
+      command = "$cxx {{ldflags}} -o {{output}} --static -Wl,--start-group {{inputs}} " + "{{solibs}} {{libs}} -Wl,--end-group -lshell32 -lole32 -luuid -ladvapi32"
     } else {
-      command = "$cxx {{ldflags}} -o {{output}} -static-libstdc++ -Wl,--start-group {{inputs}} {{solibs}} {{libs}} -Wl,--end-group"
+      command = "$cxx {{ldflags}} -o {{output}} -static-libstdc++ -Wl,--start-group " + "{{inputs}} {{solibs}} {{libs}} -Wl,--end-group"
     }
     outputsfiles = "{{root_out_dir}}/{{target_output_name}}{{output_extension}}"
     outputs = [ outputsfiles ]

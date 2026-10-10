@@ -22,6 +22,7 @@ is_sdkdemo_test = false
 is_spb = false
 target_cpu = "x64"
 build_llvm_with_ts = true
+exit_code_failure = -1
 
 declare_args() {
   ar = "ar"
@@ -57,7 +58,7 @@ if (target_os == "linux") {
   current_os = host_os
 } else {
   print("unknown platform " + target_os)
-  exit(-1)
+  exit(exit_code_failure)
 }
 
 if (target == "wasm") {
@@ -83,7 +84,7 @@ if (target == "wasm") {
   is_spb = true
 } else {
   print("unknown target " + target_os)
-  exit(-1)
+  exit(exit_code_failure)
 }
 
 trace_cfg_path = "//gn:trace_cfg"

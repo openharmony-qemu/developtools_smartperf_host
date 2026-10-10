@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+readonly PLATFORM_RUNNER_DEFAULT_TIMEOUT=300
+readonly PLATFORM_RUNNER_SSH_CONNECT_TIMEOUT=10
+readonly PLATFORM_RUNNER_NS_PER_MS=1000000
+
 PLATFORM_RUNNER_REMOTE_HOST=""
 PLATFORM_RUNNER_QEMU_BIN="${PLATFORM_RUNNER_QEMU_BIN:-qemu-aarch64}"
 PLATFORM_RUNNER_QEMU_SYSROOT="${PLATFORM_RUNNER_QEMU_SYSROOT:-tools/ohos-sdk/linux/native/sysroot}"
@@ -19,7 +23,7 @@ PLATFORM_RUNNER_SSH_USER="root"
 PLATFORM_RUNNER_SSH_PORT="22"
 PLATFORM_RUNNER_SSH_KEY=""
 PLATFORM_RUNNER_REMOTE_BASE_DIR="/data/cross_platform_test"
-PLATFORM_RUNNER_TIMEOUT="${PLATFORM_RUNNER_TIMEOUT:-300}"
+PLATFORM_RUNNER_TIMEOUT="${PLATFORM_RUNNER_TIMEOUT:-$PLATFORM_RUNNER_DEFAULT_TIMEOUT}"
 
 platform_get_binary() {
     local root="$1"
@@ -82,28 +86,57 @@ platform_list_available() {
     echo "${available[@]}"
 }
 
+_check_linux_local() {
+    local host_arch
+    host_arch=$(uname -m)
+    if [[ "$host_arch" == "x86_64" ]]; then
+        return 0
+    fi
+    return 1
+}
+
+_check_macx_local() {
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+        return 0
+    fi
+    return 1
+}
+
+_check_linux_macx_local() {
+    local platform="$1"
+    if [[ "$platform" == "linux" ]]; then
+        _check_linux_local
+        return $?
+    fi
+    if [[ "$platform" == "macx" ]]; then
+        _check_macx_local
+        return $?
+    fi
+    return 1
+}
+
+_check_ohospc_local() {
+    local host_arch
+    host_arch=$(uname -m)
+    if [[ "$host_arch" == "aarch64" ]]; then
+        return 0
+    fi
+    if check_command "$PLATFORM_RUNNER_QEMU_BIN"; then
+        return 0
+    fi
+    return 1
+}
+
 platform_can_run_locally() {
     local platform="$1"
     case "$platform" in
         linux|macx)
-            local host_arch
-            host_arch=$(uname -m)
-            if [[ "$platform" == "linux" && "$host_arch" == "x86_64" ]]; then
-                return 0
-            fi
-            if [[ "$platform" == "macx" && "$(uname -s)" == "Darwin" ]]; then
-                return 0
-            fi
+            _check_linux_macx_local "$platform"
+            return $?
             ;;
         ohospc)
-            local host_arch
-            host_arch=$(uname -m)
-            if [[ "$host_arch" == "aarch64" ]]; then
-                return 0
-            fi
-            if check_command "$PLATFORM_RUNNER_QEMU_BIN"; then
-                return 0
-            fi
+            _check_ohospc_local
+            return $?
             ;;
     esac
     return 1
@@ -133,6 +166,62 @@ platform_get_binary_arch_actual() {
     esac
 }
 
+platform_get_ohospc_run_mode() {
+    local host_arch="$1"
+    if [[ "$E2E_FORCE_QEMU" -eq 1 ]] && check_command "$PLATFORM_RUNNER_QEMU_BIN"; then
+        echo "qemu"
+        return
+    fi
+    if [[ "$host_arch" == "aarch64" ]]; then
+        echo "local"
+        return
+    fi
+    if check_command "$PLATFORM_RUNNER_QEMU_BIN"; then
+        echo "qemu"
+        return
+    fi
+    if [[ -n "$PLATFORM_RUNNER_REMOTE_HOST" ]]; then
+        echo "remote"
+        return
+    fi
+    platform_get_ohospc_fallback_mode "$host_arch"
+}
+
+platform_get_ohospc_fallback_mode() {
+    local host_arch="$1"
+    local root
+    root=$(get_trace_streamer_root)
+    local binary
+    binary=$(platform_get_binary "$root" "ohospc")
+    local bin_arch
+    bin_arch=$(platform_get_binary_arch_actual "$binary")
+    if [[ "$bin_arch" == "x86-64" && "$host_arch" == "x86_64" ]]; then
+        echo "local"
+    else
+        echo "none"
+    fi
+}
+
+platform_get_windows_run_mode() {
+    if [[ "$(uname -s)" == "MINGW"* || "$(uname -s)" == "CYGWIN"* ]]; then
+        echo "local"
+    elif [[ -n "$PLATFORM_RUNNER_REMOTE_HOST" ]]; then
+        echo "remote"
+    else
+        echo "none"
+    fi
+}
+
+platform_get_macx_run_mode() {
+    if [[ "$(uname -s)" == "Darwin" ]]; then
+        echo "local"
+    elif [[ -n "$PLATFORM_RUNNER_REMOTE_HOST" ]]; then
+        echo "remote"
+    else
+        echo "none"
+    fi
+}
+
 platform_get_run_mode() {
     local platform="$1"
     if [[ "$E2E_FORCE_LOCAL" -eq 1 ]]; then
@@ -150,43 +239,13 @@ platform_get_run_mode() {
             fi
             ;;
         ohospc)
-            if [[ "$host_arch" == "aarch64" ]]; then
-                echo "local"
-            elif check_command "$PLATFORM_RUNNER_QEMU_BIN"; then
-                echo "qemu"
-            elif [[ -n "$PLATFORM_RUNNER_REMOTE_HOST" ]]; then
-                echo "remote"
-            else
-                local root
-                root=$(get_trace_streamer_root)
-                local binary
-                binary=$(platform_get_binary "$root" "$platform")
-                local bin_arch
-                bin_arch=$(platform_get_binary_arch_actual "$binary")
-                if [[ "$bin_arch" == "x86-64" && "$host_arch" == "x86_64" ]]; then
-                    echo "local"
-                else
-                    echo "none"
-                fi
-            fi
+            platform_get_ohospc_run_mode "$host_arch"
             ;;
         windows)
-            if [[ "$(uname -s)" == "MINGW"* || "$(uname -s)" == "CYGWIN"* ]]; then
-                echo "local"
-            elif [[ -n "$PLATFORM_RUNNER_REMOTE_HOST" ]]; then
-                echo "remote"
-            else
-                echo "none"
-            fi
+            platform_get_windows_run_mode
             ;;
         macx)
-            if [[ "$(uname -s)" == "Darwin" ]]; then
-                echo "local"
-            elif [[ -n "$PLATFORM_RUNNER_REMOTE_HOST" ]]; then
-                echo "remote"
-            else
-                echo "none"
-            fi
+            platform_get_macx_run_mode
             ;;
         *)
             echo "none"
@@ -212,8 +271,22 @@ run_trace_streamer_local() {
     timeout "$PLATFORM_RUNNER_TIMEOUT" "$binary" "$input_file" -e "$output_db" $extra_args 2>&1
     local exit_code=$?
     end_time=$(date +%s%N)
-    duration=$(( (end_time - start_time) / 1000000 ))
+    duration=$(( (end_time - start_time) / PLATFORM_RUNNER_NS_PER_MS ))
     echo "EXIT_CODE:$exit_code DURATION:${duration}ms"
+    return 0
+}
+
+_validate_run_params() {
+    local binary="$1"
+    local input_file="$2"
+    if [[ ! -f "$binary" ]]; then
+        echo "EXIT_CODE:-2 DURATION:0ms BINARY_NOT_FOUND"
+        return 1
+    fi
+    if [[ ! -f "$input_file" ]]; then
+        echo "EXIT_CODE:-3 DURATION:0ms INPUT_NOT_FOUND"
+        return 1
+    fi
     return 0
 }
 
@@ -228,24 +301,19 @@ run_trace_streamer_qemu() {
     if [[ ! -d "$sysroot" ]]; then
         sysroot=""
     fi
-    if [[ ! -f "$binary" ]]; then
-        echo "EXIT_CODE:-2 DURATION:0ms BINARY_NOT_FOUND"
+    if ! _validate_run_params "$binary" "$input_file"; then
         return 1
     fi
-    if [[ ! -f "$input_file" ]]; then
-        echo "EXIT_CODE:-3 DURATION:0ms INPUT_NOT_FOUND"
-        return 1
-    fi
-    local qemu_cmd="$PLATFORM_RUNNER_QEMU_BIN"
+    local -a qemu_cmd=("$PLATFORM_RUNNER_QEMU_BIN")
     if [[ -n "$sysroot" ]]; then
-        qemu_cmd="$qemu_cmd -L $sysroot"
+        qemu_cmd+=(-L "$sysroot")
     fi
     local start_time end_time duration
     start_time=$(date +%s%N)
-    timeout "$PLATFORM_RUNNER_TIMEOUT" $qemu_cmd "$binary" "$input_file" -e "$output_db" $extra_args 2>&1
+    timeout "$PLATFORM_RUNNER_TIMEOUT" "${qemu_cmd[@]}" "$binary" "$input_file" -e "$output_db" $extra_args 2>&1
     local exit_code=$?
     end_time=$(date +%s%N)
-    duration=$(( (end_time - start_time) / 1000000 ))
+    duration=$(( (end_time - start_time) / PLATFORM_RUNNER_NS_PER_MS ))
     echo "EXIT_CODE:$exit_code DURATION:${duration}ms"
     return 0
 }
@@ -260,22 +328,37 @@ run_trace_streamer_remote() {
         echo "NO_REMOTE_HOST"
         return 1
     fi
-    local ssh_opts="-o ConnectTimeout=10 -o StrictHostKeyChecking=no"
+    local -a ssh_opts=(-o "ConnectTimeout=$PLATFORM_RUNNER_SSH_CONNECT_TIMEOUT" -o StrictHostKeyChecking=no)
     if [[ -n "$PLATFORM_RUNNER_SSH_KEY" ]]; then
-        ssh_opts="$ssh_opts -i $PLATFORM_RUNNER_SSH_KEY"
+        ssh_opts+=(-i "$PLATFORM_RUNNER_SSH_KEY")
     fi
-    ssh_opts="$ssh_opts -p $PLATFORM_RUNNER_SSH_PORT"
     local remote_binary="$PLATFORM_RUNNER_REMOTE_BASE_DIR/trace_streamer"
     local remote_input="$PLATFORM_RUNNER_REMOTE_BASE_DIR/$(basename "$input_file")"
     local remote_output="$PLATFORM_RUNNER_REMOTE_BASE_DIR/$(basename "$output_db")"
-    local scp_cmd="scp $ssh_opts"
-    scp_cmd="$scp_cmd \"$binary\" \"$PLATFORM_RUNNER_SSH_USER@$host:$remote_binary\""
-    eval "$scp_cmd" 2>/dev/null
-    scp $ssh_opts "$input_file" "$PLATFORM_RUNNER_SSH_USER@$host:$remote_input" 2>/dev/null
+    local remote_user_host="$PLATFORM_RUNNER_SSH_USER@$host"
+    local -a ssh_port=(-p "$PLATFORM_RUNNER_SSH_PORT")
+    local -a scp_port=(-P "$PLATFORM_RUNNER_SSH_PORT")
+    ssh "${ssh_opts[@]}" "${ssh_port[@]}" "$remote_user_host" \
+        "mkdir -p $PLATFORM_RUNNER_REMOTE_BASE_DIR" 2>/dev/null
+    scp "${ssh_opts[@]}" "${scp_port[@]}" "$binary" \
+        "$remote_user_host:$remote_binary" 2>/dev/null
+    scp "${ssh_opts[@]}" "${scp_port[@]}" "$input_file" \
+        "$remote_user_host:$remote_input" 2>/dev/null
+    local escaped_extra_args=""
+    if [[ -n "$extra_args" ]]; then
+        escaped_extra_args=$(printf '%q' "$extra_args")
+    fi
+    local remote_cmd="cd $PLATFORM_RUNNER_REMOTE_BASE_DIR"
+    remote_cmd="$remote_cmd && timeout $PLATFORM_RUNNER_TIMEOUT"
+    remote_cmd="$remote_cmd ./trace_streamer $(basename "$input_file")"
+    remote_cmd="$remote_cmd -e $(basename "$output_db") $escaped_extra_args 2>&1"
+    remote_cmd="$remote_cmd; echo EXIT_CODE:\$?"
     local remote_result
-    remote_result=$(ssh $ssh_opts "$PLATFORM_RUNNER_SSH_USER@$host" \
-        "cd $PLATFORM_RUNNER_REMOTE_BASE_DIR && timeout $PLATFORM_RUNNER_TIMEOUT ./trace_streamer $(basename "$input_file") -e $(basename "$output_db") $extra_args 2>&1; echo EXIT_CODE:\$?")
-    scp $ssh_opts "$PLATFORM_RUNNER_SSH_USER@$host:$remote_output" "$output_db" 2>/dev/null
+    remote_result=$(ssh "${ssh_opts[@]}" "${ssh_port[@]}" "$remote_user_host" "$remote_cmd")
+    scp "${ssh_opts[@]}" "${scp_port[@]}" "$remote_user_host:$remote_output" \
+        "$output_db" 2>/dev/null
+    ssh "${ssh_opts[@]}" "${ssh_port[@]}" "$remote_user_host" \
+        "rm -f $remote_binary $remote_input $remote_output" 2>/dev/null
     local exit_code
     exit_code=$(echo "$remote_result" | grep "EXIT_CODE:" | sed 's/EXIT_CODE://')
     echo "EXIT_CODE:$exit_code DURATION:remote"
@@ -315,6 +398,68 @@ run_trace_streamer() {
     esac
 }
 
+check_comparison_prerequisites() {
+    local input_file="$1"
+    local case_name="$2"
+    local ref_platform="$3"
+    local target_platform="$4"
+    local root="$5"
+    if [[ ! -f "$input_file" ]]; then
+        record_result "${case_name}_input_check" "fail" \
+            "input not found: $input_file"
+        return 1
+    fi
+    if ! platform_is_available "$root" "$ref_platform"; then
+        record_result "${case_name}_ref_binary" "skip" \
+            "reference platform '$ref_platform' not available"
+        return 1
+    fi
+    if ! platform_is_available "$root" "$target_platform"; then
+        record_result "${case_name}_target_binary" "skip" \
+            "target platform '$target_platform' not available"
+        return 1
+    fi
+    return 0
+}
+
+run_and_verify_platform() {
+    local platform="$1"
+    local input_file="$2"
+    local output_db="$3"
+    local case_name="$4"
+    log_info "Running $platform analysis: $input_file"
+    local result
+    result=$(run_trace_streamer "$platform" "$input_file" "$output_db" "")
+    local exit_code
+    exit_code=$(echo "$result" | grep "EXIT_CODE:" | sed 's/.*EXIT_CODE://; s/ .*//')
+    if [[ "$exit_code" != "0" ]]; then
+        record_result "${case_name}_${platform}_run" "fail" \
+            "exit=$exit_code output: $result"
+        return 1
+    fi
+    record_result "${case_name}_${platform}_run" "pass" "exit=0 $result"
+    if [[ ! -f "$output_db" ]]; then
+        record_result "${case_name}_${platform}_db" "fail" \
+            "output db not created: $output_db"
+        return 1
+    fi
+    record_result "${case_name}_${platform}_db" "pass" \
+        "db created: $(du -h "$output_db" | cut -f1)"
+    return 0
+}
+
+_record_comparison_result() {
+    local case_name="$1"
+    local compare_result="$2"
+    if [[ $compare_result -eq 0 ]]; then
+        record_result "${case_name}_summary" "pass" \
+            "cross-platform output consistent"
+    else
+        record_result "${case_name}_summary" "fail" \
+            "cross-platform output differs"
+    fi
+}
+
 run_cross_platform_comparison() {
     local input_file="$1"
     local case_name="$2"
@@ -323,62 +468,38 @@ run_cross_platform_comparison() {
     local compare_mode="${5:-both}"
     local root
     root=$(get_trace_streamer_root)
-    if [[ ! -f "$input_file" ]]; then
-        record_result "${case_name}_input_check" "fail" "input not found: $input_file"
-        return 1
-    fi
-    if ! platform_is_available "$root" "$ref_platform"; then
-        record_result "${case_name}_ref_binary" "skip" "reference platform '$ref_platform' not available"
-        return 1
-    fi
-    if ! platform_is_available "$root" "$target_platform"; then
-        record_result "${case_name}_target_binary" "skip" "target platform '$target_platform' not available"
+    if ! check_comparison_prerequisites "$input_file" "$case_name" \
+        "$ref_platform" "$target_platform" "$root"; then
         return 1
     fi
     local ref_db="$E2E_TMP_DIR/${case_name}_${ref_platform}.db"
     local target_db="$E2E_TMP_DIR/${case_name}_${target_platform}.db"
     rm -f "$ref_db" "$target_db"
-    log_info "Running $ref_platform analysis: $input_file"
-    local ref_result
-    ref_result=$(run_trace_streamer "$ref_platform" "$input_file" "$ref_db" "")
-    local ref_exit
-    ref_exit=$(echo "$ref_result" | grep "EXIT_CODE:" | sed 's/.*EXIT_CODE://; s/ .*//')
-    if [[ "$ref_exit" != "0" ]]; then
-        record_result "${case_name}_${ref_platform}_run" "fail" "exit=$ref_exit output: $ref_result"
+    if ! run_and_verify_platform "$ref_platform" "$input_file" "$ref_db" "$case_name"; then
         return 1
     fi
-    record_result "${case_name}_${ref_platform}_run" "pass" "exit=0 $ref_result"
-    if [[ ! -f "$ref_db" ]]; then
-        record_result "${case_name}_${ref_platform}_db" "fail" "output db not created: $ref_db"
+    if ! run_and_verify_platform "$target_platform" "$input_file" "$target_db" "$case_name"; then
         return 1
     fi
-    record_result "${case_name}_${ref_platform}_db" "pass" "db created: $(du -h "$ref_db" | cut -f1)"
-    log_info "Running $target_platform analysis: $input_file"
-    local target_result
-    target_result=$(run_trace_streamer "$target_platform" "$input_file" "$target_db" "")
-    local target_exit
-    target_exit=$(echo "$target_result" | grep "EXIT_CODE:" | sed 's/.*EXIT_CODE://; s/ .*//')
-    if [[ "$target_exit" != "0" ]]; then
-        record_result "${case_name}_${target_platform}_run" "fail" "exit=$target_exit output: $target_result"
-        return 1
-    fi
-    record_result "${case_name}_${target_platform}_run" "pass" "exit=0 $target_result"
-    if [[ ! -f "$target_db" ]]; then
-        record_result "${case_name}_${target_platform}_db" "fail" "output db not created: $target_db"
-        return 1
-    fi
-    record_result "${case_name}_${target_platform}_db" "pass" "db created: $(du -h "$target_db" | cut -f1)"
     log_info "Comparing databases: $ref_platform vs $target_platform"
     db_compare_all "$ref_db" "$target_db" "${case_name}_compare" "$compare_mode"
     local compare_result=$?
-    if [[ $compare_result -eq 0 ]]; then
-        record_result "${case_name}_summary" "pass" "cross-platform output consistent"
-    else
-        record_result "${case_name}_summary" "fail" "cross-platform output differs"
-    fi
+    _record_comparison_result "$case_name" "$compare_result"
     db_get_table_summary "$ref_db" > "$E2E_TMP_DIR/${case_name}_${ref_platform}_summary.txt" 2>/dev/null
     db_get_table_summary "$target_db" > "$E2E_TMP_DIR/${case_name}_${target_platform}_summary.txt" 2>/dev/null
     return $compare_result
+}
+
+_assert_single_platform_result() {
+    local exit_code="$1"
+    local expected_exit="$2"
+    local case_name="$3"
+    local detail="$4"
+    if [[ "$expected_exit" == "0" ]]; then
+        assert_exit_code "$exit_code" "0" "$case_name" "$detail"
+    else
+        assert_not_exit_code "$exit_code" "0" "$case_name" "$detail"
+    fi
 }
 
 run_single_platform() {
@@ -399,11 +520,7 @@ run_single_platform() {
     result=$(run_trace_streamer "$platform" "$input_file" "$output_db" "")
     local exit_code
     exit_code=$(echo "$result" | grep "EXIT_CODE:" | sed 's/.*EXIT_CODE://; s/ .*//')
-    if [[ "$expected_exit" == "0" ]]; then
-        assert_exit_code "$exit_code" "0" "${case_name}" "$platform $result"
-    else
-        assert_not_exit_code "$exit_code" "0" "${case_name}" "$platform expected non-zero"
-    fi
+    _assert_single_platform_result "$exit_code" "$expected_exit" "${case_name}" "$platform $result"
     if [[ "$exit_code" == "0" && -f "$output_db" ]]; then
         local db_size
         db_size=$(du -h "$output_db" | cut -f1)
