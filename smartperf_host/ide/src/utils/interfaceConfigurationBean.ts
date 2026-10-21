@@ -33,4 +33,5 @@ export interface ServerConfig {
     aiAssistantConfig: {
         switch:boolean;
     };
+    hdcCmdMode?: boolean;
 }

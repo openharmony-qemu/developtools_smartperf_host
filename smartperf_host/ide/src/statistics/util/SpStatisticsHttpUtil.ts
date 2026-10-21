@@ -16,6 +16,7 @@
 import { warn } from '../../log/Log';
 import { BurialPointRequestBody, GeneralRecordRequest, pluginUsage } from './SpStatisticsHttpBean';
 import {InterfaceConfigManager} from '../../utils/interfaceConfiguration';
+import { HdcDeviceManager } from '../../hdc/HdcDeviceManager';
 
 export class SpStatisticsHttpUtil {
   static requestServerInfo: string = '';
@@ -35,6 +36,9 @@ export class SpStatisticsHttpUtil {
       const res = await resp.json();
       if (res) {
         InterfaceConfigManager.setConfig(res);
+        if (res.hdcCmdMode === false) {
+          HdcDeviceManager.hdcCmdMode = false;
+        }
       }
     } catch (e) {}
   }

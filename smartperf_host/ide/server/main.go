@@ -17,6 +17,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
@@ -55,6 +56,7 @@ var exPath string
 var serverConfig ServerConfig
 var hdcPublicKey string
 var hdcPrivateKey *rsa.PrivateKey
+var hdcCmdMode bool
 
 // CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build main.go
 // CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build main.go
@@ -106,6 +108,7 @@ func RsaSignAndBase64(buf string, authType AuthVerifyType) (string, error) {
 		if err != nil {
 			return "", err
 		}
+
 	return signResult, nil
 }
 
@@ -189,6 +192,7 @@ func main() {
 	checkPort(port)
 	genSSL()
 	genRsa()
+	hdcCmdMode = checkHdcAvailable()
 	exPath = getCurrentAbPath()
 	fmt.Println(exPath)
 	go func() {
@@ -200,6 +204,7 @@ func main() {
 			version = string(readVersion)
 		}
 		readServerConfig()
+		serverConfig.HdcCmdMode = hdcCmdMode
 		mux := http.NewServeMux()
 		mime.TypeByExtension(".js")
 		mime.AddExtensionType(".js", "application/javascript")
@@ -211,6 +216,7 @@ func main() {
 		mux.HandleFunc("/application/encryptHdcMsg", encryptHdcMsg)
 		mux.HandleFunc("/application/signatureHdcMsg", signatureHdcMsg)
 		mux.HandleFunc("/application/serverconfig", getServerConfig)
+		mux.HandleFunc("/hdcCmd", hdcCmdHandler)
 		fs := http.FileServer(http.Dir(exPath + "/"))
 		mux.Handle("/application/", http.StripPrefix("/application/", cors(fs, version)))
 		go func() {
@@ -248,25 +254,6 @@ func getPidByPort(portNumber int) int {
 	findStr := regexp.MustCompile(`\s\d+\s`).FindAllString(cmdResStr, -1)
 	if len(findStr) > 0 {
 		pid, err := strconv.Atoi(strings.TrimSpace(findStr[0]))
-		if err != nil {
-			resPid = -1
-		} else {
-			resPid = pid
-		}
-	}
-	return resPid
-}
-
-func getPidByPortOther(portNumber int) int {
-	resPid := -1
-	var out bytes.Buffer
-	cmdRes := exec.Command("lsof", "-i", fmt.Sprintf(":%d", portNumber), "-t")
-	cmdRes.Stdout = &out
-	cmdRes.Run()
-	cmdResStr := strings.TrimSpace(out.String())
-	if cmdResStr != "" {
-		lines := strings.Split(cmdResStr, "\n")
-		pid, err := strconv.Atoi(strings.TrimSpace(lines[0]))
 		if err != nil {
 			resPid = -1
 		} else {
@@ -369,12 +356,24 @@ func parseServerConfigFile() {
 	}
 }
 
+// checkHdcAvailable 检测系统 PATH 中是否可用 hdc 命令行工具
+func checkHdcAvailable() bool {
+	for _, name := range []string{"hdc", "hdc_std"} {
+		if _, err := exec.LookPath(name); err == nil {
+			fmt.Println(name + " found in PATH, hdc cmd mode is available")
+			return true
+		}
+	}
+	fmt.Println("hdc/hdc_std not found in PATH, WebUSB mode will be used")
+	return false
+}
+
 func getServerConfig(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
 	serverConfig.Mux.RLock()
 	defer serverConfig.Mux.RUnlock()
-	data, err := json.Marshal(&serverConfig)
+	data, err := json.Marshal(serverConfig)
 	if err != nil {
 		http.Error(w, "failed to marshal config: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -390,6 +389,7 @@ type ServerConfig struct {
 	AdvertisingConfig AdvertisingConfig `json:"advertisingConfig"`
 	BulletinConfig    BulletinConfig    `json:"bulletinConfig"`
 	AiAssistantConfig AiAssistantConfig `json:"aiAssistantConfig"`
+	HdcCmdMode        bool              `json:"hdcCmdMode"`
 	Mux               sync.RWMutex      `json:"-"`
 }
 
@@ -597,6 +597,298 @@ func downloadHandler(w http.ResponseWriter, r *http.Request) {
 	resp(&w)(false, -1, "请求方式错误", nil)
 }
 
+// HdcCmdReq hdc 命令执行请求，兼容前端 Cmd.execHdcCmd / Cmd.execFileRecv 的调用格式
+type HdcCmdReq struct {
+	Cmd          string `json:"cmd"`
+	Tag          string `json:"tag"`
+	FileName     string `json:"fileName"`
+	SerialNumber string `json:"serialNumber"`
+}
+
+// hdcCmdHandler 通过 hdc 命令行工具与设备交互，替代浏览器 WebUSB 链路
+//
+//	tag=shell / hiprofiler_cmd : 执行 hdc 命令并返回 stdout
+//	tag=file                   : 执行 hdc file recv 拉取设备文件，返回二进制流
+func hdcCmdHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "x-requested-with, authorization, blade-auth, content-type")
+	if r.Method == http.MethodOptions {
+		return
+	}
+	if r.Method != http.MethodPost {
+		resp(&w)(false, -1, "method not allowed", nil)
+		return
+	}
+	var req HdcCmdReq
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		resp(&w)(false, -1, "invalid request body: "+err.Error(), nil)
+		return
+	}
+	if strings.TrimSpace(req.Cmd) == "" {
+		resp(&w)(false, -1, "empty cmd", nil)
+		return
+	}
+	// 归一化 hdc_std → hdc（PC 上可能只安装了 hdc）
+	if strings.HasPrefix(req.Cmd, "hdc_std ") {
+		req.Cmd = "hdc " + req.Cmd[8:]
+	} else if req.Cmd == "hdc_std" {
+		req.Cmd = "hdc"
+	}
+	// hiprofiler_cmd tag：前端发送的是裸命令，需要包装 hdc shell 前缀
+	if req.Tag == "hiprofiler_cmd" {
+		if req.SerialNumber != "" {
+			req.Cmd = "hdc -t " + req.SerialNumber + " shell " + req.Cmd
+		} else {
+			req.Cmd = "hdc shell " + req.Cmd
+		}
+	}
+	if req.Tag == "file" {
+		hdcFileRecvHandler(w, req)
+		return
+	}
+	hdcShellHandler(w, req)
+}
+
+// hdcShellHandler 执行 hdc shell 类命令，返回 stdout
+func hdcShellHandler(w http.ResponseWriter, req HdcCmdReq) {
+	// 默认 5 分钟；trace 抓取（含 heredoc）命令从 -t 参数解析抓取时长 + 2 分钟缓冲
+	timeout := 5 * time.Minute
+	if strings.Contains(req.Cmd, "<<") {
+		if secs, ok := parseTraceDuration(req.Cmd); ok {
+			timeout = time.Duration(secs)*time.Second + 2*time.Minute
+		} else {
+			timeout = 60 * time.Minute
+		}
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	var out bytes.Buffer
+	var err error
+	if strings.Contains(req.Cmd, "<<") {
+		err = runHdcWithHeredoc(ctx, req.Cmd, &out)
+	} else {
+		cmd := buildShellCmd(ctx, req.Cmd)
+		cmd.Stdout = &out
+		cmd.Stderr = &out
+		cmd.Stdin = nil
+		err = cmd.Run()
+	}
+	if err != nil {
+		resp(&w)(false, -1, err.Error(), map[string]interface{}{"output": out.String()})
+		return
+	}
+	resp(&w)(true, 0, "success", map[string]interface{}{"output": out.String()})
+}
+
+// runHdcWithHeredoc 处理含 heredoc 的 hdc shell 命令。
+// 命令格式: "hdc [-t SN] shell hiprofiler_cmd \  -c - \  ... \  <<CONFIG{config}CONFIG"
+//
+// 方案：先把配置内容推到设备临时文件，再用 -c /路径 非交互执行，彻底避免
+//   交互式 hdc shell 不退出 / stdin 不转发的问题。
+//   1. 提取 configPart，通过 hdc file send 推送到 /data/local/tmp/.hiprofiler_config_<rand>
+//   2. 把命令中 -c - 替换为 -c /data/local/tmp/.hiprofiler_config_<rand>
+//   3. hdc [-t SN] shell "cmdPart"  非交互执行，命令结束自动退出
+//   4. hdc shell rm 删除临时配置文件
+func runHdcWithHeredoc(ctx context.Context, full string, out *bytes.Buffer) error {
+	shellCmd, hdcArgs, ok := splitHdcShellCmd(full)
+	if !ok {
+		cmd := buildShellCmd(ctx, full)
+		cmd.Stdout = out
+		cmd.Stderr = out
+		cmd.Stdin = nil
+		return cmd.Run()
+	}
+	// 拆分 heredoc："<<CONFIG{config}CONFIG" → cmdPart + configPart
+	cmdPart := shellCmd
+	configPart := ""
+	if idx := strings.Index(shellCmd, "<<CONFIG"); idx != -1 {
+		cmdPart = shellCmd[:idx]
+		configPart = shellCmd[idx+len("<<CONFIG"):]
+		configPart = strings.TrimSuffix(configPart, "CONFIG")
+	}
+	configPart = strings.TrimSpace(configPart)
+	// 清理行续接符（\<换行>），拼接成单行命令
+	cmdPart = strings.ReplaceAll(cmdPart, "\\\n", " ")
+	cmdPart = strings.ReplaceAll(cmdPart, "\\\r\n", " ")
+	cmdPart = strings.TrimSpace(cmdPart)
+
+	// 如果没有配置内容，直接非交互执行
+	if configPart == "" {
+		fullArgs := append(append([]string{}, hdcArgs...), cmdPart)
+		cmd := exec.CommandContext(ctx, "hdc", fullArgs...)
+		cmd.Stdout = out
+		cmd.Stderr = out
+		cmd.Stdin = nil
+		return cmd.Run()
+	}
+
+	// 有配置内容：先推临时配置文件到设备
+	// 从 hdcArgs 中提取 SN 参数（如果有）
+	snArg := ""
+	for i := 0; i < len(hdcArgs); i++ {
+		if hdcArgs[i] == "-t" && i+1 < len(hdcArgs) {
+			snArg = hdcArgs[i+1]
+		}
+	}
+	// 生成本地临时配置文件
+	localConfigFile, err := os.CreateTemp("", "hiprofiler_config_*.txt")
+	if err != nil {
+		return fmt.Errorf("create temp config file failed: %w", err)
+	}
+	localConfigPath := localConfigFile.Name()
+	defer os.Remove(localConfigPath)
+	if _, err := localConfigFile.WriteString(configPart); err != nil {
+		localConfigFile.Close()
+		return fmt.Errorf("write temp config file failed: %w", err)
+	}
+	localConfigFile.Close()
+
+	// 设备端配置文件路径
+	deviceConfigPath := "/data/local/tmp/.hiprofiler_config_" + filepath.Base(localConfigPath)
+
+	// 步骤1：hdc file send 推送配置文件到设备
+	var sendArgs []string
+	if snArg != "" {
+		sendArgs = append(sendArgs, "-t", snArg)
+	}
+	sendArgs = append(sendArgs, "file", "send", localConfigPath, deviceConfigPath)
+	sendCmd := exec.CommandContext(ctx, "hdc", sendArgs...)
+	var sendOut bytes.Buffer
+	sendCmd.Stdout = &sendOut
+	sendCmd.Stderr = &sendOut
+	if err := sendCmd.Run(); err != nil {
+		return fmt.Errorf("hdc file send config failed: %w, output: %s", err, sendOut.String())
+	}
+
+	// 步骤2：把命令中 -c - 替换为 -c <deviceConfigPath>
+	cmdPart = strings.ReplaceAll(cmdPart, "-c -", "-c "+deviceConfigPath)
+
+	// 步骤3：非交互执行 hiprofiler_cmd
+	fullArgs := append(append([]string{}, hdcArgs...), cmdPart)
+	runCmd := exec.CommandContext(ctx, "hdc", fullArgs...)
+	runCmd.Stdout = out
+	runCmd.Stderr = out
+	runCmd.Stdin = nil
+	runErr := runCmd.Run()
+
+	// 步骤4：清理设备端临时配置文件（无论步骤3是否成功都执行）
+	var rmArgs []string
+	if snArg != "" {
+		rmArgs = append(rmArgs, "-t", snArg)
+	}
+	rmArgs = append(rmArgs, "shell", "rm", "-f", deviceConfigPath)
+	rmCmd := exec.CommandContext(ctx, "hdc", rmArgs...)
+	rmCmd.Stdout = nil
+	rmCmd.Stderr = nil
+	rmCmd.Stdin = nil
+	rmCmd.Run()
+
+	return runErr
+}
+
+// splitHdcShellCmd 从 "hdc [-t SN] shell <command>" 中分离出 hdc 参数和 shell 命令
+func splitHdcShellCmd(full string) (shellCmd string, hdcArgs []string, ok bool) {
+	trimmed := strings.TrimSpace(full)
+	if !strings.HasPrefix(trimmed, "hdc ") {
+		return "", nil, false
+	}
+	rest := trimmed[4:]
+	if strings.HasPrefix(rest, "-t ") {
+		afterT := rest[3:]
+		snEnd := strings.Index(afterT, " ")
+		if snEnd == -1 {
+			return "", nil, false
+		}
+		sn := afterT[:snEnd]
+		remaining := strings.TrimSpace(afterT[snEnd:])
+		if !strings.HasPrefix(remaining, "shell ") {
+			return "", nil, false
+		}
+		shellCmd = strings.TrimSpace(remaining[6:])
+		return shellCmd, []string{"-t", sn, "shell"}, true
+	}
+	if strings.HasPrefix(rest, "shell ") {
+		shellCmd = strings.TrimSpace(rest[6:])
+		return shellCmd, []string{"shell"}, true
+	}
+	if rest == "shell" {
+		return "", []string{"shell"}, true
+	}
+	return "", nil, false
+}
+
+// hdcFileRecvHandler 执行 hdc file recv，把设备文件拉到本地临时目录后读取并返回二进制，最后清理
+func hdcFileRecvHandler(w http.ResponseWriter, req HdcCmdReq) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
+	defer cancel()
+	cmd := buildShellCmd(ctx, req.Cmd)
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &out
+	cmd.Stdin = nil
+	if err := cmd.Run(); err != nil {
+		resp(&w)(false, -1, err.Error(), map[string]interface{}{"output": out.String()})
+		return
+	}
+	fileName := req.FileName
+	if fileName == "" {
+		fileName = extractRecvFileName(req.Cmd)
+	}
+	localPath := filepath.Base(fileName)
+	if localPath == "" || localPath == "." {
+		resp(&w)(false, -1, "cannot determine local file name", nil)
+		return
+	}
+	data, err := os.ReadFile(localPath)
+	if err != nil {
+		resp(&w)(false, -1, "read pulled file failed: "+err.Error(), nil)
+		return
+	}
+	os.Remove(localPath)
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Write(data)
+}
+
+// buildShellCmd 构造跨平台的 shell 执行命令
+func buildShellCmd(ctx context.Context, full string) *exec.Cmd {
+	if isWindows() {
+		return exec.CommandContext(ctx, "cmd", "/c", full)
+	}
+	return exec.CommandContext(ctx, "sh", "-c", full)
+}
+
+// extractRecvFileName 从 "hdc ... file recv /data/local/tmp/xxx.trace ./" 提取 basename
+func extractRecvFileName(cmd string) string {
+	idx := strings.Index(cmd, "file recv")
+	if idx == -1 {
+		return ""
+	}
+	rest := strings.TrimSpace(cmd[idx+len("file recv"):])
+	fields := strings.Fields(rest)
+	if len(fields) == 0 {
+		return ""
+	}
+	src := fields[0]
+	return src[strings.LastIndex(src, "/")+1:]
+}
+
+// parseTraceDuration 从 "hiprofiler_cmd ... -t <seconds>" 中解析抓取时长
+// 命令格式: "hdc [-t SN] shell hiprofiler_cmd \  -c - \  -o ... \  -t 30 \  -s \  -k \  <<CONFIG"
+// 正则从 hiprofiler_cmd 之后匹配第一个 -t <数字>，跳过 hdc -t <SN> 的序列号
+var traceDurationRe = regexp.MustCompile(`hiprofiler_cmd[\s\S]*?-t\s+(\d+)`)
+
+func parseTraceDuration(cmd string) (int, bool) {
+	m := traceDurationRe.FindStringSubmatch(cmd)
+	if len(m) >= 2 {
+		secs, err := strconv.Atoi(m[1])
+		if err == nil && secs > 0 {
+			return secs, true
+		}
+	}
+	return 0, false
+}
+
 func SplitLines(s string) []string {
 	var lines []string
 	sc := bufio.NewScanner(strings.NewReader(s))
@@ -685,8 +977,10 @@ func isDarwin() bool {
 func getCurrentAbPath() string {
 	dir := getExecutePath()
 	tmpDir, _ := filepath.EvalSymlinks(os.TempDir())
-	if tmpDir != "" && strings.Contains(dir, tmpDir) {
-		return getCallerPath()
+	if tmpDir != "" && strings.HasPrefix(dir, tmpDir) {
+		if wd, err := os.Getwd(); err == nil {
+			return wd
+		}
 	}
 	return dir
 }
@@ -704,11 +998,7 @@ func getExecutePath() string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	dir := filepath.Dir(pth)
-	res, err := filepath.EvalSymlinks(dir)
-	if err != nil {
-		return dir
-	}
+	res, _ := filepath.EvalSymlinks(filepath.Dir(pth))
 	return res
 }
 
@@ -718,11 +1008,6 @@ func checkPort(port int) {
 		if pid != -1 {
 			res := exec.Command("cmd", "/c", fmt.Sprintf("taskkill /F /PID %d /T", pid))
 			res.Run()
-		}
-	} else {
-		pid := getPidByPortOther(port)
-		if pid != -1 {
-			exec.Command("kill", "-9", strconv.Itoa(pid)).Run()
 		}
 	}
 }
