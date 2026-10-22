@@ -45,7 +45,9 @@ function extractTool() {
       return false;
     }
     const zipExtractDir = path.join(tmpDir, 'toolchains');
-    if (fs.existsSync(zipExtractDir)) { fs.rmSync(zipExtractDir, { recursive: true }); }
+    if (fs.existsSync(zipExtractDir)) {
+      fs.rmSync(zipExtractDir, { recursive: true });
+    }
     fs.mkdirSync(zipExtractDir, { recursive: true });
     execSync(`powershell -NoProfile -Command "Expand-Archive -Path '${zipPath}' -DestinationPath '${zipExtractDir}' -Force"`, { stdio: 'pipe' });
     const toolSrc = path.join(zipExtractDir, ZIP_INNER_PATH);
