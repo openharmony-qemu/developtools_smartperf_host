@@ -19,7 +19,6 @@ const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const TypeManage = require('../typeManage.js');
-const platform = require('../platform.js');
 const winston = require('winston');
 const SN_CMD = 1;
 const GET_PROCESS = 2;
@@ -30,7 +29,8 @@ const GET_VERSION = 6;
 const GET_HISY_CMD = 7;
 // 创建logger
 const logger = winston.createLogger(require('./../winston.config.js'));
-const hisyseventPath = `//data/system/hiview/unzip_configs/sys_event_def/hisysevent.def`;
+const hisyseventPath = `/data/system/hiview/unzip_configs/sys_event_def/hisysevent.def`;
+const localHisyseventPath = path.join(__dirname, 'hisysevent.def');
 
 // 注册
 function init() {
@@ -79,7 +79,7 @@ function sendSerialNumb(sessionId, cmd) {
             logger.error(`Failed to obtain SN.${TypeManage.TypeConfig.USB_TYPE},sessionId:${sessionId},cmd:${cmd}`);
             return;
         };
-        let serialNumArr = platform.splitLines(stdout);
+        let serialNumArr = stdout.split('\n');
         serialNumArr = serialNumArr.slice(0, serialNumArr.length - 1);
         if (stdout) {
             let message = {
@@ -190,13 +190,12 @@ function getVersion(sessionId, data, cmd) {
 }
 
 function getHisystem(sessionId, data) {
-    const filePath = path.join(platform.tempDir, 'hisysevent.def');
-    exec(`hdc file recv ${hisyseventPath} ${filePath}`, (error, stdout, stderr) => {
+    exec(`hdc file recv ${hisyseventPath} ${localHisyseventPath}`, (error, stdout, stderr) => {
         if (error || (stderr && stderr.length > 0)) {
-            logger.error(`Failed : ${TypeManage.TypeConfig.USB_TYPE},sessionId:${sessionId},cmd:${cmd}`);
+            logger.error(`Failed : ${TypeManage.TypeConfig.USB_TYPE},sessionId:${sessionId},cmd:${GET_HISY_CMD}`);
             return;
         }
-        fs.readFile(filePath, 'utf8', (readError, fileContent) => {
+        fs.readFile(localHisyseventPath, 'utf8', (readError, fileContent) => {
             if (readError) {
                 logger.error(`读取文件失败: ${readError.message}`);
                 const errorMessage = {

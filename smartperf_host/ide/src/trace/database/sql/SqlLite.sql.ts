@@ -1162,20 +1162,21 @@ export const queryHeapNode = (fileId: number): Promise<Array<HeapNode>> =>
     self_size as selfSize,
     edge_count as edgeCount,
     trace_node_id as traceNodeId,
-    detachedness 
-    FROM js_heap_nodes WHERE file_id = ${fileId}`
+    detachedness
+    FROM js_heap_nodes WHERE file_id = ${fileId} ORDER BY node_index`
   );
 
 export const queryHeapEdge = (fileId: number): Promise<Array<HeapEdge>> =>
   query(
     'queryHeapEdge',
-    `SELECT 
+    `SELECT
       edge_index as edgeIndex,
       type,
       name_or_index as nameOrIndex,
-      to_node as nodeId,
+      edge_index as nodeId,
       from_node_id as fromNodeId,
-      to_node_id as toNodeId
+      to_node_id as toNodeId,
+      to_node as toNodeRaw
     FROM js_heap_edges WHERE file_id = ${fileId}`
   );
 export const queryHeapSample = (fileId: number): Promise<Array<HeapSample>> =>

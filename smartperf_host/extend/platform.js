@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Huawei Device Co., Ltd.
+ * Copyright (C) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,18 +15,22 @@
 const os = require('os');
 const path = require('path');
 
-const isWindows = process.platform === 'win32';
-const exeSuffix = isWindows ? '.exe' : '';
-const binDir = path.join(__dirname, 'bin');
+const isWindows = os.platform() === 'win32';
 
 module.exports = {
     isWindows,
-    platform: process.platform,
-    objdumpPath: path.join(binDir, 'objdump' + exeSuffix),
-    addr2linePath: path.join(binDir, 'addr2line' + exeSuffix),
-    searchCmd: isWindows ? 'findstr' : 'grep',
-    tempDir: isWindows ? 'C:\\' : os.tmpdir(),
-    splitLines(text) {
-        return text.split(/\r?\n/);
+    isHarmony: !isWindows,
+    exeExt: isWindows ? '.exe' : '',
+    defaultEncoding: isWindows ? 'gbk' : 'utf-8',
+    getToolPath(name) {
+        if (isWindows) {
+            return path.join(__dirname, 'bin', name + '.exe');
+        }
+        const harmonyBinMap = {
+            objdump: 'llvm-objdump',
+            addr2line: 'llvm-addr2line',
+            main: 'main.exe',
+        };
+        return path.join(__dirname, 'bin', harmonyBinMap[name] || name);
     }
 };

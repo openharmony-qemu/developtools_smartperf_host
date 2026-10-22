@@ -152,6 +152,9 @@ export const SpRecordTraceHtml = `
             left:100%;
         }
     }
+    #device-prompt {
+      position: relative;
+    }
     .prompt {
       position: absolute;
       margin-left: 35px;

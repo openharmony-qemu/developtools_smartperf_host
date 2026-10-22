@@ -36,7 +36,6 @@ export class HeapLoader {
   private fileId: number;
   private fileStruct: FileStruct;
   private allocationLogic: AllocationLogic;
-  private nodeMap: Map<number, HeapNode>;
   private edges: Array<HeapEdge>;
   private rootNode: HeapNode | undefined;
   private nodeCount: number;
@@ -56,17 +55,12 @@ export class HeapLoader {
     this.fileId = fileStruct.id;
     this.nodeCount = fileStruct.snapshotStruct.nodeCount;
     this.edgeCount = fileStruct.snapshotStruct.edgeCount;
-    this.nodeMap = fileStruct.snapshotStruct.nodeMap;
+    this.nodes = fileStruct.snapshotStruct.nodes;
     this.edges = fileStruct.snapshotStruct.edges;
     this.allocationLogic = new AllocationLogic(this.fileStruct);
-    this.nodes = new Array<HeapNode>(this.nodeCount);
-    this.nodeMap.forEach((value): void => {
-      this.nodes[value.nodeIndex] = value;
-    });
-    this.nodes.sort((a, b) => a.nodeIndex - b.nodeIndex);
     this.rootNode = this.nodes[0];
-    this.retainingNodes = new Uint32Array(this.edgeCount); //每一个值为node index
-    this.retainingEdges = new Uint32Array(this.edgeCount); // 每一个值为edge index
+    this.retainingNodes = new Uint32Array(this.edgeCount);
+    this.retainingEdges = new Uint32Array(this.edgeCount);
     this.firstRetainerIndex = new Uint32Array(this.nodeCount + 1);
     this.dominatorTree = new Uint32Array(this.nodeCount);
     this.firstDominatedNodesIdx = new Uint32Array(this.nodeCount + 1);
@@ -130,6 +124,7 @@ export class HeapLoader {
 
   private buildNodeEdge(): void {
     for (let node of this.nodes) {
+      if (!node) { continue; }
       for (let i = 0; i < node.edgeCount; i++) {
         let edgeIndex = node.firstEdgeIndex + i;
         if (this.edges.length > edgeIndex) {
@@ -142,7 +137,7 @@ export class HeapLoader {
   private buildRetainers(): void {
     // Iterate over edges and count how many times each node is retained by other nodes
     for (let edge of this.edges) {
-      let toNode = this.nodeMap.get(edge.toNodeId);
+      let toNode = this.nodes[edge.toNodeOrdinal];
       if (toNode) {
         ++this.firstRetainerIndex[toNode.nodeIndex];
       }
@@ -150,6 +145,7 @@ export class HeapLoader {
     // Assign the first retainer slot index for each node
     let firstUnusedRetainerSlot = 0;
     for (let node of this.nodes) {
+      if (!node) { continue; }
       let retainCount = this.firstRetainerIndex[node.nodeIndex];
       this.firstRetainerIndex[node.nodeIndex] = firstUnusedRetainerSlot;
       this.retainingNodes[firstUnusedRetainerSlot] = retainCount;
@@ -159,8 +155,9 @@ export class HeapLoader {
 
     // Fill the retainer slots with the retaining nodes and edges
     for (let node of this.nodes) {
+      if (!node) { continue; }
       for (let edge of node.edges) {
-        let childNode = this.nodeMap.get(edge.toNodeId);
+        let childNode = this.nodes[edge.toNodeOrdinal];
         if (!childNode) {
           continue;
         }
@@ -183,6 +180,7 @@ export class HeapLoader {
     // 但仍然需要经过处理以调整其名称并将其放入各自的队列中。
     let domState = new DOMState(this.nodeCount);
     for (let node of this.nodes) {
+      if (!node) { continue; }
       if (node.detachedness === DetachedNessState.UNKNOWN) {
         continue;
       }
@@ -192,18 +190,24 @@ export class HeapLoader {
     // 2. 如果父节点被Attached，那么子节点也被Attached。
     while (domState.attached.length > 0) {
       let nodeId = domState.attached.pop() as number;
-      let node = this.nodeMap.get(nodeId);
-      if (node) {
-        this.iterateFilteredChildren(domState, node, DetachedNessState.ATTACHED);
+      let ordinals = this.fileStruct.snapshotStruct.getNodeOrdinalsById(nodeId);
+      for (let ordinal of ordinals) {
+        let node = this.nodes[ordinal];
+        if (node) {
+          this.iterateFilteredChildren(domState, node, DetachedNessState.ATTACHED);
+        }
       }
     }
 
     // 3. 如果父节点为Attached，那么子节点将继承父节点的状态。
     while (domState.detached.length > 0) {
       let nodeId = domState.detached.pop() as number;
-      let node = this.nodeMap.get(nodeId);
-      if (node && node.detachedness !== DetachedNessState.ATTACHED) {
-        this.iterateFilteredChildren(domState, node, DetachedNessState.DETACHED);
+      let ordinals = this.fileStruct.snapshotStruct.getNodeOrdinalsById(nodeId);
+      for (let ordinal of ordinals) {
+        let node = this.nodes[ordinal];
+        if (node && node.detachedness !== DetachedNessState.ATTACHED) {
+          this.iterateFilteredChildren(domState, node, DetachedNessState.DETACHED);
+        }
       }
     }
   }
@@ -241,6 +245,7 @@ export class HeapLoader {
     stackNodes[0] = this.rootNode!.nodeIndex;
     stackCurrentEdge[0] = this.nodes[this.rootNode!.nodeIndex + 1].firstEdgeIndex;
     for (let node of this.nodes) {
+      if (!node) { continue; }
       if (visited[node.nodeIndex] || !this.hasOnlyWeakRetainers(node)) {
         continue;
       }
@@ -280,6 +285,7 @@ export class HeapLoader {
         let nodeIndex = params.stackNodes[stack];
         let node = this.nodes[nodeIndex];
         if (!node) {
+          --stack;
           continue;
         }
         let edgeIndex = params.stackCurrentEdge[stack];
@@ -290,7 +296,7 @@ export class HeapLoader {
           if (!this.isEssentialEdge(edge, node.id)) {
             continue;
           }
-          let childNode = this.nodeMap.get(edge.toNodeId);
+          let childNode = this.nodes[edge.toNodeOrdinal];
           if (!childNode || params.visited[childNode!.nodeIndex]) {
             continue;
           }
@@ -330,7 +336,7 @@ export class HeapLoader {
       if (!this.isEssentialEdge(edge, this.rootNode!.id)) {
         continue;
       }
-      let childNode = this.nodeMap.get(edge.toNodeId);
+      let childNode = this.nodes[edge.toNodeOrdinal];
       if (childNode) {
         affected[nodeIdx2OrderIdx[childNode.nodeIndex]] = 1;
       }
@@ -427,7 +433,7 @@ export class HeapLoader {
           nodeIdx = orderIdx2NodeIdx[orderIdx];
           let node = this.nodes[nodeIdx];
           for (let edge of node.edges) {
-            let childNode = this.nodeMap.get(edge.toNodeId);
+            let childNode = this.nodes[edge.toNodeOrdinal];
             if (childNode) {
               affected[nodeIdx2OrderIdx[childNode.nodeIndex]] = 1;
             }
@@ -450,13 +456,13 @@ export class HeapLoader {
     let nodesToVisitLen = 0;
     // root node's edges distance is 1
     for (let edge of this.rootNode.edges) {
-      let node = this.nodeMap.get(edge.toNodeId);
+      let node = this.nodes[edge.toNodeOrdinal];
       if (!node) {
         continue;
       }
       if (node.isUserRoot() || node.isDocumentDOMTreesRoot()) {
         node.distance = 1;
-        nodesToVisit[nodesToVisitLen++] = node.id;
+        nodesToVisit[nodesToVisitLen++] = node.nodeIndex;
       }
     }
     this.bfs(nodesToVisit, nodesToVisitLen);
@@ -464,7 +470,7 @@ export class HeapLoader {
     // 如果roo节点下有能访问到的子节点,将root节点的distance设置为100000000,否则为0
     this.rootNode.distance = nodesToVisitLen > 0 ? BASE_SYSTEM_DISTANCE : 0;
     // 设置root节点下访问不到的哪些独立节点的distance,从100000000开始计数
-    nodesToVisit[0] = this.rootNode.id;
+    nodesToVisit[0] = this.rootNode.nodeIndex;
     nodesToVisitLen = 1;
     this.bfs(nodesToVisit, nodesToVisitLen);
   }
@@ -521,6 +527,7 @@ export class HeapLoader {
       return;
     }
     for (let node of this.nodes) {
+      if (!node) { continue; }
       if (node.id % 2 === 0) {
         continue;
       }
@@ -533,10 +540,21 @@ export class HeapLoader {
   }
 
   getMinAndMaxNodeId(): { minNodeId: number; maxNodeId: number } {
-    return {
-      minNodeId: this.nodes[0].id,
-      maxNodeId: this.nodes[this.nodeCount - 1].id,
-    };
+    let minNodeId = 0;
+    let maxNodeId = 0;
+    for (let i = 0; i < this.nodes.length; i++) {
+      if (this.nodes[i]) {
+        minNodeId = this.nodes[i].id;
+        break;
+      }
+    }
+    for (let i = this.nodes.length - 1; i >= 0; i--) {
+      if (this.nodes[i]) {
+        maxNodeId = this.nodes[i].id;
+        break;
+      }
+    }
+    return { minNodeId, maxNodeId };
   }
 
   private binarySearchNodeInSamples(nodeId: number, samples: Array<HeapSample>): number {
@@ -573,30 +591,30 @@ export class HeapLoader {
 
   /**
    * 广度优先算法遍历所有能从root节点访问到的节点，设置节点的的distance
-   * @param nodesToVisit 能被访问到的node id 数组
+   * @param nodesToVisit 能被访问到的node ordinal 数组
    * @param nodesToVisitLen 有效的node数量
    */
   private bfs(nodesToVisit: Uint32Array, nodesToVisitLen: number): void {
     let index = 0;
     while (index < nodesToVisitLen) {
-      let nodeId = nodesToVisit[index++];
-      let node = this.nodeMap.get(nodeId);
+      let nodeOrdinal = nodesToVisit[index++];
+      let node = this.nodes[nodeOrdinal];
       if (!node) {
         continue;
       }
       let distance = node.distance + 1;
 
       for (let edge of node.edges) {
-        if (edge.type === EdgeType.WEAK || !this.nodeMap.has(edge.toNodeId)) {
+        if (edge.type === EdgeType.WEAK || !this.nodes[edge.toNodeOrdinal]) {
           continue;
         }
-        let childNode = this.nodeMap.get(edge.toNodeId);
+        let childNode = this.nodes[edge.toNodeOrdinal];
         // if distance is set,not set again
         if (!childNode || childNode.distance !== -5 || !this.filterForBpf(node, edge)) {
           continue;
         }
         childNode.distance = distance;
-        nodesToVisit[nodesToVisitLen++] = childNode.id;
+        nodesToVisit[nodesToVisitLen++] = childNode.nodeIndex;
       }
     }
     if (nodesToVisitLen > this.nodeCount) {
@@ -634,7 +652,7 @@ export class HeapLoader {
       if (edge.type === EdgeType.HIDDEN || edge.type === EdgeType.WEAK || edge.type === EdgeType.INVISIBLE) {
         continue;
       }
-      let childNode = this.nodeMap.get(edge.toNodeId);
+      let childNode = this.nodes[edge.toNodeOrdinal];
       if (childNode) {
         this.processNode(domState, childNode, newState);
       }
@@ -648,7 +666,7 @@ export class HeapLoader {
     let list: HeapNode[] = [];
     let flag = CAN_BE_QUERIED;
     for (let edge of this.rootNode!.edges) {
-      let childNode = this.nodeMap.get(edge.toNodeId);
+      let childNode = this.nodes[edge.toNodeOrdinal];
       if (childNode && childNode.isUserRoot()) {
         list.push(childNode);
       }
@@ -661,7 +679,7 @@ export class HeapLoader {
       }
       node.flag |= flag;
       for (let edge of node.edges) {
-        let childNode = this.nodeMap.get(edge.toNodeId);
+        let childNode = this.nodes[edge.toNodeOrdinal];
         if (
           !childNode ||
           childNode.flag & flag ||
@@ -684,7 +702,7 @@ export class HeapLoader {
     }
 
     for (let edge of this.rootNode.edges) {
-      let node = this.nodeMap.get(edge.toNodeId);
+      let node = this.nodes[edge.toNodeOrdinal];
       if (!node) {
         continue;
       }
@@ -702,7 +720,7 @@ export class HeapLoader {
     while (nodesToVisitLen) {
       let node = nodesToVisit[--nodesToVisitLen];
       for (let edge of node.edges) {
-        let childNode = this.nodeMap.get(edge.toNodeId);
+        let childNode = this.nodes[edge.toNodeOrdinal];
         if (!childNode || childNode.flag & flag || edge.type === EdgeType.WEAK) {
           continue;
         }
@@ -841,6 +859,7 @@ export class HeapLoader {
 
   private combineNodeWithClassName(classes: Map<string, ConstructorItem>, filter: Function): void {
     for (let node of this.nodes) {
+      if (!node) { continue; }
       if (!filter(node.id) || (node.selfSize === 0 && node.type !== NodeType.NATIVE)) {
         continue;
       }
@@ -964,7 +983,7 @@ export class HeapLoader {
     let node = this.nodes[item.index];
     let childNodes: ConstructorItem[] = [];
     for (let edge of node.edges) {
-      let childNode = this.nodeMap.get(edge.toNodeId);
+      let childNode = this.nodes[edge.toNodeOrdinal];
       if (!childNode) {
         continue;
       }
@@ -1096,9 +1115,8 @@ export class HeapLoader {
   public clear(): void {
     this.allClasses?.clear();
     this.diffToOtherFile.clear();
-    this.nodeMap.clear();
-    this.edges.length = 0;
     this.nodes.length = 0;
+    this.edges.length = 0;
   }
 }
 

@@ -163,6 +163,8 @@ export class HeapEdge {
   nodeId: number;
   fromNodeId: number;
   toNodeId: number;
+  toNodeOrdinal: number;
+  toNodeRaw?: number;
   retainsNode: Array<HeapNode>;
   retainEdge: Array<HeapEdge>;
 
@@ -172,7 +174,8 @@ export class HeapEdge {
     nameOrIndex: string,
     nodeId: number,
     fromNodeId: number,
-    toNodeId: number
+    toNodeId: number,
+    toNodeOrdinal: number = 0
   ) {
     this.edgeIndex = edgeIndex;
     this.edgeOldIndex = edgeIndex * 3;
@@ -181,6 +184,7 @@ export class HeapEdge {
     this.nodeId = nodeId;
     this.fromNodeId = fromNodeId;
     this.toNodeId = toNodeId;
+    this.toNodeOrdinal = toNodeOrdinal;
     this.retainsNode = [];
     this.retainEdge = [];
   }
@@ -242,7 +246,9 @@ export class HeapSnapshotStruct {
   nodeCount!: number;
   edgeCount!: number;
   functionCount!: number;
+  nodes: Array<HeapNode>;
   nodeMap: Map<number, HeapNode>;
+  idToNodeOrdinals: Map<number, number[]>;
   edges: Array<HeapEdge>;
   functionInfos: Array<HeapTraceFunctionInfo>;
   traceNodes: Array<AllocationFunction>;
@@ -251,7 +257,9 @@ export class HeapSnapshotStruct {
   rootNodeId: number = -1;
 
   constructor() {
+    this.nodes = [];
     this.nodeMap = new Map<number, HeapNode>();
+    this.idToNodeOrdinals = new Map<number, number[]>();
     this.edges = [];
     this.functionInfos = [];
     this.traceNodes = [];
@@ -260,12 +268,28 @@ export class HeapSnapshotStruct {
   }
 
   public clear(): void {
+    this.nodes = [];
     this.nodeMap.clear();
+    this.idToNodeOrdinals.clear();
     this.edges.length = 0;
     this.functionInfos.length = 0;
     this.traceNodes.length = 0;
     this.samples.length = 0;
     this.strings.length = 0;
+  }
+
+  public getNodeOrdinalsById(id: number): number[] {
+    return this.idToNodeOrdinals.get(id) || [];
+  }
+
+  public addNode(node: HeapNode): void {
+    const ordinal = node.nodeIndex;
+    this.nodes[ordinal] = node;
+    this.nodeMap.set(node.id, node);
+    if (!this.idToNodeOrdinals.has(node.id)) {
+      this.idToNodeOrdinals.set(node.id, []);
+    }
+    this.idToNodeOrdinals.get(node.id)!.push(ordinal);
   }
 }
 

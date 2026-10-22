@@ -20,17 +20,6 @@ const TypeManage = require('./typeManage.js');
 // 创建logger
 const logger = winston.createLogger(require('./winston.config.js'));
 const wss = new WebSocket.Server({ port: `${Utils.AuthMsg.SW_PORT}`, maxPayload: 1024 * 1024 * 500 });
-// WebSocket连接保活：定期发送ping检测并清理死连接
-const keepAliveInterval = setInterval(() => {
-    wss.clients.forEach((ws) => {
-        if (ws.isAlive === false) return ws.terminate();
-        ws.isAlive = false;
-        ws.ping();
-    });
-}, 30000);
-wss.on('close', () => {
-    clearInterval(keepAliveInterval);
-});
 // 当发生错误时触发
 wss.on('error', function error(err) {
     if (err.code === 'EADDRINUSE') {
@@ -46,10 +35,16 @@ wss.on('connection', function connection(ws, req) {
         TRACE_ADAPTER.handleLongTraceConnection(ws);
         return;
     }
+    if (ws._socket) {
+        ws._socket.setKeepAlive(true, 60000);
+    }
+    const pingInterval = setInterval(() => {
+        if (ws.readyState === WebSocket.OPEN) {
+            ws.ping();
+        }
+    }, 30000);
     // WebSocket的一个属性，用于控制 WebSocket 连接如何处理接收到的二进制数据;
     ws.binaryType = 'arraybuffer';
-    ws.isAlive = true;
-    ws.on('pong', () => { ws.isAlive = true; });
     // 接收来自客户端的消息
     ws.on('message', function incoming(message) {
         // 判断头部字节数
@@ -93,6 +88,7 @@ wss.on('connection', function connection(ws, req) {
 
     // 当连接关闭时触发---
     ws.on('close', function close() {
+        clearInterval(pingInterval);
         // 当关闭服务时，判断是否有sessionId，做保护逻辑，之前发现在客户端连续刷新会出现找不到sessionId，会报错，因此在这里做保护
         if (!ws.userData) {
             return;

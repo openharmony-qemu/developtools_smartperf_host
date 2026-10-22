@@ -158,7 +158,7 @@ function createNativeHookProcessor() {
           // 仅保留 nativehook 插件段。
           chunks.push(traceBuffer.subarray(segmentStart, offset + segmentLength));
         }
-      } catch (e) {}
+      } catch (e) { }
       offset += segmentLength;
     }
     // 拼接已缓存分片，合并为完整文件。
@@ -219,7 +219,8 @@ function createNativeHookProcessor() {
       eventObj.filePath ||
       eventObj.tagEvent ||
       eventObj.frameMap ||
-      eventObj.stackMap
+      eventObj.stackMap ||
+      eventObj.smoMap
     ) {
       return 'commonData';
     }

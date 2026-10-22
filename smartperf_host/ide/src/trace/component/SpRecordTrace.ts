@@ -703,7 +703,8 @@ export class SpRecordTrace extends BaseElement {
       this.recordButtonDisable(false);
       fileHandler({
         detail: {
-          timeStamp: timStamp
+          timeStamp: timStamp,
+          files: this.fileList.map((info) => info.file)
         }
       }, true);
     } else {
@@ -813,7 +814,7 @@ export class SpRecordTrace extends BaseElement {
     };
   };
 
-  usbGetVersion(dev: string) {
+  usbGetVersion(dev: string, autoSelect: boolean) {
     let option = document.createElement('option');
     option.className = 'select';
     this.optionNum++;
@@ -822,7 +823,7 @@ export class SpRecordTrace extends BaseElement {
     // @ts-ignore
     option.textContent = dev.toString();
     this.deviceSelect!.appendChild(option);
-    if (dev.toString() === SpRecordTrace.serialNumber || SpRecordTrace.serialNumber === '') {
+    if (autoSelect) {
       SpRecordTrace.serialNumber = dev;
       option.selected = true;
       this.recordButton!.hidden = false;
@@ -830,16 +831,29 @@ export class SpRecordTrace extends BaseElement {
       this.cancelButton!.hidden = true;
       this.devicePrompt!.innerText = '';
       this.hintEl!.textContent = '';
-      // @ts-ignore
-      WebSocketManager.getInstance()!.sendMessage(TypeConstants.USB_TYPE, TypeConstants.USB_GET_VERSION, new TextEncoder().encode(dev));
-      setTimeout(() => {
-        if (SpRecordTrace.usbGetVersion) {
-          SpRecordTrace.selectVersion = this.getDeviceVersion(SpRecordTrace.usbGetVersion);
-          this.setDeviceVersionSelect(SpRecordTrace.selectVersion);
-          this.nativeMemoryHideBySelectVersion();
-        }
-      }, 1000);
+      this.requestDeviceVersion(dev);
     }
+  }
+
+  private requestDeviceVersion(dev: string): void {
+    SpRecordTrace.usbGetVersion = '';
+    const encoder = new TextEncoder();
+    // @ts-ignore
+    WebSocketManager.getInstance()!.sendMessage(
+      TypeConstants.USB_TYPE, TypeConstants.USB_GET_VERSION, encoder.encode(dev)
+    );
+    let retryCount = 0;
+    let checkVersion = (): void => {
+      if (SpRecordTrace.usbGetVersion) {
+        SpRecordTrace.selectVersion = this.getDeviceVersion(SpRecordTrace.usbGetVersion);
+        this.setDeviceVersionSelect(SpRecordTrace.selectVersion);
+        this.nativeMemoryHideBySelectVersion();
+      } else if (retryCount < 10) {
+        retryCount++;
+        setTimeout(checkVersion, 500);
+      }
+    };
+    setTimeout(checkVersion, 500);
   }
 
   webSocketCallBackasync = (cmd: number, result: Uint8Array): void => {
@@ -848,8 +862,7 @@ export class SpRecordTrace extends BaseElement {
     let jsonRes = JSON.parse(jsonString);
     if (cmd === TypeConstants.USB_SN_CMD) {
       this.hdcList = jsonRes.resultMessage;
-      HdcDeviceManager.findDevice().then((usbDevices): void => {
-        SpRecordTrace.serialNumber = usbDevices.serialNumber;
+      HdcDeviceManager.findDevice().then((): void => {
         this.usbSerialNum = jsonRes.resultMessage;
         this.optionNum = 0;
         if (this.usbSerialNum.length === 1) {
@@ -867,41 +880,35 @@ export class SpRecordTrace extends BaseElement {
             this.useExtentTip!.innerHTML = '手机连接有问题，请重新插拔一下手机，或者请使用系统管理员权限打开cmd窗口，并执行hdc shell';
             return;
           } else {
-            this.usbGetVersion(this.usbSerialNum[0]);
+            SpRecordTrace.serialNumber = '';
+            this.usbGetVersion(this.usbSerialNum[0], true);
           }
-        } else if (this.usbSerialNum.length > 1 && usbDevices.serialNumber === '') {
-          this.usbSerialNum.shift();
+        } else if (this.usbSerialNum.length > 1) {
+          // @ts-ignore
+          while (this.deviceSelect!.firstChild) {
+            this.deviceSelect!.removeChild(this.deviceSelect!.firstChild); // 删除子节点
+          }
+          for (let len = 0; len < this.usbSerialNum.length; len++) {
+            let dev = this.usbSerialNum[len];
+            this.usbGetVersion(dev, false);
+          }
+          if (!this.optionNum) {
+            this.deviceSelect!.style!.border = '2px solid red';
+            setTimeout(() => {
+              this.deviceSelect!.style!.border = '1px solid #4D4D4D';
+            }, 3000);
+            this.recordButton!.hidden = true;
+            this.disconnectButton!.hidden = true;
+            this.cancelButton!.hidden = true;
+            this.devicePrompt!.innerText = 'Device not connected';
+            this.useExtentTip!.style.display = 'block';
+            this.useExtentTip!.innerHTML = '手机连接有问题，请重新插拔一下手机，或者请使用系统管理员权限打开cmd窗口，并执行hdc shell';
+          }
+        } else {
           this.recordButton!.hidden = true;
           this.disconnectButton!.hidden = true;
           this.cancelButton!.hidden = true;
           this.devicePrompt!.innerText = 'Device not connected';
-          this.deviceSelect!.style!.border = '2px solid red';
-          setTimeout(() => {
-            this.deviceSelect!.style!.border = '1px solid #4D4D4D';
-          }, 3000);
-          this.useExtentTip!.style.display = 'block';
-          this.useExtentTip!.innerHTML = '加密设备仅限连接一台';
-          return;
-        }
-        // @ts-ignore
-        while (this.deviceSelect!.firstChild) {
-          this.deviceSelect!.removeChild(this.deviceSelect!.firstChild); // 删除子节点
-        }
-        for (let len = 0; len < this.usbSerialNum.length; len++) {
-          let dev = this.usbSerialNum[len];
-          this.usbGetVersion(dev);
-        }
-        if (!this.optionNum) {
-          this.deviceSelect!.style!.border = '2px solid red';
-          setTimeout(() => {
-            this.deviceSelect!.style!.border = '1px solid #4D4D4D';
-          }, 3000);
-          this.recordButton!.hidden = true;
-          this.disconnectButton!.hidden = true;
-          this.cancelButton!.hidden = true;
-          this.devicePrompt!.innerText = 'Device not connected';
-          this.useExtentTip!.style.display = 'block';
-          this.useExtentTip!.innerHTML = '手机连接有问题，请重新插拔一下手机，或者请使用系统管理员权限打开cmd窗口，并执行hdc shell';
         }
       });
     } else if (cmd === TypeConstants.USB_GET_PROCESS) {
@@ -943,6 +950,7 @@ export class SpRecordTrace extends BaseElement {
       let deviceItem = this.deviceSelect!.options[this.deviceSelect!.selectedIndex];
       let value = deviceItem.value;
       SpRecordTrace.serialNumber = value;
+      this.requestDeviceVersion(value);
       return;
     }
 

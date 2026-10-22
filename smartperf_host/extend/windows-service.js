@@ -12,20 +12,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+const { spawn } = require('child_process');
 const path = require('path');
 const platform = require('./platform.js');
 
-if (platform.isWindows) {
-    const Service = require('node-windows').Service;
-    const svc = new Service({
-        name: 'HiSmartPerfHostExtend',
-        description: 'Start HiSmartPerfHostExtend as a Windows service.',
-        script: 'app.js'
-    });
-    svc.on('install', () => {
-        svc.start();
-    });
-    svc.install();
-} else {
-    require(path.join(__dirname, 'app.js'));
-}
+const appPath = path.join(__dirname, 'app.js');
+const nodePath = platform.isWindows ? path.join(__dirname, 'bin', 'node.exe') : 'node';
+const child = spawn(nodePath, [appPath], {
+    detached: true,
+    stdio: 'ignore'
+});
+child.on('error', (err) => {
+    console.error('Failed to start service:', err.message);
+    process.exit(1);
+});
+child.unref();

@@ -17,6 +17,7 @@ const TypeManage = require('../typeManage.js');
 const WebSocket = require('ws');
 const winston = require('winston');
 const fs = require('fs');
+const platform = require('../platform.js');
 const { exec } = require('child_process');
 const { spawn } = require('child_process');
 const path = require('path');
@@ -38,6 +39,28 @@ let timelineMsg = {
 };
 const encoder = new TextEncoder();
 const decode = new TextDecoder();
+const ARKTS_TRACE_HEADER_BYTES = [
+    79, 72, 79, 83, 80, 82, 79, 70, 111, 210, 2, 0, 0, 0,
+    0, 0, 0, 0, 1, 0, 8, 0, 0, 0, 201, 195, 138, 20, 181,
+    249, 101, 247, 80, 50, 171, 217, 139, 133, 147, 69, 49, 82, 56, 243,
+    232, 201, 38, 239, 192, 241, 85, 223, 9, 148, 238, 213, 0, 0, 0,
+    0, 59, 77, 146, 229, 89, 0, 0, 0, 32, 120, 33, 249, 65, 7,
+    121, 23, 28, 5, 193, 248, 65, 7, 121, 23, 67, 79, 146, 229, 89,
+    0, 0, 0, 121, 218, 49, 229, 89, 0, 0, 0, 79, 81, 146, 229,
+    89, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0
+];
 
 let sessionId = 0;
 let isRecordHitrace = false;
@@ -334,7 +357,7 @@ function delLongTrace() {
 
 function recordLongtrace() {
     return new Promise((resolve, reject) => {
-        const hdc = spawn('hdc', ['-t', `${serialNum}`, 'shell', `${recordHitraceCmd}`]);
+        const hdc = spawn('hdc', ['-t', `${serialNum}`, 'shell', `${recordHitraceCmd}`], { shell: platform.isWindows });
         hdc.stdout.on('data', (data) => {
             console.log(`longtrace标准输出：\n${data}`);
             if (data.includes('DONE')) {
@@ -386,7 +409,7 @@ function sendLongtrace() {
                                 .then(() => {
                                     longtraceFiles.push({
                                         fileName: baseName,
-                                        localFilePath: `${directoryPath}\\${baseName}`
+                                        localFilePath: path.join(directoryPath, baseName)
                                     });
                                 });
                         });
@@ -755,28 +778,7 @@ function generateArktsTrace() {
         let traceView = new Uint8Array(traceBuffer);
         let traceDataview = new DataView(traceBuffer);
 
-        let headerBuffer = new Uint8Array([
-            79, 72, 79, 83, 80, 82, 79, 70, 111, 210, 2, 0, 0, 0,
-            0, 0, 0, 0, 1, 0, 8, 0, 0, 0, 201, 195, 138, 20, 181,
-            249, 101, 247, 80, 50, 171, 217, 139, 133, 147, 69, 49, 82, 56, 243,
-            232, 201, 38, 239, 192, 241, 85, 223, 9, 148, 238, 213, 0, 0, 0,
-            0, 59, 77, 146, 229, 89, 0, 0, 0, 32, 120, 33, 249, 65, 7,
-            121, 23, 28, 5, 193, 248, 65, 7, 121, 23, 67, 79, 146, 229, 89,
-            0, 0, 0, 121, 218, 49, 229, 89, 0, 0, 0, 79, 81, 146, 229,
-            89, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0
-        ]);
+        let headerBuffer = new Uint8Array(ARKTS_TRACE_HEADER_BYTES);
         let headerView = new DataView(headerBuffer.buffer);
         const segmentNum = resultArray.length * 2;
         headerView.setUint32(8, finalLength, true); //重写 length
@@ -869,7 +871,7 @@ function pushConfigText() {
 function recordHitrace() {
     return new Promise((resolve, reject) => {
         logger.info(`开始执行 hitrace 抓取命令: ${recordHitraceCmd}`);
-        const hdc = spawn('hdc', ['-t', `${serialNum}`, 'shell', `${recordHitraceCmd}`]);
+        const hdc = spawn('hdc', ['-t', `${serialNum}`, 'shell', `${recordHitraceCmd}`], { shell: platform.isWindows });
         // 处理hdc的标准输出流
         hdc.stdout.on('data', (data) => {
             console.error(`标准错误输出：\n${data}`);
@@ -917,7 +919,7 @@ function receiveHiTrace() {
         exec(`hdc -t ${serialNum} file recv ${output} ${directoryPath}`, (error, stdout, stderr) => {
             if (stdout.includes('FileTransfer finish')) {
                 logger.info(`读取 hitrace 文件到本地目录结束`);
-                htraceBuffer = fs.readFileSync(`${directoryPath}\\${traceName}`);
+                htraceBuffer = fs.readFileSync(path.join(directoryPath, traceName));
                 resolve(0);
             } else if (stdout.includes('[Fail]')) {
                 reject(stdout);
