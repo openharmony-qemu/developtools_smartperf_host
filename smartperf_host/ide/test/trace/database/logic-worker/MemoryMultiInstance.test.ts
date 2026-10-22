@@ -33,7 +33,7 @@ describe('MemoryMultiInstance Test', () => {
     expect(config).toBeDefined();
     expect(config!.caseStatement).toContain(`when type = ${MemoryStatisticType.DART_HEAP} then '${MemoryType.DART_HEAP_Alloc_NAME}'`);
     expect(config!.caseStatement).toContain(`when type = ${MemoryStatisticType.ARKTS_STATIC_HEAP} then '${MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME}'`);
-    expect(config!.caseStatement).toContain(`when type = ${MemoryStatisticType.REACT_NATIVE} then '${MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME}'`);
+    expect(config!.caseStatement).toContain(`when type = ${MemoryStatisticType.RN} then '${MemoryType.RN_HERMES_HEAP_Alloc_NAME}'`);
   });
 
   it('MemoryBasicTypeTest02', function () {
@@ -45,16 +45,16 @@ describe('MemoryMultiInstance Test', () => {
   it('MemoryTypeConstantsTest03', function () {
     expect(MemoryType.DART_HEAP_Alloc_NAME).toEqual('DART_HEAP_Alloc_Event');
     expect(MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME).toEqual('ARKTS_STATIC_HEAP_Alloc_Event');
-    expect(MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME).toEqual('RN_HERMES_HEAP_Alloc_Event');
+    expect(MemoryType.RN_HERMES_HEAP_Alloc_NAME).toEqual('RN_HERMES_HEAP_Alloc_Event');
     expect(MemoryType.DART_HEAP_Free_NAME).toEqual('DART_HEAP_Free_Event');
     expect(MemoryType.ARKTS_STATIC_HEAP_Free_NAME).toEqual('ARKTS_STATIC_HEAP_Free_Event');
-    expect(MemoryType.REACT_NATIVE_HERMES_HEAP_Free_NAME).toEqual('RN_HERMES_HEAP_Free_Event');
+    expect(MemoryType.RN_HERMES_HEAP_Free_NAME).toEqual('RN_HERMES_HEAP_Free_Event');
   });
 
   it('MemoryStatisticTypeTest04', function () {
     expect(MemoryStatisticType.DART_HEAP).toEqual(20);
     expect(MemoryStatisticType.ARKTS_STATIC_HEAP).toEqual(21);
-    expect(MemoryStatisticType.REACT_NATIVE).toEqual(13);
+    expect(MemoryStatisticType.RN).toEqual(13);
   });
 
   it('QueryNativeHookEventSqlTest05', function () {

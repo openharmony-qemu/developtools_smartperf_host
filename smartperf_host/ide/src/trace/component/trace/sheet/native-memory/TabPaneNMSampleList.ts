@@ -331,7 +331,7 @@ export class TabPaneNMSampleList extends BaseElement {
       '4': MemoryType.JS_Alloc_NAME,
       '5': MemoryType.DART_HEAP_Alloc_NAME,
       '6': MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME,
-      '7': MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME,
+      '7': MemoryType.RN_HERMES_HEAP_Alloc_NAME,
       '8': MemoryType.KMP_Alloc_NAME,
       '10': MemoryType.ION_Alloc_NAME,
       '11': MemoryType.ASHMEM_Alloc_NAME,

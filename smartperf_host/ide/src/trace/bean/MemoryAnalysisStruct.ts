@@ -199,10 +199,10 @@ export class AnalysisSample {
         this.typeName = MemoryType.VMA_CHROMIUM_Alloc_NAME;
         this.isRelease = false;
         break;
-      case MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME:
-      case MemoryStatisticType.REACT_NATIVE:
+      case MemoryType.RN_HERMES_HEAP_Alloc_NAME:
+      case MemoryStatisticType.RN:
         this.type = 13;
-        this.typeName = MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME;
+        this.typeName = MemoryType.RN_HERMES_HEAP_Alloc_NAME;
         this.isRelease = false;
         break;
       case MemoryType.KMP_Alloc_NAME:
@@ -279,9 +279,9 @@ export class AnalysisSample {
         this.typeName = MemoryType.VMA_CHROMIUM_Free_NAME;
         this.isRelease = true;
         break;
-      case MemoryType.REACT_NATIVE_HERMES_HEAP_Free_NAME:
+      case MemoryType.RN_HERMES_HEAP_Free_NAME:
         this.type = 13;
-        this.typeName = MemoryType.REACT_NATIVE_HERMES_HEAP_Free_NAME;
+        this.typeName = MemoryType.RN_HERMES_HEAP_Free_NAME;
         this.isRelease = true;
         break;
       case MemoryType.ARK_GLOBAL_HANDLE_Free_NAME:

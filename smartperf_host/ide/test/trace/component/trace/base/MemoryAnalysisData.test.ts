@@ -55,14 +55,14 @@ describe('MemoryAnalysisData Test', () => {
       expect(arktsStaticHeapConfig?.hasSubType).toBe(true);
     });
 
-    it('should include REACT_NATIVE_HERMES_HEAP in typeConfigs', () => {
-      const reactNativeHeapConfig = dataLogic['typeConfigs'].find(
-        config => config.eventId === MemoryStatisticType.REACT_NATIVE
+    it('should include RN_HERMES_HEAP in typeConfigs', () => {
+      const rnHeapConfig = dataLogic['typeConfigs'].find(
+        config => config.eventId === MemoryStatisticType.RN
       );
-      expect(reactNativeHeapConfig).toBeDefined();
-      expect(reactNativeHeapConfig?.eventId).toBe(MemoryStatisticType.REACT_NATIVE);
-      expect(reactNativeHeapConfig?.eventType).toBe(MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME);
-      expect(reactNativeHeapConfig?.hasSubType).toBe(true);
+      expect(rnHeapConfig).toBeDefined();
+      expect(rnHeapConfig?.eventId).toBe(MemoryStatisticType.RN);
+      expect(rnHeapConfig?.eventType).toBe(MemoryType.RN_HERMES_HEAP_Alloc_NAME);
+      expect(rnHeapConfig?.hasSubType).toBe(true);
     });
   });
 
@@ -161,44 +161,44 @@ describe('MemoryAnalysisData Test', () => {
     });
   });
 
-  describe('REACT_NATIVE_HERMES_HEAP Configuration Tests', () => {
-    it('should configure REACT_NATIVE_HERMES_HEAP in ALL Heap & Anonymous VM mapping', () => {
+  describe('RN_HERMES_HEAP Configuration Tests', () => {
+    it('should configure RN_HERMES_HEAP in ALL Heap & Anonymous VM mapping', () => {
       const mapping = {
         mappings: [
           {
             selectionKey: 'All Heap & Anonymous VM',
-            statisticTypes: [MemoryStatisticType.REACT_NATIVE],
-            normalTypes: [`'${MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME}'`]
+            statisticTypes: [MemoryStatisticType.RN],
+            normalTypes: [`'${MemoryType.RN_HERMES_HEAP_Alloc_NAME}'`]
           }
         ]
       };
-      expect(mapping.mappings[0].statisticTypes).toContain(MemoryStatisticType.REACT_NATIVE);
+      expect(mapping.mappings[0].statisticTypes).toContain(MemoryStatisticType.RN);
     });
 
-    it('should configure REACT_NATIVE_HERMES_HEAP in All Heap mapping', () => {
+    it('should configure RN_HERMES_HEAP in All Heap mapping', () => {
       const mapping = {
         mappings: [
           {
             selectionKey: 'All Heap',
-            statisticTypes: [MemoryStatisticType.REACT_NATIVE],
-            normalTypes: [`'${MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME}'`]
+            statisticTypes: [MemoryStatisticType.RN],
+            normalTypes: [`'${MemoryType.RN_HERMES_HEAP_Alloc_NAME}'`]
           }
         ]
       };
-      expect(mapping.mappings[0].statisticTypes).toContain(MemoryStatisticType.REACT_NATIVE);
+      expect(mapping.mappings[0].statisticTypes).toContain(MemoryStatisticType.RN);
     });
 
-    it('should configure REACT_NATIVE_HERMES_HEAP standalone mapping', () => {
+    it('should configure RN_HERMES_HEAP standalone mapping', () => {
       const mapping = {
         mappings: [
           {
             selectionKey: 'RN HEAP',
-            statisticTypes: [MemoryStatisticType.REACT_NATIVE],
-            normalTypes: [`'${MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME}'`]
+            statisticTypes: [MemoryStatisticType.RN],
+            normalTypes: [`'${MemoryType.RN_HERMES_HEAP_Alloc_NAME}'`]
           }
         ]
       };
-      expect(mapping.mappings[0].statisticTypes).toContain(MemoryStatisticType.REACT_NATIVE);
+      expect(mapping.mappings[0].statisticTypes).toContain(MemoryStatisticType.RN);
     });
   });
 
@@ -286,11 +286,11 @@ describe('MemoryAnalysisData Test', () => {
       expect(result?.typeName).toBe('ARKTS_STATIC_SUBTYPE');
     });
 
-    it('should handle REACT_NATIVE_HERMES_HEAP type correctly', () => {
+    it('should handle RN_HERMES_HEAP type correctly', () => {
       const mockSample = [
         {
-          type: MemoryStatisticType.REACT_NATIVE,
-          typeName: MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME,
+          type: MemoryStatisticType.RN,
+          typeName: MemoryType.RN_HERMES_HEAP_Alloc_NAME,
           subType: 'RN_SUBTYPE',
           size: 2048,
           count: 20,
@@ -300,10 +300,10 @@ describe('MemoryAnalysisData Test', () => {
         }
       ];
       const typeMap = new Map<number, any[]>();
-      typeMap.set(MemoryStatisticType.REACT_NATIVE, mockSample);
+      typeMap.set(MemoryStatisticType.RN, mockSample);
       dataLogic['isStatistic'] = false;
       dataLogic['memoryType'] = MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY;
-      const result = dataLogic['setTypeMap'](typeMap, MemoryStatisticType.REACT_NATIVE, 'RN_SUBTYPE');
+      const result = dataLogic['setTypeMap'](typeMap, MemoryStatisticType.RN, 'RN_SUBTYPE');
       expect(result).not.toBeNull();
       expect(result?.typeName).toBe('RN_SUBTYPE');
     });
@@ -367,7 +367,7 @@ describe('MemoryAnalysisData Test', () => {
       expect(result.has('ARKTS_STATIC_SUBTYPE2')).toBe(true);
     });
 
-    it('should build subTypeMap correctly for REACT_NATIVE_HERMES_HEAP', () => {
+    it('should build subTypeMap correctly for RN_HERMES_HEAP', () => {
       const sampleArray = [
         {
           subType: 'RN_SUBTYPE1',
@@ -378,7 +378,7 @@ describe('MemoryAnalysisData Test', () => {
           size: 2048
         }
       ];
-      const result = dataLogic['buildSubTypeMap'](sampleArray, MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME);
+      const result = dataLogic['buildSubTypeMap'](sampleArray, MemoryType.RN_HERMES_HEAP_Alloc_NAME);
       expect(result.size).toBe(2);
       expect(result.has('RN_SUBTYPE1')).toBe(true);
       expect(result.has('RN_SUBTYPE2')).toBe(true);
@@ -434,7 +434,7 @@ describe('MemoryAnalysisData Test', () => {
           isRelease: false
         },
         {
-          type: MemoryStatisticType.REACT_NATIVE,
+          type: MemoryStatisticType.RN,
           size: 2048,
           count: 20,
           isRelease: false
@@ -451,7 +451,7 @@ describe('MemoryAnalysisData Test', () => {
       expect(result.size).toBe(3);
       expect(result.get(MemoryStatisticType.DART_HEAP)?.length).toBe(2);
       expect(result.get(MemoryStatisticType.ARKTS_STATIC_HEAP)?.length).toBe(1);
-      expect(result.get(MemoryStatisticType.REACT_NATIVE)?.length).toBe(1);
+      expect(result.get(MemoryStatisticType.RN)?.length).toBe(1);
     });
   });
 

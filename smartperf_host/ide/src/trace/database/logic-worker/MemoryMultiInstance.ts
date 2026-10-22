@@ -140,7 +140,7 @@ export const statisticCallChainsSamplesConfig: ConfigMap = {
             when type = ${MemoryStatisticType.ARKTS_STATIC_HEAP} then '${MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME}'
             when type = ${MemoryStatisticType.CHROMIUM_HEAP} then '${MemoryType.CHROMIUM_HEAP_Alloc_NAME}'
             when type = ${MemoryStatisticType.VMA_CHROMIUM} then '${MemoryType.VMA_CHROMIUM_Alloc_NAME}'
-            when type = ${MemoryStatisticType.REACT_NATIVE} then '${MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME}'
+            when type = ${MemoryStatisticType.RN} then '${MemoryType.RN_HERMES_HEAP_Alloc_NAME}'
             when type = ${MemoryStatisticType.KMP} then '${MemoryType.KMP_Alloc_NAME}'
             when type = ${MemoryStatisticType.DMA} then '${MemoryType.ION_Alloc_NAME}'
             when type = ${MemoryStatisticType.ASHMEM} then '${MemoryType.ASHMEM_Alloc_NAME}'
@@ -282,8 +282,8 @@ export class AnalysisTabDataLogic {
             sampleArray: []
           },
           {
-            applyEventType: MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME,
-            releaseEventType: MemoryType.REACT_NATIVE_HERMES_HEAP_Free_NAME,
+            applyEventType: MemoryType.RN_HERMES_HEAP_Alloc_NAME,
+            releaseEventType: MemoryType.RN_HERMES_HEAP_Free_NAME,
             sampleArray: []
           },
           {
@@ -515,7 +515,7 @@ const MEMORY_BASIC_TYPE = {
   JS_HEAP: 4,
   DART_HEAP: 5,
   ARKTS_STATIC_HEAP: 6,
-  REACT_NATIVE_HEAP: 7,
+  RN_HEAP: 7,
   KMP_HEAP: 8,
   ALL_ANONYMOUS_VM: 9,
   VM_ION: 10,
@@ -536,7 +536,7 @@ const MEMORY_TYPE_CONSTANTS = {
     MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME,
     MemoryType.CHROMIUM_HEAP_Alloc_NAME,
     MemoryType.VMA_CHROMIUM_Alloc_NAME,
-    MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME,
+    MemoryType.RN_HERMES_HEAP_Alloc_NAME,
     MemoryType.KMP_Alloc_NAME,
     MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME,
     MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME
@@ -549,7 +549,7 @@ const MEMORY_TYPE_CONSTANTS = {
     MemoryStatisticType.ARKTS_STATIC_HEAP,
     MemoryStatisticType.CHROMIUM_HEAP,
     MemoryStatisticType.VMA_CHROMIUM,
-    MemoryStatisticType.REACT_NATIVE,
+    MemoryStatisticType.RN,
     MemoryStatisticType.KMP,
     MemoryStatisticType.ARK_GLOBAL_HANDLE,
     MemoryStatisticType.ARK_LOCAL_HANDLE
@@ -590,7 +590,7 @@ function mapMemoryType(filterType: string, memoryBasicType: readonly string[]): 
     [memoryBasicType[MEMORY_BASIC_TYPE.ARKTS_STATIC_HEAP], MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME],
     [memoryBasicType[MEMORY_BASIC_TYPE.CHROMIUM_HEAP], MemoryType.CHROMIUM_HEAP_Alloc_NAME],
     [memoryBasicType[MEMORY_BASIC_TYPE.VMA_CHROMIUM], MemoryType.VMA_CHROMIUM_Alloc_NAME],
-    [memoryBasicType[MEMORY_BASIC_TYPE.REACT_NATIVE_HEAP], MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME],
+    [memoryBasicType[MEMORY_BASIC_TYPE.RN_HEAP], MemoryType.RN_HERMES_HEAP_Alloc_NAME],
     [memoryBasicType[MEMORY_BASIC_TYPE.KMP_HEAP], MemoryType.KMP_Alloc_NAME],
     [memoryBasicType[MEMORY_BASIC_TYPE.VM_ION], MemoryType.ION_Alloc_NAME],
     [memoryBasicType[MEMORY_BASIC_TYPE.VM_ASHMEM], MemoryType.ASHMEM_Alloc_NAME],

@@ -44,7 +44,7 @@ export enum MemoryStatisticType {
   ARKTS = 10,       // ArkTs Heap
   JS = 11,        // JS Heap
   KMP = 12,         // KMP Heap
-  REACT_NATIVE = 13,          // React Native Heap 废弃
+  RN = 13,          // RN Heap 废弃
   ASHMEM = 14,      // VM Ashmem
   DMA = 15,         // VM ION
   OTHER = 16,       // Other
@@ -99,8 +99,8 @@ export class MemoryType {
   static readonly CHROMIUM_HEAP_Free_NAME = 'CHROMIUM_HEAP_Free_Event';
   static readonly VMA_CHROMIUM_Alloc_NAME = 'VMA_CHROMIUM_Alloc_Event';
   static readonly VMA_CHROMIUM_Free_NAME = 'VMA_CHROMIUM_Free_Event';
-  static readonly REACT_NATIVE_HERMES_HEAP_Alloc_NAME = 'RN_HERMES_HEAP_Alloc_Event';
-  static readonly REACT_NATIVE_HERMES_HEAP_Free_NAME = 'RN_HERMES_HEAP_Free_Event';
+  static readonly RN_HERMES_HEAP_Alloc_NAME = 'RN_HERMES_HEAP_Alloc_Event';
+  static readonly RN_HERMES_HEAP_Free_NAME = 'RN_HERMES_HEAP_Free_Event';
   static readonly ARK_GLOBAL_HANDLE_Alloc_NAME = 'ARK_GLOBAL_HANDLE_Alloc_Event';
   static readonly ARK_GLOBAL_HANDLE_Free_NAME = 'ARK_GLOBAL_HANDLE_Free_Event';
   static readonly ARK_LOCAL_HANDLE_Alloc_NAME = 'ARK_LOCAL_HANDLE_Alloc_Event';
@@ -112,7 +112,7 @@ export class MemoryType {
   MemoryType.ARKTS_Alloc_NAME, MemoryType.JS_Alloc_NAME,
   MemoryType.KMP_Alloc_NAME, MemoryType.SO_Alloc_NAME, MemoryType.ASHMEM_Alloc_NAME,
   MemoryType.ION_Alloc_NAME, MemoryType.DART_HEAP_Alloc_NAME,
-  MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME, MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME,
+  MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME, MemoryType.RN_HERMES_HEAP_Alloc_NAME,
   MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME, MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME,
   MemoryType.CHROMIUM_HEAP_Alloc_NAME, MemoryType.VMA_CHROMIUM_Alloc_NAME];
 
@@ -120,13 +120,13 @@ export class MemoryType {
   MemoryType.ARKTS_Alloc_NAME, MemoryType.JS_Alloc_NAME, MemoryType.KMP_Alloc_NAME,
   MemoryType.ION_Alloc_NAME, MemoryType.SO_Alloc_NAME, MemoryType.ASHMEM_Alloc_NAME,
   MemoryType.DART_HEAP_Alloc_NAME, MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME,
-  MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME, MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME,
+  MemoryType.RN_HERMES_HEAP_Alloc_NAME, MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME,
   MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME, MemoryType.CHROMIUM_HEAP_Alloc_NAME,
   MemoryType.VMA_CHROMIUM_Alloc_NAME];
 
   static readonly ALL_HEAP_EVENTS = [MemoryType.MEMORY_M_ALLOC_NAME, MemoryType.ARKTS_Alloc_NAME,
   MemoryType.JS_Alloc_NAME, MemoryType.KMP_Alloc_NAME, MemoryType.DART_HEAP_Alloc_NAME,
-  MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME, MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME,
+  MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME, MemoryType.RN_HERMES_HEAP_Alloc_NAME,
   MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME, MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME,
   MemoryType.CHROMIUM_HEAP_Alloc_NAME, MemoryType.VMA_CHROMIUM_Alloc_NAME];
   static readonly ALL_ANONYMOUS_EVENTS = [MemoryType.MEMORY_M_MAP_NAME, MemoryType.ION_Alloc_NAME, MemoryType.SO_Alloc_NAME, MemoryType.ASHMEM_Alloc_NAME];
@@ -168,7 +168,7 @@ export const MemoryBasicType = {
 
 // 定义 Native Memory 的堆类型索引数组
 export const NATIVE_MEMORY_ALL_HEAP_IDX = 1; // All Heap
-// Native Heap, ArkTs Heap, JS Heap, Dart Heap, Arkts Static Heap, React Native Heap, KMP Heap, Chromium Heap, VMA Chromium
+// Native Heap, ArkTs Heap, JS Heap, Dart Heap, Arkts Static Heap, RN Heap, KMP Heap, Chromium Heap, VMA Chromium
 export const NATIVE_MEMORY_HEAP_INDICES = [2, 3, 4, 5, 6, 7, 8, 14, 15] as const;
 export const NATIVE_MEMORY_ALL_ANONYMOUS_VM_IDX = 9; // All Anonymous VM
 export const NATIVE_MEMORY_ANONYMOUS_VM_INDICES = [10, 11, 12, 13] as const; // VM ION, VM Ashmem, VM SO, VM Others
@@ -177,7 +177,7 @@ export const NATIVE_MEMORY_ANONYMOUS_VM_INDICES = [10, 11, 12, 13] as const; // 
 export const nativeMemoryGroupConfig = {
   allHeap: {
     folderSuffix: NATIVE_MEMORY_ALL_HEAP_IDX,  // All Heap folder suffix 泳道idx
-    childIndices: NATIVE_MEMORY_HEAP_INDICES,  // Native Heap, ArkTs Heap, JS Heap, Dart Heap, Arkts Static Heap, React Native Heap, KMP Heap
+    childIndices: NATIVE_MEMORY_HEAP_INDICES,  // Native Heap, ArkTs Heap, JS Heap, Dart Heap, Arkts Static Heap, RN Heap, KMP Heap
   },
   allAnonymousVM: {
     folderSuffix: NATIVE_MEMORY_ALL_ANONYMOUS_VM_IDX,  // All Anonymous VM folder suffix 泳道idx
@@ -200,7 +200,7 @@ export const memoryConfig: Record<
       MemoryType.JS_Alloc_NAME, MemoryType.KMP_Alloc_NAME,
       MemoryType.SO_Alloc_NAME, MemoryType.ASHMEM_Alloc_NAME,
       MemoryType.ION_Alloc_NAME, MemoryType.DART_HEAP_Alloc_NAME,
-      MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME, MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME,
+      MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME, MemoryType.RN_HERMES_HEAP_Alloc_NAME,
       MemoryType.CHROMIUM_HEAP_Alloc_NAME, MemoryType.VMA_CHROMIUM_Alloc_NAME
     ],
     chartConfigs: [
@@ -210,7 +210,7 @@ export const memoryConfig: Record<
       { filter: MemoryType.JS_Alloc_NAME, suffix: 4 }, // JS Heap
       { filter: MemoryType.DART_HEAP_Alloc_NAME, suffix: 5 }, // DART Heap
       { filter: MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME, suffix: 6 }, // ArkTS Static Heap
-      { filter: MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME, suffix: 7 }, // React Native Heap
+      { filter: MemoryType.RN_HERMES_HEAP_Alloc_NAME, suffix: 7 }, // RN Heap
       { filter: MemoryType.KMP_Alloc_NAME, suffix: 8 }, // KMP Heap
       { filter: MemoryType.ION_Alloc_NAME, suffix: 10 }, // VM ION
       { filter: MemoryType.ASHMEM_Alloc_NAME, suffix: 11 }, // VM Ashmem
@@ -254,7 +254,7 @@ export const statisticTypeMap: Record<number, string> = {
   10: "arkts",     // MemoryStatisticType.ARKTS (ArkTs Heap)
   11: "js",        // MemoryStatisticType.JS (JS Heap)
   12: "kmp",       // MemoryStatisticType.KMP (KMP Heap)
-  13: "rn",        // MemoryStatisticType.REACT_NATIVE (React Native Heap)
+  13: "rn",        // MemoryStatisticType.RN (RN Heap)
   14: "ashmem",     // MemoryStatisticType.ASHMEM (VM Ashmem)
   15: "ion",       // MemoryStatisticType.DMA (VM ION)
   16: "other",     // MemoryStatisticType.OTHER (Other)
@@ -284,7 +284,7 @@ export const handlerConfig: HandlerItem[] = [
       { key: "js", suffix: "4" },              // JS Heap
       { key: "dartHeap", suffix: "5" },    // DART Heap
       { key: "arktsStaticHeap", suffix: "6" }, // ArkTS Static Heap
-      { key: "rn", suffix: "7" },            // React Native Heap
+      { key: "rn", suffix: "7" },            // RN Heap
       { key: "kmp", suffix: "8" },            // KMP Heap
       { key: "ion", suffix: "10" },             // VM ION
       { key: "ashmem", suffix: "11" },          // VM Ashmem
@@ -326,7 +326,7 @@ function mapTypeToFilters(type: string, isStat: boolean, needFree: boolean): Arr
           MemoryStatisticType.ARKTS, MemoryStatisticType.JS, MemoryStatisticType.KMP,
           MemoryStatisticType.SO, MemoryStatisticType.ASHMEM, MemoryStatisticType.DMA,
           MemoryStatisticType.DART_HEAP, MemoryStatisticType.ARKTS_STATIC_HEAP,
-          MemoryStatisticType.REACT_NATIVE, MemoryStatisticType.ARK_GLOBAL_HANDLE,
+          MemoryStatisticType.RN, MemoryStatisticType.ARK_GLOBAL_HANDLE,
           MemoryStatisticType.ARK_LOCAL_HANDLE, MemoryStatisticType.CHROMIUM_HEAP,
           MemoryStatisticType.VMA_CHROMIUM
         ]
@@ -338,7 +338,7 @@ function mapTypeToFilters(type: string, isStat: boolean, needFree: boolean): Arr
             `${MemoryType.JS_Alloc_NAME}`, `${MemoryType.JS_Free_NAME}`,
             `${MemoryType.DART_HEAP_Alloc_NAME}`, `${MemoryType.DART_HEAP_Free_NAME}`,
             `${MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME}`, `${MemoryType.ARKTS_STATIC_HEAP_Free_NAME}`,
-            `${MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME}`, `${MemoryType.REACT_NATIVE_HERMES_HEAP_Free_NAME}`,
+            `${MemoryType.RN_HERMES_HEAP_Alloc_NAME}`, `${MemoryType.RN_HERMES_HEAP_Free_NAME}`,
             `${MemoryType.KMP_Alloc_NAME}`, `${MemoryType.KMP_Free_NAME}`,
             `${MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME}`, `${MemoryType.ARK_GLOBAL_HANDLE_Free_NAME}`,
             `${MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME}`, `${MemoryType.ARK_LOCAL_HANDLE_Free_NAME}`,
@@ -352,7 +352,7 @@ function mapTypeToFilters(type: string, isStat: boolean, needFree: boolean): Arr
             `${MemoryType.MEMORY_M_ALLOC_NAME}`, `${MemoryType.MEMORY_M_MAP_NAME}`,
             `${MemoryType.ARKTS_Alloc_NAME}`, `${MemoryType.JS_Alloc_NAME}`,
             `${MemoryType.DART_HEAP_Alloc_NAME}`, `${MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME}`,
-            `${MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME}`, `${MemoryType.SO_Alloc_NAME}`,
+            `${MemoryType.RN_HERMES_HEAP_Alloc_NAME}`, `${MemoryType.SO_Alloc_NAME}`,
             `${MemoryType.ASHMEM_Alloc_NAME}`, `${MemoryType.ION_Alloc_NAME}`,
             `${MemoryType.KMP_Alloc_NAME}`, `${MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME}`, `${MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME}`,
             `${MemoryType.CHROMIUM_HEAP_Alloc_NAME}`, `${MemoryType.VMA_CHROMIUM_Alloc_NAME}`
@@ -362,7 +362,7 @@ function mapTypeToFilters(type: string, isStat: boolean, needFree: boolean): Arr
       return isStat
         ? [MemoryStatisticType.MALLOC, MemoryStatisticType.ARKTS, MemoryStatisticType.JS,
         MemoryStatisticType.DART_HEAP, MemoryStatisticType.ARKTS_STATIC_HEAP,
-        MemoryStatisticType.REACT_NATIVE, MemoryStatisticType.KMP,
+        MemoryStatisticType.RN, MemoryStatisticType.KMP,
         MemoryStatisticType.ARK_GLOBAL_HANDLE, MemoryStatisticType.ARK_LOCAL_HANDLE,
         MemoryStatisticType.CHROMIUM_HEAP, MemoryStatisticType.VMA_CHROMIUM]
         : needFree
@@ -373,7 +373,7 @@ function mapTypeToFilters(type: string, isStat: boolean, needFree: boolean): Arr
             `${MemoryType.KMP_Alloc_NAME}`, `${MemoryType.KMP_Free_NAME}`,
             `${MemoryType.DART_HEAP_Alloc_NAME}`, `${MemoryType.DART_HEAP_Free_NAME}`,
             `${MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME}`, `${MemoryType.ARKTS_STATIC_HEAP_Free_NAME}`,
-            `${MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME}`, `${MemoryType.REACT_NATIVE_HERMES_HEAP_Free_NAME}`,
+            `${MemoryType.RN_HERMES_HEAP_Alloc_NAME}`, `${MemoryType.RN_HERMES_HEAP_Free_NAME}`,
             `${MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME}`, `${MemoryType.ARK_GLOBAL_HANDLE_Free_NAME}`,
             `${MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME}`, `${MemoryType.ARK_LOCAL_HANDLE_Free_NAME}`,
             `${MemoryType.CHROMIUM_HEAP_Alloc_NAME}`, `${MemoryType.CHROMIUM_HEAP_Free_NAME}`,
@@ -383,7 +383,7 @@ function mapTypeToFilters(type: string, isStat: boolean, needFree: boolean): Arr
             `${MemoryType.MEMORY_M_ALLOC_NAME}`, `${MemoryType.ARKTS_Alloc_NAME}`,
             `${MemoryType.JS_Alloc_NAME}`, `${MemoryType.DART_HEAP_Alloc_NAME}`,
             `${MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME}`,
-            `${MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME}`,
+            `${MemoryType.RN_HERMES_HEAP_Alloc_NAME}`,
             `${MemoryType.KMP_Alloc_NAME}`, `${MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME}`, `${MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME}`,
             `${MemoryType.CHROMIUM_HEAP_Alloc_NAME}`, `${MemoryType.VMA_CHROMIUM_Alloc_NAME}`
           ];
@@ -425,13 +425,13 @@ function mapTypeToFilters(type: string, isStat: boolean, needFree: boolean): Arr
         : needFree
           ? [`${MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME}`, `${MemoryType.ARKTS_STATIC_HEAP_Free_NAME}`]
           : [`${MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME}`];
-    //NativeMemory React Native Heap
+    //NativeMemory RN Heap
     case MemoryBasicType.NATIVE_MEMORY[7]:
       return isStat
-        ? [MemoryStatisticType.REACT_NATIVE]
+        ? [MemoryStatisticType.RN]
         : needFree
-          ? [`${MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME}`, `${MemoryType.REACT_NATIVE_HERMES_HEAP_Free_NAME}`]
-          : [`${MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME}`];
+          ? [`${MemoryType.RN_HERMES_HEAP_Alloc_NAME}`, `${MemoryType.RN_HERMES_HEAP_Free_NAME}`]
+          : [`${MemoryType.RN_HERMES_HEAP_Alloc_NAME}`];
     //NativeMemory KMP Heap
     case MemoryBasicType.NATIVE_MEMORY[8]:
       return isStat
@@ -597,8 +597,8 @@ export function getEventTypeNameFromTypeId(type: number): string {
       return MemoryType.DART_HEAP_Alloc_NAME;
     case MemoryStatisticType.ARKTS_STATIC_HEAP:
       return MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME;
-    case MemoryStatisticType.REACT_NATIVE:
-      return MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME;
+    case MemoryStatisticType.RN:
+      return MemoryType.RN_HERMES_HEAP_Alloc_NAME;
     case MemoryStatisticType.ARK_GLOBAL_HANDLE:
       return MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME;
     case MemoryStatisticType.ARK_LOCAL_HANDLE:

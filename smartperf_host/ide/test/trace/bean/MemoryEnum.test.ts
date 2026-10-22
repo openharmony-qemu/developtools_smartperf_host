@@ -52,7 +52,7 @@ describe('MemoryEnum Test', () => {
     expect(MemoryStatisticType.MMAP).toEqual(1);
     expect(MemoryStatisticType.DART_HEAP).toEqual(20);
     expect(MemoryStatisticType.ARKTS_STATIC_HEAP).toEqual(21);
-    expect(MemoryStatisticType.REACT_NATIVE).toEqual(13);
+    expect(MemoryStatisticType.RN).toEqual(13);
   });
 
   it('MemoryTypeTest04', function () {
@@ -60,8 +60,8 @@ describe('MemoryEnum Test', () => {
     expect(MemoryType.DART_HEAP_Free_NAME).toEqual('DART_HEAP_Free_Event');
     expect(MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME).toEqual('ARKTS_STATIC_HEAP_Alloc_Event');
     expect(MemoryType.ARKTS_STATIC_HEAP_Free_NAME).toEqual('ARKTS_STATIC_HEAP_Free_Event');
-    expect(MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME).toEqual('RN_HERMES_HEAP_Alloc_Event');
-    expect(MemoryType.REACT_NATIVE_HERMES_HEAP_Free_NAME).toEqual('RN_HERMES_HEAP_Free_Event');
+    expect(MemoryType.RN_HERMES_HEAP_Alloc_NAME).toEqual('RN_HERMES_HEAP_Alloc_Event');
+    expect(MemoryType.RN_HERMES_HEAP_Free_NAME).toEqual('RN_HERMES_HEAP_Free_Event');
   });
 
   it('MemoryBasicTypeTest05', function () {
@@ -101,7 +101,7 @@ describe('MemoryEnum Test', () => {
   it('GetEventTypeNameFromTypeIdTest10', function () {
     expect(getEventTypeNameFromTypeId(MemoryStatisticType.DART_HEAP)).toEqual('DART_HEAP_Alloc_Event');
     expect(getEventTypeNameFromTypeId(MemoryStatisticType.ARKTS_STATIC_HEAP)).toEqual('ARKTS_STATIC_HEAP_Alloc_Event');
-    expect(getEventTypeNameFromTypeId(MemoryStatisticType.REACT_NATIVE)).toEqual('RN_HERMES_HEAP_Alloc_Event');
+    expect(getEventTypeNameFromTypeId(MemoryStatisticType.RN)).toEqual('RN_HERMES_HEAP_Alloc_Event');
   });
 
   it('GetCurrentTypesTest11', function () {
@@ -274,7 +274,7 @@ describe('MemoryEnum Test', () => {
       nativeMemoryStatistic: [
         MemoryStatisticType.DART_HEAP,
         MemoryStatisticType.ARKTS_STATIC_HEAP,
-        MemoryStatisticType.REACT_NATIVE,
+        MemoryStatisticType.RN,
       ],
       otherSource: [],
       otherSourceStatistic: [],
@@ -284,7 +284,7 @@ describe('MemoryEnum Test', () => {
     let result = getCurrentTypes(selectParam, MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY, true, false);
     expect(result).toContain(MemoryStatisticType.ARKTS_STATIC_HEAP);
     expect(result).toContain(MemoryStatisticType.DART_HEAP);
-    expect(result).toContain(MemoryStatisticType.REACT_NATIVE);
+    expect(result).toContain(MemoryStatisticType.RN);
   });
 
   it('MemoryStatisticTypeTest24 - CHROMIUM_HEAP and VMA_CHROMIUM enum values', function () {

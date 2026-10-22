@@ -180,7 +180,7 @@ export class TabPaneNMStatstics extends BaseElement {
         data.memoryTap = `Chromium ${Utils.getByteWithUnit(malloc.heapSize)}`;
       } else if (malloc.eventType === MemoryType.VMA_CHROMIUM_Alloc_NAME) {
         data.memoryTap = `VMA Chromium ${Utils.getByteWithUnit(malloc.heapSize)}`;
-      } else if (malloc.eventType === MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME) {
+      } else if (malloc.eventType === MemoryType.RN_HERMES_HEAP_Alloc_NAME) {
         data.memoryTap = `RN ${Utils.getByteWithUnit(malloc.heapSize)}`;
       } else if (malloc.eventType === MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME) {
         data.memoryTap = `Global ${Utils.getByteWithUnit(malloc.heapSize)}`;
@@ -206,7 +206,7 @@ export class TabPaneNMStatstics extends BaseElement {
         MemoryType.MEMORY_M_ALLOC_NAME, MemoryType.ARKTS_Alloc_NAME, MemoryType.JS_Alloc_NAME,
         MemoryType.DART_HEAP_Alloc_NAME, MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME,
         MemoryType.CHROMIUM_HEAP_Alloc_NAME, MemoryType.VMA_CHROMIUM_Alloc_NAME,
-        MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME, MemoryType.KMP_Alloc_NAME,
+        MemoryType.RN_HERMES_HEAP_Alloc_NAME, MemoryType.KMP_Alloc_NAME,
         MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME, MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME,
       ].some((name) => types.includes(name) && malloc.eventType === name)) {
         arr.push(data);
@@ -226,7 +226,7 @@ export class TabPaneNMStatstics extends BaseElement {
       } else if (types.includes(MemoryType.VMA_CHROMIUM_Alloc_NAME) &&
         malloc.eventType === MemoryType.VMA_CHROMIUM_Alloc_NAME) {
         arr.push(data);
-      } else if (types.includes(MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME) && malloc.eventType === MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME) {
+      } else if (types.includes(MemoryType.RN_HERMES_HEAP_Alloc_NAME) && malloc.eventType === MemoryType.RN_HERMES_HEAP_Alloc_NAME) {
         arr.push(data);
       } else if (types.includes(MemoryType.KMP_Alloc_NAME) && malloc.eventType === MemoryType.KMP_Alloc_NAME) {
         arr.push(data);
@@ -273,7 +273,7 @@ export class TabPaneNMStatstics extends BaseElement {
           MemoryType.MEMORY_M_ALLOC_NAME, MemoryType.ARKTS_Alloc_NAME, MemoryType.JS_Alloc_NAME,
           MemoryType.DART_HEAP_Alloc_NAME, MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME,
           MemoryType.CHROMIUM_HEAP_Alloc_NAME, MemoryType.VMA_CHROMIUM_Alloc_NAME,
-          MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME, MemoryType.KMP_Alloc_NAME,
+          MemoryType.RN_HERMES_HEAP_Alloc_NAME, MemoryType.KMP_Alloc_NAME,
           MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME, MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME,
         ].some((name) => types.includes(name) && sub.eventType === name)) {
           arr.push(data);
@@ -293,7 +293,7 @@ export class TabPaneNMStatstics extends BaseElement {
         } else if (types.includes(MemoryType.VMA_CHROMIUM_Alloc_NAME) &&
           sub.eventType === MemoryType.VMA_CHROMIUM_Alloc_NAME) {
           arr.push(data);
-        } else if (types.includes(MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME) && sub.eventType === MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME) {
+        } else if (types.includes(MemoryType.RN_HERMES_HEAP_Alloc_NAME) && sub.eventType === MemoryType.RN_HERMES_HEAP_Alloc_NAME) {
           arr.push(data);
         } else if (types.includes(MemoryType.KMP_Alloc_NAME) && sub.eventType === MemoryType.KMP_Alloc_NAME) {
           arr.push(data);
@@ -327,7 +327,7 @@ export class TabPaneNMStatstics extends BaseElement {
     let nativeHeap: NativeHookStatisticsTableData | null = null;
     let arktsHeap: NativeHookStatisticsTableData | null = null;
     let dartHeap: NativeHookStatisticsTableData | null = null;
-    let reactNativeHeap: NativeHookStatisticsTableData | null = null;
+    let rnHeap: NativeHookStatisticsTableData | null = null;
     let jsHeap: NativeHookStatisticsTableData | null = null;
     let jsStaticsHeap: NativeHookStatisticsTableData | null = null;
     let arktsStaticHeap: NativeHookStatisticsTableData | null = null;
@@ -375,8 +375,8 @@ export class TabPaneNMStatstics extends BaseElement {
       vmaChromium.memoryTap = this.nativeType[15];
     }
     if (val.nativeMemory.indexOf(this.nativeType[7]) !== -1) {
-      reactNativeHeap = new NativeHookStatisticsTableData();
-      reactNativeHeap.memoryTap = this.nativeType[7];
+      rnHeap = new NativeHookStatisticsTableData();
+      rnHeap.memoryTap = this.nativeType[7];
     }
     if (val.nativeMemory.indexOf(this.nativeType[8]) !== -1) {
       kmpHeap = new NativeHookStatisticsTableData();
@@ -410,7 +410,7 @@ export class TabPaneNMStatstics extends BaseElement {
         MemoryType.MEMORY_M_ALLOC_NAME, MemoryType.ARKTS_Alloc_NAME, MemoryType.JS_Alloc_NAME,
         MemoryType.DART_HEAP_Alloc_NAME, MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME,
         MemoryType.CHROMIUM_HEAP_Alloc_NAME, MemoryType.VMA_CHROMIUM_Alloc_NAME,
-        MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME, MemoryType.KMP_Alloc_NAME,
+        MemoryType.RN_HERMES_HEAP_Alloc_NAME, MemoryType.KMP_Alloc_NAME,
         MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME, MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME,
       ].includes(hook.eventType)) {
         this.processHookData(hook, allHeap);
@@ -436,8 +436,8 @@ export class TabPaneNMStatstics extends BaseElement {
       if (vmaChromium !== null && hook.eventType === MemoryType.VMA_CHROMIUM_Alloc_NAME) {
         this.processHookData(hook, vmaChromium);
       }
-      if (reactNativeHeap !== null && hook.eventType === MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME) {
-        this.processHookData(hook, reactNativeHeap);
+      if (rnHeap !== null && hook.eventType === MemoryType.RN_HERMES_HEAP_Alloc_NAME) {
+        this.processHookData(hook, rnHeap);
       }
       if (kmpHeap !== null && hook.eventType === MemoryType.KMP_Alloc_NAME) {
         this.processHookData(hook, kmpHeap);
@@ -485,8 +485,8 @@ export class TabPaneNMStatstics extends BaseElement {
     if (vmaChromium?.maxStr === '' && vmaChromium?.max === 0) {
       vmaChromium.maxStr = Utils.getByteWithUnit(vmaChromium?.max);
     }
-    if (reactNativeHeap?.maxStr === '' && reactNativeHeap?.max === 0) {
-      reactNativeHeap.maxStr = Utils.getByteWithUnit(reactNativeHeap?.max);
+    if (rnHeap?.maxStr === '' && rnHeap?.max === 0) {
+      rnHeap.maxStr = Utils.getByteWithUnit(rnHeap?.max);
     }
     if (kmpHeap?.maxStr === '' && kmpHeap?.max === 0) {
       kmpHeap.maxStr = Utils.getByteWithUnit(kmpHeap?.max);
@@ -533,8 +533,8 @@ export class TabPaneNMStatstics extends BaseElement {
     if (vmaChromium !== null) {
       this.updateHookData(vmaChromium, arr);
     }
-    if (reactNativeHeap !== null) {
-      this.updateHookData(reactNativeHeap, arr);
+    if (rnHeap !== null) {
+      this.updateHookData(rnHeap, arr);
     }
     if (kmpHeap !== null) {
       this.updateHookData(kmpHeap, arr);
