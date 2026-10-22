@@ -416,7 +416,7 @@ function cacheNormalChartData(
     // 为 Native Memory 计算 All Heap 和 All Anonymous VM 的总和
     if (memoryType === MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY) {
       // All Heap 总和 - 使用常量数组
-      const allHeapSuffixes = [...NATIVE_MEMORY_HEAP_INDICES]; // Native Heap, ArkTs Heap, ArkWeb Heap, RN Heap, KMP Heap
+      const allHeapSuffixes = [...NATIVE_MEMORY_HEAP_INDICES]; // Native Heap, ArkTs Heap, ArkWeb Heap, React Native Heap, KMP Heap
       const allHeapFolderSuffix = NATIVE_MEMORY_ALL_HEAP_IDX; // All Heap folder suffix
       const allHeapDataListArray: NativeMemoryChartDataType[][] = allHeapSuffixes.map(suffix =>
         dataCache.normalCache.get(`${memoryType}-${ipid}-${suffix}`)?.dataList || []
@@ -601,7 +601,7 @@ function cacheStatisticChartData(processData: Array<NMData>, ipid: number): void
     // 为 Native Memory 计算 All Heap 和 All Anonymous VM 的总和
     if (rowType === MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY) {
       // All Heap 总和 - 使用常量数组
-      const allHeapSuffixes = [...NATIVE_MEMORY_HEAP_INDICES].map(i => i.toString()); // Native Heap, ArkTs Heap, ArkWeb Heap, RN Heap, KMP Heap
+      const allHeapSuffixes = [...NATIVE_MEMORY_HEAP_INDICES].map(i => i.toString()); // Native Heap, ArkTs Heap, ArkWeb Heap, React Native Heap, KMP Heap
       const allHeapFolderSuffix = NATIVE_MEMORY_ALL_HEAP_IDX.toString(); // All Heap folder suffix
       const allHeapDataListArray: NativeMemoryChartDataType[][] = allHeapSuffixes.map(dataKey =>
         dataCache.statisticsCache.get(`${rowType}-${ipid}-${dataKey}`)?.dataList || []

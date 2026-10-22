@@ -211,7 +211,7 @@ export class SpNativeMemoryChart {
     this.chartThreadHandler(allHeapFolder);
     folder.addChildTraceRow(allHeapFolder);
 
-    // 创建 All Heap 子泳道 (Native Heap, ArkTs Heap, ArkWeb Heap, RN Heap, KMP Heap)
+    // 创建 All Heap 子泳道 (Native Heap, ArkTs Heap, ArkWeb Heap, React Native Heap, KMP Heap)
     for (const idx of NATIVE_MEMORY_HEAP_INDICES) {
       const childRow = this.createHeapRow(idx, MemoryBasicType.NATIVE_MEMORY[idx], allHeapFolder, type, process);
       allHeapFolder.addChildTraceRow(childRow);
@@ -383,7 +383,7 @@ export class SpNativeMemoryChart {
           MemoryStatisticType.ARKTS, MemoryStatisticType.JS,
           MemoryStatisticType.DART_HEAP, MemoryStatisticType.ARKTS_STATIC_HEAP,
           MemoryStatisticType.CHROMIUM_HEAP, MemoryStatisticType.VMA_CHROMIUM,
-          MemoryStatisticType.RN, MemoryStatisticType.KMP,
+          MemoryStatisticType.REACT_NATIVE, MemoryStatisticType.KMP,
           MemoryStatisticType.SO, MemoryStatisticType.ASHMEM,
           MemoryStatisticType.DMA, MemoryStatisticType.ARK_GLOBAL_HANDLE,
           MemoryStatisticType.ARK_LOCAL_HANDLE,

@@ -135,18 +135,6 @@ export class AnalysisSample {
         this.typeName = MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME;
         this.isRelease = false;
         break;
-      case MemoryType.V8_HEAP_Alloc_NAME:
-      case MemoryStatisticType.V8_HEAP:
-        this.type = 22;
-        this.typeName = MemoryType.V8_HEAP_Alloc_NAME;
-        this.isRelease = false;
-        break;
-      case MemoryType.PA_HEAP_Alloc_NAME:
-      case MemoryStatisticType.PA_HEAP:
-        this.type = 23;
-        this.typeName = MemoryType.PA_HEAP_Alloc_NAME;
-        this.isRelease = false;
-        break;
       case MemoryType.MEMORY_M_MAP_NAME:
       case MemoryStatisticType.MMAP:
         this.isRelease = false;
@@ -211,10 +199,10 @@ export class AnalysisSample {
         this.typeName = MemoryType.VMA_CHROMIUM_Alloc_NAME;
         this.isRelease = false;
         break;
-      case MemoryType.RN_HERMES_HEAP_Alloc_NAME:
-      case MemoryStatisticType.RN:
+      case MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME:
+      case MemoryStatisticType.REACT_NATIVE:
         this.type = 13;
-        this.typeName = MemoryType.RN_HERMES_HEAP_Alloc_NAME;
+        this.typeName = MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME;
         this.isRelease = false;
         break;
       case MemoryType.KMP_Alloc_NAME:
@@ -291,9 +279,9 @@ export class AnalysisSample {
         this.typeName = MemoryType.VMA_CHROMIUM_Free_NAME;
         this.isRelease = true;
         break;
-      case MemoryType.RN_HERMES_HEAP_Free_NAME:
+      case MemoryType.REACT_NATIVE_HERMES_HEAP_Free_NAME:
         this.type = 13;
-        this.typeName = MemoryType.RN_HERMES_HEAP_Free_NAME;
+        this.typeName = MemoryType.REACT_NATIVE_HERMES_HEAP_Free_NAME;
         this.isRelease = true;
         break;
       case MemoryType.ARK_GLOBAL_HANDLE_Free_NAME:
@@ -305,16 +293,6 @@ export class AnalysisSample {
         this.isRelease = true;
         this.typeName = MemoryType.ARK_LOCAL_HANDLE_Free_NAME;
         this.type = 18;
-        break;
-      case MemoryType.V8_HEAP_Free_NAME:
-        this.isRelease = true;
-        this.typeName = MemoryType.V8_HEAP_Free_NAME;
-        this.type = 22;
-        break;
-      case MemoryType.PA_HEAP_Free_NAME:
-        this.isRelease = true;
-        this.typeName = MemoryType.PA_HEAP_Free_NAME;
-        this.type = 23;
         break;
       default:
         this.isRelease = false;

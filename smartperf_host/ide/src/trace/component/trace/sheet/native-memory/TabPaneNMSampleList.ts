@@ -326,6 +326,20 @@ export class TabPaneNMSampleList extends BaseElement {
   }
 
   filterAllList(): void {
+    const singleTypeMap: Record<string, string> = {
+      '3': MemoryType.ARKTS_Alloc_NAME,
+      '4': MemoryType.JS_Alloc_NAME,
+      '5': MemoryType.DART_HEAP_Alloc_NAME,
+      '6': MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME,
+      '7': MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME,
+      '8': MemoryType.KMP_Alloc_NAME,
+      '10': MemoryType.ION_Alloc_NAME,
+      '11': MemoryType.ASHMEM_Alloc_NAME,
+      '12': MemoryType.SO_Alloc_NAME,
+      '13': MemoryType.MEMORY_M_MAP_NAME,
+      '14': MemoryType.CHROMIUM_HEAP_Alloc_NAME,
+      '15': MemoryType.VMA_CHROMIUM_Alloc_NAME,
+    };
     TabPaneNMSampleList.samplerInfoSource.forEach(nmRootSample => {
       nmRootSample.heapSize = 0;
       nmRootSample.existing = 0;
@@ -349,73 +363,17 @@ export class TabPaneNMSampleList extends BaseElement {
               parentSample.snapshot === MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME
           );
           break;
-        case '3':
-          childrenToShow = nmRootSample.tempList.filter(
-            parentSample => parentSample.snapshot === MemoryType.ARKTS_Alloc_NAME
-          );
-          break;
-        case '4':
-          childrenToShow = nmRootSample.tempList.filter(
-            parentSample => parentSample.snapshot === MemoryType.JS_Alloc_NAME
-          );
-          break;
-        case '5':
-          childrenToShow = nmRootSample.tempList.filter(
-            parentSample => parentSample.snapshot === MemoryType.DART_HEAP_Alloc_NAME
-          );
-          break;
-        case '6':
-          childrenToShow = nmRootSample.tempList.filter(
-            parentSample => parentSample.snapshot === MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME
-          );
-          break;
-        case '7':
-          childrenToShow = nmRootSample.tempList.filter(
-            parentSample => parentSample.snapshot === MemoryType.RN_HERMES_HEAP_Alloc_NAME
-          );
-          break;
-        case '8':
-          childrenToShow = nmRootSample.tempList.filter(
-            parentSample => parentSample.snapshot === MemoryType.KMP_Alloc_NAME
-          );
-          break;
         case '9':
           childrenToShow = nmRootSample.tempList.filter(
             parentSample => MemoryType.ALL_ANONYMOUS_EVENTS.includes(parentSample.snapshot)
           );
           break;
-        case '10':
-          childrenToShow = nmRootSample.tempList.filter(
-            parentSample => parentSample.snapshot === MemoryType.ION_Alloc_NAME
-          );
-          break;
-        case '11':
-          childrenToShow = nmRootSample.tempList.filter(
-            parentSample => parentSample.snapshot === MemoryType.ASHMEM_Alloc_NAME
-          );
-          break;
-        case '12':
-          childrenToShow = nmRootSample.tempList.filter(
-            parentSample => parentSample.snapshot === MemoryType.SO_Alloc_NAME
-          );
-          break;
-        case '13':
-          childrenToShow = nmRootSample.tempList.filter(
-            parentSample => parentSample.snapshot === MemoryType.MEMORY_M_MAP_NAME
-          );
-          break;
-        case '14':
-          childrenToShow = nmRootSample.tempList.filter(
-            parentSample => parentSample.snapshot === MemoryType.CHROMIUM_HEAP_Alloc_NAME
-          );
-          break;
-        case '15':
-          childrenToShow = nmRootSample.tempList.filter(
-            parentSample => parentSample.snapshot === MemoryType.VMA_CHROMIUM_Alloc_NAME
-          );
-          break;
         default:
-          if (nmRootSample.tempList.length > 0) {
+          if (singleTypeMap[filterSelect]) {
+            childrenToShow = nmRootSample.tempList.filter(
+              parentSample => parentSample.snapshot === singleTypeMap[filterSelect]
+            );
+          } else if (nmRootSample.tempList.length > 0) {
             childrenToShow = [nmRootSample.tempList[0]];
           }
       }

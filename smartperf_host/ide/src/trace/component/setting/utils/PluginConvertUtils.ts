@@ -325,7 +325,7 @@ export const MEMORY_TYPE_OPTIONS: TypeOption[] = [
   { value: 'RES_ARKTS_STATIC_HEAP', label: 'ARKTS_STATIC_HEAP' },
   { value: 'RES_CHROMIUM_HEAP', label: 'CHROMIUM_HEAP' },
   { value: 'RES_VMA_CHROMIUM', label: 'VMA_CHROMIUM' },
-  { value: 'RES_RN_HERMES_HEAP', label: 'RN_HERMES_HEAP' },
+  { value: 'RES_RN_HERMES_HEAP', label: 'REACT_NATIVE_HERMES_HEAP' },
   { value: 'RES_KMP_HEAP_MASK', label: 'KMP_HEAP' },
   { value: 'RES_FD_ALL', label: 'FD' },
   { value: 'RES_THREAD_ALL', label: 'THREAD' },

@@ -64,6 +64,7 @@ public:
     size_t AppendNewNativeHookData(const NativeHookRow &context);
     void AppendOtherNativeHookData(const NativeHookRow &context);
     void AppendMoreNativeHookData(const NativeHookRow &context);
+    void UpdateChromiumHeapSizes(const NativeHookRow &context);
     void UpdateCallChainId(size_t row, uint32_t callChainId);
     void UpdateEndTimeStampAndDuration(size_t row, uint64_t endTimeStamp);
     void UpdateCurrentSizeDur(size_t row, uint64_t timeStamp);

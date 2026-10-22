@@ -23,6 +23,16 @@ import { Utils } from "./Utils";
 
 const PIE_CHART_LIMIT = 20;
 
+const NATIVE_MEMORY_STATISTIC_TYPES: number[] = [
+  MemoryStatisticType.MALLOC, MemoryStatisticType.ARK_GLOBAL_HANDLE,
+  MemoryStatisticType.ARK_LOCAL_HANDLE, MemoryStatisticType.MMAP,
+  MemoryStatisticType.FILE_PAGE_MSG, MemoryStatisticType.MEMORY_USING_MSG,
+  MemoryStatisticType.ARKTS, MemoryStatisticType.JS, MemoryStatisticType.DART_HEAP,
+  MemoryStatisticType.ARKTS_STATIC_HEAP, MemoryStatisticType.CHROMIUM_HEAP,
+  MemoryStatisticType.VMA_CHROMIUM, MemoryStatisticType.REACT_NATIVE, MemoryStatisticType.KMP,
+  MemoryStatisticType.DMA, MemoryStatisticType.ASHMEM, MemoryStatisticType.SO,
+];
+
 interface TypeConfig {
   eventId: number; // 内存类型
   eventType: string; // 内存类型名称
@@ -43,7 +53,7 @@ const typeConfigs: TypeConfig[] = [
   { eventId: MemoryStatisticType.ARKTS_STATIC_HEAP, eventType: MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME, hasSubType: true },
   { eventId: MemoryStatisticType.CHROMIUM_HEAP, eventType: MemoryType.CHROMIUM_HEAP_Alloc_NAME, hasSubType: true },
   { eventId: MemoryStatisticType.VMA_CHROMIUM, eventType: MemoryType.VMA_CHROMIUM_Alloc_NAME, hasSubType: true },
-  { eventId: MemoryStatisticType.RN, eventType: MemoryType.RN_HERMES_HEAP_Alloc_NAME, hasSubType: true },
+  { eventId: MemoryStatisticType.REACT_NATIVE, eventType: MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME, hasSubType: true },
   { eventId: MemoryStatisticType.KMP, eventType: MemoryType.KMP_Alloc_NAME, hasSubType: true },
   { eventId: MemoryStatisticType.DMA, eventType: MemoryType.ION_Alloc_NAME, hasSubType: true },
   { eventId: MemoryStatisticType.ASHMEM, eventType: MemoryType.ASHMEM_Alloc_NAME, hasSubType: true },
@@ -191,7 +201,7 @@ export class MemoryAnalysisDataLogic {
             MemoryStatisticType.ARKTS_STATIC_HEAP,
             MemoryStatisticType.CHROMIUM_HEAP,
             MemoryStatisticType.VMA_CHROMIUM,
-            MemoryStatisticType.RN,
+            MemoryStatisticType.REACT_NATIVE,
             MemoryStatisticType.KMP,
             MemoryStatisticType.SO,
             MemoryStatisticType.ASHMEM,
@@ -208,7 +218,7 @@ export class MemoryAnalysisDataLogic {
             `'${MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME}'`,
             `'${MemoryType.CHROMIUM_HEAP_Alloc_NAME}'`,
             `'${MemoryType.VMA_CHROMIUM_Alloc_NAME}'`,
-            `'${MemoryType.RN_HERMES_HEAP_Alloc_NAME}'`,
+            `'${MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME}'`,
             `'${MemoryType.KMP_Alloc_NAME}'`,
             `'${MemoryType.SO_Alloc_NAME}'`,
             `'${MemoryType.ASHMEM_Alloc_NAME}'`,
@@ -227,7 +237,7 @@ export class MemoryAnalysisDataLogic {
             MemoryStatisticType.ARKTS_STATIC_HEAP,
             MemoryStatisticType.CHROMIUM_HEAP,
             MemoryStatisticType.VMA_CHROMIUM,
-            MemoryStatisticType.RN,
+            MemoryStatisticType.REACT_NATIVE,
             MemoryStatisticType.KMP
           ],
           normalTypes: [
@@ -240,7 +250,7 @@ export class MemoryAnalysisDataLogic {
             `'${MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME}'`,
             `'${MemoryType.CHROMIUM_HEAP_Alloc_NAME}'`,
             `'${MemoryType.VMA_CHROMIUM_Alloc_NAME}'`,
-            `'${MemoryType.RN_HERMES_HEAP_Alloc_NAME}'`,
+            `'${MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME}'`,
             `'${MemoryType.KMP_Alloc_NAME}'`
           ]
         },
@@ -270,9 +280,9 @@ export class MemoryAnalysisDataLogic {
           normalTypes: [`'${MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME}'`]
         },
         {
-          selectionKey: MemoryBasicType.NATIVE_MEMORY[7], // RN HEAP
-          statisticTypes: [MemoryStatisticType.RN],
-          normalTypes: [`'${MemoryType.RN_HERMES_HEAP_Alloc_NAME}'`]
+          selectionKey: MemoryBasicType.NATIVE_MEMORY[7], // React Native HEAP
+          statisticTypes: [MemoryStatisticType.REACT_NATIVE],
+          normalTypes: [`'${MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME}'`]
         },
         {
           selectionKey: MemoryBasicType.NATIVE_MEMORY[8], // KMP Heap
@@ -539,16 +549,8 @@ export class MemoryAnalysisDataLogic {
         case MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY:
           // 子类型需要特殊处理
 
-          // 有子类型的类型：ARKTS, ARKWEB, RN, KMP, ION, ASHMEM, SO, MMAP
-          if ([
-            MemoryStatisticType.MALLOC, MemoryStatisticType.ARK_GLOBAL_HANDLE,
-            MemoryStatisticType.ARK_LOCAL_HANDLE, MemoryStatisticType.MMAP,
-            MemoryStatisticType.FILE_PAGE_MSG, MemoryStatisticType.MEMORY_USING_MSG,
-            MemoryStatisticType.ARKTS, MemoryStatisticType.JS, MemoryStatisticType.DART_HEAP,
-            MemoryStatisticType.ARKTS_STATIC_HEAP, MemoryStatisticType.CHROMIUM_HEAP,
-            MemoryStatisticType.VMA_CHROMIUM, MemoryStatisticType.RN, MemoryStatisticType.KMP,
-            MemoryStatisticType.DMA, MemoryStatisticType.ASHMEM, MemoryStatisticType.SO,
-          ].includes(tyeId)) {
+          // 有子类型的类型：ARKTS, ARKWEB, REACT_NATIVE, KMP, ION, ASHMEM, SO, MMAP
+          if (NATIVE_MEMORY_STATISTIC_TYPES.includes(tyeId)) {
             condition = (applySample.subType && applySample.subType === typeName) || // 有子类型且与当前类型一致
               (!applySample.subType && applySample.typeName === typeName); // 没有子类型，但类型名称一致
           }

@@ -81,12 +81,12 @@ describe('MemoryAnalysisStruct Test - ARKTS_STATIC_HEAP', () => {
       expect(sample.isRelease).toBe(false);
     });
 
-    it('should initialize RN_HERMES_HEAP alloc event with type 13', () => {
-      const sample = new AnalysisSample(1, 1024, 1, MemoryStatisticType.RN, 1000,
+    it('should initialize REACT_NATIVE_HERMES_HEAP alloc event with type 13', () => {
+      const sample = new AnalysisSample(1, 1024, 1, MemoryStatisticType.REACT_NATIVE, 1000,
         MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY);
 
       expect(sample.type).toBe(13);
-      expect(sample.typeName).toBe(MemoryType.RN_HERMES_HEAP_Alloc_NAME);
+      expect(sample.typeName).toBe(MemoryType.REACT_NATIVE_HERMES_HEAP_Alloc_NAME);
       expect(sample.isRelease).toBe(false);
     });
 
@@ -222,7 +222,7 @@ describe('MemoryAnalysisStruct Test - ARKTS_STATIC_HEAP', () => {
         MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY);
       const dartHeap = new AnalysisSample(2, 1024, 1, MemoryStatisticType.DART_HEAP, 1000,
         MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY);
-      const rnHeap = new AnalysisSample(3, 1024, 1, MemoryStatisticType.RN, 1000,
+      const reactNativeHeap = new AnalysisSample(3, 1024, 1, MemoryStatisticType.REACT_NATIVE, 1000,
         MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY);
       const arktsHeap = new AnalysisSample(4, 1024, 1, MemoryStatisticType.ARKTS, 1000,
         MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY);
@@ -231,13 +231,13 @@ describe('MemoryAnalysisStruct Test - ARKTS_STATIC_HEAP', () => {
 
       expect(arktsStaticHeap.type).toBe(21);
       expect(dartHeap.type).toBe(20);
-      expect(rnHeap.type).toBe(13);
+      expect(reactNativeHeap.type).toBe(13);
       expect(arktsHeap.type).toBe(10);
       expect(jsHeap.type).toBe(11);
 
       expect(arktsStaticHeap.type).not.toBe(dartHeap.type);
-      expect(arktsStaticHeap.type).not.toBe(rnHeap.type);
-      expect(dartHeap.type).not.toBe(rnHeap.type);
+      expect(arktsStaticHeap.type).not.toBe(reactNativeHeap.type);
+      expect(dartHeap.type).not.toBe(reactNativeHeap.type);
     });
 
     it('should have same type for alloc and free of ARKTS_STATIC_HEAP', () => {
@@ -267,7 +267,7 @@ describe('MemoryAnalysisStruct Test - ARKTS_STATIC_HEAP', () => {
       const samples = [
         new AnalysisSample(1, 1024, 10, MemoryStatisticType.DART_HEAP, 1000, MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY),
         new AnalysisSample(2, 2048, 20, MemoryStatisticType.ARKTS_STATIC_HEAP, 2000, MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY),
-        new AnalysisSample(3, 512, 5, MemoryStatisticType.RN, 3000, MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY),
+        new AnalysisSample(3, 512, 5, MemoryStatisticType.REACT_NATIVE, 3000, MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY),
         new AnalysisSample(4, 1024, 10, MemoryStatisticType.ARKTS, 4000, MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY),
         new AnalysisSample(5, 512, 5, MemoryStatisticType.JS, 5000, MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY),
       ];
