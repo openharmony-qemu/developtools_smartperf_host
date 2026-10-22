@@ -36,7 +36,9 @@ function downloadSdkSync() {
 
 function extractTool() {
   const tmpDir = path.join(SIGNING_DIR, '.tmp');
-  if (!fs.existsSync(tmpDir)) { fs.mkdirSync(tmpDir, { recursive: true }); }
+  if (!fs.existsSync(tmpDir)) {
+    fs.mkdirSync(tmpDir, { recursive: true });
+  }
   try {
     execSync(`tar -xzf "${SDK_CACHE}" -C "${tmpDir}" "${TAR_INNER_PATH}"`, { stdio: 'pipe' });
     const zipPath = path.join(tmpDir, TAR_INNER_PATH);
