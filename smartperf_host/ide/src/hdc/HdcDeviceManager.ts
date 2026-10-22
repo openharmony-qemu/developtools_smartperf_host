@@ -90,7 +90,7 @@ export class HdcDeviceManager {
   public static findDevice(): Promise<USBDevice> {
     if (!HdcDeviceManager.isWebUsbSupported()) {
       // @ts-ignore
-      return HdcDeviceManager.cmdListDevices().then((devices): any => {
+      return HdcDeviceManager.cmdListDevices().then((devices): USBDevice => {
         if (devices.length === 0) {
           throw new Error('No hdc device found (hdc list targets is empty)');
         }
@@ -108,9 +108,7 @@ export class HdcDeviceManager {
    */
   public static async connect(serialNumber: string): Promise<boolean> {
     if (!HdcDeviceManager.isWebUsbSupported()) {
-      HdcDeviceManager.cmdSerialNumber = serialNumber;
-      // @ts-ignore
-      this.currentHdcClient = { usbDevice: { serialNumber: serialNumber } } as HdcClient;
+      this.switchToCmdMode(serialNumber);
       return true;
     }
     if (this.currentHdcClient && serialNumber !== this.currentHdcClient.usbDevice.serialNumber) {
@@ -152,17 +150,18 @@ export class HdcDeviceManager {
         }
       }
       log('WebUSB connect failed, falling back to hdc cmd mode');
-      HdcDeviceManager.cmdSerialNumber = serialNumber;
-      // @ts-ignore
-      this.currentHdcClient = { usbDevice: { serialNumber: serialNumber } } as HdcClient;
+      this.switchToCmdMode(serialNumber);
       return true;
     } catch (e) {
       log('WebUSB connect error, falling back to hdc cmd mode: ' + e);
-      HdcDeviceManager.cmdSerialNumber = serialNumber;
-      // @ts-ignore
-      this.currentHdcClient = { usbDevice: { serialNumber: serialNumber } } as HdcClient;
+      this.switchToCmdMode(serialNumber);
       return true;
     }
+  }
+
+  private static switchToCmdMode(serialNumber: string): void {
+    HdcDeviceManager.cmdSerialNumber = serialNumber;
+    this.currentHdcClient = { usbDevice: { serialNumber } } as unknown as HdcClient;
   }
 
   // @ts-ignore
@@ -181,7 +180,7 @@ export class HdcDeviceManager {
   public static async disConnect(serialNumber: string): Promise<boolean> {
     if (HdcDeviceManager.cmdSerialNumber && HdcDeviceManager.cmdSerialNumber === serialNumber) {
       HdcDeviceManager.cmdSerialNumber = '';
-      this.currentHdcClient = undefined as any;
+      this.currentHdcClient = undefined as unknown as HdcClient;
       return true;
     }
     const hdcClient = this.clientList.get(serialNumber);
@@ -480,7 +479,7 @@ export class HdcDeviceManager {
         // @ts-ignore
         return lines
           .filter((s: string) => s.trim() && s.indexOf('Empty') === -1)
-          .map((sn: string): any => ({ serialNumber: sn.trim() } as any));
+          .map((sn: string) => ({ serialNumber: sn.trim() }));
       }
     } catch (e) {
       log('cmdListDevices failed: ' + e);
@@ -529,8 +528,8 @@ export class HdcDeviceManager {
     }
   }
 
-  private static async cmdFetch(url: string, body: any, timeoutMs: number): Promise<Response> {
-    const fetchOptions: any = {
+  private static async cmdFetch(url: string, body: Record<string, unknown>, timeoutMs: number): Promise<Response> {
+    const fetchOptions: RequestInit = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),

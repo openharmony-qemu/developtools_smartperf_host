@@ -17,6 +17,7 @@ import { warn } from '../../log/Log';
 import { BurialPointRequestBody, GeneralRecordRequest, pluginUsage } from './SpStatisticsHttpBean';
 import {InterfaceConfigManager} from '../../utils/interfaceConfiguration';
 import { HdcDeviceManager } from '../../hdc/HdcDeviceManager';
+import { ServerConfig } from '../../utils/interfaceConfigurationBean';
 
 export class SpStatisticsHttpUtil {
   static requestServerInfo: string = '';
@@ -34,14 +35,19 @@ export class SpStatisticsHttpUtil {
       const resp = await fetch(`https://${window.location.host}${window.location.pathname}serverconfig`);
       if (!resp.ok) throw new Error(`Error fetching server config ${resp}`);
       const res = await resp.json();
-      if (res) {
-        InterfaceConfigManager.setConfig(res);
-        if (res.hdcCmdMode === false) {
-          HdcDeviceManager.hdcCmdMode = false;
-        }
-      }
+      SpStatisticsHttpUtil.applyServerConfig(res);
     } catch (e) {
       warn('getServerInfo failed: ' + e);
+    }
+  }
+
+  private static applyServerConfig(res: ServerConfig): void {
+    if (!res) {
+      return;
+    }
+    InterfaceConfigManager.setConfig(res);
+    if (res.hdcCmdMode === false) {
+      HdcDeviceManager.hdcCmdMode = false;
     }
   }
 

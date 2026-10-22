@@ -25,7 +25,7 @@ export class Cmd {
     if (window.useWb) {
       return;
     }
-    const fetchOptions: any = {
+    const fetchOptions: RequestInit = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -98,7 +98,7 @@ export class Cmd {
       fileName: fileName,
     };
     let uri = `http://${window.location.host.split(':')[0]}:${window.location.port}/hdcCmd`;
-    const fetchOptions: any = {
+    const fetchOptions: RequestInit = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

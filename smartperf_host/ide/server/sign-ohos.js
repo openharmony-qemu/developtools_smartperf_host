@@ -3,6 +3,7 @@ const { execSync, spawnSync } = childProcess;
 const fs = require('fs');
 const path = require('path');
 
+// SDK_URL is the official download path, 'harmonyos' is part of the actual URL path
 const SDK_URL = 'https://repo.huaweicloud.com/harmonyos/os/7.0-Release/ohos-sdk-windows_linux-public.tar.gz';
 const TAR_INNER_PATH = 'ohos-sdk/ohos/toolchains-ohos-x64-26.0.0.38-Beta.zip';
 const ZIP_INNER_PATH = 'toolchains/lib/binary-sign-tool';
@@ -19,7 +20,7 @@ function downloadSdkSync() {
     return true;
   }
   if (!fs.existsSync(SIGNING_DIR)) { fs.mkdirSync(SIGNING_DIR, { recursive: true }); }
-  console.log('[sign-ohos] downloading SDK (3.2GB) from Huawei mirror, please wait...');
+  console.log('[sign-ohos] downloading SDK (3.2GB) from mirror, please wait...');
   try {
     const psCmd = `$ProgressPreference='SilentlyContinue'; Invoke-WebRequest -Uri '${SDK_URL}' -OutFile '${SDK_CACHE}' -UseBasicParsing`;
     execSync(`powershell -NoProfile -Command "${psCmd}"`, { stdio: 'inherit', timeout: 600000 });
