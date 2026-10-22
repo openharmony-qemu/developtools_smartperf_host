@@ -15,7 +15,7 @@
 import { HeapDataInterface, ParseListener } from './HeapDataInterface';
 import { AllocationFunction, FileType } from './model/UiStruct';
 import { getTimeForLog } from './utils/Utils';
-import { HeapNode, FileStruct } from './model/DatabaseStruct';
+import { HeapNode, HeapEdge, FileStruct } from './model/DatabaseStruct';
 import { info } from '../log/Log';
 import {
   queryHeapEdge,
@@ -97,7 +97,6 @@ export class LoadDatabase {
 
   private async loadNode(file: FileStruct): Promise<void> {
     let result = await queryHeapNode(file.id);
-    let heapNodes = file.snapshotStruct.nodeMap;
     let firstEdgeIndex = 0;
     for (let row of result) {
       let node = new HeapNode(
@@ -115,13 +114,52 @@ export class LoadDatabase {
       if (file.snapshotStruct.rootNodeId === -1) {
         file.snapshotStruct.rootNodeId = row.id;
       }
-      heapNodes.set(node.id, node);
+      file.snapshotStruct.addNode(node);
       firstEdgeIndex += row.edgeCount;
     }
   }
 
   private async loadEdge(file: FileStruct): Promise<void> {
-    file.snapshotStruct.edges = await queryHeapEdge(file.id);
+    const edgeResult = await queryHeapEdge(file.id);
+    const nodeCount = file.snapshotStruct.nodeCount;
+
+    // 从 to_node 值推断 nodeFieldCount（GCD 方案，无需 C++ 侧改动）
+    const rawValues = edgeResult
+      .map((r: HeapEdge) => r.toNodeRaw as number)
+      .filter((v: number) => v !== undefined && v > 0);
+    const gcd = (a: number, b: number): number => {
+      while (b) {
+        [a, b] = [b, a % b];
+      }
+      return a;
+    };
+    let nodeFieldCount: number;
+    if (rawValues.length > 1) {
+      nodeFieldCount = rawValues.reduce((g: number, v: number) => gcd(g, v), rawValues[0]);
+    } else if (rawValues.length === 1) {
+      // 单值无法用 GCD 推断，尝试常见 field count
+      nodeFieldCount = rawValues[0] % 7 === 0 ? 7 : rawValues[0] % 6 === 0 ? 6 : 7;
+    } else {
+      nodeFieldCount = 7;
+    }
+
+    file.snapshotStruct.edges = edgeResult.map((row: HeapEdge) => {
+      const edge = row as HeapEdge;
+      const toNodeRaw = row.toNodeRaw as number;
+      if (toNodeRaw !== undefined && toNodeRaw >= 0) {
+        const ordinal = toNodeRaw / nodeFieldCount;
+        if (ordinal >= 0 && ordinal < nodeCount) {
+          edge.toNodeOrdinal = ordinal;
+        } else {
+          const ordinals = file.snapshotStruct.getNodeOrdinalsById(edge.toNodeId);
+          edge.toNodeOrdinal = ordinals.length > 0 ? ordinals[0] : 0;
+        }
+      } else {
+        const ordinals = file.snapshotStruct.getNodeOrdinalsById(edge.toNodeId);
+        edge.toNodeOrdinal = ordinals.length > 0 ? ordinals[0] : 0;
+      }
+      return edge;
+    });
   }
 
   private async loadTraceFunctionInfos(file: FileStruct): Promise<void> {

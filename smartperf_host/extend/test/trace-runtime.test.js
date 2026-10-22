@@ -19,6 +19,7 @@ const WebSocket = require('ws');
 const {
   LONG_TRACE_CHANNEL_DOWNLOAD,
   LONG_TRACE_CHANNEL_UPLOAD,
+  LONG_TRACE_MESSAGE_TYPE_DISK_REQUEST,
   LONG_TRACE_MESSAGE_TYPE_HELLO,
   LONG_TRACE_MESSAGE_TYPE_RESULT,
   LONG_TRACE_MESSAGE_TYPE_TRACE_END,
@@ -111,9 +112,9 @@ function findResult(downloadWs, reason) {
 // 构造最小可运行 runtime，默认使用空业务回调，只关注状态机行为。
 function createRuntime(overrides = {}) {
   return createLongTraceRuntime({
-    logger: { error: () => {} },
-    onProcessFile: async () => {},
-    onUploadComplete: () => {},
+    logger: { error: () => { } },
+    onProcessFile: async () => { },
+    onUploadComplete: () => { },
     prefetchLimit: TEST_RUNTIME_PREFETCH_LIMIT,
     sessionBindTimeoutMs: TEST_RUNTIME_TIMEOUT_MS,
     sessionIdleTimeoutMs: TEST_RUNTIME_TIMEOUT_MS,
@@ -325,4 +326,40 @@ test('traceRuntime 在 TRACE_END 时向业务层传递完整二进制内容', ()
   assert.equal(uploadCompleteCalls.length, 1);
   assert.deepEqual(uploadCompleteCalls[0].bytes, TEST_FOUR_BYTE_BUFFER);
   assert.equal(uploadCompleteCalls[0].uploadedFile.n, 4);
+});
+
+/*
+ * 测试条件：双通道绑定后，上传通道发送 DISK_REQUEST 携带不存在的文件名。
+ * 测试目的：验证 runtime 能正确路由 DISK_REQUEST 消息，对不存在文件回发 ERROR。
+ */
+test('traceRuntime 在 DISK_REQUEST 中对不存在的文件回发 ERROR', async () => {
+  const uploadCompleteCalls = [];
+  const runtime = createRuntime({
+    onUploadComplete: (payload) => {
+      uploadCompleteCalls.push(payload);
+    },
+  });
+  const { downloadWs, sessionId, uploadWs } = bindRuntime(runtime);
+
+  // 发送 DISK_REQUEST 携带不存在的文件名，应回发 ERROR 结果。
+  uploadWs.emit(
+    'message',
+    JSON.stringify({
+      type: LONG_TRACE_MESSAGE_TYPE_DISK_REQUEST,
+      sessionId,
+      fileNames: ['hiprofiler_long_20260101_000001_1.htrace'],
+    }),
+    false
+  );
+  // 等待 async handleDiskRequest 完成
+  await new Promise((resolve) => setImmediate(resolve));
+
+  const errorResult = downloadWs.sent
+    .filter((item) => typeof item === 'string')
+    .map((item) => JSON.parse(item))
+    .find((item) => item.type === LONG_TRACE_MESSAGE_TYPE_RESULT && item.status === LONG_TRACE_RESULT_STATUS_ERROR);
+
+  assert.ok(errorResult);
+  assert.equal(errorResult.n, 1);
+  assert.equal(uploadCompleteCalls.length, 0);
 });

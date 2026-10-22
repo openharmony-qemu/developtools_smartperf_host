@@ -89,7 +89,7 @@ import './component/SpAiAnalysisPage';
 import './component/SpSnapShotView';
 import { WebSocketManager } from '../webSocket/WebSocketManager';
 import { SpAgentListener } from '../webSocket/SpAgentListener';
-import { LongTraceFilter } from './longtrace/LongTraceFilter';
+import { LongTraceFilter, parseSequenceNumber } from './longtrace/LongTraceFilter';
 import {
   buildLongTracePageNotReadyMessage,
   LONG_TRACE_FIRST_PAGE_NUMBER,
@@ -501,8 +501,40 @@ export class SpApplication extends BaseElement {
       });
       return;
     }
-    // 录制模式：跳过预处理，直接读取
+    // 录制模式：启用后台预处理（上传文件生成补丁），使后续页也能获得符号化上下文
+    const recordingFiles = (detail.files as File[] | undefined) ?? [];
+    if (recordingFiles.length > 1) {
+      this.initRecordingPatchState(recordingFiles);
+      this.startLongTraceBackgroundPreprocess(recordingFiles);
+    }
+    // 录制模式：文件已存入 IndexedDB，直接切割显示
     this.openLongTraceFromDetail(detail, isRecordTrace);
+  }
+
+  /**
+   * 初始化录制路径的补丁状态：从文件名解析序号，建立序号→页码映射，
+   * 开启预处理模式并仅标记第一页为就绪。
+   * @param files - 录制产生的 trace 文件列表
+   */
+  private initRecordingPatchState(files: File[]): void {
+    const seqNums = files
+      .map((file) => parseSequenceNumber(file.name))
+      .filter((n): n is number => typeof n === 'number')
+      .sort((a, b) => a - b);
+    if (seqNums.length <= 1) {
+      return;
+    }
+    this.longTracePreprocessEnabled = true;
+    this.longTracePreprocessTotalFiles = seqNums.length;
+    this.longTracePreprocessDoneFiles = 0;
+    this.longTracePatchPayloadByPageNum = new Map<number, Uint8Array>();
+    this.longTraceReadyPageNums = new Set<number>();
+    this.longTraceReadyPageNums.add(LONG_TRACE_FIRST_PAGE_NUMBER);
+    this.longTraceSequenceNumbers = [...seqNums];
+    this.longTraceSequenceToPageNum = new Map<number, number>();
+    for (let i = 0; i < seqNums.length; i += 1) {
+      this.longTraceSequenceToPageNum.set(seqNums[i], i + 1);
+    }
   }
 
   private openLongTraceFromDetail(detail: unknown, isRecordTrace: boolean): void {
@@ -1598,14 +1630,14 @@ export class SpApplication extends BaseElement {
       SpApplication.isTraceLoaded = true;
       if (!isDistributed) {
         this.importConfigDiv!.style.display = Utils.getInstance().getSchedSliceMap().size > 0 ? 'block' : 'none';
-      } 
+      }
       this.showContent(this.spSystemTrace!);
       this.litSearch!.setPercent('', 101);
       this.chartFilter!.setAttribute('mode', '');
       this.freshMenuDisable(false);
       Utils.currentTraceName = fileName;
     } else {
-      
+
       info('loadDatabaseArrayBuffer failed');
       //@ts-ignore
       this.litSearch!.setPercent(res.msg || 'This File is not supported!', -1);

@@ -22,6 +22,7 @@ const {
 const {
   LONG_TRACE_CHANNEL_DOWNLOAD,
   LONG_TRACE_CHANNEL_UPLOAD,
+  LONG_TRACE_MESSAGE_TYPE_DISK_REQUEST,
   LONG_TRACE_MESSAGE_TYPE_HELLO,
   LONG_TRACE_MESSAGE_TYPE_RESULT,
   LONG_TRACE_MESSAGE_TYPE_TRACE_END,
@@ -35,6 +36,8 @@ const {
   LONG_TRACE_RESULT_STATUS_ERROR,
   LONG_TRACE_RESULT_STATUS_NO_PATCH,
 } = require('./traceConstants.js');
+const fs = require('fs');
+const path = require('path');
 /*
  * 创建 longtrace 运行时单例。
  * 运行时中维护所有会话的状态机、待处理队列和连接处理逻辑。
@@ -64,7 +67,7 @@ function createLongTraceRuntime(options) {
       if (session.idleTimer) {
         clearTimeout(session.idleTimer);
       }
-    } catch (e) {}
+    } catch (e) { }
     session.idleTimer = setTimeout(
       () => cleanupLongTraceSession(sessionStore, sessionId),
       options.sessionIdleTimeoutMs
@@ -111,7 +114,7 @@ function createLongTraceRuntime(options) {
       if (session.bindTimer) {
         clearTimeout(session.bindTimer);
       }
-    } catch (e) {}
+    } catch (e) { }
     // 发送会话绑定结果帧。
     sendResult(session, sessionId, 0, '', LONG_TRACE_RESULT_STATUS_NO_PATCH, false, LONG_TRACE_RESULT_REASON_SESSION_BOUND);
     // 刷新空闲超时，避免会话长期占用内存与连接资源。
@@ -305,6 +308,52 @@ function createLongTraceRuntime(options) {
   };
 
   /**
+   * 从磁盘读取录制产生的 trace 文件，喂入现有的补丁生成流水线。
+   * 录制完成后文件已保存在 record/output 目录，前端发送 DISK_REQUEST 携带文件名列表，
+   * 服务端按序号排序后依次读取并交给 onUploadComplete，后续流程与上传模式完全一致。
+   * @param {object} session - 会话上下文。
+   * @param {string} sessionId - 会话 ID。
+   * @param {object} msg - DISK_REQUEST 消息，包含 fileNames 数组。
+   */
+  const handleDiskRequest = (session, sessionId, msg) => {
+    const recordingOutputPath = path.join(__dirname, '..', 'record', 'output');
+    const fileNames = Array.isArray(msg.fileNames) ? msg.fileNames : [];
+    const parseSeq = (fileName) => {
+      const lastUnderline = fileName.lastIndexOf('_');
+      const suffixIndex = fileName.lastIndexOf('.htrace');
+      if (lastUnderline < 0 || suffixIndex < 0 || lastUnderline >= suffixIndex) {
+        return null;
+      }
+      const n = Number(fileName.slice(lastUnderline + 1, suffixIndex));
+      return Number.isFinite(n) ? n : null;
+    };
+    fileNames
+      .map((name) => ({ name, n: parseSeq(name) }))
+      .filter((item) => item.n !== null)
+      .sort((a, b) => a.n - b.n)
+      .forEach(({ name, n }) => {
+        const filePath = path.join(recordingOutputPath, name);
+        try {
+          if (!fs.existsSync(filePath)) {
+            sendResult(session, sessionId, n, name, LONG_TRACE_RESULT_STATUS_ERROR, false, 'FILE_NOT_FOUND');
+            return;
+          }
+          const bytes = fs.readFileSync(filePath);
+          options.onUploadComplete({
+            bytes,
+            enqueuePendingFile,
+            sendResult,
+            session,
+            sessionId,
+            uploadedFile: { fileName: name, n },
+          });
+        } catch (e) {
+          sendResult(session, sessionId, n, name, LONG_TRACE_RESULT_STATUS_ERROR, false, 'FILE_READ_ERROR');
+        }
+      });
+  };
+
+  /**
    * 为单个 WebSocket 连接注册消息、关闭与错误处理逻辑。
    * @param {WebSocket} ws - 目标 WebSocket 连接。
    */
@@ -366,6 +415,11 @@ function createLongTraceRuntime(options) {
       // 处理 TRACE_END 消息，拼接已缓存分片，并把完整文件交给业务层继续判断。
       if (msg.type === LONG_TRACE_MESSAGE_TYPE_TRACE_END) {
         handleTraceEnd(session, sessionId, msg);
+        return;
+      }
+      // 处理 DISK_REQUEST 消息：从磁盘读取录制产生的 trace 文件，喂入补丁生成流水线。
+      if (msg.type === LONG_TRACE_MESSAGE_TYPE_DISK_REQUEST) {
+        handleDiskRequest(session, sessionId, msg);
       }
     });
 
