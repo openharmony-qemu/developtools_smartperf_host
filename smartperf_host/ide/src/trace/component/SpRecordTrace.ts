@@ -838,7 +838,6 @@ export class SpRecordTrace extends BaseElement {
   private requestDeviceVersion(dev: string): void {
     SpRecordTrace.usbGetVersion = '';
     const encoder = new TextEncoder();
-    // @ts-ignore
     WebSocketManager.getInstance()!.sendMessage(
       TypeConstants.USB_TYPE, TypeConstants.USB_GET_VERSION, encoder.encode(dev)
     );
@@ -878,7 +877,7 @@ export class SpRecordTrace extends BaseElement {
     }
   };
 
-  private handleUsbSnCmd(jsonRes: any): void {
+  private handleUsbSnCmd(jsonRes: { resultCode: number; resultMessage: string[] }): void {
     this.hdcList = jsonRes.resultMessage;
     HdcDeviceManager.findDevice().then((): void => {
       this.usbSerialNum = jsonRes.resultMessage;
@@ -900,6 +899,8 @@ export class SpRecordTrace extends BaseElement {
         this.cancelButton!.hidden = true;
         this.devicePrompt!.innerText = 'Device not connected';
       }
+    }).catch((): void => {
+      this.showDeviceError();
     });
   }
 
@@ -917,7 +918,6 @@ export class SpRecordTrace extends BaseElement {
   }
 
   private renderDeviceList(): void {
-    // @ts-ignore
     while (this.deviceSelect!.firstChild) {
       this.deviceSelect!.removeChild(this.deviceSelect!.firstChild);
     }

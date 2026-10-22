@@ -69,7 +69,7 @@ function convertDecImmToHex(instruction) {
         const unsigned = num & 0xFFFFFFFFFFFFFFFFn;
         return '#0x' + unsigned.toString(16);
     });
-    processed = processed.replace(/\x00B(\d+)\x00/g, (match, idx) => placeholders[parseInt(idx)]);
+    processed = processed.replace(/\x00B(\d+)\x00/g, (_match, idx) => placeholders[parseInt(idx)]);
     return processed;
 }
 
@@ -352,7 +352,7 @@ function processSoDisassembly(sessionId, fileName, sessionTempDir, tempFilePath)
         });
     } else {
         exec(`${objdumpPath} -d --section=.text -l --demangle ${tempFilePath} >${soInfoTxt}`,
-            (iError, iStdOut, iStdErr) => {
+            (iError, _iStdOut, iStdErr) => {
                 if (iError || iStdErr) {
                     const msg = `SoTxtBuildError(Build Disassembly txt for file:"${fileName}" Error!): ` +
                         `[${iError ? iError.message : iStdErr.toString()}]`;
@@ -575,7 +575,7 @@ function extractCompileInfoFromSoTxt(func, elfName, vaddr, sessionId, soInfoTxt)
         try {
             processSoLine(line, state, prefix, target, rl, addrArray, sourceLines);
         } catch (error) {
-            const errMsg = `Reading failed.Error):[${error.message}]`;
+            logger.error(`Reading failed.Error):[${error.message}]`);
         }
     });
     processCloseData(rl, fsRS, func, elfName, vaddr, sessionId, addrArray, sourceLines);
