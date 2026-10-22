@@ -571,7 +571,7 @@ bool PerfDataParser::LoadPerfData()
 {
     // try load the perf data
     int32_t fd(base::OpenFile(tmpPerfData_, O_CREAT | O_RDWR, TS_PERMISSION_RW));
-    if (!fd) {
+    if (fd < 0) {
         TS_LOGE("Failed to create file: %s", tmpPerfData_.c_str());
         return false;
     }

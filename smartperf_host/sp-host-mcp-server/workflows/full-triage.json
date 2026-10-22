@@ -1,0 +1,46 @@
+{
+  "name": "full-triage",
+  "description": "Full system triage: jank + memory + CPU + GPU + IO + network + power + hang. Run all Phase 1 triage tools in parallel.",
+  "steps": [
+    {
+      "id": "jank",
+      "tool": "triage_jank",
+      "parallel": true
+    },
+    {
+      "id": "memory",
+      "tool": "triage_memory",
+      "parallel": true
+    },
+    {
+      "id": "cpu",
+      "tool": "triage_cpu",
+      "parallel": true
+    },
+    {
+      "id": "gpu",
+      "tool": "triage_gpu",
+      "parallel": true
+    },
+    {
+      "id": "io",
+      "tool": "triage_io",
+      "parallel": true
+    },
+    {
+      "id": "network",
+      "tool": "triage_network",
+      "parallel": true
+    },
+    {
+      "id": "power",
+      "tool": "triage_power",
+      "parallel": true
+    },
+    {
+      "id": "hang",
+      "tool": "triage_hang",
+      "parallel": true
+    }
+  ]
+}

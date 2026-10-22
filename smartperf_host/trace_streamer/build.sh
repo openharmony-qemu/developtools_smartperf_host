@@ -61,8 +61,8 @@ if [ "$#" -ne "0" ];then
         fi
         target="$1"
     fi
-    if [ "$1" == "ohos" ];then
-        prepare_ohos
+    if [ "$1" == "ohos" ] || [ "$1" == "ohospc" ];then
+        prepare_ohos "$1"
         target_os="$1"
     fi
     if [ "$1" == "test" ];then

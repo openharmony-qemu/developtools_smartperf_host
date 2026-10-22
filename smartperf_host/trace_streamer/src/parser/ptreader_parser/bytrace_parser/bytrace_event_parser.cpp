@@ -1319,6 +1319,9 @@ void BytraceEventParser::FilterAllEvents()
 
 void BytraceEventParser::BeginFilterEvents(EventInfo *event)
 {
+    if (streamFilters_->exportConfig_ && !streamFilters_->exportConfig_->IsEventNeeded(event->line.eventName)) {
+        return;
+    }
     auto it = eventToFunctionMap_.find(event->line.eventName);
     if (it != eventToFunctionMap_.end()) {
         uint32_t tgid = event->line.tgid;
@@ -1327,7 +1330,6 @@ void BytraceEventParser::BeginFilterEvents(EventInfo *event)
         if (tgid) {
             streamFilters_->processFilter_->UpdateOrCreateThreadWithPidAndName(event->line.pid, tgid, event->line.task);
         } else {
-            // When tgid is zero, only use tid create thread
             streamFilters_->processFilter_->GetOrCreateThreadWithPid(event->line.pid, tgid);
         }
         if (it->second(args, event->line)) {
