@@ -224,7 +224,7 @@ export class SpRecordTrace extends BaseElement {
             option.value = dev.serialNumber;
             option.textContent = dev!.serialNumber ? dev!.serialNumber!.toString() : 'hdc Device';
             this.deviceSelect!.appendChild(option);
-            if (dev.serialNumber === sn) {
+            if (dev.serialNumber === sn || (!sn && optionNum === 1)) {
               option.selected = true;
               this.recordButton!.hidden = false;
               this.disconnectButton!.hidden = false;
@@ -753,6 +753,15 @@ export class SpRecordTrace extends BaseElement {
       WebSocketManager.getInstance()!.sendMessage(TypeConstants.USB_TYPE, TypeConstants.USB_SN_CMD);
     } else if (this.vs) {
       this.refreshDeviceList();
+    } else if (!HdcDeviceManager.isWebUsbSupported()) {
+      // @ts-ignore
+      HdcDeviceManager.getDevices().then((devs: USBDevice[]) => {
+        if (devs.length > 0) {
+          this.refreshDeviceList(devs[0].serialNumber);
+        } else {
+          this.refreshDeviceList();
+        }
+      });
     } else {
       // @ts-ignore
       HdcDeviceManager.findDevice().then((usbDevices): void => {
@@ -761,16 +770,11 @@ export class SpRecordTrace extends BaseElement {
           if (res) {
             this.refreshDeviceList(usbDevices.serialNumber);
           } else {
-            this.recordButton!.hidden = true;
-            this.disconnectButton!.hidden = true;
-            this.cancelButton!.hidden = true;
-            this.devicePrompt!.innerText = 'Device not connected';
-            this.hintEl!.innerHTML = DEVICE_NOT_CONNECT;
-            if (!this.showHint) {
-              this.showHint = true;
-            }
+            this.refreshDeviceList();
           }
         });
+      }).catch((): void => {
+        this.refreshDeviceList();
       });
     }
   };
@@ -1422,7 +1426,7 @@ export class SpRecordTrace extends BaseElement {
               } else {
                 SpRecordTrace.cancelRecord = false;
               }
-            });
+            }, (this.recordSetting!.maxDur + 120) * 1000);
           } else {
             this.litSearch!.setPercent('tracing htrace failed, please check your config ', -2);
             this.recordButtonText!.textContent = this.record;
@@ -1827,6 +1831,9 @@ export class SpRecordTrace extends BaseElement {
   }
 
   private isSuccess(traceResult: string): number {
+    if (!traceResult || traceResult.trim() === '') {
+      return 1;
+    }
     if (traceResult.indexOf('CreateSession FAIL') !== -1 || traceResult.indexOf('failed') !== -1) {
       return 1;
     } else if (traceResult.indexOf('Signal') !== -1) {
