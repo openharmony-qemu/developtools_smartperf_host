@@ -122,13 +122,12 @@ export class HdcDeviceManager {
       if (client.usbDevice!.opened) {
         log('device Usb is Open');
         return true;
-      } else {
-        if (SpRecordTrace.serialNumber === serialNumber) {
-          SpRecordTrace.serialNumber = '';
-        }
-        log('device Usb not Open');
-        return false;
       }
+      if (SpRecordTrace.serialNumber === serialNumber) {
+        SpRecordTrace.serialNumber = '';
+      }
+      log('device Usb not Open');
+      return false;
     }
     try {
       const connectDevice = await this.getDeviceBySerialNumber(serialNumber);

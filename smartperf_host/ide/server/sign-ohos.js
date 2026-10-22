@@ -3,7 +3,7 @@ const { execSync, spawnSync } = childProcess;
 const fs = require('fs');
 const path = require('path');
 
-// SDK_URL is the official download path, 'harmonyos' is part of the actual URL path
+// SDK_URL is the official download path
 const SDK_URL = 'https://repo.huaweicloud.com/harmonyos/os/7.0-Release/ohos-sdk-windows_linux-public.tar.gz';
 const TAR_INNER_PATH = 'ohos-sdk/ohos/toolchains-ohos-x64-26.0.0.38-Beta.zip';
 const ZIP_INNER_PATH = 'toolchains/lib/binary-sign-tool';
@@ -19,7 +19,9 @@ function downloadSdkSync() {
   if (fs.existsSync(SDK_CACHE)) {
     return true;
   }
-  if (!fs.existsSync(SIGNING_DIR)) { fs.mkdirSync(SIGNING_DIR, { recursive: true }); }
+  if (!fs.existsSync(SIGNING_DIR)) {
+    fs.mkdirSync(SIGNING_DIR, { recursive: true });
+  }
   console.log('[sign-ohos] downloading SDK (3.2GB) from mirror, please wait...');
   try {
     const psCmd = `$ProgressPreference='SilentlyContinue'; Invoke-WebRequest -Uri '${SDK_URL}' -OutFile '${SDK_CACHE}' -UseBasicParsing`;
@@ -53,7 +55,9 @@ function extractTool() {
     }
     fs.copyFileSync(toolSrc, TOOL_PATH);
     console.log('[sign-ohos] binary-sign-tool extracted');
-    try { fs.rmSync(tmpDir, { recursive: true }); } catch {}
+    try {
+      fs.rmSync(tmpDir, { recursive: true });
+    } catch {}
     return true;
   } catch (e) {
     console.warn('[sign-ohos] extraction failed:', e.message);
@@ -95,7 +99,9 @@ function preSignTool(toolPath) {
       return true;
     }
     console.warn('[sign-ohos] pre-sign failed, exit code:', r.status);
-    if (r.stderr) { console.warn(r.stderr.toString()); }
+    if (r.stderr) {
+      console.warn(r.stderr.toString());
+    }
     return false;
   } catch (e) {
     console.warn('[sign-ohos] pre-sign failed:', e.message);

@@ -51,7 +51,9 @@ export class Cmd {
     }).catch((e): void => {
       callback(JSON.stringify({ success: false, code: -1, msg: String(e), data: null }));
     }).finally((): void => {
-      if (timer) { clearTimeout(timer); }
+      if (timer) {
+        clearTimeout(timer);
+      }
     });
   }
 
@@ -116,7 +118,9 @@ export class Cmd {
       let buf = await fetch(uri, fetchOptions).then((res) => res.arrayBuffer());
       callback(buf);
     } finally {
-      if (timer) { clearTimeout(timer); }
+      if (timer) {
+        clearTimeout(timer);
+      }
     }
   }
 
