@@ -124,7 +124,9 @@ export class HeapLoader {
 
   private buildNodeEdge(): void {
     for (let node of this.nodes) {
-      if (!node) { continue; }
+      if (!node) {
+        continue;
+      }
       for (let i = 0; i < node.edgeCount; i++) {
         let edgeIndex = node.firstEdgeIndex + i;
         if (this.edges.length > edgeIndex) {
@@ -145,7 +147,9 @@ export class HeapLoader {
     // Assign the first retainer slot index for each node
     let firstUnusedRetainerSlot = 0;
     for (let node of this.nodes) {
-      if (!node) { continue; }
+      if (!node) {
+        continue;
+      }
       let retainCount = this.firstRetainerIndex[node.nodeIndex];
       this.firstRetainerIndex[node.nodeIndex] = firstUnusedRetainerSlot;
       this.retainingNodes[firstUnusedRetainerSlot] = retainCount;
@@ -155,7 +159,9 @@ export class HeapLoader {
 
     // Fill the retainer slots with the retaining nodes and edges
     for (let node of this.nodes) {
-      if (!node) { continue; }
+      if (!node) {
+        continue;
+      }
       for (let edge of node.edges) {
         let childNode = this.nodes[edge.toNodeOrdinal];
         if (!childNode) {
@@ -180,7 +186,9 @@ export class HeapLoader {
     // 但仍然需要经过处理以调整其名称并将其放入各自的队列中。
     let domState = new DOMState(this.nodeCount);
     for (let node of this.nodes) {
-      if (!node) { continue; }
+      if (!node) {
+        continue;
+      }
       if (node.detachedness === DetachedNessState.UNKNOWN) {
         continue;
       }
@@ -245,7 +253,9 @@ export class HeapLoader {
     stackNodes[0] = this.rootNode!.nodeIndex;
     stackCurrentEdge[0] = this.nodes[this.rootNode!.nodeIndex + 1].firstEdgeIndex;
     for (let node of this.nodes) {
-      if (!node) { continue; }
+      if (!node) {
+        continue;
+      }
       if (visited[node.nodeIndex] || !this.hasOnlyWeakRetainers(node)) {
         continue;
       }
@@ -527,7 +537,9 @@ export class HeapLoader {
       return;
     }
     for (let node of this.nodes) {
-      if (!node) { continue; }
+      if (!node) {
+        continue;
+      }
       if (node.id % 2 === 0) {
         continue;
       }
@@ -859,7 +871,9 @@ export class HeapLoader {
 
   private combineNodeWithClassName(classes: Map<string, ConstructorItem>, filter: Function): void {
     for (let node of this.nodes) {
-      if (!node) { continue; }
+      if (!node) {
+        continue;
+      }
       if (!filter(node.id) || (node.selfSize === 0 && node.type !== NodeType.NATIVE)) {
         continue;
       }

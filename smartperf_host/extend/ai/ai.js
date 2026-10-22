@@ -78,6 +78,73 @@ function save(dirPath, filePath, sessionId, data) {
 }
 
 /**
+ * 创建诊断回调
+ */
+function createDiagCallback(sessionId, message) {
+    return (error, stdout, stderr) => {
+        if (error || (stderr && stderr.length > 0)) {
+            message.code = 1;
+            message.message = `error: ${error ? error.message : stderr.toString()}`;
+            logger.error(
+                `error: ${error ? error.message : stderr.toString()},` +
+                `sessionId:${sessionId},cmd:${DIAGNOSIS_CMD}`
+            );
+            sendMsg(sessionId, DIAGNOSIS_BACK_CMD, message);
+            return;
+        }
+        message.code = 0;
+        message.message = iconv.decode(stdout, platform.defaultEncoding);
+        logger.info(`Successfully obtained diagnostic results,sessionId:${sessionId}`);
+        sendMsg(sessionId, DIAGNOSIS_BACK_CMD, message);
+    };
+}
+
+/**
+ * 执行诊断命令
+ */
+function executeDiagnosis(filePath, timeRange, sessionId, message) {
+    const mainExePath = platform.getToolPath('main');
+    const diagCallback = createDiagCallback(sessionId, message);
+    if (platform.isHarmony) {
+        let mainArgs = ['--db_path', filePath];
+        if (hasKeys(timeRange)) {
+            mainArgs.push('--time_range', `${timeRange.startTime},${timeRange.endTime}`);
+        }
+        execFile(mainExePath, mainArgs, { encoding: 'buffer', maxBuffer: 1024 * 1024 * 500 }, diagCallback);
+    } else {
+        const str = hasKeys(timeRange) ? ` --time_range "${timeRange.startTime},${timeRange.endTime}"` : '';
+        let command = `"${mainExePath.replace(/\\/g, '/')}" --db_path "${filePath.replace(/\\/g, '/')}"${str}`;
+        exec(command, { encoding: 'buffer', maxBuffer: 1024 * 1024 * 500 }, diagCallback);
+    }
+}
+
+/**
+ * 检查DB文件是否存在，解析数据并执行诊断
+ */
+function checkDiagnosisFile(filePath, sessionId, data, message) {
+    fs.access(filePath, fs.constants.F_OK, (errFile) => {
+        if (errFile) {
+            message.code = 1;
+            message.message = 'DB file not imported';
+            logger.error(`DB file not imported,unable to find DB file,sessionId:${sessionId},cmd:${DIAGNOSIS_CMD}`);
+            sendMsg(sessionId, DIAGNOSIS_BACK_CMD, message);
+            return;
+        }
+        if (!data) {
+            message.code = 1;
+            message.message = 'Time range not provided';
+            logger.error(`Time range not provided,sessionId:${sessionId},cmd:${DIAGNOSIS_CMD}`);
+            sendMsg(sessionId, DIAGNOSIS_BACK_CMD, message);
+            return;
+        }
+        const decoder = new TextDecoder();
+        const jsonString = decoder.decode(data);
+        let timeRange = JSON.parse(jsonString);
+        executeDiagnosis(filePath, timeRange, sessionId, message);
+    });
+}
+
+/**
  * 诊断
  * 检查目录是否存在,判断是否继续诊断
  * 检查对应的DB文件是否存在
@@ -94,54 +161,7 @@ function diagnosis(dirPath, filePath, sessionId, data) {
             sendMsg(sessionId, DIAGNOSIS_BACK_CMD, message);
             return;
         }
-        fs.access(filePath, fs.constants.F_OK, (errFile) => {
-            if (errFile) {
-                message.code = 1;
-                message.message = 'DB file not imported';
-                logger.error(`DB file not imported,unable to find DB file,sessionId:${sessionId},cmd:${DIAGNOSIS_CMD}`);
-                sendMsg(sessionId, DIAGNOSIS_BACK_CMD, message);
-                return;
-            }
-            if (!data) {
-                message.code = 1;
-                message.message = 'Time range not provided';
-                logger.error(`Time range not provided,sessionId:${sessionId},cmd:${DIAGNOSIS_CMD}`);
-                sendMsg(sessionId, DIAGNOSIS_BACK_CMD, message);
-                return;
-            }
-            const decoder = new TextDecoder();
-            const jsonString = decoder.decode(data);
-            let timeRange = JSON.parse(jsonString);
-            const str = hasKeys(timeRange) ? ` --time_range "${timeRange.startTime},${timeRange.endTime}"` : '';
-            // 文件存在时，调用算法库，获取诊断结果
-            const mainExePath = platform.getToolPath('main');
-            const diagCallback = (error, stdout, stderr) => {
-                if (error || (stderr && stderr.length > 0)) {
-                    message.code = 1;
-                    message.message = `error: ${error ? error.message : stderr.toString()}`;
-                    logger.error(
-                        `error: ${error ? error.message : stderr.toString()},` +
-                        `sessionId:${sessionId},cmd:${DIAGNOSIS_CMD}`
-                    );
-                    sendMsg(sessionId, DIAGNOSIS_BACK_CMD, message);
-                    return;
-                }
-                message.code = 0;
-                message.message = iconv.decode(stdout, platform.defaultEncoding);// 字节流解码成字符串
-                logger.info(`Successfully obtained diagnostic results,sessionId:${sessionId}`);
-                sendMsg(sessionId, DIAGNOSIS_BACK_CMD, message);
-            };
-            if (platform.isHarmony) {
-                let mainArgs = ['--db_path', filePath];
-                if (hasKeys(timeRange)) {
-                    mainArgs.push('--time_range', `${timeRange.startTime},${timeRange.endTime}`);
-                }
-                execFile(mainExePath, mainArgs, { encoding: 'buffer', maxBuffer: 1024 * 1024 * 500 }, diagCallback);
-            } else {
-                let command = `"${mainExePath.replace(/\\/g, '/')}" --db_path "${filePath.replace(/\\/g, '/')}"${str}`;
-                exec(command, { encoding: 'buffer', maxBuffer: 1024 * 1024 * 500 }, diagCallback);
-            }
-        });
+        checkDiagnosisFile(filePath, sessionId, data, message);
     });
 }
 

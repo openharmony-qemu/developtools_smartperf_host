@@ -518,7 +518,7 @@ function extractInfoFromAnTxt(func, elfName, vaddr, sessionId, anFilePath) {
             sendMsg(sessionId, QUERY_BACK_CMD, { code: 1, message: msg });
             return;
         }
-        // Windows: output already filtered by findstr; HarmonyOS: filter in JS
+        // Windows: output already filtered by findstr; otherwise: filter in JS
         let filteredStdOut = platform.isHarmony
             ? outerStdOut.split('\n').filter(line => line.includes(func)).join('\n')
             : outerStdOut;

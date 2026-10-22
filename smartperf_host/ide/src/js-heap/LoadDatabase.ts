@@ -128,7 +128,9 @@ export class LoadDatabase {
       .map((r: HeapEdge) => r.toNodeRaw as number)
       .filter((v: number) => v !== undefined && v > 0);
     const gcd = (a: number, b: number): number => {
-      while (b) { [a, b] = [b, a % b]; }
+      while (b) {
+        [a, b] = [b, a % b];
+      }
       return a;
     };
     let nodeFieldCount: number;

@@ -861,56 +861,7 @@ export class SpRecordTrace extends BaseElement {
     const jsonString = decoder.decode(result);
     let jsonRes = JSON.parse(jsonString);
     if (cmd === TypeConstants.USB_SN_CMD) {
-      this.hdcList = jsonRes.resultMessage;
-      HdcDeviceManager.findDevice().then((): void => {
-        this.usbSerialNum = jsonRes.resultMessage;
-        this.optionNum = 0;
-        if (this.usbSerialNum.length === 1) {
-          if (this.usbSerialNum[0].includes('Empty')) {
-            this.usbSerialNum.shift();
-            this.recordButton!.hidden = true;
-            this.disconnectButton!.hidden = true;
-            this.cancelButton!.hidden = true;
-            this.devicePrompt!.innerText = 'Device not connected';
-            this.deviceSelect!.style!.border = '2px solid red';
-            setTimeout(() => {
-              this.deviceSelect!.style!.border = '1px solid #4D4D4D';
-            }, 3000);
-            this.useExtentTip!.style.display = 'block';
-            this.useExtentTip!.innerHTML = '手机连接有问题，请重新插拔一下手机，或者请使用系统管理员权限打开cmd窗口，并执行hdc shell';
-            return;
-          } else {
-            SpRecordTrace.serialNumber = '';
-            this.usbGetVersion(this.usbSerialNum[0], true);
-          }
-        } else if (this.usbSerialNum.length > 1) {
-          // @ts-ignore
-          while (this.deviceSelect!.firstChild) {
-            this.deviceSelect!.removeChild(this.deviceSelect!.firstChild); // 删除子节点
-          }
-          for (let len = 0; len < this.usbSerialNum.length; len++) {
-            let dev = this.usbSerialNum[len];
-            this.usbGetVersion(dev, false);
-          }
-          if (!this.optionNum) {
-            this.deviceSelect!.style!.border = '2px solid red';
-            setTimeout(() => {
-              this.deviceSelect!.style!.border = '1px solid #4D4D4D';
-            }, 3000);
-            this.recordButton!.hidden = true;
-            this.disconnectButton!.hidden = true;
-            this.cancelButton!.hidden = true;
-            this.devicePrompt!.innerText = 'Device not connected';
-            this.useExtentTip!.style.display = 'block';
-            this.useExtentTip!.innerHTML = '手机连接有问题，请重新插拔一下手机，或者请使用系统管理员权限打开cmd窗口，并执行hdc shell';
-          }
-        } else {
-          this.recordButton!.hidden = true;
-          this.disconnectButton!.hidden = true;
-          this.cancelButton!.hidden = true;
-          this.devicePrompt!.innerText = 'Device not connected';
-        }
-      });
+      this.handleUsbSnCmd(jsonRes);
     } else if (cmd === TypeConstants.USB_GET_PROCESS) {
       // @ts-ignore
       SpRecordTrace.allProcessListStr = jsonRes.resultMessage;
@@ -926,6 +877,58 @@ export class SpRecordTrace extends BaseElement {
       SpRecordTrace.usbGetHisystem = jsonRes.resultMessage;
     }
   };
+
+  private handleUsbSnCmd(jsonRes: any): void {
+    this.hdcList = jsonRes.resultMessage;
+    HdcDeviceManager.findDevice().then((): void => {
+      this.usbSerialNum = jsonRes.resultMessage;
+      this.optionNum = 0;
+      if (this.usbSerialNum.length === 1) {
+        if (this.usbSerialNum[0].includes('Empty')) {
+          this.usbSerialNum.shift();
+          this.showDeviceError();
+          return;
+        } else {
+          SpRecordTrace.serialNumber = '';
+          this.usbGetVersion(this.usbSerialNum[0], true);
+        }
+      } else if (this.usbSerialNum.length > 1) {
+        this.renderDeviceList();
+      } else {
+        this.recordButton!.hidden = true;
+        this.disconnectButton!.hidden = true;
+        this.cancelButton!.hidden = true;
+        this.devicePrompt!.innerText = 'Device not connected';
+      }
+    });
+  }
+
+  private showDeviceError(): void {
+    this.recordButton!.hidden = true;
+    this.disconnectButton!.hidden = true;
+    this.cancelButton!.hidden = true;
+    this.devicePrompt!.innerText = 'Device not connected';
+    this.deviceSelect!.style!.border = '2px solid red';
+    setTimeout(() => {
+      this.deviceSelect!.style!.border = '1px solid #4D4D4D';
+    }, 3000);
+    this.useExtentTip!.style.display = 'block';
+    this.useExtentTip!.innerHTML = '手机连接有问题，请重新插拔一下手机，或者请使用系统管理员权限打开cmd窗口，并执行hdc shell';
+  }
+
+  private renderDeviceList(): void {
+    // @ts-ignore
+    while (this.deviceSelect!.firstChild) {
+      this.deviceSelect!.removeChild(this.deviceSelect!.firstChild);
+    }
+    for (let len = 0; len < this.usbSerialNum.length; len++) {
+      let dev = this.usbSerialNum[len];
+      this.usbGetVersion(dev, false);
+    }
+    if (!this.optionNum) {
+      this.showDeviceError();
+    }
+  }
 
   deviceSelectMouseDownEvent = (evt: MouseEvent): void => {
     if (this.deviceSelect!.options.length === 0) {
