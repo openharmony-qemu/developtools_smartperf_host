@@ -1,4 +1,5 @@
-﻿//go:build ignore
+//go:build ignore
+
 // Copyright (C) 2026 hqzing
 // SPDX-License-Identifier: 0BSD
 // Repository: https://github.com/hqzing/ohos-bst-light
@@ -6,7 +7,7 @@
 // Licensed under the BSD Zero Clause License.
 
 /*
- * selfsign.go — 轻量级 OpenHarmony 二进制自签名工具
+ * selfsign.go - 轻量级 OpenHarmony 二进制自签名工具
  *
  * 用法:
  *     go build -o selfsign selfsign.go
@@ -366,8 +367,7 @@ func buildDescriptor(signSize uint32, fileSize uint64, root [32]byte, flags uint
 }
 
 func signElf(elf []byte, force bool) ([]byte, error) {
-	if len(elf) < 64 || elf[0] != 0x7f || elf[1] != 0x45 ||
-		elf[2] != 0x4c || elf[3] != 0x46 || elf[4] != 2 {
+	if _, err := parseElfHeader(elf); err != nil {
 		return nil, errors.New("not ELF64")
 	}
 

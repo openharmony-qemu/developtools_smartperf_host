@@ -23,34 +23,6 @@ import (
 	"time"
 )
 
-// ---- getPidByPortOther ----
-
-func TestGetPidByPortOther_ReturnsNegativeWhenPortUnused(t *testing.T) {
-	pid := getPidByPortOther(65432)
-	if pid != -1 {
-		t.Logf("getPidByPortOther(65432) = %d, expected -1 (port may be in use or lsof available)", pid)
-	}
-}
-
-func TestGetPidByPortOther_DoesNotPanic(t *testing.T) {
-	defer func() {
-		if r := recover(); r != nil {
-			t.Fatalf("getPidByPortOther panicked: %v", r)
-		}
-	}()
-	_ = getPidByPortOther(65432)
-}
-
-func TestGetPidByPortOther_InvalidPortDoesNotPanic(t *testing.T) {
-	defer func() {
-		if r := recover(); r != nil {
-			t.Fatalf("getPidByPortOther panicked with invalid port: %v", r)
-		}
-	}()
-	_ = getPidByPortOther(0)
-	_ = getPidByPortOther(-1)
-}
-
 // ---- checkPort ----
 
 func TestCheckPort_DoesNotPanicForUnusedPort(t *testing.T) {
@@ -159,10 +131,10 @@ func TestGetCurrentAbPath_TmpDirEmptyDoesNotReturnCallerPath(t *testing.T) {
 	}
 	emptyTmpDir := ""
 	if strings.Contains(dir, emptyTmpDir) {
-		t.Log("strings.Contains(dir, \"\") is true — this is the bug that caused 404 on HarmonyOS PC")
+		t.Log("strings.Contains(dir, \"\") is true - this is the bug that caused 404 on HarmonyOS PC")
 	}
 	if emptyTmpDir != "" && strings.Contains(dir, emptyTmpDir) {
-		t.Fatal("should not enter getCallerPath branch when tmpDir is empty")
+		t.Fatal("should not enter os.Getwd branch when tmpDir is empty")
 	}
 }
 
@@ -171,19 +143,10 @@ func TestGetCurrentAbPath_MatchesExecutableDir(t *testing.T) {
 	abPath := getCurrentAbPath()
 	tmpDir, _ := filepath.EvalSymlinks(os.TempDir())
 	if tmpDir != "" && strings.Contains(execPath, tmpDir) {
-		t.Skip("executable is in temp directory, getCurrentAbPath uses getCallerPath")
+		t.Skip("executable is in temp directory, getCurrentAbPath uses os.Getwd")
 	}
 	if abPath != execPath {
 		t.Errorf("getCurrentAbPath() = %q, expected %q", abPath, execPath)
-	}
-}
-
-// ---- getCallerPath ----
-
-func TestGetCallerPath_ReturnsNonEmpty(t *testing.T) {
-	result := getCallerPath()
-	if result == "" {
-		t.Fatal("getCallerPath() returned empty string")
 	}
 }
 

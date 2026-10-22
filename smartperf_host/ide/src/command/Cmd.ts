@@ -33,10 +33,11 @@ export class Cmd {
       body: JSON.stringify(requestData),
     };
     let controller: AbortController | undefined;
+    let timer: ReturnType<typeof setTimeout> | undefined;
     if (timeoutMs && typeof AbortController !== 'undefined') {
       controller = new AbortController();
       fetchOptions.signal = controller.signal;
-      setTimeout(() => controller!.abort(), timeoutMs);
+      timer = setTimeout(() => controller!.abort(), timeoutMs);
     }
     fetch(uri, fetchOptions).then((response): void => {
       if (response.ok) {
@@ -49,6 +50,8 @@ export class Cmd {
       }
     }).catch((e): void => {
       callback(JSON.stringify({ success: false, code: -1, msg: String(e), data: null }));
+    }).finally((): void => {
+      if (timer) { clearTimeout(timer); }
     });
   }
 
@@ -103,13 +106,18 @@ export class Cmd {
       body: JSON.stringify(data),
     };
     let controller: AbortController | undefined;
+    let timer: ReturnType<typeof setTimeout> | undefined;
     if (timeoutMs && typeof AbortController !== 'undefined') {
       controller = new AbortController();
       fetchOptions.signal = controller.signal;
-      setTimeout(() => controller!.abort(), timeoutMs);
+      timer = setTimeout(() => controller!.abort(), timeoutMs);
     }
-    let buf = await fetch(uri, fetchOptions).then((res) => res.arrayBuffer());
-    callback(buf);
+    try {
+      let buf = await fetch(uri, fetchOptions).then((res) => res.arrayBuffer());
+      callback(buf);
+    } finally {
+      if (timer) { clearTimeout(timer); }
+    }
   }
 
   static execHdcTraceCmd(command: string, serialNumber: string, callback: Function): void {

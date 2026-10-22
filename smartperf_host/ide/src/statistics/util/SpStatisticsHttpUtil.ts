@@ -40,7 +40,9 @@ export class SpStatisticsHttpUtil {
           HdcDeviceManager.hdcCmdMode = false;
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      warn('getServerInfo failed: ' + e);
+    }
   }
 
   static initStatisticsServerConfig(): void {

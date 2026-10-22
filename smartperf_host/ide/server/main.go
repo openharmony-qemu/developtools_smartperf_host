@@ -40,7 +40,6 @@ import (
 	"net/http/cookiejar"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -51,6 +50,14 @@ import (
 )
 
 const HttpPort = 9000
+
+const (
+	defaultShellTimeout    = 5 * time.Minute
+	heredocFallbackTimeout = 60 * time.Minute
+	fileRecvTimeout        = 30 * time.Minute
+	traceTimeoutBuffer     = 2 * time.Minute
+	defaultLogFilePerm     = 0o666
+)
 
 var exPath string
 var serverConfig ServerConfig
@@ -87,7 +94,6 @@ const (
 	RSA_ENCRYPT
 )
 
-
 // RsaSign 生成 RSA 签名
 func RsaSign(buf string, signKey *rsa.PrivateKey) (string, error) {
 	hash := sha512.Sum512([]byte(buf))
@@ -104,10 +110,10 @@ func RsaSign(buf string, signKey *rsa.PrivateKey) (string, error) {
 func RsaSignAndBase64(buf string, authType AuthVerifyType) (string, error) {
 	var signResult string
 	var err error
-		signResult, err = RsaSign(buf, hdcPrivateKey)
-		if err != nil {
-			return "", err
-		}
+	signResult, err = RsaSign(buf, hdcPrivateKey)
+	if err != nil {
+		return "", err
+	}
 
 	return signResult, nil
 }
@@ -272,7 +278,7 @@ func consoleHandler(w http.ResponseWriter, r *http.Request) {
 	chekDir(exPath + "/logger")
 	var now = time.Now()
 	var fileName = fmt.Sprintf("%d-%d-%d", now.Year(), now.Month(), now.Day())
-	dst, err := os.OpenFile(exPath+"/logger/"+fileName, os.O_WRONLY|os.O_CREATE|os.O_APPEND|os.O_SYNC, 0666)
+	dst, err := os.OpenFile(exPath+"/logger/"+fileName, os.O_WRONLY|os.O_CREATE|os.O_APPEND|os.O_SYNC, defaultLogFilePerm)
 	CheckErr(err)
 	contentType := r.Header["Content-Type"]
 	if len(contentType) > 0 {
@@ -286,7 +292,6 @@ func consoleHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
-
 
 func getHdcPublicKey(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -373,7 +378,7 @@ func getServerConfig(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	serverConfig.Mux.RLock()
 	defer serverConfig.Mux.RUnlock()
-	data, err := json.Marshal(serverConfig)
+	data, err := json.Marshal(&serverConfig)
 	if err != nil {
 		http.Error(w, "failed to marshal config: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -653,12 +658,12 @@ func hdcCmdHandler(w http.ResponseWriter, r *http.Request) {
 // hdcShellHandler 执行 hdc shell 类命令，返回 stdout
 func hdcShellHandler(w http.ResponseWriter, req HdcCmdReq) {
 	// 默认 5 分钟；trace 抓取（含 heredoc）命令从 -t 参数解析抓取时长 + 2 分钟缓冲
-	timeout := 5 * time.Minute
+	timeout := defaultShellTimeout
 	if strings.Contains(req.Cmd, "<<") {
 		if secs, ok := parseTraceDuration(req.Cmd); ok {
-			timeout = time.Duration(secs)*time.Second + 2*time.Minute
+			timeout = time.Duration(secs)*time.Second + traceTimeoutBuffer
 		} else {
-			timeout = 60 * time.Minute
+			timeout = heredocFallbackTimeout
 		}
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
@@ -685,11 +690,12 @@ func hdcShellHandler(w http.ResponseWriter, req HdcCmdReq) {
 // 命令格式: "hdc [-t SN] shell hiprofiler_cmd \  -c - \  ... \  <<CONFIG{config}CONFIG"
 //
 // 方案：先把配置内容推到设备临时文件，再用 -c /路径 非交互执行，彻底避免
-//   交互式 hdc shell 不退出 / stdin 不转发的问题。
-//   1. 提取 configPart，通过 hdc file send 推送到 /data/local/tmp/.hiprofiler_config_<rand>
-//   2. 把命令中 -c - 替换为 -c /data/local/tmp/.hiprofiler_config_<rand>
-//   3. hdc [-t SN] shell "cmdPart"  非交互执行，命令结束自动退出
-//   4. hdc shell rm 删除临时配置文件
+//
+//	交互式 hdc shell 不退出 / stdin 不转发的问题。
+//	1. 提取 configPart，通过 hdc file send 推送到 /data/local/tmp/.hiprofiler_config_<rand>
+//	2. 把命令中 -c - 替换为 -c /data/local/tmp/.hiprofiler_config_<rand>
+//	3. hdc [-t SN] shell "cmdPart"  非交互执行，命令结束自动退出
+//	4. hdc shell rm 删除临时配置文件
 func runHdcWithHeredoc(ctx context.Context, full string, out *bytes.Buffer) error {
 	shellCmd, hdcArgs, ok := splitHdcShellCmd(full)
 	if !ok {
@@ -820,7 +826,7 @@ func splitHdcShellCmd(full string) (shellCmd string, hdcArgs []string, ok bool) 
 
 // hdcFileRecvHandler 执行 hdc file recv，把设备文件拉到本地临时目录后读取并返回二进制，最后清理
 func hdcFileRecvHandler(w http.ResponseWriter, req HdcCmdReq) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), fileRecvTimeout)
 	defer cancel()
 	cmd := buildShellCmd(ctx, req.Cmd)
 	var out bytes.Buffer
@@ -985,14 +991,6 @@ func getCurrentAbPath() string {
 	return dir
 }
 
-func getCallerPath() string {
-	var pth string
-	_, fName, _, ok := runtime.Caller(0)
-	if ok {
-		pth = path.Dir(fName)
-	}
-	return pth
-}
 func getExecutePath() string {
 	pth, err := os.Executable()
 	if err != nil {
