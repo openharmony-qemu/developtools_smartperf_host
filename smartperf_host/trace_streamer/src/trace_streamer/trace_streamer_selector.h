@@ -19,6 +19,7 @@
 #include <memory>
 #include "metrics.h"
 #include "trace_data_cache.h"
+#include "trace_streamer/export_config/export_config.h"
 #include "trace_streamer_filters.h"
 
 namespace SysTuning {
@@ -58,6 +59,7 @@ public:
     MetaData *GetMetaData();
     void SetDataType(TraceFileType type);
     void SetCancel(bool cancel);
+    void SetExportConfig(const ExportConfig &config);
     bool ParserAndPrintMetrics(const std::string &metrics);
     bool ReadSqlFileAndPrintResult(const std::string &sqlOperator);
     TraceFileType DataType() const
@@ -132,6 +134,7 @@ private:
     std::unique_ptr<RawTraceParser> rawTraceParser_;
 #endif
     bool enableFileSeparate_ = false;
+    std::set<DataIndex> allowedPluginIndices_ = {};
 
     // Used to get markinfo,skip under Linux
     bool hasGotMarkFinish_ = false;

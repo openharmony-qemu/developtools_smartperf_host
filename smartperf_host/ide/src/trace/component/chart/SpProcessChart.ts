@@ -847,6 +847,8 @@ export class SpProcessChart {
   ): TraceRow<ProcessStruct> {
     let processRow = TraceRow.skeleton<ProcessStruct>(this.traceId); //@ts-ignore
     processRow.rowId = `${process.pid}`;
+    //@ts-ignore
+    processRow.setAttribute('data-ipid', `${process.id}`);
     processRow.index = index;
     processRow.rowType = TraceRow.ROW_TYPE_PROCESS;
     processRow.rowParentId = '';

@@ -391,6 +391,7 @@ select ts from thread_state,trace_range where ts + dur -start_ts = ${startTime} 
 
 export const queryProcessByTable = (traceId?: string): Promise<
   Array<{
+    id: number | null;
     pid: number | null;
     processName: string | null;
   }>
@@ -399,7 +400,7 @@ export const queryProcessByTable = (traceId?: string): Promise<
     'queryProcessByTable',
     `
     SELECT
-      pid, name as processName
+      id, pid, name as processName
     FROM
       process where pid != 0`,
     {},

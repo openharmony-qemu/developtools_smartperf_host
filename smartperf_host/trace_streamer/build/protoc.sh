@@ -23,8 +23,8 @@ if [[ "$3" == *"developtools"* ]]; then
   PROJECT_TOP=$(realpath $THIS_DIR/../../../..)
 fi
 
-if [[ "$2" == "out/ohos" || "$2" == "out/ohos_debug" ]]; then
-  if [[ -e "$PROJECT_TOP/out/ohos/gen/cpp/src/protos/services/common_types.pb.cc" || -e "$PROJECT_TOP/out/ohos_debug/gen/cpp/src/protos/services/common_types.pb.cc" ]]; then
+if [[ "$2" == "out/ohos" || "$2" == "out/ohos_debug" || "$2" == "out/ohospc" || "$2" == "out/ohospc_debug" ]]; then
+  if [[ -e "$PROJECT_TOP/out/ohos/gen/cpp/src/protos/services/common_types.pb.cc" || -e "$PROJECT_TOP/out/ohos_debug/gen/cpp/src/protos/services/common_types.pb.cc" || -e "$PROJECT_TOP/out/ohospc/gen/cpp/src/protos/services/common_types.pb.cc" || -e "$PROJECT_TOP/out/ohospc_debug/gen/cpp/src/protos/services/common_types.pb.cc" ]]; then
       exit 0
   fi
 fi

@@ -64,6 +64,18 @@ public:
     void SetCancel(bool cancel);
     void AppendNewTable(std::string tableName);
     void EnableMetaTable(bool enabled);
+    void SetExportFilter(const std::set<std::string> &filter, bool hasExportConfig)
+    {
+        exportFilter_ = filter;
+        hasExportConfig_ = hasExportConfig;
+    }
+    bool ShouldExportTable(const std::string &tableName) const
+    {
+        if (!hasExportConfig_) {
+            return true;
+        }
+        return exportFilter_.count(tableName) > 0;
+    }
     bool Cancel() const
     {
         return cancelQuery_;
@@ -89,13 +101,15 @@ private:
 private:
     std::list<std::string> internalTables_ = {};
     bool exportMetaTable_ = true;
+    std::set<std::string> exportFilter_ = {};
+    bool hasExportConfig_ = false;
     bool pared_ = false;
     bool cancelQuery_ = false;
     std::string wasmDBName_;
     SqllitePreparCacheData sqlPreparCacheData_;
     std::set<std::string> needClearTable_ = {"data_type", "device_info",  "data_dict", "meta",    "clock_snapshot",
                                              "callstack", "thread_state", "stat",      "symbols", "thread",
-                                             "process",   "trace_range",  "args_view"};
+                                             "process",   "trace_range"};
 };
 } // namespace TraceStreamer
 } // namespace SysTuning
