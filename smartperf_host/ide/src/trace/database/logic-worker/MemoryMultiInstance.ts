@@ -138,6 +138,8 @@ export const statisticCallChainsSamplesConfig: ConfigMap = {
             when type = ${MemoryStatisticType.JS} then '${MemoryType.JS_Alloc_NAME}'
             when type = ${MemoryStatisticType.DART_HEAP} then '${MemoryType.DART_HEAP_Alloc_NAME}'
             when type = ${MemoryStatisticType.ARKTS_STATIC_HEAP} then '${MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME}'
+            when type = ${MemoryStatisticType.CHROMIUM_HEAP} then '${MemoryType.CHROMIUM_HEAP_Alloc_NAME}'
+            when type = ${MemoryStatisticType.VMA_CHROMIUM} then '${MemoryType.VMA_CHROMIUM_Alloc_NAME}'
             when type = ${MemoryStatisticType.RN} then '${MemoryType.RN_HERMES_HEAP_Alloc_NAME}'
             when type = ${MemoryStatisticType.KMP} then '${MemoryType.KMP_Alloc_NAME}'
             when type = ${MemoryStatisticType.DMA} then '${MemoryType.ION_Alloc_NAME}'
@@ -267,6 +269,16 @@ export class AnalysisTabDataLogic {
           {
             applyEventType: MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME,
             releaseEventType: MemoryType.ARKTS_STATIC_HEAP_Free_NAME,
+            sampleArray: []
+          },
+          {
+            applyEventType: MemoryType.CHROMIUM_HEAP_Alloc_NAME,
+            releaseEventType: MemoryType.CHROMIUM_HEAP_Free_NAME,
+            sampleArray: []
+          },
+          {
+            applyEventType: MemoryType.VMA_CHROMIUM_Alloc_NAME,
+            releaseEventType: MemoryType.VMA_CHROMIUM_Free_NAME,
             sampleArray: []
           },
           {
@@ -509,7 +521,9 @@ const MEMORY_BASIC_TYPE = {
   VM_ION: 10,
   VM_ASHMEM: 11,
   VM_SO: 12,
-  VM_OTHERS: 13
+  VM_OTHERS: 13,
+  CHROMIUM_HEAP: 14,
+  VMA_CHROMIUM: 15
 };
 
 // 定义内存类型常量数组
@@ -520,6 +534,8 @@ const MEMORY_TYPE_CONSTANTS = {
     MemoryType.JS_Alloc_NAME,
     MemoryType.DART_HEAP_Alloc_NAME,
     MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME,
+    MemoryType.CHROMIUM_HEAP_Alloc_NAME,
+    MemoryType.VMA_CHROMIUM_Alloc_NAME,
     MemoryType.RN_HERMES_HEAP_Alloc_NAME,
     MemoryType.KMP_Alloc_NAME,
     MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME,
@@ -531,6 +547,8 @@ const MEMORY_TYPE_CONSTANTS = {
     MemoryStatisticType.JS,
     MemoryStatisticType.DART_HEAP,
     MemoryStatisticType.ARKTS_STATIC_HEAP,
+    MemoryStatisticType.CHROMIUM_HEAP,
+    MemoryStatisticType.VMA_CHROMIUM,
     MemoryStatisticType.RN,
     MemoryStatisticType.KMP,
     MemoryStatisticType.ARK_GLOBAL_HANDLE,
@@ -570,6 +588,8 @@ function mapMemoryType(filterType: string, memoryBasicType: readonly string[]): 
     [memoryBasicType[MEMORY_BASIC_TYPE.JS_HEAP], MemoryType.JS_Alloc_NAME],
     [memoryBasicType[MEMORY_BASIC_TYPE.DART_HEAP], MemoryType.DART_HEAP_Alloc_NAME],
     [memoryBasicType[MEMORY_BASIC_TYPE.ARKTS_STATIC_HEAP], MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME],
+    [memoryBasicType[MEMORY_BASIC_TYPE.CHROMIUM_HEAP], MemoryType.CHROMIUM_HEAP_Alloc_NAME],
+    [memoryBasicType[MEMORY_BASIC_TYPE.VMA_CHROMIUM], MemoryType.VMA_CHROMIUM_Alloc_NAME],
     [memoryBasicType[MEMORY_BASIC_TYPE.RN_HEAP], MemoryType.RN_HERMES_HEAP_Alloc_NAME],
     [memoryBasicType[MEMORY_BASIC_TYPE.KMP_HEAP], MemoryType.KMP_Alloc_NAME],
     [memoryBasicType[MEMORY_BASIC_TYPE.VM_ION], MemoryType.ION_Alloc_NAME],

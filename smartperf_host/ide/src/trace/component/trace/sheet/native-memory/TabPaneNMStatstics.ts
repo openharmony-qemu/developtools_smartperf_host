@@ -176,6 +176,10 @@ export class TabPaneNMStatstics extends BaseElement {
         data.memoryTap = `Dart ${Utils.getByteWithUnit(malloc.heapSize)}`;
       } else if (malloc.eventType === MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME) {
         data.memoryTap = `Arkts Static ${Utils.getByteWithUnit(malloc.heapSize)}`;
+      } else if (malloc.eventType === MemoryType.CHROMIUM_HEAP_Alloc_NAME) {
+        data.memoryTap = `Chromium ${Utils.getByteWithUnit(malloc.heapSize)}`;
+      } else if (malloc.eventType === MemoryType.VMA_CHROMIUM_Alloc_NAME) {
+        data.memoryTap = `VMA Chromium ${Utils.getByteWithUnit(malloc.heapSize)}`;
       } else if (malloc.eventType === MemoryType.RN_HERMES_HEAP_Alloc_NAME) {
         data.memoryTap = `RN ${Utils.getByteWithUnit(malloc.heapSize)}`;
       } else if (malloc.eventType === MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME) {
@@ -198,7 +202,13 @@ export class TabPaneNMStatstics extends BaseElement {
       data.existingValue = [data.existing, data.totalBytes, this.allMax];
       if (MemoryType.APPLY_NM_EVENTS.every(item => types.includes(item))) {
         arr.push(data);
-      } else if ((types.includes(MemoryType.MEMORY_M_ALLOC_NAME) && malloc.eventType === MemoryType.MEMORY_M_ALLOC_NAME) || (types.includes(MemoryType.ARKTS_Alloc_NAME) && malloc.eventType === MemoryType.ARKTS_Alloc_NAME) || (types.includes(MemoryType.JS_Alloc_NAME) && malloc.eventType === MemoryType.JS_Alloc_NAME) || (types.includes(MemoryType.DART_HEAP_Alloc_NAME) && malloc.eventType === MemoryType.DART_HEAP_Alloc_NAME) || (types.includes(MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME) && malloc.eventType === MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME) || (types.includes(MemoryType.RN_HERMES_HEAP_Alloc_NAME) && malloc.eventType === MemoryType.RN_HERMES_HEAP_Alloc_NAME) || (types.includes(MemoryType.KMP_Alloc_NAME) && malloc.eventType === MemoryType.KMP_Alloc_NAME) || (types.includes(MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME) && malloc.eventType === MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME) || (types.includes(MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME) && malloc.eventType === MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME)) {
+      } else if ([
+        MemoryType.MEMORY_M_ALLOC_NAME, MemoryType.ARKTS_Alloc_NAME, MemoryType.JS_Alloc_NAME,
+        MemoryType.DART_HEAP_Alloc_NAME, MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME,
+        MemoryType.CHROMIUM_HEAP_Alloc_NAME, MemoryType.VMA_CHROMIUM_Alloc_NAME,
+        MemoryType.RN_HERMES_HEAP_Alloc_NAME, MemoryType.KMP_Alloc_NAME,
+        MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME, MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME,
+      ].some((name) => types.includes(name) && malloc.eventType === name)) {
         arr.push(data);
       } else if (types.includes(MemoryType.MEMORY_M_ALLOC_NAME) && malloc.eventType === MemoryType.MEMORY_M_ALLOC_NAME) {
         arr.push(data);
@@ -209,6 +219,12 @@ export class TabPaneNMStatstics extends BaseElement {
       } else if (types.includes(MemoryType.DART_HEAP_Alloc_NAME) && malloc.eventType === MemoryType.DART_HEAP_Alloc_NAME) {
         arr.push(data);
       } else if (types.includes(MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME) && malloc.eventType === MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME) {
+        arr.push(data);
+      } else if (types.includes(MemoryType.CHROMIUM_HEAP_Alloc_NAME) &&
+        malloc.eventType === MemoryType.CHROMIUM_HEAP_Alloc_NAME) {
+        arr.push(data);
+      } else if (types.includes(MemoryType.VMA_CHROMIUM_Alloc_NAME) &&
+        malloc.eventType === MemoryType.VMA_CHROMIUM_Alloc_NAME) {
         arr.push(data);
       } else if (types.includes(MemoryType.RN_HERMES_HEAP_Alloc_NAME) && malloc.eventType === MemoryType.RN_HERMES_HEAP_Alloc_NAME) {
         arr.push(data);
@@ -253,7 +269,13 @@ export class TabPaneNMStatstics extends BaseElement {
         data.existingValue = [data.existing, data.totalBytes, this.allMax];
         if (MemoryType.APPLY_NM_EVENTS.every(item => types.includes(item))) {
           arr.push(data);
-        } else if ((types.includes(MemoryType.MEMORY_M_ALLOC_NAME) && sub.eventType === MemoryType.MEMORY_M_ALLOC_NAME) || (types.includes(MemoryType.ARKTS_Alloc_NAME) && sub.eventType === MemoryType.ARKTS_Alloc_NAME) || (types.includes(MemoryType.JS_Alloc_NAME) && sub.eventType === MemoryType.JS_Alloc_NAME) || (types.includes(MemoryType.DART_HEAP_Alloc_NAME) && sub.eventType === MemoryType.DART_HEAP_Alloc_NAME) || (types.includes(MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME) && sub.eventType === MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME) || (types.includes(MemoryType.RN_HERMES_HEAP_Alloc_NAME) && sub.eventType === MemoryType.RN_HERMES_HEAP_Alloc_NAME) || (types.includes(MemoryType.KMP_Alloc_NAME) && sub.eventType === MemoryType.KMP_Alloc_NAME) || (types.includes(MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME) && sub.eventType === MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME) || (types.includes(MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME) && sub.eventType === MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME)) {
+        } else if ([
+          MemoryType.MEMORY_M_ALLOC_NAME, MemoryType.ARKTS_Alloc_NAME, MemoryType.JS_Alloc_NAME,
+          MemoryType.DART_HEAP_Alloc_NAME, MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME,
+          MemoryType.CHROMIUM_HEAP_Alloc_NAME, MemoryType.VMA_CHROMIUM_Alloc_NAME,
+          MemoryType.RN_HERMES_HEAP_Alloc_NAME, MemoryType.KMP_Alloc_NAME,
+          MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME, MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME,
+        ].some((name) => types.includes(name) && sub.eventType === name)) {
           arr.push(data);
         } else if (types.includes(MemoryType.MEMORY_M_ALLOC_NAME) && sub.eventType === MemoryType.MEMORY_M_ALLOC_NAME) {
           arr.push(data);
@@ -264,6 +286,12 @@ export class TabPaneNMStatstics extends BaseElement {
         } else if (types.includes(MemoryType.DART_HEAP_Alloc_NAME) && sub.eventType === MemoryType.DART_HEAP_Alloc_NAME) {
           arr.push(data);
         } else if (types.includes(MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME) && sub.eventType === MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME) {
+          arr.push(data);
+        } else if (types.includes(MemoryType.CHROMIUM_HEAP_Alloc_NAME) &&
+          sub.eventType === MemoryType.CHROMIUM_HEAP_Alloc_NAME) {
+          arr.push(data);
+        } else if (types.includes(MemoryType.VMA_CHROMIUM_Alloc_NAME) &&
+          sub.eventType === MemoryType.VMA_CHROMIUM_Alloc_NAME) {
           arr.push(data);
         } else if (types.includes(MemoryType.RN_HERMES_HEAP_Alloc_NAME) && sub.eventType === MemoryType.RN_HERMES_HEAP_Alloc_NAME) {
           arr.push(data);
@@ -303,6 +331,8 @@ export class TabPaneNMStatstics extends BaseElement {
     let jsHeap: NativeHookStatisticsTableData | null = null;
     let jsStaticsHeap: NativeHookStatisticsTableData | null = null;
     let arktsStaticHeap: NativeHookStatisticsTableData | null = null;
+    let chromiumHeap: NativeHookStatisticsTableData | null = null;
+    let vmaChromium: NativeHookStatisticsTableData | null = null;
     let kmpHeap: NativeHookStatisticsTableData | null = null;
     let ion: NativeHookStatisticsTableData | null = null;
     let ashmem: NativeHookStatisticsTableData | null = null;
@@ -336,6 +366,14 @@ export class TabPaneNMStatstics extends BaseElement {
       arktsStaticHeap = new NativeHookStatisticsTableData();
       arktsStaticHeap.memoryTap = this.nativeType[6];
     }
+    if (val.nativeMemory.indexOf(this.nativeType[14]) !== -1) {
+      chromiumHeap = new NativeHookStatisticsTableData();
+      chromiumHeap.memoryTap = this.nativeType[14];
+    }
+    if (val.nativeMemory.indexOf(this.nativeType[15]) !== -1) {
+      vmaChromium = new NativeHookStatisticsTableData();
+      vmaChromium.memoryTap = this.nativeType[15];
+    }
     if (val.nativeMemory.indexOf(this.nativeType[7]) !== -1) {
       rnHeap = new NativeHookStatisticsTableData();
       rnHeap.memoryTap = this.nativeType[7];
@@ -368,7 +406,13 @@ export class TabPaneNMStatstics extends BaseElement {
       if (all !== null) {
         this.processHookData(hook, all);
       }
-      if (allHeap !== null && (hook.eventType === MemoryType.MEMORY_M_ALLOC_NAME || hook.eventType === MemoryType.ARKTS_Alloc_NAME || hook.eventType === MemoryType.JS_Alloc_NAME || hook.eventType === MemoryType.DART_HEAP_Alloc_NAME || hook.eventType === MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME || hook.eventType === MemoryType.RN_HERMES_HEAP_Alloc_NAME || hook.eventType === MemoryType.KMP_Alloc_NAME || hook.eventType === MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME || hook.eventType === MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME)) {
+      if (allHeap !== null && [
+        MemoryType.MEMORY_M_ALLOC_NAME, MemoryType.ARKTS_Alloc_NAME, MemoryType.JS_Alloc_NAME,
+        MemoryType.DART_HEAP_Alloc_NAME, MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME,
+        MemoryType.CHROMIUM_HEAP_Alloc_NAME, MemoryType.VMA_CHROMIUM_Alloc_NAME,
+        MemoryType.RN_HERMES_HEAP_Alloc_NAME, MemoryType.KMP_Alloc_NAME,
+        MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME, MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME,
+      ].includes(hook.eventType)) {
         this.processHookData(hook, allHeap);
       }
       if (nativeHeap !== null && (hook.eventType === MemoryType.MEMORY_M_ALLOC_NAME || hook.eventType === MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME || hook.eventType === MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME)) {
@@ -385,6 +429,12 @@ export class TabPaneNMStatstics extends BaseElement {
       }
       if (arktsStaticHeap !== null && hook.eventType === MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME) {
         this.processHookData(hook, arktsStaticHeap);
+      }
+      if (chromiumHeap !== null && hook.eventType === MemoryType.CHROMIUM_HEAP_Alloc_NAME) {
+        this.processHookData(hook, chromiumHeap);
+      }
+      if (vmaChromium !== null && hook.eventType === MemoryType.VMA_CHROMIUM_Alloc_NAME) {
+        this.processHookData(hook, vmaChromium);
       }
       if (rnHeap !== null && hook.eventType === MemoryType.RN_HERMES_HEAP_Alloc_NAME) {
         this.processHookData(hook, rnHeap);
@@ -429,6 +479,12 @@ export class TabPaneNMStatstics extends BaseElement {
     if (arktsStaticHeap?.maxStr === '' && arktsStaticHeap?.max === 0) {
       arktsStaticHeap.maxStr = Utils.getByteWithUnit(arktsStaticHeap?.max);
     }
+    if (chromiumHeap?.maxStr === '' && chromiumHeap?.max === 0) {
+      chromiumHeap.maxStr = Utils.getByteWithUnit(chromiumHeap?.max);
+    }
+    if (vmaChromium?.maxStr === '' && vmaChromium?.max === 0) {
+      vmaChromium.maxStr = Utils.getByteWithUnit(vmaChromium?.max);
+    }
     if (rnHeap?.maxStr === '' && rnHeap?.max === 0) {
       rnHeap.maxStr = Utils.getByteWithUnit(rnHeap?.max);
     }
@@ -470,6 +526,12 @@ export class TabPaneNMStatstics extends BaseElement {
     }
     if (arktsStaticHeap !== null) {
       this.updateHookData(arktsStaticHeap, arr);
+    }
+    if (chromiumHeap !== null) {
+      this.updateHookData(chromiumHeap, arr);
+    }
+    if (vmaChromium !== null) {
+      this.updateHookData(vmaChromium, arr);
     }
     if (rnHeap !== null) {
       this.updateHookData(rnHeap, arr);

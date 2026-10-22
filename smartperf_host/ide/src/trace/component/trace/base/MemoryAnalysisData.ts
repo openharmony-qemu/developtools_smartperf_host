@@ -41,6 +41,8 @@ const typeConfigs: TypeConfig[] = [
   { eventId: MemoryStatisticType.JS, eventType: MemoryType.JS_Alloc_NAME, hasSubType: true },
   { eventId: MemoryStatisticType.DART_HEAP, eventType: MemoryType.DART_HEAP_Alloc_NAME, hasSubType: true },
   { eventId: MemoryStatisticType.ARKTS_STATIC_HEAP, eventType: MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME, hasSubType: true },
+  { eventId: MemoryStatisticType.CHROMIUM_HEAP, eventType: MemoryType.CHROMIUM_HEAP_Alloc_NAME, hasSubType: true },
+  { eventId: MemoryStatisticType.VMA_CHROMIUM, eventType: MemoryType.VMA_CHROMIUM_Alloc_NAME, hasSubType: true },
   { eventId: MemoryStatisticType.RN, eventType: MemoryType.RN_HERMES_HEAP_Alloc_NAME, hasSubType: true },
   { eventId: MemoryStatisticType.KMP, eventType: MemoryType.KMP_Alloc_NAME, hasSubType: true },
   { eventId: MemoryStatisticType.DMA, eventType: MemoryType.ION_Alloc_NAME, hasSubType: true },
@@ -187,6 +189,8 @@ export class MemoryAnalysisDataLogic {
             MemoryStatisticType.JS,
             MemoryStatisticType.DART_HEAP,
             MemoryStatisticType.ARKTS_STATIC_HEAP,
+            MemoryStatisticType.CHROMIUM_HEAP,
+            MemoryStatisticType.VMA_CHROMIUM,
             MemoryStatisticType.RN,
             MemoryStatisticType.KMP,
             MemoryStatisticType.SO,
@@ -202,6 +206,8 @@ export class MemoryAnalysisDataLogic {
             `'${MemoryType.JS_Alloc_NAME}'`,
             `'${MemoryType.DART_HEAP_Alloc_NAME}'`,
             `'${MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME}'`,
+            `'${MemoryType.CHROMIUM_HEAP_Alloc_NAME}'`,
+            `'${MemoryType.VMA_CHROMIUM_Alloc_NAME}'`,
             `'${MemoryType.RN_HERMES_HEAP_Alloc_NAME}'`,
             `'${MemoryType.KMP_Alloc_NAME}'`,
             `'${MemoryType.SO_Alloc_NAME}'`,
@@ -219,6 +225,8 @@ export class MemoryAnalysisDataLogic {
             MemoryStatisticType.JS,
             MemoryStatisticType.DART_HEAP,
             MemoryStatisticType.ARKTS_STATIC_HEAP,
+            MemoryStatisticType.CHROMIUM_HEAP,
+            MemoryStatisticType.VMA_CHROMIUM,
             MemoryStatisticType.RN,
             MemoryStatisticType.KMP
           ],
@@ -230,6 +238,8 @@ export class MemoryAnalysisDataLogic {
             `'${MemoryType.JS_Alloc_NAME}'`,
             `'${MemoryType.DART_HEAP_Alloc_NAME}'`,
             `'${MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME}'`,
+            `'${MemoryType.CHROMIUM_HEAP_Alloc_NAME}'`,
+            `'${MemoryType.VMA_CHROMIUM_Alloc_NAME}'`,
             `'${MemoryType.RN_HERMES_HEAP_Alloc_NAME}'`,
             `'${MemoryType.KMP_Alloc_NAME}'`
           ]
@@ -309,6 +319,16 @@ export class MemoryAnalysisDataLogic {
             MemoryStatisticType.MEMORY_USING_MSG
           ],
           normalTypes: [`'${MemoryType.MEMORY_M_MAP_NAME}'`]
+        },
+        {
+          selectionKey: MemoryBasicType.NATIVE_MEMORY[14], // Chromium Heap
+          statisticTypes: [MemoryStatisticType.CHROMIUM_HEAP],
+          normalTypes: [`'${MemoryType.CHROMIUM_HEAP_Alloc_NAME}'`]
+        },
+        {
+          selectionKey: MemoryBasicType.NATIVE_MEMORY[15], // VMA Chromium
+          statisticTypes: [MemoryStatisticType.VMA_CHROMIUM],
+          normalTypes: [`'${MemoryType.VMA_CHROMIUM_Alloc_NAME}'`]
         }
       ]
     });
@@ -520,9 +540,15 @@ export class MemoryAnalysisDataLogic {
           // 子类型需要特殊处理
 
           // 有子类型的类型：ARKTS, ARKWEB, RN, KMP, ION, ASHMEM, SO, MMAP
-          if ([MemoryStatisticType.MALLOC, MemoryStatisticType.ARK_GLOBAL_HANDLE, MemoryStatisticType.ARK_LOCAL_HANDLE, MemoryStatisticType.MMAP, MemoryStatisticType.FILE_PAGE_MSG, MemoryStatisticType.MEMORY_USING_MSG, MemoryStatisticType.ARKTS, MemoryStatisticType.JS,
-          MemoryStatisticType.DART_HEAP, MemoryStatisticType.ARKTS_STATIC_HEAP, MemoryStatisticType.RN, MemoryStatisticType.KMP, MemoryStatisticType.DMA, MemoryStatisticType.ASHMEM,
-          MemoryStatisticType.SO].includes(tyeId)) {
+          if ([
+            MemoryStatisticType.MALLOC, MemoryStatisticType.ARK_GLOBAL_HANDLE,
+            MemoryStatisticType.ARK_LOCAL_HANDLE, MemoryStatisticType.MMAP,
+            MemoryStatisticType.FILE_PAGE_MSG, MemoryStatisticType.MEMORY_USING_MSG,
+            MemoryStatisticType.ARKTS, MemoryStatisticType.JS, MemoryStatisticType.DART_HEAP,
+            MemoryStatisticType.ARKTS_STATIC_HEAP, MemoryStatisticType.CHROMIUM_HEAP,
+            MemoryStatisticType.VMA_CHROMIUM, MemoryStatisticType.RN, MemoryStatisticType.KMP,
+            MemoryStatisticType.DMA, MemoryStatisticType.ASHMEM, MemoryStatisticType.SO,
+          ].includes(tyeId)) {
             condition = (applySample.subType && applySample.subType === typeName) || // 有子类型且与当前类型一致
               (!applySample.subType && applySample.typeName === typeName); // 没有子类型，但类型名称一致
           }

@@ -49,8 +49,8 @@ enum class NativeType {
     ARK_LOCAL_HANDLE,
     DART_HEAP,
     ARKTS_STATIC_HEAP,
-    V8_HEAP,
-    PA_HEAP
+    CHROMIUM_HEAP,
+    VMA_CHROMIUM
 };
 
 class NativeHookFrameInfo {

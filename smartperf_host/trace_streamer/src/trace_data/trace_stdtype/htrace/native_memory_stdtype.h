@@ -181,13 +181,13 @@ public:
     {
         return lastArktsStaticHeapEventRaw_;
     }
-    uint64_t &GetLastV8HeapEventRaw()
+    uint64_t &GetLastChromiumHeapEventRaw()
     {
-        return lastV8HeapEventRaw_;
+        return lastChromiumHeapEventRaw_;
     }
-    uint64_t &GetLastPaHeapEventRaw()
+    uint64_t &GetLastVmaChromiumEventRaw()
     {
-        return lastPaHeapEventRaw_;
+        return lastVmaChromiumEventRaw_;
     }
 
 private:
@@ -218,8 +218,8 @@ private:
     int64_t countRnHermesHeapSizes_ = 0;
     int64_t countDartHeapSizes_ = 0;
     int64_t countArktsStaticHeapSizes_ = 0;
-    int64_t countV8HeapSizes_ = 0;
-    int64_t countPaHeapSizes_ = 0;
+    int64_t countChromiumHeapSizes_ = 0;
+    int64_t countVmaChromiumSizes_ = 0;
     const std::string ALLOC_EVET = "AllocEvent";
     const std::string FREE_EVENT = "FreeEvent";
     const std::string MMAP_EVENT = "MmapEvent";
@@ -258,10 +258,10 @@ private:
     const std::string DART_HEAP_FREE_EVENT = "DART_HEAP_Free_Event";
     const std::string ARKTS_STATIC_HEAP_ALLOC_EVENT = "ARKTS_STATIC_HEAP_Alloc_Event";
     const std::string ARKTS_STATIC_HEAP_FREE_EVENT = "ARKTS_STATIC_HEAP_Free_Event";
-    const std::string V8_HEAP_ALLOC_EVENT = "V8_HEAP_Alloc_Event";
-    const std::string V8_HEAP_FREE_EVENT = "V8_HEAP_Free_Event";
-    const std::string PA_HEAP_ALLOC_EVENT = "PA_HEAP_Alloc_Event";
-    const std::string PA_HEAP_FREE_EVENT = "PA_HEAP_Free_Event";
+    const std::string CHROMIUM_HEAP_ALLOC_EVENT = "CHROMIUM_HEAP_Alloc_Event";
+    const std::string CHROMIUM_HEAP_FREE_EVENT = "CHROMIUM_HEAP_Free_Event";
+    const std::string VMA_CHROMIUM_ALLOC_EVENT = "VMA_CHROMIUM_Alloc_Event";
+    const std::string VMA_CHROMIUM_FREE_EVENT = "VMA_CHROMIUM_Free_Event";
     std::unordered_map<uint64_t, uint64_t> addrToAllocEventRow_ = {};
     std::unordered_map<uint64_t, uint64_t> addrToMmapEventRow_ = {};
     std::map<uint64_t, uint64_t> addrToTraceAllocEventRow_ = {};
@@ -284,8 +284,8 @@ private:
     uint64_t lastRnHermesHeapEventRaw_ = INVALID_UINT64;
     uint64_t lastDartHeapEventRaw_ = INVALID_UINT64;
     uint64_t lastArktsStaticHeapEventRaw_ = INVALID_UINT64;
-    uint64_t lastV8HeapEventRaw_ = INVALID_UINT64;
-    uint64_t lastPaHeapEventRaw_ = INVALID_UINT64;
+    uint64_t lastChromiumHeapEventRaw_ = INVALID_UINT64;
+    uint64_t lastVmaChromiumEventRaw_ = INVALID_UINT64;
 };
 
 struct NativeHookFrameRow {

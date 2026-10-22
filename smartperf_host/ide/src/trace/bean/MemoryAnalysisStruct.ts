@@ -199,6 +199,18 @@ export class AnalysisSample {
         this.typeName = MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME;
         this.isRelease = false;
         break;
+      case MemoryType.CHROMIUM_HEAP_Alloc_NAME:
+      case MemoryStatisticType.CHROMIUM_HEAP:
+        this.type = MemoryStatisticType.CHROMIUM_HEAP;
+        this.typeName = MemoryType.CHROMIUM_HEAP_Alloc_NAME;
+        this.isRelease = false;
+        break;
+      case MemoryType.VMA_CHROMIUM_Alloc_NAME:
+      case MemoryStatisticType.VMA_CHROMIUM:
+        this.type = MemoryStatisticType.VMA_CHROMIUM;
+        this.typeName = MemoryType.VMA_CHROMIUM_Alloc_NAME;
+        this.isRelease = false;
+        break;
       case MemoryType.RN_HERMES_HEAP_Alloc_NAME:
       case MemoryStatisticType.RN:
         this.type = 13;
@@ -267,6 +279,16 @@ export class AnalysisSample {
       case MemoryType.ARKTS_STATIC_HEAP_Free_NAME:
         this.type = 21;
         this.typeName = MemoryType.ARKTS_STATIC_HEAP_Free_NAME;
+        this.isRelease = true;
+        break;
+      case MemoryType.CHROMIUM_HEAP_Free_NAME:
+        this.type = MemoryStatisticType.CHROMIUM_HEAP;
+        this.typeName = MemoryType.CHROMIUM_HEAP_Free_NAME;
+        this.isRelease = true;
+        break;
+      case MemoryType.VMA_CHROMIUM_Free_NAME:
+        this.type = MemoryStatisticType.VMA_CHROMIUM;
+        this.typeName = MemoryType.VMA_CHROMIUM_Free_NAME;
         this.isRelease = true;
         break;
       case MemoryType.RN_HERMES_HEAP_Free_NAME:

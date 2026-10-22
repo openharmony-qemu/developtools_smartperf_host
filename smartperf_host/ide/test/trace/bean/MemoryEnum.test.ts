@@ -68,7 +68,7 @@ describe('MemoryEnum Test', () => {
     expect(MemoryBasicType.NATIVE_MEMORY[5]).toEqual('Dart Heap');
     expect(MemoryBasicType.NATIVE_MEMORY[6]).toEqual('Arkts Static Heap');
     expect(MemoryBasicType.NATIVE_MEMORY[7]).toEqual('RN Heap');
-    expect(NATIVE_MEMORY_HEAP_INDICES).toEqual([2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(NATIVE_MEMORY_HEAP_INDICES).toEqual([2, 3, 4, 5, 6, 7, 8, 14, 15]);
   });
 
   it('NativeMemoryGroupConfigTest06', function () {
@@ -237,7 +237,7 @@ describe('MemoryEnum Test', () => {
     expect(result).toContain('ARKTS_STATIC_HEAP_Alloc_Event');
     expect(result).toContain('DART_HEAP_Alloc_Event');
     expect(result).toContain('RN_HERMES_HEAP_Alloc_Event');
-    expect(result).toContain('MEMORY_M_ALLOC_NAME');
+    expect(result).toContain(MemoryType.MEMORY_M_ALLOC_NAME);
   });
 
   it('GetCurrentTypesTest21 - should handle ARKTS_STATIC_HEAP with free events', function () {
@@ -270,8 +270,12 @@ describe('MemoryEnum Test', () => {
 
   it('GetCurrentTypesTest23 - should handle all heap with ARKTS_STATIC_HEAP in statistic mode', function () {
     let selectParam = {
-      nativeMemory: ['All Heap'],
-      nativeMemoryStatistic: [],
+      nativeMemory: [],
+      nativeMemoryStatistic: [
+        MemoryStatisticType.DART_HEAP,
+        MemoryStatisticType.ARKTS_STATIC_HEAP,
+        MemoryStatisticType.RN,
+      ],
       otherSource: [],
       otherSourceStatistic: [],
       gpuMemory: [],
@@ -283,50 +287,52 @@ describe('MemoryEnum Test', () => {
     expect(result).toContain(MemoryStatisticType.RN);
   });
 
-  it('MemoryStatisticTypeTest24 - V8_HEAP and PA_HEAP enum values', function () {
-    expect(MemoryStatisticType.V8_HEAP).toEqual(22);
-    expect(MemoryStatisticType.PA_HEAP).toEqual(23);
+  it('MemoryStatisticTypeTest24 - CHROMIUM_HEAP and VMA_CHROMIUM enum values', function () {
+    expect(MemoryStatisticType.CHROMIUM_HEAP).toEqual(22);
+    expect(MemoryStatisticType.VMA_CHROMIUM).toEqual(23);
   });
 
-  it('MemoryTypeTest25 - V8_HEAP and PA_HEAP event name constants', function () {
-    expect(MemoryType.V8_HEAP_Alloc_NAME).toEqual('V8_HEAP_Alloc_Event');
-    expect(MemoryType.V8_HEAP_Free_NAME).toEqual('V8_HEAP_Free_Event');
-    expect(MemoryType.PA_HEAP_Alloc_NAME).toEqual('PA_HEAP_Alloc_Event');
-    expect(MemoryType.PA_HEAP_Free_NAME).toEqual('PA_HEAP_Free_Event');
+  it('MemoryTypeTest25 - CHROMIUM_HEAP and VMA_CHROMIUM event names', function () {
+    expect(MemoryType.CHROMIUM_HEAP_Alloc_NAME).toEqual('CHROMIUM_HEAP_Alloc_Event');
+    expect(MemoryType.CHROMIUM_HEAP_Free_NAME).toEqual('CHROMIUM_HEAP_Free_Event');
+    expect(MemoryType.VMA_CHROMIUM_Alloc_NAME).toEqual('VMA_CHROMIUM_Alloc_Event');
+    expect(MemoryType.VMA_CHROMIUM_Free_NAME).toEqual('VMA_CHROMIUM_Free_Event');
   });
 
-  it('MemoryBasicTypeTest26 - NATIVE_MEMORY contains V8 Heap and PA Heap', function () {
-    expect(MemoryBasicType.NATIVE_MEMORY[9]).toEqual('V8 Heap');
-    expect(MemoryBasicType.NATIVE_MEMORY[10]).toEqual('PA Heap');
-    expect(NATIVE_MEMORY_HEAP_INDICES).toContain(9);
-    expect(NATIVE_MEMORY_HEAP_INDICES).toContain(10);
+  it('MemoryBasicTypeTest26 - Chromium Heap and Vma Chromium lane names and indices', function () {
+    expect(MemoryBasicType.NATIVE_MEMORY[14]).toEqual('Chromium Heap');
+    expect(MemoryBasicType.NATIVE_MEMORY[15]).toEqual('Vma Chromium');
+    expect(NATIVE_MEMORY_HEAP_INDICES).toEqual([2, 3, 4, 5, 6, 7, 8, 14, 15]);
   });
 
-  it('MemoryConfigTest27 - filters contain V8/PA alloc events', function () {
-    expect(memoryConfig[MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY].filters).toContain('V8_HEAP_Alloc_Event');
-    expect(memoryConfig[MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY].filters).toContain('PA_HEAP_Alloc_Event');
+  it('MemoryConfigTest27 - CHROMIUM_HEAP and VMA_CHROMIUM in filters and chartConfigs', function () {
+    expect(memoryConfig[MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY].filters).toContain('CHROMIUM_HEAP_Alloc_Event');
+    expect(memoryConfig[MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY].filters).toContain('VMA_CHROMIUM_Alloc_Event');
+    const chartCfg = memoryConfig[MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY].chartConfigs;
+    expect(chartCfg).toContainEqual({ filter: 'CHROMIUM_HEAP_Alloc_Event', suffix: 14 });
+    expect(chartCfg).toContainEqual({ filter: 'VMA_CHROMIUM_Alloc_Event', suffix: 15 });
   });
 
-  it('StatisticTypeMapTest28 - V8_HEAP and PA_HEAP mappings', function () {
-    expect(statisticTypeMap[22]).toEqual('v8Heap');
-    expect(statisticTypeMap[23]).toEqual('paHeap');
+  it('StatisticTypeMapTest28 - CHROMIUM_HEAP and VMA_CHROMIUM statistic keys', function () {
+    expect(statisticTypeMap[22]).toEqual('chromiumHeap');
+    expect(statisticTypeMap[23]).toEqual('vmaChromium');
   });
 
-  it('HandlerConfigTest29 - V8/PA suffixes', function () {
+  it('HandlerConfigTest29 - chromiumHeap and vmaChromium suffixes', function () {
     const nativeHandler = handlerConfig.find(h => h.rowType === MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY);
     expect(nativeHandler).toBeDefined();
-    expect(nativeHandler!.suffixes).toContainEqual({ key: "v8Heap", suffix: "9" });
-    expect(nativeHandler!.suffixes).toContainEqual({ key: "paHeap", suffix: "10" });
+    expect(nativeHandler!.suffixes).toContainEqual({ key: "chromiumHeap", suffix: "14" });
+    expect(nativeHandler!.suffixes).toContainEqual({ key: "vmaChromium", suffix: "15" });
   });
 
-  it('GetEventTypeNameFromTypeIdTest30 - V8/PA type id to event name', function () {
-    expect(getEventTypeNameFromTypeId(MemoryStatisticType.V8_HEAP)).toEqual('V8_HEAP_Alloc_Event');
-    expect(getEventTypeNameFromTypeId(MemoryStatisticType.PA_HEAP)).toEqual('PA_HEAP_Alloc_Event');
+  it('GetEventTypeNameFromTypeIdTest30 - CHROMIUM_HEAP and VMA_CHROMIUM', function () {
+    expect(getEventTypeNameFromTypeId(MemoryStatisticType.CHROMIUM_HEAP)).toEqual('CHROMIUM_HEAP_Alloc_Event');
+    expect(getEventTypeNameFromTypeId(MemoryStatisticType.VMA_CHROMIUM)).toEqual('VMA_CHROMIUM_Alloc_Event');
   });
 
-  it('GetCurrentTypesTest31 - V8 Heap alloc event filter', function () {
+  it('GetCurrentTypesTest31 - Chromium Heap alloc only', function () {
     let selectParam = {
-      nativeMemory: ['V8 Heap'],
+      nativeMemory: ['Chromium Heap'],
       nativeMemoryStatistic: [],
       otherSource: [],
       otherSourceStatistic: [],
@@ -334,12 +340,13 @@ describe('MemoryEnum Test', () => {
       gpuMemoryStatistic: [],
     };
     let result = getCurrentTypes(selectParam, MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY, false, false);
-    expect(result).toContain('V8_HEAP_Alloc_Event');
+    expect(result).toContain('CHROMIUM_HEAP_Alloc_Event');
+    expect(result).not.toContain('CHROMIUM_HEAP_Free_Event');
   });
 
-  it('GetCurrentTypesTest32 - V8 Heap alloc and free events', function () {
+  it('GetCurrentTypesTest32 - Chromium Heap alloc and free', function () {
     let selectParam = {
-      nativeMemory: ['V8 Heap'],
+      nativeMemory: ['Chromium Heap'],
       nativeMemoryStatistic: [],
       otherSource: [],
       otherSourceStatistic: [],
@@ -347,13 +354,13 @@ describe('MemoryEnum Test', () => {
       gpuMemoryStatistic: [],
     };
     let result = getCurrentTypes(selectParam, MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY, false, true);
-    expect(result).toContain('V8_HEAP_Alloc_Event');
-    expect(result).toContain('V8_HEAP_Free_Event');
+    expect(result).toContain('CHROMIUM_HEAP_Alloc_Event');
+    expect(result).toContain('CHROMIUM_HEAP_Free_Event');
   });
 
-  it('GetCurrentTypesTest33 - PA Heap alloc event filter', function () {
+  it('GetCurrentTypesTest33 - Vma Chromium alloc only', function () {
     let selectParam = {
-      nativeMemory: ['PA Heap'],
+      nativeMemory: ['Vma Chromium'],
       nativeMemoryStatistic: [],
       otherSource: [],
       otherSourceStatistic: [],
@@ -361,12 +368,13 @@ describe('MemoryEnum Test', () => {
       gpuMemoryStatistic: [],
     };
     let result = getCurrentTypes(selectParam, MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY, false, false);
-    expect(result).toContain('PA_HEAP_Alloc_Event');
+    expect(result).toContain('VMA_CHROMIUM_Alloc_Event');
+    expect(result).not.toContain('VMA_CHROMIUM_Free_Event');
   });
 
-  it('GetCurrentTypesTest34 - PA Heap alloc and free events', function () {
+  it('GetCurrentTypesTest34 - Vma Chromium alloc and free', function () {
     let selectParam = {
-      nativeMemory: ['PA Heap'],
+      nativeMemory: ['Vma Chromium'],
       nativeMemoryStatistic: [],
       otherSource: [],
       otherSourceStatistic: [],
@@ -374,7 +382,78 @@ describe('MemoryEnum Test', () => {
       gpuMemoryStatistic: [],
     };
     let result = getCurrentTypes(selectParam, MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY, false, true);
-    expect(result).toContain('PA_HEAP_Alloc_Event');
-    expect(result).toContain('PA_HEAP_Free_Event');
+    expect(result).toContain('VMA_CHROMIUM_Alloc_Event');
+    expect(result).toContain('VMA_CHROMIUM_Free_Event');
+  });
+
+  it('GetCurrentTypesTest35 - CHROMIUM_HEAP statistic mode', function () {
+    let selectParam = {
+      nativeMemory: [],
+      nativeMemoryStatistic: [22],
+      otherSource: [],
+      otherSourceStatistic: [],
+      gpuMemory: [],
+      gpuMemoryStatistic: [],
+    };
+    let result = getCurrentTypes(selectParam, MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY, true, false);
+    expect(result).toContain(22);
+  });
+
+  it('GetCurrentTypesTest36 - VMA_CHROMIUM statistic mode', function () {
+    let selectParam = {
+      nativeMemory: [],
+      nativeMemoryStatistic: [23],
+      otherSource: [],
+      otherSourceStatistic: [],
+      gpuMemory: [],
+      gpuMemoryStatistic: [],
+    };
+    let result = getCurrentTypes(selectParam, MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY, true, false);
+    expect(result).toContain(23);
+  });
+
+  it('GetCurrentTypesTest37 - statistic mode passes numeric type IDs '
+    + 'for CHROMIUM_HEAP and VMA_CHROMIUM', function () {
+    let selectParam = {
+      nativeMemory: [],
+      nativeMemoryStatistic: [MemoryStatisticType.CHROMIUM_HEAP, MemoryStatisticType.VMA_CHROMIUM],
+      otherSource: [],
+      otherSourceStatistic: [],
+      gpuMemory: [],
+      gpuMemoryStatistic: [],
+    };
+    let result = getCurrentTypes(selectParam, MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY, true, false);
+    expect(result).toContain(MemoryStatisticType.CHROMIUM_HEAP);
+    expect(result).toContain(MemoryStatisticType.VMA_CHROMIUM);
+  });
+
+  it('GetCurrentTypesTest38 - All Heap & Anonymous VM includes CHROMIUM_HEAP and VMA_CHROMIUM alloc+free', function () {
+    let selectParam = {
+      nativeMemory: ['All Heap & Anonymous VM'],
+      nativeMemoryStatistic: [],
+      otherSource: [],
+      otherSourceStatistic: [],
+      gpuMemory: [],
+      gpuMemoryStatistic: [],
+    };
+    let result = getCurrentTypes(selectParam, MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY, false, true);
+    expect(result).toContain('CHROMIUM_HEAP_Alloc_Event');
+    expect(result).toContain('CHROMIUM_HEAP_Free_Event');
+    expect(result).toContain('VMA_CHROMIUM_Alloc_Event');
+    expect(result).toContain('VMA_CHROMIUM_Free_Event');
+  });
+
+  it('GetCurrentTypesTest39 - All Heap includes CHROMIUM_HEAP and VMA_CHROMIUM in normal mode', function () {
+    let selectParam = {
+      nativeMemory: ['All Heap'],
+      nativeMemoryStatistic: [],
+      otherSource: [],
+      otherSourceStatistic: [],
+      gpuMemory: [],
+      gpuMemoryStatistic: [],
+    };
+    let result = getCurrentTypes(selectParam, MemoryTraceRowType.ROW_TYPE_NATIVE_MEMORY, false, false);
+    expect(result).toContain(MemoryType.CHROMIUM_HEAP_Alloc_NAME);
+    expect(result).toContain(MemoryType.VMA_CHROMIUM_Alloc_NAME);
   });
 });

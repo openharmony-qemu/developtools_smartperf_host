@@ -98,11 +98,11 @@ void NativeHookFilter::InitAllocTraceTypeMaps()
         ProtoReader::TraceType::ARKTS_STATIC_HEAP, true,
         MakeTypeValue("ARKTS_STATIC_HEAP_Alloc_Event", NativeType::ARKTS_STATIC_HEAP));
     traceTypeToTraceTypeAndNativeType_.Insert(
-        ProtoReader::TraceType::V8_HEAP, true,
-        MakeTypeValue("V8_HEAP_Alloc_Event", NativeType::V8_HEAP));
+        ProtoReader::TraceType::CHROMIUM_HEAP, true,
+        MakeTypeValue("CHROMIUM_HEAP_Alloc_Event", NativeType::CHROMIUM_HEAP));
     traceTypeToTraceTypeAndNativeType_.Insert(
-        ProtoReader::TraceType::PA_HEAP, true,
-        MakeTypeValue("PA_HEAP_Alloc_Event", NativeType::PA_HEAP));
+        ProtoReader::TraceType::VMA_CHROMIUM, true,
+        MakeTypeValue("VMA_CHROMIUM_Alloc_Event", NativeType::VMA_CHROMIUM));
 }
 
 void NativeHookFilter::InitFreeTraceTypeMaps()
@@ -145,11 +145,11 @@ void NativeHookFilter::InitFreeTraceTypeMaps()
         ProtoReader::TraceType::ARKTS_STATIC_HEAP, false,
         MakeTypeValue("ARKTS_STATIC_HEAP_Free_Event", NativeType::ARKTS_STATIC_HEAP));
     traceTypeToTraceTypeAndNativeType_.Insert(
-        ProtoReader::TraceType::V8_HEAP, false,
-        MakeTypeValue("V8_HEAP_Free_Event", NativeType::V8_HEAP));
+        ProtoReader::TraceType::CHROMIUM_HEAP, false,
+        MakeTypeValue("CHROMIUM_HEAP_Free_Event", NativeType::CHROMIUM_HEAP));
     traceTypeToTraceTypeAndNativeType_.Insert(
-        ProtoReader::TraceType::PA_HEAP, false,
-        MakeTypeValue("PA_HEAP_Free_Event", NativeType::PA_HEAP));
+        ProtoReader::TraceType::VMA_CHROMIUM, false,
+        MakeTypeValue("VMA_CHROMIUM_Free_Event", NativeType::VMA_CHROMIUM));
 }
 
 void NativeHookFilter::ParseConfigInfo(ProtoReader::BytesView &protoData, uint64_t &statisticsInterval)
@@ -1289,10 +1289,10 @@ uint64_t *NativeHookFilter::GetLastEventRaw(NativeType type)
             return &traceDataCache_->GetNativeHookData()->GetLastOtherAllocEventRaw();
         case NativeType::ARKTS_STATIC_HEAP:
             return &traceDataCache_->GetNativeHookData()->GetLastArktsStaticHeapEventRaw();
-        case NativeType::V8_HEAP:
-            return &traceDataCache_->GetNativeHookData()->GetLastV8HeapEventRaw();
-        case NativeType::PA_HEAP:
-            return &traceDataCache_->GetNativeHookData()->GetLastPaHeapEventRaw();
+        case NativeType::CHROMIUM_HEAP:
+            return &traceDataCache_->GetNativeHookData()->GetLastChromiumHeapEventRaw();
+        case NativeType::VMA_CHROMIUM:
+            return &traceDataCache_->GetNativeHookData()->GetLastVmaChromiumEventRaw();
         default:
             TS_LOGE("Unknown type: %d", type);
             return nullptr;

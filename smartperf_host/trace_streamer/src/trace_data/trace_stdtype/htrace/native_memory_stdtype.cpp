@@ -207,18 +207,18 @@ void NativeHook::AppendMoreNativeHookData(const NativeHookRow &context)
     } else if (context.eventType == ARKTS_STATIC_HEAP_FREE_EVENT) {
         countArktsStaticHeapSizes_ -= context.memSize;
         allMemSizes_.emplace_back(countArktsStaticHeapSizes_);
-    } else if (context.eventType == V8_HEAP_ALLOC_EVENT) {
-        countV8HeapSizes_ += context.memSize;
-        allMemSizes_.emplace_back(countV8HeapSizes_);
-    } else if (context.eventType == V8_HEAP_FREE_EVENT) {
-        countV8HeapSizes_ -= context.memSize;
-        allMemSizes_.emplace_back(countV8HeapSizes_);
-    } else if (context.eventType == PA_HEAP_ALLOC_EVENT) {
-        countPaHeapSizes_ += context.memSize;
-        allMemSizes_.emplace_back(countPaHeapSizes_);
-    } else if (context.eventType == PA_HEAP_FREE_EVENT) {
-        countPaHeapSizes_ -= context.memSize;
-        allMemSizes_.emplace_back(countPaHeapSizes_);
+    } else if (context.eventType == CHROMIUM_HEAP_ALLOC_EVENT) {
+        countChromiumHeapSizes_ += context.memSize;
+        allMemSizes_.emplace_back(countChromiumHeapSizes_);
+    } else if (context.eventType == CHROMIUM_HEAP_FREE_EVENT) {
+        countChromiumHeapSizes_ -= context.memSize;
+        allMemSizes_.emplace_back(countChromiumHeapSizes_);
+    } else if (context.eventType == VMA_CHROMIUM_ALLOC_EVENT) {
+        countVmaChromiumSizes_ += context.memSize;
+        allMemSizes_.emplace_back(countVmaChromiumSizes_);
+    } else if (context.eventType == VMA_CHROMIUM_FREE_EVENT) {
+        countVmaChromiumSizes_ -= context.memSize;
+        allMemSizes_.emplace_back(countVmaChromiumSizes_);
     }
 }
 

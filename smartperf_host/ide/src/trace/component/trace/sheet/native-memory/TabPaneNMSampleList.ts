@@ -404,6 +404,16 @@ export class TabPaneNMSampleList extends BaseElement {
             parentSample => parentSample.snapshot === MemoryType.MEMORY_M_MAP_NAME
           );
           break;
+        case '14':
+          childrenToShow = nmRootSample.tempList.filter(
+            parentSample => parentSample.snapshot === MemoryType.CHROMIUM_HEAP_Alloc_NAME
+          );
+          break;
+        case '15':
+          childrenToShow = nmRootSample.tempList.filter(
+            parentSample => parentSample.snapshot === MemoryType.VMA_CHROMIUM_Alloc_NAME
+          );
+          break;
         default:
           if (nmRootSample.tempList.length > 0) {
             childrenToShow = [nmRootSample.tempList[0]];
