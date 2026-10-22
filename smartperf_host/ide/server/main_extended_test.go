@@ -27,7 +27,7 @@ import (
 )
 
 // ============================================================
-// getSuffixByUrl — 扩展边界用例
+// getSuffixByUrl - 扩展边界用例
 // ============================================================
 
 func TestGetSuffixByUrl_MultipleSlashes(t *testing.T) {
@@ -149,7 +149,7 @@ func TestGetSuffixByUrl_PortInUrl(t *testing.T) {
 }
 
 // ============================================================
-// SplitLines — 扩展边界用例
+// SplitLines - 扩展边界用例
 // ============================================================
 
 func TestSplitLines_CRLFLineEndings(t *testing.T) {
@@ -235,7 +235,7 @@ func TestSplitLines_MixedEndings(t *testing.T) {
 }
 
 // ============================================================
-// mapToJson / jsonToMap — 扩展边界用例
+// mapToJson / jsonToMap - 扩展边界用例
 // ============================================================
 
 func TestMapToJson_EmptyMap(t *testing.T) {
@@ -384,7 +384,7 @@ func TestMapToJson_LargeMap(t *testing.T) {
 }
 
 // ============================================================
-// resp — 扩展边界用例
+// resp - 扩展边界用例
 // ============================================================
 
 func TestResp_NilData(t *testing.T) {
@@ -475,7 +475,7 @@ func TestResp_SpecialCharsInMsg(t *testing.T) {
 }
 
 // ============================================================
-// exist / PathExists — 扩展边界用例
+// exist / PathExists - 扩展边界用例
 // ============================================================
 
 func TestExist_DirectoryExists(t *testing.T) {
@@ -543,7 +543,7 @@ func TestPathExists_RelativePath(t *testing.T) {
 }
 
 // ============================================================
-// chekDir / MkDir — 扩展边界用例
+// chekDir / MkDir - 扩展边界用例
 // ============================================================
 
 func TestChekDir_DeepNestedDirectory(t *testing.T) {
@@ -592,7 +592,7 @@ func TestMkDir_WithSpacesInPath(t *testing.T) {
 }
 
 // ============================================================
-// readFileFirstLine — 扩展边界用例
+// readFileFirstLine - 扩展边界用例
 // ============================================================
 
 func TestReadFileFirstLine_EmptyFile(t *testing.T) {
@@ -677,7 +677,7 @@ func TestReadFileFirstLine_DirectoryPath(t *testing.T) {
 }
 
 // ============================================================
-// RsaSign / RsaSignAndBase64 — 扩展边界用例
+// RsaSign / RsaSignAndBase64 - 扩展边界用例
 // ============================================================
 
 func TestRsaSign_DifferentMessages(t *testing.T) {
@@ -707,9 +707,9 @@ func TestRsaSign_SameMessageProducesValidSignature(t *testing.T) {
 		t.Error("RsaSign should return non-empty signatures")
 	}
 	if sig1 == sig2 {
-		t.Log("PSS signatures match (deterministic salt) — valid behavior")
+		t.Log("PSS signatures match (deterministic salt) - valid behavior")
 	} else {
-		t.Log("PSS signatures differ (random salt) — valid behavior")
+		t.Log("PSS signatures differ (random salt) - valid behavior")
 	}
 }
 
@@ -804,7 +804,7 @@ func TestRsaSignAndBase64_IsValidBase64(t *testing.T) {
 }
 
 // ============================================================
-// cors — 扩展边界用例
+// cors - 扩展边界用例
 // ============================================================
 
 func TestCors_EmptyVersion(t *testing.T) {
@@ -904,7 +904,7 @@ func TestCors_DelegatesToInnerHandler(t *testing.T) {
 }
 
 // ============================================================
-// consoleHandler — 扩展边界用例
+// consoleHandler - 扩展边界用例
 // ============================================================
 
 func TestConsoleHandler_LogFileCreated(t *testing.T) {
@@ -995,7 +995,7 @@ func TestConsoleHandler_MissingContentType(t *testing.T) {
 }
 
 // ============================================================
-// getHdcPublicKey — 扩展边界用例
+// getHdcPublicKey - 扩展边界用例
 // ============================================================
 
 func TestGetHdcPublicKey_ResponseContainsSuccess(t *testing.T) {
@@ -1058,7 +1058,7 @@ func TestGetHdcPublicKey_ConsistentAcrossCalls(t *testing.T) {
 }
 
 // ============================================================
-// encryptHdcMsg — 扩展边界用例
+// encryptHdcMsg - 扩展边界用例
 // ============================================================
 
 func TestEncryptHdcMsg_LongMessage(t *testing.T) {
@@ -1116,7 +1116,7 @@ func TestEncryptHdcMsg_SetsHeaders(t *testing.T) {
 }
 
 // ============================================================
-// signatureHdcMsg — 扩展边界用例
+// signatureHdcMsg - 扩展边界用例
 // ============================================================
 
 func TestSignatureHdcMsg_LongMessage(t *testing.T) {
@@ -1187,7 +1187,7 @@ func TestSignatureHdcMsg_SignatureIsValidBase64(t *testing.T) {
 }
 
 // ============================================================
-// getServerConfig — 扩展边界用例
+// getServerConfig - 扩展边界用例
 // ============================================================
 
 func TestGetServerConfig_ContainsAllConfigSections(t *testing.T) {
@@ -1258,7 +1258,7 @@ func TestGetServerConfig_MarshalDoesNotPanicWithConcurrentLock(t *testing.T) {
 }
 
 // ============================================================
-// clearOverdueFile — 扩展边界用例
+// clearOverdueFile - 扩展边界用例
 // ============================================================
 
 func TestClearOverdueFile_EmptyDirectory(t *testing.T) {
@@ -1362,7 +1362,7 @@ func TestClearOverdueFile_DirectoryNotDeleted(t *testing.T) {
 }
 
 // ============================================================
-// downloadHandler — 扩展边界用例
+// downloadHandler - 扩展边界用例
 // ============================================================
 
 func TestDownloadHandler_NoBody(t *testing.T) {
@@ -1409,7 +1409,7 @@ func TestDownloadHandler_SetsContentTypeHeader(t *testing.T) {
 }
 
 // ============================================================
-// LoggerReq — 结构体测试
+// LoggerReq - 结构体测试
 // ============================================================
 
 func TestLoggerReq_JsonDecode(t *testing.T) {
@@ -1470,7 +1470,7 @@ func TestLoggerReq_MissingFields(t *testing.T) {
 }
 
 // ============================================================
-// ServerConfig — 结构体序列化测试
+// ServerConfig - 结构体序列化测试
 // ============================================================
 
 func TestServerConfig_JsonRoundTrip(t *testing.T) {
@@ -1593,7 +1593,7 @@ func TestAiAssistantConfig_JsonRoundTrip(t *testing.T) {
 }
 
 // ============================================================
-// AuthVerifyType — 常量测试
+// AuthVerifyType - 常量测试
 // ============================================================
 
 func TestAuthVerifyType_Values(t *testing.T) {
@@ -1619,7 +1619,7 @@ func TestAuthVerifyType_RsaSignAndBase64WithRsaEncrypt(t *testing.T) {
 }
 
 // ============================================================
-// getPidByPort / getPidByPortOther — 扩展边界用例
+// getPidByPort - 扩展边界用例
 // ============================================================
 
 func TestGetPidByPort_ValidPortNumber(t *testing.T) {
@@ -1646,34 +1646,8 @@ func TestGetPidByPort_HighPortNumber(t *testing.T) {
 	}
 }
 
-func TestGetPidByPortOther_ValidPortNumber(t *testing.T) {
-	result := getPidByPortOther(443)
-	if result < -1 {
-		t.Errorf("getPidByPortOther(443) = %d, expected >= -1", result)
-	}
-}
-
-func TestGetPidByPortOther_HighPortNumber(t *testing.T) {
-	result := getPidByPortOther(65535)
-	if result < -1 {
-		t.Errorf("getPidByPortOther(65535) = %d, expected >= -1", result)
-	}
-}
-
-func TestGetPidByPortOther_ZeroPort(t *testing.T) {
-	defer func() {
-		if r := recover(); r != nil {
-			t.Fatalf("getPidByPortOther panicked: %v", r)
-		}
-	}()
-	result := getPidByPortOther(0)
-	if result < -1 {
-		t.Errorf("getPidByPortOther(0) = %d, expected >= -1", result)
-	}
-}
-
 // ============================================================
-// checkPort — 扩展边界用例
+// checkPort - 扩展边界用例
 // ============================================================
 
 func TestCheckPort_CommonPorts(t *testing.T) {
@@ -1706,7 +1680,7 @@ func TestCheckPort_NegativePort(t *testing.T) {
 }
 
 // ============================================================
-// getExecutePath / getCurrentAbPath / getCallerPath — 扩展
+// getExecutePath / getCurrentAbPath - 扩展
 // ============================================================
 
 func TestGetExecutePath_ReturnsAbsolutePath(t *testing.T) {
@@ -1736,15 +1710,8 @@ func TestGetCurrentAbPath_ReturnsValidPath(t *testing.T) {
 	}
 }
 
-func TestGetCallerPath_ReturnsValidPath(t *testing.T) {
-	result := getCallerPath()
-	if result == "" {
-		t.Fatal("getCallerPath() returned empty string")
-	}
-}
-
 // ============================================================
-// genRsa / genSSL — 初始化验证
+// genRsa / genSSL - 初始化验证
 // ============================================================
 
 func TestGenRsa_SetsHdcPrivateKey(t *testing.T) {
@@ -1799,7 +1766,7 @@ func TestGenSSL_DoesNotPanic(t *testing.T) {
 }
 
 // ============================================================
-// CheckErr — 扩展边界用例
+// CheckErr - 扩展边界用例
 // ============================================================
 
 func TestCheckErr_WithErrorPanics(t *testing.T) {
@@ -1821,7 +1788,7 @@ func TestCheckErr_WithFormattedError(t *testing.T) {
 }
 
 // ============================================================
-// parseServerConfigFile — 扩展边界用例
+// parseServerConfigFile - 扩展边界用例
 // ============================================================
 
 func TestParseServerConfigFile_FilesNotExistsNoPanic(t *testing.T) {
@@ -1901,7 +1868,7 @@ func TestParseServerConfigFile_DoesNotModifyConfigOnMissingFile(t *testing.T) {
 }
 
 // ============================================================
-// readServerConfig — 扩展边界用例
+// readServerConfig - 扩展边界用例
 // ============================================================
 
 func TestReadServerConfig_MissingFileNoPanic(t *testing.T) {

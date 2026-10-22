@@ -90,7 +90,7 @@ function buildMultiPlatform() {
   const serverSrc = path.normalize(path.join(__dirname, '/server/main.go'));
   for (const platform of supportPlatform) {
     const generateFile = path.normalize(path.join(outPath, '/', platform.outFile));
-    setEnv = '';
+    let setEnv = '';
     if (os.type() === 'Windows_NT') {
       setEnv += `SET CGO_ENABLED=0&&SET GOOS=${platform.goos}&&SET GOARCH=${platform.goarch}&&`;
     } else {
