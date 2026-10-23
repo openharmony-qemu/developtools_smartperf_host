@@ -60,6 +60,9 @@ ohos_source_set("base") {
 ohos_source_set("string_help") {
   subsystem_name = "${OHOS_PROFILER_SUBSYS_NAME}"
   part_name = "${OHOS_PROFILER_PART_NAME}"
-  sources = [ "string_help.cpp" ]
+  sources = [
+    "log.cpp",
+    "string_help.cpp",
+  ]
   include_dirs = [ "//third_party/bounds_checking_function/include" ]
 }

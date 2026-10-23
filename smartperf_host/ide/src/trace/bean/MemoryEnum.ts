@@ -52,6 +52,8 @@ export enum MemoryStatisticType {
   ARK_LOCAL_HANDLE = 18, // Ark Local Handle
   DART_HEAP = 20, // DART Heap
   ARKTS_STATIC_HEAP = 21, // ArkTS Static Heap
+  CHROMIUM_HEAP = 22, // Chromium Heap
+  VMA_CHROMIUM = 23, // VMA Chromium
 };
 
 export class MemoryType {
@@ -93,6 +95,10 @@ export class MemoryType {
   static readonly DART_HEAP_Free_NAME = 'DART_HEAP_Free_Event';
   static readonly ARKTS_STATIC_HEAP_Alloc_NAME = 'ARKTS_STATIC_HEAP_Alloc_Event';
   static readonly ARKTS_STATIC_HEAP_Free_NAME = 'ARKTS_STATIC_HEAP_Free_Event';
+  static readonly CHROMIUM_HEAP_Alloc_NAME = 'CHROMIUM_HEAP_Alloc_Event';
+  static readonly CHROMIUM_HEAP_Free_NAME = 'CHROMIUM_HEAP_Free_Event';
+  static readonly VMA_CHROMIUM_Alloc_NAME = 'VMA_CHROMIUM_Alloc_Event';
+  static readonly VMA_CHROMIUM_Free_NAME = 'VMA_CHROMIUM_Free_Event';
   static readonly RN_HERMES_HEAP_Alloc_NAME = 'RN_HERMES_HEAP_Alloc_Event';
   static readonly RN_HERMES_HEAP_Free_NAME = 'RN_HERMES_HEAP_Free_Event';
   static readonly ARK_GLOBAL_HANDLE_Alloc_NAME = 'ARK_GLOBAL_HANDLE_Alloc_Event';
@@ -105,12 +111,24 @@ export class MemoryType {
   MemoryType.GPU_VK_Alloc_NAME, MemoryType.GPU_GLES_Alloc_NAME, MemoryType.GPU_CL_Alloc_NAME,
   MemoryType.ARKTS_Alloc_NAME, MemoryType.JS_Alloc_NAME,
   MemoryType.KMP_Alloc_NAME, MemoryType.SO_Alloc_NAME, MemoryType.ASHMEM_Alloc_NAME,
-  MemoryType.ION_Alloc_NAME, MemoryType.DART_HEAP_Alloc_NAME, MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME, MemoryType.RN_HERMES_HEAP_Alloc_NAME, MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME, MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME];
+  MemoryType.ION_Alloc_NAME, MemoryType.DART_HEAP_Alloc_NAME,
+  MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME, MemoryType.RN_HERMES_HEAP_Alloc_NAME,
+  MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME, MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME,
+  MemoryType.CHROMIUM_HEAP_Alloc_NAME, MemoryType.VMA_CHROMIUM_Alloc_NAME];
 
   static readonly APPLY_NM_EVENTS = [MemoryType.MEMORY_M_ALLOC_NAME, MemoryType.MEMORY_M_MAP_NAME,
-  MemoryType.ARKTS_Alloc_NAME, MemoryType.JS_Alloc_NAME, MemoryType.KMP_Alloc_NAME, MemoryType.ION_Alloc_NAME, MemoryType.SO_Alloc_NAME, MemoryType.ASHMEM_Alloc_NAME, MemoryType.DART_HEAP_Alloc_NAME, MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME, MemoryType.RN_HERMES_HEAP_Alloc_NAME, MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME, MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME];
+  MemoryType.ARKTS_Alloc_NAME, MemoryType.JS_Alloc_NAME, MemoryType.KMP_Alloc_NAME,
+  MemoryType.ION_Alloc_NAME, MemoryType.SO_Alloc_NAME, MemoryType.ASHMEM_Alloc_NAME,
+  MemoryType.DART_HEAP_Alloc_NAME, MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME,
+  MemoryType.RN_HERMES_HEAP_Alloc_NAME, MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME,
+  MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME, MemoryType.CHROMIUM_HEAP_Alloc_NAME,
+  MemoryType.VMA_CHROMIUM_Alloc_NAME];
 
-  static readonly ALL_HEAP_EVENTS = [MemoryType.MEMORY_M_ALLOC_NAME, MemoryType.ARKTS_Alloc_NAME, MemoryType.JS_Alloc_NAME, MemoryType.KMP_Alloc_NAME, MemoryType.DART_HEAP_Alloc_NAME, MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME, MemoryType.RN_HERMES_HEAP_Alloc_NAME, MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME, MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME];
+  static readonly ALL_HEAP_EVENTS = [MemoryType.MEMORY_M_ALLOC_NAME, MemoryType.ARKTS_Alloc_NAME,
+  MemoryType.JS_Alloc_NAME, MemoryType.KMP_Alloc_NAME, MemoryType.DART_HEAP_Alloc_NAME,
+  MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME, MemoryType.RN_HERMES_HEAP_Alloc_NAME,
+  MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME, MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME,
+  MemoryType.CHROMIUM_HEAP_Alloc_NAME, MemoryType.VMA_CHROMIUM_Alloc_NAME];
   static readonly ALL_ANONYMOUS_EVENTS = [MemoryType.MEMORY_M_MAP_NAME, MemoryType.ION_Alloc_NAME, MemoryType.SO_Alloc_NAME, MemoryType.ASHMEM_Alloc_NAME];
 
 };
@@ -132,6 +150,8 @@ export const MemoryBasicType = {
     'VM Ashmem',
     'VM SO',
     'VM Others',
+    'Chromium Heap',
+    'VMA Chromium',
   ] as const,
   GPU_MEMORY: [
     'All Gpu Memory',
@@ -148,7 +168,8 @@ export const MemoryBasicType = {
 
 // 定义 Native Memory 的堆类型索引数组
 export const NATIVE_MEMORY_ALL_HEAP_IDX = 1; // All Heap
-export const NATIVE_MEMORY_HEAP_INDICES = [2, 3, 4, 5, 6, 7, 8] as const; // Native Heap, ArkTs Heap, JS Heap, Dart Heap, Arkts Static Heap, RN Heap, KMP Heap
+// Native Heap, ArkTs Heap, JS Heap, Dart Heap, Arkts Static Heap, RN Heap, KMP Heap, Chromium Heap, VMA Chromium
+export const NATIVE_MEMORY_HEAP_INDICES = [2, 3, 4, 5, 6, 7, 8, 14, 15] as const;
 export const NATIVE_MEMORY_ALL_ANONYMOUS_VM_IDX = 9; // All Anonymous VM
 export const NATIVE_MEMORY_ANONYMOUS_VM_INDICES = [10, 11, 12, 13] as const; // VM ION, VM Ashmem, VM SO, VM Others
 
@@ -178,7 +199,9 @@ export const memoryConfig: Record<
       MemoryType.MEMORY_M_MAP_NAME, MemoryType.ARKTS_Alloc_NAME,
       MemoryType.JS_Alloc_NAME, MemoryType.KMP_Alloc_NAME,
       MemoryType.SO_Alloc_NAME, MemoryType.ASHMEM_Alloc_NAME,
-      MemoryType.ION_Alloc_NAME, MemoryType.DART_HEAP_Alloc_NAME, MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME, MemoryType.RN_HERMES_HEAP_Alloc_NAME
+      MemoryType.ION_Alloc_NAME, MemoryType.DART_HEAP_Alloc_NAME,
+      MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME, MemoryType.RN_HERMES_HEAP_Alloc_NAME,
+      MemoryType.CHROMIUM_HEAP_Alloc_NAME, MemoryType.VMA_CHROMIUM_Alloc_NAME
     ],
     chartConfigs: [
       { suffix: 0 }, // NativeMemory 总和泳道 (All Heap & Anonymous VM)
@@ -193,6 +216,8 @@ export const memoryConfig: Record<
       { filter: MemoryType.ASHMEM_Alloc_NAME, suffix: 11 }, // VM Ashmem
       { filter: MemoryType.SO_Alloc_NAME, suffix: 12 }, // VM SO
       { filter: MemoryType.MEMORY_M_MAP_NAME, suffix: 13 }, // VM Others
+      { filter: MemoryType.CHROMIUM_HEAP_Alloc_NAME, suffix: 14 }, // Chromium Heap
+      { filter: MemoryType.VMA_CHROMIUM_Alloc_NAME, suffix: 15 }, // VMA Chromium
     ],
   },
   [MemoryTraceRowType.ROW_TYPE_OTHER_SOURCE]: {
@@ -237,6 +262,8 @@ export const statisticTypeMap: Record<number, string> = {
   18: "arkLocalHandle",  // MemoryStatisticType.ARK_LOCAL_HANDLE (Native Heap)
   20: "dartHeap", // MemoryStatisticType.DART_HEAP (DART Heap)
   21: "arktsStaticHeap", // MemoryStatisticType.ARKTS_STATIC_HEAP (ArkTS Static Heap)
+  22: "chromiumHeap", // MemoryStatisticType.CHROMIUM_HEAP (Chromium Heap)
+  23: "vmaChromium", // MemoryStatisticType.VMA_CHROMIUM (VMA Chromium)
 };
 
 //统计模式泳道图配置：
@@ -263,6 +290,8 @@ export const handlerConfig: HandlerItem[] = [
       { key: "ashmem", suffix: "11" },          // VM Ashmem
       { key: "so", suffix: "12" },             // VM SO
       { key: "mmap", suffix: "13" },           // VM Others
+      { key: "chromiumHeap", suffix: "14" },  // Chromium Heap
+      { key: "vmaChromium", suffix: "15" },   // VMA Chromium
     ],
     sum: true,
   },
@@ -296,7 +325,10 @@ function mapTypeToFilters(type: string, isStat: boolean, needFree: boolean): Arr
           MemoryStatisticType.FILE_PAGE_MSG, MemoryStatisticType.MEMORY_USING_MSG,
           MemoryStatisticType.ARKTS, MemoryStatisticType.JS, MemoryStatisticType.KMP,
           MemoryStatisticType.SO, MemoryStatisticType.ASHMEM, MemoryStatisticType.DMA,
-          MemoryStatisticType.DART_HEAP, MemoryStatisticType.ARKTS_STATIC_HEAP, MemoryStatisticType.RN, MemoryStatisticType.ARK_GLOBAL_HANDLE, MemoryStatisticType.ARK_LOCAL_HANDLE
+          MemoryStatisticType.DART_HEAP, MemoryStatisticType.ARKTS_STATIC_HEAP,
+          MemoryStatisticType.RN, MemoryStatisticType.ARK_GLOBAL_HANDLE,
+          MemoryStatisticType.ARK_LOCAL_HANDLE, MemoryStatisticType.CHROMIUM_HEAP,
+          MemoryStatisticType.VMA_CHROMIUM
         ]
         : needFree
           ? [
@@ -312,7 +344,9 @@ function mapTypeToFilters(type: string, isStat: boolean, needFree: boolean): Arr
             `${MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME}`, `${MemoryType.ARK_LOCAL_HANDLE_Free_NAME}`,
             `${MemoryType.SO_Alloc_NAME}`, `${MemoryType.SO_Free_NAME}`,
             `${MemoryType.ASHMEM_Alloc_NAME}`, `${MemoryType.ASHMEM_Free_NAME}`,
-            `${MemoryType.ION_Alloc_NAME}`, `${MemoryType.ION_Free_NAME}`
+            `${MemoryType.ION_Alloc_NAME}`, `${MemoryType.ION_Free_NAME}`,
+            `${MemoryType.CHROMIUM_HEAP_Alloc_NAME}`, `${MemoryType.CHROMIUM_HEAP_Free_NAME}`,
+            `${MemoryType.VMA_CHROMIUM_Alloc_NAME}`, `${MemoryType.VMA_CHROMIUM_Free_NAME}`
           ]
           : [
             `${MemoryType.MEMORY_M_ALLOC_NAME}`, `${MemoryType.MEMORY_M_MAP_NAME}`,
@@ -320,13 +354,17 @@ function mapTypeToFilters(type: string, isStat: boolean, needFree: boolean): Arr
             `${MemoryType.DART_HEAP_Alloc_NAME}`, `${MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME}`,
             `${MemoryType.RN_HERMES_HEAP_Alloc_NAME}`, `${MemoryType.SO_Alloc_NAME}`,
             `${MemoryType.ASHMEM_Alloc_NAME}`, `${MemoryType.ION_Alloc_NAME}`,
-            `${MemoryType.KMP_Alloc_NAME}`, `${MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME}`, `${MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME}`
+            `${MemoryType.KMP_Alloc_NAME}`, `${MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME}`, `${MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME}`,
+            `${MemoryType.CHROMIUM_HEAP_Alloc_NAME}`, `${MemoryType.VMA_CHROMIUM_Alloc_NAME}`
           ];
     //NativeMemory 第二行All Heap泳道组
     case MemoryBasicType.NATIVE_MEMORY[1]:
       return isStat
         ? [MemoryStatisticType.MALLOC, MemoryStatisticType.ARKTS, MemoryStatisticType.JS,
-        MemoryStatisticType.DART_HEAP, MemoryStatisticType.ARKTS_STATIC_HEAP, MemoryStatisticType.RN, MemoryStatisticType.KMP, MemoryStatisticType.ARK_GLOBAL_HANDLE, MemoryStatisticType.ARK_LOCAL_HANDLE]
+        MemoryStatisticType.DART_HEAP, MemoryStatisticType.ARKTS_STATIC_HEAP,
+        MemoryStatisticType.RN, MemoryStatisticType.KMP,
+        MemoryStatisticType.ARK_GLOBAL_HANDLE, MemoryStatisticType.ARK_LOCAL_HANDLE,
+        MemoryStatisticType.CHROMIUM_HEAP, MemoryStatisticType.VMA_CHROMIUM]
         : needFree
           ? [
             `${MemoryType.MEMORY_M_ALLOC_NAME}`, `${MemoryType.MEMORY_M_FREE_NAME}`,
@@ -337,14 +375,17 @@ function mapTypeToFilters(type: string, isStat: boolean, needFree: boolean): Arr
             `${MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME}`, `${MemoryType.ARKTS_STATIC_HEAP_Free_NAME}`,
             `${MemoryType.RN_HERMES_HEAP_Alloc_NAME}`, `${MemoryType.RN_HERMES_HEAP_Free_NAME}`,
             `${MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME}`, `${MemoryType.ARK_GLOBAL_HANDLE_Free_NAME}`,
-            `${MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME}`, `${MemoryType.ARK_LOCAL_HANDLE_Free_NAME}`
+            `${MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME}`, `${MemoryType.ARK_LOCAL_HANDLE_Free_NAME}`,
+            `${MemoryType.CHROMIUM_HEAP_Alloc_NAME}`, `${MemoryType.CHROMIUM_HEAP_Free_NAME}`,
+            `${MemoryType.VMA_CHROMIUM_Alloc_NAME}`, `${MemoryType.VMA_CHROMIUM_Free_NAME}`
           ]
           : [
             `${MemoryType.MEMORY_M_ALLOC_NAME}`, `${MemoryType.ARKTS_Alloc_NAME}`,
             `${MemoryType.JS_Alloc_NAME}`, `${MemoryType.DART_HEAP_Alloc_NAME}`,
             `${MemoryType.ARKTS_STATIC_HEAP_Alloc_NAME}`,
             `${MemoryType.RN_HERMES_HEAP_Alloc_NAME}`,
-            `${MemoryType.KMP_Alloc_NAME}`, `${MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME}`, `${MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME}`
+            `${MemoryType.KMP_Alloc_NAME}`, `${MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME}`, `${MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME}`,
+            `${MemoryType.CHROMIUM_HEAP_Alloc_NAME}`, `${MemoryType.VMA_CHROMIUM_Alloc_NAME}`
           ];
     //NativeMemory Native Heap (原 All Heap)
     case MemoryBasicType.NATIVE_MEMORY[2]:
@@ -443,6 +484,20 @@ function mapTypeToFilters(type: string, isStat: boolean, needFree: boolean): Arr
         : needFree
           ? [`${MemoryType.MEMORY_M_MAP_NAME}`, `${MemoryType.MEMORY_M_UNMAP_NAME}`]
           : [`${MemoryType.MEMORY_M_MAP_NAME}`];
+    //NativeMemory Chromium Heap
+    case MemoryBasicType.NATIVE_MEMORY[14]:
+      return isStat
+        ? [MemoryStatisticType.CHROMIUM_HEAP]
+        : needFree
+          ? [`${MemoryType.CHROMIUM_HEAP_Alloc_NAME}`, `${MemoryType.CHROMIUM_HEAP_Free_NAME}`]
+          : [`${MemoryType.CHROMIUM_HEAP_Alloc_NAME}`];
+    //NativeMemory VMA Chromium
+    case MemoryBasicType.NATIVE_MEMORY[15]:
+      return isStat
+        ? [MemoryStatisticType.VMA_CHROMIUM]
+        : needFree
+          ? [`${MemoryType.VMA_CHROMIUM_Alloc_NAME}`, `${MemoryType.VMA_CHROMIUM_Free_NAME}`]
+          : [`${MemoryType.VMA_CHROMIUM_Alloc_NAME}`];
     //OtherSource 第一行FD泳道
     case MemoryBasicType.OTHER_SOURCE[1]:
       return isStat
@@ -486,7 +541,12 @@ export function getCurrentTypes(selectParam: SelectionParam, memoryType: MemoryT
     return [];
   }
   for (const type of typeList) {
-    targetFilters.push(...mapTypeToFilters(type, isStatistic, needFree));
+    // 统计模式下 type 为数字类型 ID，直接传递给 SQL 查询；mapTypeToFilters 仅处理字符串泳道名
+    if (isStatistic && typeof type === 'number') {
+      targetFilters.push(type);
+    } else {
+      targetFilters.push(...mapTypeToFilters(type, isStatistic, needFree));
+    }
   }
   return targetFilters;
 }
@@ -543,6 +603,10 @@ export function getEventTypeNameFromTypeId(type: number): string {
       return MemoryType.ARK_GLOBAL_HANDLE_Alloc_NAME;
     case MemoryStatisticType.ARK_LOCAL_HANDLE:
       return MemoryType.ARK_LOCAL_HANDLE_Alloc_NAME;
+    case MemoryStatisticType.CHROMIUM_HEAP:
+      return MemoryType.CHROMIUM_HEAP_Alloc_NAME;
+    case MemoryStatisticType.VMA_CHROMIUM:
+      return MemoryType.VMA_CHROMIUM_Alloc_NAME;
     default:
       return '';
   }

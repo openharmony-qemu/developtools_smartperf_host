@@ -207,6 +207,25 @@ void NativeHook::AppendMoreNativeHookData(const NativeHookRow &context)
     } else if (context.eventType == ARKTS_STATIC_HEAP_FREE_EVENT) {
         countArktsStaticHeapSizes_ -= context.memSize;
         allMemSizes_.emplace_back(countArktsStaticHeapSizes_);
+    } else {
+        UpdateChromiumHeapSizes(context);
+    }
+}
+
+void NativeHook::UpdateChromiumHeapSizes(const NativeHookRow &context)
+{
+    if (context.eventType == CHROMIUM_HEAP_ALLOC_EVENT) {
+        countChromiumHeapSizes_ += context.memSize;
+        allMemSizes_.emplace_back(countChromiumHeapSizes_);
+    } else if (context.eventType == CHROMIUM_HEAP_FREE_EVENT) {
+        countChromiumHeapSizes_ -= context.memSize;
+        allMemSizes_.emplace_back(countChromiumHeapSizes_);
+    } else if (context.eventType == VMA_CHROMIUM_ALLOC_EVENT) {
+        countVmaChromiumSizes_ += context.memSize;
+        allMemSizes_.emplace_back(countVmaChromiumSizes_);
+    } else if (context.eventType == VMA_CHROMIUM_FREE_EVENT) {
+        countVmaChromiumSizes_ -= context.memSize;
+        allMemSizes_.emplace_back(countVmaChromiumSizes_);
     }
 }
 

@@ -547,6 +547,8 @@ function cacheStatisticChartData(processData: Array<NMData>, ipid: number): void
     js: [],
     dartHeap: [],
     arktsStaticHeap: [],
+    chromiumHeap: [],
+    vmaChromium: [],
     rn: [],
     kmp: [],
     so: [],
@@ -559,7 +561,7 @@ function cacheStatisticChartData(processData: Array<NMData>, ipid: number): void
   processData.forEach((item) => {
     timeSet.add(item.startTs);
     const key = statisticTypeMap[item.type];
-    if (key) {
+    if (key && buckets[key]) {
       buckets[key].push(item);
     }
   });
