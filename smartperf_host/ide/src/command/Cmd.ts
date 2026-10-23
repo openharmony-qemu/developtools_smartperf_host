@@ -20,23 +20,39 @@ import { TypeConstants } from '../webSocket/Constants';
 import { WebSocketManager } from '../webSocket/WebSocketManager';
 
 export class Cmd {
-  static CmdSendPostUtils(uri: string, callback: Function, requestData: unknown): void {
+  static CmdSendPostUtils(uri: string, callback: Function, requestData: unknown, timeoutMs?: number): void {
     // @ts-ignore
     if (window.useWb) {
       return;
     }
-    fetch(uri, {
+    const fetchOptions: RequestInit = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(requestData),
-    }).then((response): void => {
+    };
+    let controller: AbortController | undefined;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    if (timeoutMs && typeof AbortController !== 'undefined') {
+      controller = new AbortController();
+      fetchOptions.signal = controller.signal;
+      timer = setTimeout(() => controller!.abort(), timeoutMs);
+    }
+    fetch(uri, fetchOptions).then((response): void => {
       if (response.ok) {
         let result = response.text();
         result.then((output) => {
           callback(output);
         });
+      } else {
+        callback(JSON.stringify({ success: false, code: -1, msg: `HTTP ${response.status}`, data: null }));
+      }
+    }).catch((e): void => {
+      callback(JSON.stringify({ success: false, code: -1, msg: String(e), data: null }));
+    }).finally((): void => {
+      if (timer) {
+        clearTimeout(timer);
       }
     });
   }
@@ -67,10 +83,12 @@ export class Cmd {
       tag: 'shell',
     };
     let uri = `http://${window.location.host.split(':')[0]}:${window.location.port}/hdcCmd`;
-    Cmd.CmdSendPostUtils(uri, callback, data);
+    const traceSecs = Cmd.parseTraceDuration(command);
+    const timeoutMs = traceSecs > 0 ? (traceSecs + 240) * 1000 : undefined;
+    Cmd.CmdSendPostUtils(uri, callback, data, timeoutMs);
   }
 
-  static async execFileRecv(command: string, filePath: string, callback: Function): Promise<void> {
+  static async execFileRecv(command: string, filePath: string, callback: Function, timeoutMs?: number): Promise<void> {
     // @ts-ignore
     if (window.useWb) {
       return;
@@ -82,14 +100,28 @@ export class Cmd {
       fileName: fileName,
     };
     let uri = `http://${window.location.host.split(':')[0]}:${window.location.port}/hdcCmd`;
-    let buf = await fetch(uri, {
+    const fetchOptions: RequestInit = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(data),
-    }).then((res) => res.arrayBuffer());
-    callback(buf);
+    };
+    let controller: AbortController | undefined;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    if (timeoutMs && typeof AbortController !== 'undefined') {
+      controller = new AbortController();
+      fetchOptions.signal = controller.signal;
+      timer = setTimeout(() => controller!.abort(), timeoutMs);
+    }
+    try {
+      let buf = await fetch(uri, fetchOptions).then((res) => res.arrayBuffer());
+      callback(buf);
+    } finally {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    }
   }
 
   static execHdcTraceCmd(command: string, serialNumber: string, callback: Function): void {
@@ -103,7 +135,9 @@ export class Cmd {
       serialNumber: serialNumber,
     };
     let uri = `http://${window.location.host.split(':')[0]}:${window.location.port}/hdcCmd`;
-    Cmd.CmdSendPostUtils(uri, callback, data);
+    const traceSecs = Cmd.parseTraceDuration(command);
+    const timeoutMs = traceSecs > 0 ? (traceSecs + 240) * 1000 : 3720000;
+    Cmd.CmdSendPostUtils(uri, callback, data, timeoutMs);
   }
 
   static formatString(string: string, params: string[]): string {
@@ -114,6 +148,17 @@ export class Cmd {
       string = string.replace(new RegExp('\\{' + i + '\\}', 'g'), params[i]);
     }
     return string;
+  }
+
+  static parseTraceDuration(cmd: string): number {
+    const match = cmd.match(/hiprofiler_cmd[\s\S]*?-t\s+(\d+)/);
+    if (match && match[1]) {
+      const secs = parseInt(match[1], 10);
+      if (secs > 0) {
+        return secs;
+      }
+    }
+    return 0;
   }
 
   static showSaveFile(callback: Function): void {

@@ -25,7 +25,12 @@ const childProcess = require('child_process');
 const { exec } = require('child_process');
 const fs = require('fs');
 
-const supportPlatform = ['windows', 'linux', 'darwin'];
+const supportPlatform = [
+  { name: 'windows', goos: 'windows', goarch: 'amd64', outFile: 'main.exe' },
+  { name: 'linux', goos: 'linux', goarch: 'amd64', outFile: 'main_linux' },
+  { name: 'darwin', goos: 'darwin', goarch: 'amd64', outFile: 'main_darwin' },
+  { name: 'ohos', goos: 'linux', goarch: 'arm64', outFile: 'main_ohos_arm64' },
+];
 
 function runCommand(command) {
   return new Promise((resolve, reject) => {
@@ -84,17 +89,15 @@ function buildMultiPlatform() {
   const outPath = path.normalize(path.join(__dirname, '/', 'dist'));
   const serverSrc = path.normalize(path.join(__dirname, '/server/main.go'));
   for (const platform of supportPlatform) {
-    const generateFile = platform === 'windows' ?
-      path.normalize(path.join(outPath, '/', `main.exe`)) :
-      path.normalize(path.join(outPath, '/', `main_${platform}`));
-    setEnv = '';
+    const generateFile = path.normalize(path.join(outPath, '/', platform.outFile));
+    let setEnv = '';
     if (os.type() === 'Windows_NT') {
-      setEnv += `SET CGO_ENABLED=0&&SET GOOS=${platform}&&SET GOARCH=amd64&&`;
+      setEnv += `SET CGO_ENABLED=0&&SET GOOS=${platform.goos}&&SET GOARCH=${platform.goarch}&&`;
     } else {
-      setEnv += `CGO_ENABLED=0 GOOS=${platform} GOARCH=amd64`;
+      setEnv += `CGO_ENABLED=0 GOOS=${platform.goos} GOARCH=${platform.goarch}`;
     }
     const buildCmd = `${setEnv} go build -o ${generateFile} ${serverSrc}`;
-    console.log(`compile ${platform} server ...`);
+    console.log(`compile ${platform.name} server ...`);
     childProcess.execSync(buildCmd);
   }
 }
@@ -113,6 +116,11 @@ const stylesHandler = isProduction ? MiniCssExtractPlugin.loader : 'style-loader
   const protoPath = './src/trace/proto/';
   runCommand(`pbjs -t static-module -w commonjs -o ${protoPath}SphBaseData.js  ${protoPath}SphBaseData.proto`);
   buildMultiPlatform();
+  try {
+    require('./server/sign-ohos.js');
+  } catch (e) {
+    console.warn('sign-ohos skipped:', e.message);
+  }
 })(true);
 const config = {
   entry: './src/index.ts',
@@ -121,6 +129,7 @@ const config = {
     filename: '[name].[chunkhash].bundle.js',
     clean: false,
   },
+  devtool: isProduction ? false : 'eval-source-map',
   devServer: {
     open: true,
     host: 'localhost',
@@ -178,6 +187,10 @@ const config = {
         {
           from: './server/server-config.json',
           to: 'server-config.json',
+        },
+        {
+          from: './server/start-ohos.sh',
+          to: 'start-ohos.sh',
         },
       ],
     }),

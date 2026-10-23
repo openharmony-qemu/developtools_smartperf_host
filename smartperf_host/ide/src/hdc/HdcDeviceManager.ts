@@ -46,12 +46,39 @@ export class HdcDeviceManager {
   private static clientList: Map<string, HdcClient> = new Map();
   public static currentHdcClient: HdcClient;
   private static FILE_RECV_PREFIX_STRING = 'hdc file recv -cwd C:\\ ';
+  private static cmdSerialNumber: string = '';
+  public static hdcCmdMode: boolean = true;
+
+  /**
+   * 检测浏览器是否支持 WebUSB。
+   * 鸿蒙 PC 海泰浏览器虽有 navigator.usb 对象但 transferIn/transferOut 不可用，
+   * 需通过 Go 服务检测 hdc 是否可用来强制走 cmd 模式。
+   */
+  public static isWebUsbSupported(): boolean {
+    if (HdcDeviceManager.hdcCmdMode) {
+      return false;
+    }
+    if (HdcDeviceManager.cmdSerialNumber) {
+      return false;
+    }
+    // @ts-ignore
+    if (typeof navigator === 'undefined' || !('usb' in navigator)) {
+      return false;
+    }
+    // @ts-ignore
+    const usb = navigator.usb;
+    // @ts-ignore
+    return typeof usb.requestDevice === 'function' && typeof usb.getDevices === 'function';
+  }
 
   /**
    * getDevices
    */
   // @ts-ignore
   public static async getDevices(): Promise<USBDevice[]> {
+    if (!HdcDeviceManager.isWebUsbSupported()) {
+      return HdcDeviceManager.cmdListDevices();
+    }
     // @ts-ignore
     return navigator.usb.getDevices();
   }
@@ -61,8 +88,14 @@ export class HdcDeviceManager {
    */
   // @ts-ignore
   public static findDevice(): Promise<USBDevice> {
-    if (!('usb' in navigator)) {
-      throw new Error('WebUSB not supported by the browser (requires HTTPS)');
+    if (!HdcDeviceManager.isWebUsbSupported()) {
+      // @ts-ignore
+      return HdcDeviceManager.cmdListDevices().then((devices): USBDevice => {
+        if (devices.length === 0) {
+          throw new Error('No hdc device found (hdc list targets is empty)');
+        }
+        return devices[0];
+      });
     }
     // @ts-ignore
     return navigator.usb.requestDevice({ filters: HDC_DEVICE_FILTERS });
@@ -74,6 +107,10 @@ export class HdcDeviceManager {
    * @param serialNumber serialNumber
    */
   public static async connect(serialNumber: string): Promise<boolean> {
+    if (!HdcDeviceManager.isWebUsbSupported()) {
+      this.switchToCmdMode(serialNumber);
+      return true;
+    }
     if (this.currentHdcClient && serialNumber !== this.currentHdcClient.usbDevice.serialNumber) {
       this.clientList.delete(serialNumber);
       HdcDeviceManager.disConnect(this.currentHdcClient.usbDevice.serialNumber).then((): void => {
@@ -81,34 +118,49 @@ export class HdcDeviceManager {
       });
     }
     const client = this.clientList.get(serialNumber);
-    if (client && serialNumber === this.currentHdcClient.usbDevice.serialNumber) {
+    if (client && this.currentHdcClient && serialNumber === this.currentHdcClient.usbDevice.serialNumber) {
       if (client.usbDevice!.opened) {
         log('device Usb is Open');
         return true;
-      } else {
-        if (SpRecordTrace.serialNumber === serialNumber) {
-          SpRecordTrace.serialNumber = '';
-        }
-        log('device Usb not Open');
-        return false;
       }
-    } else {
+      if (SpRecordTrace.serialNumber === serialNumber) {
+        SpRecordTrace.serialNumber = '';
+      }
+      log('device Usb not Open');
+      return false;
+    }
+    try {
       const connectDevice = await this.getDeviceBySerialNumber(serialNumber);
+      if (!connectDevice) {
+        throw new Error('device not found');
+      }
       const usbChannel = await UsbTransmissionChannel.openHdcDevice(connectDevice);
       if (usbChannel) {
         const hdcClient = new HdcClient(usbChannel, connectDevice);
-        const connected = await hdcClient.connectDevice();
+        const connected = await Promise.race([
+          hdcClient.connectDevice(),
+          new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 15000)),
+        ]);
         if (connected) {
           this.currentHdcClient = hdcClient;
           this.clientList.set(serialNumber, hdcClient);
+          log(`device Usb connected : ${connected}`);
+          return true;
         }
-        log(`device Usb connected : ${connected}`);
-        return connected;
-      } else {
-        log('device Usb connected failed: ');
-        return false;
       }
+      log('WebUSB connect failed, falling back to hdc cmd mode');
+      this.switchToCmdMode(serialNumber);
+      return true;
+    } catch (e) {
+      log('WebUSB connect error, falling back to hdc cmd mode: ' + e);
+      this.switchToCmdMode(serialNumber);
+      return true;
     }
+  }
+
+  private static switchToCmdMode(serialNumber: string): void {
+    HdcDeviceManager.cmdSerialNumber = serialNumber;
+    this.currentHdcClient = { usbDevice: { serialNumber } } as unknown as HdcClient;
   }
 
   // @ts-ignore
@@ -125,6 +177,11 @@ export class HdcDeviceManager {
    * @param serialNumber
    */
   public static async disConnect(serialNumber: string): Promise<boolean> {
+    if (HdcDeviceManager.cmdSerialNumber && HdcDeviceManager.cmdSerialNumber === serialNumber) {
+      HdcDeviceManager.cmdSerialNumber = '';
+      this.currentHdcClient = undefined as unknown as HdcClient;
+      return true;
+    }
     const hdcClient = this.clientList.get(serialNumber);
     if (hdcClient) {
       await hdcClient.disconnect();
@@ -145,6 +202,9 @@ export class HdcDeviceManager {
   public static async shellResultAsString(cmd: string, isSkipResult: boolean, shellResultHandleFun?: Function):
     Promise<string> {
     if (this.currentHdcClient) {
+      if (HdcDeviceManager.cmdSerialNumber) {
+        return HdcDeviceManager.cmdShell(cmd);
+      }
       const hdcStream = new HdcStream(this.currentHdcClient, false);
       await hdcStream.DoCommand(cmd);
       let result = '';
@@ -180,6 +240,9 @@ export class HdcDeviceManager {
    */
   public static async stopHiprofiler(cmd: string): Promise<string> {
     if (this.currentHdcClient) {
+      if (HdcDeviceManager.cmdSerialNumber) {
+        return HdcDeviceManager.cmdShell(cmd);
+      }
       const hdcStream = new HdcStream(this.currentHdcClient, true);
       await hdcStream.DoCommand(cmd);
       let result = '';
@@ -200,6 +263,10 @@ export class HdcDeviceManager {
     resultCallBack: (res: DataMessage) => void
   ): ((keyboardEvent: KeyboardEvent | string) => void | undefined) | undefined {
     if (this.currentHdcClient) {
+      if (HdcDeviceManager.cmdSerialNumber) {
+        log('interactive shell is not supported in hdc cmd mode');
+        return (): void => {};
+      }
       const hdcShellStream = new HdcStream(this.currentHdcClient, false);
       this.shellInit(hdcShellStream, resultCallBack);
       return (keyboardEvent: KeyboardEvent | string): void => {
@@ -273,6 +340,10 @@ export class HdcDeviceManager {
    */
   public static async shellResultAsBlob(cmd: string, isSkipResult: boolean): Promise<Blob> {
     if (this.currentHdcClient) {
+      if (HdcDeviceManager.cmdSerialNumber) {
+        const result = await HdcDeviceManager.cmdShell(cmd);
+        return new Blob([result]);
+      }
       const hdcStream = new HdcStream(this.currentHdcClient, false);
       log(`cmd is ${cmd}`);
       await hdcStream.DoCommand(cmd);
@@ -309,6 +380,9 @@ export class HdcDeviceManager {
    */
   // 进度
   public static async fileRecv(filename: string, callBack: (schedule: number) => void): Promise<Blob> {
+    if (this.currentHdcClient && HdcDeviceManager.cmdSerialNumber) {
+      return HdcDeviceManager.cmdFileRecv(filename, callBack);
+    }
     let finalBuffer;
     if (this.currentHdcClient) {
       const hdcStream = new HdcStream(this.currentHdcClient, false);
@@ -379,5 +453,96 @@ export class HdcDeviceManager {
     tmp.set(buffer1, 0);
     tmp.set(buffer2, buffer1.byteLength);
     return tmp;
+  }
+
+  // ===== hdc 命令模式：WebUSB 不可用时，通过 Go 服务 /hdcCmd 转发 hdc 命令 =====
+
+  private static parseTraceDuration(cmd: string): number {
+    const match = cmd.match(/hiprofiler_cmd[\s\S]*?-t\s+(\d+)/);
+    if (match && match[1]) {
+      const secs = parseInt(match[1], 10);
+      if (secs > 0) {
+        return secs;
+      }
+    }
+    return 0;
+  }
+
+  // @ts-ignore
+  private static async cmdListDevices(): Promise<USBDevice[]> {
+    try {
+      const resp = await HdcDeviceManager.cmdFetch('/hdcCmd', { cmd: 'hdc list targets', tag: 'shell' }, 30000);
+      const json = await resp.json();
+      if (json.success && json.data && json.data.output) {
+        const lines = (json.data.output as string).trim().split(/\r?\n/);
+        // @ts-ignore
+        return lines
+          .filter((s: string) => s.trim() && s.indexOf('Empty') === -1)
+          .map((sn: string) => ({ serialNumber: sn.trim() }));
+      }
+    } catch (e) {
+      log('cmdListDevices failed: ' + e);
+    }
+    // @ts-ignore
+    return [];
+  }
+
+  private static async cmdShell(cmd: string): Promise<string> {
+    try {
+      const normalizedCmd = cmd.replace(/^hdc_std\b/, 'hdc');
+      const traceSecs = HdcDeviceManager.parseTraceDuration(normalizedCmd);
+      // 前端超时 = Go 超时 + 120s 缓冲，确保 Go 先返回响应，避免竞态
+      const timeout = traceSecs > 0 ? (traceSecs + 240) * 1000 : (normalizedCmd.includes('<<') ? 3720000 : 300000);
+      const resp = await HdcDeviceManager.cmdFetch('/hdcCmd', { cmd: normalizedCmd, tag: 'shell' }, timeout);
+      const json = await resp.json();
+      if (json.success) {
+        return (json.data && json.data.output) || '';
+      }
+      log('cmdShell failed: ' + (json.msg || ''));
+      return 'cmdShell failed: ' + (json.msg || 'unknown error');
+    } catch (e) {
+      log('cmdShell failed: ' + e);
+      return 'cmdShell failed: ' + String(e);
+    }
+  }
+
+  private static async cmdFileRecv(filename: string, callBack: (schedule: number) => void): Promise<Blob> {
+    if (!HdcDeviceManager.cmdSerialNumber) {
+      return Promise.resolve(new Blob([]));
+    }
+    try {
+      const sn = HdcDeviceManager.cmdSerialNumber;
+      const localName = filename.substring(filename.lastIndexOf('/') + 1);
+      const resp = await HdcDeviceManager.cmdFetch(
+        '/hdcCmd',
+        { cmd: `hdc -t ${sn} file recv ${filename} ./`, tag: 'file', fileName: localName },
+        1800000
+      );
+      const buf = await resp.arrayBuffer();
+      callBack(100);
+      return new Blob([buf]);
+    } catch (e) {
+      log('cmdFileRecv failed: ' + e);
+      return new Blob([]);
+    }
+  }
+
+  private static async cmdFetch(url: string, body: Record<string, unknown>, timeoutMs: number): Promise<Response> {
+    const fetchOptions: RequestInit = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    };
+    if (typeof AbortController !== 'undefined') {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        fetchOptions.signal = controller.signal;
+        return await fetch(url, fetchOptions);
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+    return fetch(url, fetchOptions);
   }
 }
