@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>quickstart_hisyscall.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="system-call-%E5%87%BD%E6%95%B0%E8%A7%A3%E6%9E%90%E5%92%8C%E5%B1%95%E7%A4%BA%E8%AF%B4%E6%98%8E">System Call 函数解析和展示说明</h1>
+<p>支持打开包含syscall事件的的trace文件，可通过通道图查看单个线程的系统调用情况，可通过框选泳道一段时间查看该时间范围内的系统调用统计详情。</p>
+<h2 id="system-call-%E5%87%BD%E6%95%B0%E8%A7%A3%E6%9E%90">System Call 函数解析</h2>
+<h3 id="system-call-%E5%87%BD%E6%95%B0%E8%A7%A3%E6%9E%90%E5%BC%80%E5%85%B3">System Call 函数解析开关</h3>
+<p>打开 Flags配置页面， 找到System Calls开关配置项。
+<img src="../figures/syscall/syscall_open.png" alt="GitHub Logo">
+再点击下面的syscall event选择框，选择需要解析的系统事件，可选择某几个或者点击“ALL-SystemCall”选项全选，也可在输入框中根据syscall事件名称来搜索系统事件。
+<img src="../figures/syscall/syscall_select_events.png" alt="GitHub Logo">
+根据上述操作，即可打开解析Syscall函数的开关，然后正常打开带syscall函数事件的trace文件，即可完成对syscall函数的解析。</p>
+<h3 id="system-call%E6%B3%B3%E9%81%93%E5%9B%BE%E5%B1%95%E7%A4%BA%E8%AF%B4%E6%98%8E">System Call泳道图展示说明</h3>
+<h3 id="system-call%E6%B3%B3%E9%81%93%E5%9B%BE%E5%B1%95%E7%A4%BA">System Call泳道图展示</h3>
+<p>将带System Call事件的trace文件导入 smartperf 界面查看。
+<img src="../figures/syscall/syscall_chart_display_setting.png" alt="GitHub Logo">
+点击process 泳道右侧的小齿轮图标，在弹出的泳道图配置面板里面勾选“SysCall Event”选项，即可在各自线程泳道下展示对应的线程SysCall函数调用泳道图。
+<img src="../figures/syscall/syscall_chart_display.png" alt="GitHub Logo"></p>
+<h3 id="system-call-%E6%B3%B3%E9%81%93%E5%9B%BE%E7%9A%84%E7%82%B9%E9%80%89%E5%8A%9F%E8%83%BD">System Call 泳道图的点选功能</h3>
+<p>可以对 System Call 各泳道图进行点选，点选后在最下方的弹出层中会展示点选数据的详细信息。
+<img src="../figures/syscall/syscall_chart_click.png" alt="GitHub Logo">
+SysCall Event详细信息字段展示如下：</p>
+<ul>
+<li>
+<pre><code>Name： 事件名称和对应的事件ID。
+</code></pre>
+</li>
+<li>
+<pre><code>StartTime(Relative)： 时间戳信息（相对时间）。
+</code></pre>
+</li>
+<li>
+<pre><code>StartTime(Absoluate): 时间戳信息（绝对时间）。
+</code></pre>
+</li>
+<li>
+<pre><code>Duration: 函数执行时长。
+</code></pre>
+</li>
+<li>
+<pre><code>Process：进程信息，包括进程名和进程id。
+</code></pre>
+</li>
+<li>
+<pre><code>Thread：线程信息，包括线程名和线程id。
+</code></pre>
+</li>
+<li>
+<pre><code>args: syscall 函数的调用参数。
+</code></pre>
+</li>
+<li>
+<pre><code>ret: syscall 函数的返回值。
+</code></pre>
+</li>
+</ul>
+<h3 id="system-call-%E6%B3%B3%E9%81%93%E5%9B%BE%E7%9A%84%E6%A1%86%E9%80%89%E5%8A%9F%E8%83%BD">System Call 泳道图的框选功能</h3>
+<p>可以对 System Call 各泳道图进行框选，框选泳道后，可以在底部展示SysCall Event Tab栏，统计框选时间范围内的系统函数调用的统计信息，以Process/Thread/SysCall的树形统计模式来统计数据。
+<img src="../figures/syscall/syscall_chart_selection.png" alt="GitHub Logo">
+字段说明：</p>
+<ul>
+<li>
+<pre><code>Process/Thread/SysCall： 以进程、线程、系统事件3个层级统计系统事件。
+</code></pre>
+</li>
+<li>
+<pre><code>Duration：系统事件在框选时间范围内的执行时长。
+</code></pre>
+</li>
+<li>
+<pre><code>Count：系统事件在框选时间范围内的执行次数。
+</code></pre>
+可通过点击每行的count值，跳转至子级tab,查看在框选时间范围内，该进程或者线程或者系统事件的详细调用情况，如图：
+<img src="../figures/syscall/syscall_chart_selection_child.png" alt="GitHub Logo">
+各个统计字段含义同点选Tab字段。</li>
+</ul>
+
+</body>
+</html>

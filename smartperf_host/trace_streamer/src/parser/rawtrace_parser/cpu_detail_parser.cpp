@@ -1,0 +1,973 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "cpu_detail_parser.h"
+#include <cinttypes>
+#include <string_view>
+#include "app_start_filter.h"
+#include "binder_filter.h"
+#include "common_types.h"
+#include "cpu_filter.h"
+#include "filesystem_io_filter.h"
+#include "irq_filter.h"
+#include "measure_filter.h"
+#include "process_filter.h"
+#include "slice_filter.h"
+#include "stat_filter.h"
+#include "system_event_measure_filter.h"
+#include "ftrace_event_processor.h"
+#include "string_to_numerical.h"
+#include "timerfd_wakeup_filter.h"
+
+namespace SysTuning {
+namespace TraceStreamer {
+CpuDetailParser::CpuDetailParser(TraceDataCache *dataCache, const TraceStreamerFilters *ctx)
+    : streamFilters_(ctx), traceDataCache_(dataCache), printEventParser_(dataCache, ctx)
+{
+    standAloneCpuEventList_.resize(CPU_CORE_MAX);
+    printEventParser_.SetTraceType(TRACE_FILETYPE_RAW_TRACE);
+    printEventParser_.SetTraceClockId(clock_);
+    eventToFunctionMap_ = {
+        {config_.eventNameMap_.at(TRACE_EVENT_TASK_RENAME),
+         std::bind(&CpuDetailParser::TaskRenameEvent, this, std::placeholders::_1)},
+        {config_.eventNameMap_.at(TRACE_EVENT_TASK_NEWTASK),
+         std::bind(&CpuDetailParser::TaskNewtaskEvent, this, std::placeholders::_1)},
+        {config_.eventNameMap_.at(TRACE_EVENT_PROCESS_EXIT),
+         std::bind(&CpuDetailParser::ProcessExitEvent, this, std::placeholders::_1)},
+        {config_.eventNameMap_.at(TRACE_EVENT_IPI_ENTRY),
+         std::bind(&CpuDetailParser::IpiHandlerEntryEvent, this, std::placeholders::_1)},
+        {config_.eventNameMap_.at(TRACE_EVENT_IPI_EXIT),
+         std::bind(&CpuDetailParser::IpiHandlerExitEvent, this, std::placeholders::_1)},
+        {config_.eventNameMap_.at(TRACE_EVENT_PROCESS_FREE),
+         std::bind(&CpuDetailParser::ProcessFreeEvent, this, std::placeholders::_1)},
+        {config_.eventNameMap_.at(TRACE_EVENT_SUSPEND_RESUME),
+         std::bind(&CpuDetailParser::SuspendResumeEvent, this, std::placeholders::_1)},
+        {config_.eventNameMap_.at(TRACE_EVENT_TRACING_MARK_WRITE),
+         std::bind(&CpuDetailParser::ParseTracingMarkWriteOrPrintEvent, this, std::placeholders::_1)},
+    };
+    SchedEventInitialization();
+    InterruptEventInitialization();
+    ClockEventInitialization();
+    CpuEventInitialization();
+    LockEventInitialization();
+    BinderEventInitialization();
+    StackEventsInitialization();
+    VoltageEventInitialization();
+    TaskEventInitialization();
+    HmfsEventInitialization();
+    BlockEventInitialization();
+}
+
+void CpuDetailParser::SchedEventInitialization()
+{
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SCHED_SWITCH),
+                                std::bind(&CpuDetailParser::SchedSwitchEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SCHED_BLOCKED_REASON),
+                                std::bind(&CpuDetailParser::SchedBlockReasonEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SCHED_WAKEUP),
+                                std::bind(&CpuDetailParser::SchedWakeupEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SCHED_WAKING),
+                                std::bind(&CpuDetailParser::SchedWakingEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SCHED_WAKEUP_NEW),
+                                std::bind(&CpuDetailParser::SchedWakeupNewEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SCHED_SWITCH_LITE),
+                                std::bind(&CpuDetailParser::SchedSwitchLiteEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SCHED_WAKEUP_LITE),
+                                std::bind(&CpuDetailParser::SchedWakeupLiteEvent, this, std::placeholders::_1));
+}
+
+void CpuDetailParser::InterruptEventInitialization()
+{
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_IRQ_HANDLER_ENTRY),
+                                std::bind(&CpuDetailParser::IrqHandlerEntryEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_IRQ_HANDLER_EXIT),
+                                std::bind(&CpuDetailParser::IrqHandlerExitEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SOFTIRQ_RAISE),
+                                std::bind(&CpuDetailParser::SoftIrqRaiseEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SOFTIRQ_ENTRY),
+                                std::bind(&CpuDetailParser::SoftIrqEntryEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_SOFTIRQ_EXIT),
+                                std::bind(&CpuDetailParser::SoftIrqExitEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_DMA_FENCE_INIT),
+                                std::bind(&CpuDetailParser::DmaFenceInitEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_DMA_FENCE_DESTROY),
+                                std::bind(&CpuDetailParser::DmaFenceDestroyEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_DMA_FENCE_ENABLE),
+                                std::bind(&CpuDetailParser::DmaFenceEnableEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_DMA_FENCE_SIGNALED),
+                                std::bind(&CpuDetailParser::DmaFenceSignaledEvent, this, std::placeholders::_1));
+}
+void CpuDetailParser::ClockEventInitialization()
+{
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_CLOCK_SET_RATE),
+                                std::bind(&CpuDetailParser::SetRateEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_CLOCK_ENABLE),
+                                std::bind(&CpuDetailParser::ClockEnableEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_CLOCK_DISABLE),
+                                std::bind(&CpuDetailParser::ClockDisableEvent, this, std::placeholders::_1));
+}
+void CpuDetailParser::CpuEventInitialization()
+{
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_CPU_IDLE),
+                                std::bind(&CpuDetailParser::CpuIdleEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_CPU_FREQUENCY),
+                                std::bind(&CpuDetailParser::CpuFrequencyEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_CPU_FREQUENCY_LIMITS),
+                                std::bind(&CpuDetailParser::CpuFrequencyLimitsEvent, this, std::placeholders::_1));
+}
+void CpuDetailParser::LockEventInitialization()
+{
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION_LOCK),
+                                std::bind(&CpuDetailParser::BinderTractionLockEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION_LOCKED),
+                                std::bind(&CpuDetailParser::BinderTractionLockedEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION_UNLOCK),
+                                std::bind(&CpuDetailParser::BinderTractionUnLockEvent, this, std::placeholders::_1));
+}
+void CpuDetailParser::BinderEventInitialization()
+{
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION),
+                                std::bind(&CpuDetailParser::BinderTractionEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION_RECEIVED),
+                                std::bind(&CpuDetailParser::BinderTractionReceivedEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_BINDER_TRANSACTION_ALLOC_BUF),
+                                std::bind(&CpuDetailParser::BinderTractionAllocBufEvent, this, std::placeholders::_1));
+}
+void CpuDetailParser::StackEventsInitialization()
+{
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_PRINT),
+        std::bind(&CpuDetailParser::ParseTracingMarkWriteOrPrintEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_WORKQUEUE_EXECUTE_START),
+                                std::bind(&CpuDetailParser::WorkqueueExecuteStartEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_WORKQUEUE_EXECUTE_END),
+                                std::bind(&CpuDetailParser::WorkqueueExecuteEndEvent, this, std::placeholders::_1));
+}
+void CpuDetailParser::VoltageEventInitialization()
+{
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_SET_VOLTAGE),
+                                std::bind(&CpuDetailParser::RegulatorSetVoltageEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_SET_VOLTAGE_COMPLETE),
+        std::bind(&CpuDetailParser::RegulatorSetVoltageCompleteEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_DISABLE),
+                                std::bind(&CpuDetailParser::RegulatorDisableEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(
+        config_.eventNameMap_.at(TRACE_EVENT_REGULATOR_DISABLE_COMPLETE),
+        std::bind(&CpuDetailParser::RegulatorDisableCompleteEvent, this, std::placeholders::_1));
+}
+
+void CpuDetailParser::TaskEventInitialization()
+{
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_TIMERFD_WAKEUP),
+                                std::bind(&CpuDetailParser::TimerfdWakeupEvent, this, std::placeholders::_1));
+}
+
+void CpuDetailParser::HmfsEventInitialization()
+{
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_HMFS_READ_ENTER),
+                                std::bind(&CpuDetailParser::HmfsReadEnterEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_HMFS_READ_EXIT),
+                                std::bind(&CpuDetailParser::HmfsReadExitEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_HMFS_WRITE_ENTER),
+                                std::bind(&CpuDetailParser::HmfsWriteEnterEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_HMFS_WRITE_EXIT),
+                                std::bind(&CpuDetailParser::HmfsWriteExitEvent, this, std::placeholders::_1));
+}
+
+void CpuDetailParser::BlockEventInitialization()
+{
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_BLOCK_RQ_ISSUE),
+                                std::bind(&CpuDetailParser::BlockRqIssueEvent, this, std::placeholders::_1));
+    eventToFunctionMap_.emplace(config_.eventNameMap_.at(TRACE_EVENT_BLOCK_RQ_COMPLETE),
+                                std::bind(&CpuDetailParser::BlockRqCompleteEvent, this, std::placeholders::_1));
+}
+
+void CpuDetailParser::EventAppend(std::shared_ptr<RawTraceEventInfo> event)
+{
+    if (event->cpuId >= standAloneCpuEventList_.size()) {
+        TS_LOGW("cpuId: %u is invailed", event->cpuId);
+        return;
+    }
+    standAloneCpuEventList_[event->cpuId].emplace(std::move(event));
+    curRawTraceEventNum_++;
+}
+void CpuDetailParser::ResizeStandAloneCpuEventList(uint32_t cpuNum)
+{
+    cpuCoreMax_ = cpuNum;
+    standAloneCpuEventList_.resize(cpuNum);
+}
+bool CpuDetailParser::SortStandAloneCpuEventList(bool isFinished)
+{
+    while (curRawTraceEventNum_ > 0) {
+        uint32_t minTimeCpuId = INVALID_UINT32;
+        uint64_t curMinTs = INVALID_UINT64;
+        // select a min time from one of the cpu caches
+        for (int curCpuId = 0; curCpuId < cpuCoreMax_; curCpuId++) {
+            if (!isFinished && standAloneCpuEventList_[curCpuId].empty()) {
+                return true;
+            } else if (standAloneCpuEventList_[curCpuId].empty()) {
+                continue;
+            }
+            uint64_t ts = standAloneCpuEventList_[curCpuId].front()->msgPtr->timestamp();
+            if (ts < curMinTs) {
+                curMinTs = ts;
+                minTimeCpuId = curCpuId;
+            }
+        }
+        if (INVALID_UINT32 == minTimeCpuId) {
+            break;
+        }
+        rawTraceEventList_.emplace_back(std::move(standAloneCpuEventList_[minTimeCpuId].front()));
+        standAloneCpuEventList_[minTimeCpuId].pop();
+        curRawTraceEventNum_--;
+        if (!isFinished && standAloneCpuEventList_[minTimeCpuId].empty()) {
+            break;
+        }
+    }
+    return true;
+}
+void CpuDetailParser::UpdateCpuOverwrite(FtraceCpuDetailMsg &cpuDetail)
+{
+    if (cpuDetail.overwrite()) {
+        if (!lastOverwrite_) {
+            lastOverwrite_ = cpuDetail.overwrite();
+        }
+        if (lastOverwrite_ != cpuDetail.overwrite()) {
+            TS_LOGW("lost events:%" PRIu64 "", cpuDetail.overwrite() - lastOverwrite_);
+            lastOverwrite_ = cpuDetail.overwrite();
+        }
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_OTHER, STAT_EVENT_DATA_LOST);
+    }
+}
+bool CpuDetailParser::FilterAllEvents(FtraceCpuDetailMsg &cpuDetail, bool isFinished)
+{
+    UpdateCpuOverwrite(cpuDetail);
+    SortStandAloneCpuEventList(isFinished);
+    TS_CHECK_TRUE_RET(!rawTraceEventList_.empty(), true);
+    traceDataCache_->UpdateTraceTime(rawTraceEventList_.front()->msgPtr->timestamp());
+    traceDataCache_->UpdateTraceTime(rawTraceEventList_.back()->msgPtr->timestamp());
+    for (size_t i = 0; i < rawTraceEventList_.size(); i++) {
+        eventPid_ = rawTraceEventList_[i]->msgPtr->tgid();
+        if (eventPid_ != INVALID_INT32) {
+            streamFilters_->processFilter_->GetOrCreateThreadWithPid(eventPid_, eventPid_);
+        }
+        DealEvent(*rawTraceEventList_[i].get());
+        rawTraceEventList_[i].reset();
+    }
+    TS_LOGI("deal rawTraceEventList_.size=%zu", rawTraceEventList_.size());
+    rawTraceEventList_.clear();
+    cpuDetail.Clear();
+    return true;
+}
+void CpuDetailParser::Clear()
+{
+    cpuCoreMax_ = CPU_CORE_MAX;
+    const_cast<TraceStreamerFilters *>(streamFilters_)->FilterClear();
+    streamFilters_->sysEventMemMeasureFilter_->Clear();
+    streamFilters_->sysEventVMemMeasureFilter_->Clear();
+    printEventParser_.Finish();
+}
+void CpuDetailParser::FinishCpuDetailParser()
+{
+    streamFilters_->cpuFilter_->Finish();
+    streamFilters_->fileSystemIoFilter_->Finish();
+    traceDataCache_->dataDict_.Finish();
+    traceDataCache_->UpdataZeroThreadInfo();
+    if (streamFilters_->configFilter_->GetSwitchConfig().AppConfigEnabled()) {
+        streamFilters_->appStartupFilter_->FilterAllAPPStartupData();
+    }
+    Clear();
+    traceDataCache_->GetThreadStateData()->SortAllRowByTs();
+}
+void CpuDetailParser::DealEvent(const RawTraceEventInfo &event)
+{
+    eventTid_ = event.msgPtr->common_fields().pid();
+    if (eventTid_ != INVALID_INT32) {
+        streamFilters_->processFilter_->UpdateOrCreateThread(event.msgPtr->timestamp(), eventTid_);
+    }
+    if (eventTid_ != INVALID_INT32 && eventPid_ != INVALID_INT32) {
+        streamFilters_->processFilter_->GetOrCreateThreadWithPid(eventTid_, eventPid_);
+    }
+    const auto &eventName = FtraceEventProcessor::GetInstance().GetEventNameById(event.eventId);
+    auto iter = eventToFunctionMap_.find(eventName);
+    if (iter != eventToFunctionMap_.end()) {
+        iter->second(event);
+    } else {
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_OTHER, STAT_EVENT_NOTSUPPORTED);
+    }
+}
+bool CpuDetailParser::SchedSwitchEvent(const RawTraceEventInfo &event)
+{
+    if (ifFindSchedSwitchLite_) {
+        TS_LOGI("SCHED_SWITCH and SCHED_SWITCH_LITE both exist, only deal with SCHED_SWITCH");
+        return false;
+    }
+    ifFindSchedSwitch_ = true;
+    auto schedSwitchMsg = event.msgPtr->sched_switch_format();
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_SWITCH, STAT_EVENT_RECEIVED);
+    auto schedSwitchPrevState = schedSwitchMsg.prev_state();
+    auto nextInternalTid = streamFilters_->processFilter_->UpdateOrCreateThreadWithName(
+        event.msgPtr->timestamp(), schedSwitchMsg.next_pid(), schedSwitchMsg.next_comm());
+    auto uprevtid = streamFilters_->processFilter_->UpdateOrCreateThreadWithName(
+        event.msgPtr->timestamp(), schedSwitchMsg.prev_pid(), schedSwitchMsg.prev_comm());
+    DataIndex nextInfo = INVALID_DATAINDEX;
+    if (schedSwitchMsg.next_info() != INVALID_UINT64) {
+        nextInfo = traceDataCache_->GetDataIndex(std::to_string(schedSwitchMsg.next_info()));
+    }
+    streamFilters_->cpuFilter_->InsertSwitchEvent(event.msgPtr->timestamp(), event.cpuId, uprevtid,
+                                                  schedSwitchMsg.prev_prio(), schedSwitchPrevState, nextInternalTid,
+                                                  schedSwitchMsg.next_prio(), nextInfo);
+    return true;
+}
+
+bool CpuDetailParser::SchedSwitchLiteEvent(const RawTraceEventInfo &event)
+{
+    if (ifFindSchedSwitch_) {
+        TS_LOGI("SCHED_SWITCH and SCHED_SWITCH_LITE both exist, only deal with SCHED_SWITCH_LITE");
+        return false;
+    }
+    ifFindSchedSwitchLite_ = true;
+    auto schedSwitchLiteMsg = event.msgPtr->sched_switch_lite_format();
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_SWITCH_LITE, STAT_EVENT_RECEIVED);
+    auto schedSwitchPrevState = schedSwitchLiteMsg.prev_state();
+    auto nextInternalTid =
+        streamFilters_->processFilter_->UpdateOrCreateThread(event.msgPtr->timestamp(), schedSwitchLiteMsg.next_pid());
+    auto uprevtid =
+        streamFilters_->processFilter_->UpdateOrCreateThread(event.msgPtr->timestamp(), schedSwitchLiteMsg.prev_pid());
+    DataIndex nextInfo = traceDataCache_->GetDataIndex(std::to_string(schedSwitchLiteMsg.next_info()));
+    streamFilters_->cpuFilter_->InsertSwitchEvent(event.msgPtr->timestamp(), event.cpuId, uprevtid,
+                                                  schedSwitchLiteMsg.prev_prio(), schedSwitchPrevState, nextInternalTid,
+                                                  schedSwitchLiteMsg.next_prio(), nextInfo);
+    return true;
+}
+
+bool CpuDetailParser::SchedBlockReasonEvent(const RawTraceEventInfo &event)
+{
+    auto reasonMsg = event.msgPtr->sched_blocked_reason_format();
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_BLOCKED_REASON, STAT_EVENT_RECEIVED);
+    std::string callerStr;
+    if (reasonMsg.caller_str().empty()) {
+        callerStr = "0x" + SysTuning::base::number(reasonMsg.caller(), SysTuning::base::INTEGER_RADIX_TYPE_HEX);
+    } else {
+        callerStr = reasonMsg.caller_str();
+    }
+    auto caller = traceDataCache_->GetDataIndex(std::string_view(callerStr));
+    auto itid = streamFilters_->processFilter_->UpdateOrCreateThread(event.msgPtr->timestamp(), reasonMsg.pid());
+    if (streamFilters_->cpuFilter_->InsertBlockedReasonEvent(event.cpuId, itid, reasonMsg.io_wait(), caller,
+                                                             INVALID_UINT32)) {
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_BLOCKED_REASON, STAT_EVENT_RECEIVED);
+    } else {
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_BLOCKED_REASON, STAT_EVENT_NOTMATCH);
+    }
+    return true;
+}
+bool CpuDetailParser::SchedWakeupEvent(const RawTraceEventInfo &event)
+{
+    if (ifFindSchedWakeupLite_) {
+        TS_LOGI("SCHED_WAKEUP and SCHED_WAKEUP_LITE both exist, only deal with SCHED_WAKEUP_LITE");
+        return false;
+    }
+    ifFindSchedWakeup_ = true;
+    auto wakeupMsg = event.msgPtr->sched_wakeup_format();
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_WAKEUP, STAT_EVENT_RECEIVED);
+    auto instants = traceDataCache_->GetInstantsData();
+    InternalTid internalTid =
+        streamFilters_->processFilter_->UpdateOrCreateThread(event.msgPtr->timestamp(), wakeupMsg.pid());
+    InternalTid wakeupFromPid =
+        streamFilters_->processFilter_->UpdateOrCreateThread(event.msgPtr->timestamp(), eventTid_);
+    instants->AppendInstantEventData(event.msgPtr->timestamp(), schedWakeupIndex_, internalTid, wakeupFromPid);
+    streamFilters_->cpuFilter_->InsertWakeupEvent(event.msgPtr->timestamp(), internalTid);
+    traceDataCache_->GetRawData()->AppendRawData(event.msgPtr->timestamp(), RAW_SCHED_WAKEUP, wakeupMsg.target_cpu(),
+                                                 internalTid);
+    return true;
+}
+
+bool CpuDetailParser::SchedWakeupLiteEvent(const RawTraceEventInfo &event)
+{
+    if (ifFindSchedWakeup_) {
+        TS_LOGI("SCHED_WAKEUP and SCHED_WAKEUP_LITE both exist, only deal with SCHED_WAKEUP");
+        return false;
+    }
+    ifFindSchedWakeupLite_ = true;
+    auto wakeupLiteMsg = event.msgPtr->sched_wakeup_lite_format();
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_WAKEUP_LITE, STAT_EVENT_RECEIVED);
+    auto instants = traceDataCache_->GetInstantsData();
+    InternalTid internalTid =
+        streamFilters_->processFilter_->UpdateOrCreateThread(event.msgPtr->timestamp(), wakeupLiteMsg.pid());
+    InternalTid wakeupFromPid =
+        streamFilters_->processFilter_->UpdateOrCreateThread(event.msgPtr->timestamp(), eventTid_);
+    instants->AppendInstantEventData(event.msgPtr->timestamp(), schedWakeupIndex_, internalTid, wakeupFromPid);
+    streamFilters_->cpuFilter_->InsertWakeupEvent(event.msgPtr->timestamp(), internalTid);
+    traceDataCache_->GetRawData()->AppendRawData(event.msgPtr->timestamp(), RAW_SCHED_WAKEUP,
+                                                 wakeupLiteMsg.target_cpu(), internalTid);
+    return true;
+}
+
+bool CpuDetailParser::SchedWakingEvent(const RawTraceEventInfo &event) const
+{
+    auto wakeingMsg = event.msgPtr->sched_waking_format();
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_WAKING, STAT_EVENT_RECEIVED);
+    auto instants = traceDataCache_->GetInstantsData();
+    auto internalTid =
+        streamFilters_->processFilter_->UpdateOrCreateThread(event.msgPtr->timestamp(), wakeingMsg.pid());
+    auto wakeupFromPid = streamFilters_->processFilter_->UpdateOrCreateThread(event.msgPtr->timestamp(), eventTid_);
+    streamFilters_->cpuFilter_->InsertWakeupEvent(event.msgPtr->timestamp(), internalTid, true);
+    instants->AppendInstantEventData(event.msgPtr->timestamp(), schedWakingIndex_, internalTid, wakeupFromPid);
+    traceDataCache_->GetRawData()->AppendRawData(event.msgPtr->timestamp(), RAW_SCHED_WAKING, wakeingMsg.target_cpu(),
+                                                 wakeupFromPid);
+    return true;
+}
+bool CpuDetailParser::SchedWakeupNewEvent(const RawTraceEventInfo &event) const
+{
+    auto wakeupNewMsg = event.msgPtr->sched_wakeup_new_format();
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SCHED_WAKEUP_NEW, STAT_EVENT_RECEIVED);
+    auto instants = traceDataCache_->GetInstantsData();
+    auto internalTid =
+        streamFilters_->processFilter_->UpdateOrCreateThread(event.msgPtr->timestamp(), wakeupNewMsg.pid());
+    auto wakeupFromPid = streamFilters_->processFilter_->UpdateOrCreateThread(event.msgPtr->timestamp(), eventTid_);
+    instants->AppendInstantEventData(event.msgPtr->timestamp(), schedWakeupNewIndex_, internalTid, wakeupFromPid);
+    streamFilters_->cpuFilter_->InsertWakeupEvent(event.msgPtr->timestamp(), internalTid);
+    traceDataCache_->GetRawData()->AppendRawData(event.msgPtr->timestamp(), RAW_SCHED_WAKEUP, wakeupNewMsg.target_cpu(),
+                                                 internalTid);
+    return true;
+}
+bool CpuDetailParser::ProcessExitEvent(const RawTraceEventInfo &event) const
+{
+    auto procExitMsg = event.msgPtr->sched_process_exit_format();
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_PROCESS_EXIT, STAT_EVENT_RECEIVED);
+    uint32_t pidValue = procExitMsg.pid();
+    // The tostdstring() here cannot use temporary variables, which will cause occasional garbled characters under wasm
+    auto iTid = streamFilters_->processFilter_->UpdateOrCreateThreadWithName(event.msgPtr->timestamp(), pidValue,
+                                                                             procExitMsg.comm());
+    if (streamFilters_->cpuFilter_->InsertProcessExitEvent(event.msgPtr->timestamp(), event.cpuId, iTid)) {
+        return true;
+    } else {
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_PROCESS_EXIT, STAT_EVENT_NOTMATCH);
+        return false;
+    }
+}
+bool CpuDetailParser::ProcessFreeEvent(const RawTraceEventInfo &event) const
+{
+    auto procFreeMsg = event.msgPtr->sched_process_exit_format();
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_PROCESS_FREE, STAT_EVENT_RECEIVED);
+    uint32_t pidValue = procFreeMsg.pid();
+    // The tostdstring() here cannot use temporary variables, which will cause occasional garbled characters under wasm
+    auto iTid = streamFilters_->processFilter_->UpdateOrCreateThreadWithName(event.msgPtr->timestamp(), pidValue,
+                                                                             procFreeMsg.comm());
+    if (streamFilters_->cpuFilter_->InsertProcessFreeEvent(event.msgPtr->timestamp(), iTid)) {
+        return true;
+    } else {
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_PROCESS_FREE, STAT_EVENT_NOTMATCH);
+        return false;
+    }
+}
+bool CpuDetailParser::BinderTractionEvent(const RawTraceEventInfo &event) const
+{
+    auto transactionMsg = event.msgPtr->binder_transaction_format();
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BINDER_TRANSACTION, STAT_EVENT_RECEIVED);
+    int32_t destNode = transactionMsg.target_node();
+    int32_t destTgid = transactionMsg.to_proc();
+    int32_t destTid = transactionMsg.to_thread();
+    int32_t transactionId = transactionMsg.debug_id();
+    bool isReply = transactionMsg.reply() == 1;
+    uint32_t flags = transactionMsg.flags();
+    TS_LOGD("destNode:%d, destTgid:%d, destTid:%d, transactionId:%d, isReply:%d flags:%d, code:%d", destNode, destTgid,
+            destTid, transactionId, isReply, flags, transactionMsg.code());
+    streamFilters_->binderFilter_->SendTraction(event.msgPtr->timestamp(), eventTid_, transactionId, destNode, destTgid,
+                                                destTid, isReply, flags, transactionMsg.code());
+    return true;
+}
+bool CpuDetailParser::BinderTractionAllocBufEvent(const RawTraceEventInfo &event) const
+{
+    auto allocBufMsg = event.msgPtr->binder_transaction_alloc_buf_format();
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BINDER_TRANSACTION_ALLOC_BUF, STAT_EVENT_RECEIVED);
+    streamFilters_->binderFilter_->TransactionAllocBuf(event.msgPtr->timestamp(), eventTid_, allocBufMsg.data_size(),
+                                                       allocBufMsg.offsets_size());
+    TS_LOGD("dataSize:%" PRIu64 ", offsetSize:%" PRIu64 "", allocBufMsg.data_size(), allocBufMsg.offsets_size());
+    return true;
+}
+bool CpuDetailParser::BinderTractionReceivedEvent(const RawTraceEventInfo &event) const
+{
+    auto recvedMsg = event.msgPtr->binder_transaction_received_format();
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BINDER_TRANSACTION_RECEIVED, STAT_EVENT_RECEIVED);
+    int32_t transactionId = recvedMsg.debug_id();
+    streamFilters_->binderFilter_->ReceiveTraction(event.msgPtr->timestamp(), eventTid_, transactionId);
+    TS_LOGD("transactionId:%d", transactionId);
+    return true;
+}
+bool CpuDetailParser::BinderTractionLockEvent(const RawTraceEventInfo &event) const
+{
+    auto lockMsg = event.msgPtr->binder_lock_format();
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BINDER_TRANSACTION_LOCK, STAT_EVENT_RECEIVED);
+    streamFilters_->binderFilter_->TractionLock(event.msgPtr->timestamp(), eventTid_, lockMsg.tag());
+    TS_LOGD("tag:%s", lockMsg.tag().c_str());
+    return true;
+}
+bool CpuDetailParser::BinderTractionLockedEvent(const RawTraceEventInfo &event) const
+{
+    auto lockedMsg = event.msgPtr->binder_locked_format();
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BINDER_TRANSACTION_LOCKED, STAT_EVENT_RECEIVED);
+    streamFilters_->binderFilter_->TractionLocked(event.msgPtr->timestamp(), eventTid_, lockedMsg.tag());
+    return true;
+}
+bool CpuDetailParser::BinderTractionUnLockEvent(const RawTraceEventInfo &event) const
+{
+    auto unlockMsg = event.msgPtr->binder_unlock_format();
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BINDER_TRANSACTION_UNLOCK, STAT_EVENT_RECEIVED);
+    streamFilters_->binderFilter_->TractionUnlock(event.msgPtr->timestamp(), eventTid_, unlockMsg.tag());
+    return true;
+}
+bool CpuDetailParser::TaskRenameEvent(const RawTraceEventInfo &event) const
+{
+    auto renameMsg = event.msgPtr->task_rename_format();
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_TASK_RENAME, STAT_EVENT_RECEIVED);
+    streamFilters_->processFilter_->UpdateOrCreateThreadWithName(event.msgPtr->timestamp(), renameMsg.pid(),
+                                                                 renameMsg.newcomm());
+    return true;
+}
+bool CpuDetailParser::TaskNewtaskEvent(const RawTraceEventInfo &event) const
+{
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_TASK_NEWTASK, STAT_EVENT_RECEIVED);
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_TASK_NEWTASK, STAT_EVENT_NOTSUPPORTED);
+    return true;
+}
+bool CpuDetailParser::ParseTracingMarkWriteOrPrintEvent(const RawTraceEventInfo &event)
+{
+    auto printMsg = event.msgPtr->print_format();
+    BytraceLine line;
+    line.tgid = eventPid_;
+    line.pid = eventTid_;
+    line.ts = event.msgPtr->timestamp();
+    printEventParser_.ParsePrintEvent(event.msgPtr->comm(), line.ts, eventTid_, printMsg.buf(), line);
+    return true;
+}
+bool CpuDetailParser::CpuIdleEvent(const RawTraceEventInfo &event) const
+{
+    auto idleMsg = event.msgPtr->cpu_idle_format();
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CPU_IDLE, STAT_EVENT_RECEIVED);
+    std::optional<uint32_t> eventCpu = idleMsg.cpu_id();
+    std::optional<uint64_t> newState = idleMsg.state();
+    if (!eventCpu.has_value()) {
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CPU_IDLE, STAT_EVENT_DATA_INVALID);
+        TS_LOGW("Convert event cpu Failed");
+        return false;
+    }
+    if (!newState.has_value()) {
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CPU_IDLE, STAT_EVENT_DATA_INVALID);
+        TS_LOGW("Convert event state Failed");
+        return false;
+    }
+
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CPU, eventCpu.value(), cpuIdleIndex_,
+                                                         event.msgPtr->timestamp(),
+                                                         config_.GetStateValue(newState.value()));
+
+    // Add cpu_idle event to raw_data_table
+    traceDataCache_->GetRawData()->AppendRawData(event.msgPtr->timestamp(), RAW_CPU_IDLE, eventCpu.value(), 0);
+    return true;
+}
+bool CpuDetailParser::CpuFrequencyEvent(const RawTraceEventInfo &event) const
+{
+    auto frequencyMsg = event.msgPtr->cpu_frequency_format();
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CPU_FREQUENCY, STAT_EVENT_RECEIVED);
+    std::optional<uint64_t> newState = frequencyMsg.state();
+    std::optional<uint32_t> eventCpu = frequencyMsg.cpu_id();
+
+    if (!newState.has_value()) {
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CPU_FREQUENCY, STAT_EVENT_DATA_INVALID);
+        TS_LOGW("Convert event state Failed");
+        return false;
+    }
+    if (!eventCpu.has_value()) {
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CPU_FREQUENCY, STAT_EVENT_DATA_INVALID);
+        TS_LOGW("Convert event cpu Failed");
+        return false;
+    }
+
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CPU, eventCpu.value(), cpuFrequencyIndex_,
+                                                         event.msgPtr->timestamp(), newState.value());
+    return true;
+}
+bool CpuDetailParser::CpuFrequencyLimitsEvent(const RawTraceEventInfo &event) const
+{
+    auto limitsMsg = event.msgPtr->cpu_frequency_limits_format();
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CPU_FREQUENCY_LIMITS, STAT_EVENT_RECEIVED);
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CPU, limitsMsg.cpu_id(),
+                                                         cpuFrequencyLimitMaxIndex_, event.msgPtr->timestamp(),
+                                                         limitsMsg.max_freq());
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CPU, limitsMsg.cpu_id(),
+                                                         cpuFrequencyLimitMinIndex_, event.msgPtr->timestamp(),
+                                                         limitsMsg.min_freq());
+    return true;
+}
+bool CpuDetailParser::SuspendResumeEvent(const RawTraceEventInfo &event) const
+{
+    auto resumeMsg = event.msgPtr->suspend_resume_format();
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SUSPEND_RESUME, STAT_EVENT_RECEIVED);
+    int32_t val = resumeMsg.val();
+    uint32_t start = resumeMsg.start();
+    std::string action = resumeMsg.action();
+    Unused(val);
+    Unused(start);
+    Unused(action);
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_SUSPEND_RESUME, STAT_EVENT_NOTSUPPORTED);
+    return true;
+}
+bool CpuDetailParser::WorkqueueExecuteStartEvent(const RawTraceEventInfo &event) const
+{
+    auto executeStartMsg = event.msgPtr->workqueue_execute_start_format();
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_WORKQUEUE_EXECUTE_START, STAT_EVENT_RECEIVED);
+    auto funcNameIndex = traceDataCache_->GetSymbolsData()->GetFunc(executeStartMsg.function());
+    size_t result = INVALID_UINT32;
+    if (funcNameIndex == INVALID_UINT64) {
+        std::string addrStr = "0x" + base::number(executeStartMsg.function(), base::INTEGER_RADIX_TYPE_HEX);
+        auto addStrIndex = traceDataCache_->GetDataIndex(addrStr);
+        result = streamFilters_->sliceFilter_->BeginSlice(event.msgPtr->comm(), event.msgPtr->timestamp(), eventPid_,
+                                                          eventPid_, workQueueIndex_, addStrIndex);
+    } else {
+        result = streamFilters_->sliceFilter_->BeginSlice(event.msgPtr->comm(), event.msgPtr->timestamp(), eventPid_,
+                                                          eventPid_, workQueueIndex_, funcNameIndex);
+    }
+
+    traceDataCache_->GetInternalSlicesData()->AppendDistributeInfo();
+    if (result == INVALID_UINT32) {
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_WORKQUEUE_EXECUTE_START, STAT_EVENT_DATA_LOST);
+    }
+    return true;
+}
+bool CpuDetailParser::WorkqueueExecuteEndEvent(const RawTraceEventInfo &event) const
+{
+    auto executeEndMsg = event.msgPtr->workqueue_execute_end_format();
+    if (!streamFilters_->sliceFilter_->EndSlice(event.msgPtr->timestamp(), eventPid_, eventPid_, workQueueIndex_)) {
+        streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_WORKQUEUE_EXECUTE_END, STAT_EVENT_NOTMATCH);
+        return false;
+    }
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_WORKQUEUE_EXECUTE_END, STAT_EVENT_RECEIVED);
+    return true;
+}
+bool CpuDetailParser::IrqHandlerEntryEvent(const RawTraceEventInfo &event) const
+{
+    auto irqEntryMsg = event.msgPtr->irq_handler_entry_format();
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_IRQ_HANDLER_ENTRY, STAT_EVENT_RECEIVED);
+    // The tostdstring() here cannot use temporary variables, which will cause occasional garbled characters under wasm
+    streamFilters_->irqFilter_->IrqHandlerEntry(event.msgPtr->timestamp(), event.cpuId,
+                                                traceDataCache_->GetDataIndex(irqEntryMsg.name()));
+    return true;
+}
+bool CpuDetailParser::IrqHandlerExitEvent(const RawTraceEventInfo &event) const
+{
+    auto irqExitMsg = event.msgPtr->irq_handler_exit_format();
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_IRQ_HANDLER_EXIT, STAT_EVENT_RECEIVED);
+    streamFilters_->irqFilter_->IrqHandlerExit(event.msgPtr->timestamp(), event.cpuId, irqExitMsg.irq(),
+                                               static_cast<uint32_t>(irqExitMsg.ret()));
+    return true;
+}
+bool CpuDetailParser::IpiHandlerEntryEvent(const RawTraceEventInfo &event) const
+{
+    auto ipiEntryMsg = event.msgPtr->ipi_entry_format();
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_IPI_ENTRY, STAT_EVENT_RECEIVED);
+    streamFilters_->irqFilter_->IpiHandlerEntry(event.msgPtr->timestamp(), event.cpuId,
+                                                traceDataCache_->GetDataIndex(ipiEntryMsg.reason()));
+    return true;
+}
+bool CpuDetailParser::IpiHandlerExitEvent(const RawTraceEventInfo &event) const
+{
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_IPI_EXIT, STAT_EVENT_RECEIVED);
+    streamFilters_->irqFilter_->IpiHandlerExit(event.msgPtr->timestamp(), event.cpuId);
+    return true;
+}
+bool CpuDetailParser::SoftIrqEntryEvent(const RawTraceEventInfo &event) const
+{
+    auto softIrqEntryMsg = event.msgPtr->softirq_entry_format();
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_SOFTIRQ_ENTRY, STAT_EVENT_RECEIVED);
+    streamFilters_->irqFilter_->SoftIrqEntry(event.msgPtr->timestamp(), event.cpuId,
+                                             static_cast<uint32_t>(softIrqEntryMsg.vec()));
+    return true;
+}
+bool CpuDetailParser::SoftIrqRaiseEvent(const RawTraceEventInfo &event) const
+{
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_SOFTIRQ_RAISE, STAT_EVENT_RECEIVED);
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_SOFTIRQ_RAISE, STAT_EVENT_NOTSUPPORTED);
+    return true;
+}
+bool CpuDetailParser::SoftIrqExitEvent(const RawTraceEventInfo &event) const
+{
+    auto softIrqExitMsg = event.msgPtr->softirq_exit_format();
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_SOFTIRQ_EXIT, STAT_EVENT_RECEIVED);
+    streamFilters_->irqFilter_->SoftIrqExit(event.msgPtr->timestamp(), event.cpuId,
+                                            static_cast<uint32_t>(softIrqExitMsg.vec()));
+    return true;
+}
+bool CpuDetailParser::DmaFenceInitEvent(const RawTraceEventInfo &event) const
+{
+    auto dmaFenceInitMsg = event.msgPtr->dma_fence_init_format();
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_DMA_FENCE_INIT, STAT_EVENT_RECEIVED);
+    std::string timelineStr = dmaFenceInitMsg.timeline();
+    if (timelineStr.empty()) {
+        return false;
+    }
+    DmaFenceRow dmaFenceRow = {event.msgPtr->timestamp(),
+                               0,
+                               dmaFenceInitIndex_,
+                               traceDataCache_->GetDataIndex(dmaFenceInitMsg.driver()),
+                               traceDataCache_->GetDataIndex(timelineStr),
+                               dmaFenceInitMsg.context(),
+                               dmaFenceInitMsg.seqno()};
+    streamFilters_->sliceFilter_->DmaFence(dmaFenceRow);
+    return true;
+}
+bool CpuDetailParser::DmaFenceDestroyEvent(const RawTraceEventInfo &event) const
+{
+    auto dmaFenceDestroyMsg = event.msgPtr->dma_fence_destroy_format();
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_DMA_FENCE_DESTROY, STAT_EVENT_RECEIVED);
+    std::string timelineStr = dmaFenceDestroyMsg.timeline();
+    if (timelineStr.empty()) {
+        return false;
+    }
+    DmaFenceRow dmaFenceRow = {event.msgPtr->timestamp(),
+                               0,
+                               dmaFenceDestroyIndex_,
+                               traceDataCache_->GetDataIndex(dmaFenceDestroyMsg.driver()),
+                               traceDataCache_->GetDataIndex(timelineStr),
+                               dmaFenceDestroyMsg.context(),
+                               dmaFenceDestroyMsg.seqno()};
+    streamFilters_->sliceFilter_->DmaFence(dmaFenceRow);
+    return true;
+}
+bool CpuDetailParser::DmaFenceEnableEvent(const RawTraceEventInfo &event) const
+{
+    auto dmaFenceEnableMsg = event.msgPtr->dma_fence_enable_signal_format();
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_DMA_FENCE_ENABLE, STAT_EVENT_RECEIVED);
+    std::string timelineStr = dmaFenceEnableMsg.timeline();
+    if (timelineStr.empty()) {
+        return false;
+    }
+    DmaFenceRow dmaFenceRow = {event.msgPtr->timestamp(),
+                               0,
+                               dmaFenceEnableIndex_,
+                               traceDataCache_->GetDataIndex(dmaFenceEnableMsg.driver()),
+                               traceDataCache_->GetDataIndex(timelineStr),
+                               dmaFenceEnableMsg.context(),
+                               dmaFenceEnableMsg.seqno()};
+    streamFilters_->sliceFilter_->DmaFence(dmaFenceRow);
+    return true;
+}
+bool CpuDetailParser::DmaFenceSignaledEvent(const RawTraceEventInfo &event) const
+{
+    auto dmaFenceSignaledMsg = event.msgPtr->dma_fence_signaled_format();
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_DMA_FENCE_SIGNALED, STAT_EVENT_RECEIVED);
+    std::string timelineStr = dmaFenceSignaledMsg.timeline();
+    if (timelineStr.empty()) {
+        return false;
+    }
+    DmaFenceRow dmaFenceRow = {event.msgPtr->timestamp(),
+                               0,
+                               dmaFenceSignaledIndex_,
+                               traceDataCache_->GetDataIndex(dmaFenceSignaledMsg.driver()),
+                               traceDataCache_->GetDataIndex(timelineStr),
+                               dmaFenceSignaledMsg.context(),
+                               dmaFenceSignaledMsg.seqno()};
+    streamFilters_->sliceFilter_->DmaFence(dmaFenceRow);
+    return true;
+}
+bool CpuDetailParser::SetRateEvent(const RawTraceEventInfo &event) const
+{
+    auto clockSetRateMsg = event.msgPtr->clock_set_rate_format();
+    DataIndex nameIndex = traceDataCache_->GetDataIndex(clockSetRateMsg.name());
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CLOCK_RATE, clockSetRateMsg.cpu_id(),
+                                                         nameIndex, event.msgPtr->timestamp(), clockSetRateMsg.state());
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CLOCK_SET_RATE, STAT_EVENT_RECEIVED);
+    return true;
+}
+bool CpuDetailParser::ClockEnableEvent(const RawTraceEventInfo &event) const
+{
+    auto clockEnableMsg = event.msgPtr->clock_enable_format();
+    DataIndex nameIndex = traceDataCache_->GetDataIndex(clockEnableMsg.name());
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CLOCK_ENABLE, clockEnableMsg.cpu_id(),
+                                                         nameIndex, event.msgPtr->timestamp(), clockEnableMsg.state());
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CLOCK_ENABLE, STAT_EVENT_RECEIVED);
+    return true;
+}
+bool CpuDetailParser::ClockDisableEvent(const RawTraceEventInfo &event) const
+{
+    auto clockDisableMsg = event.msgPtr->clock_disable_format();
+    DataIndex nameIndex = traceDataCache_->GetDataIndex(clockDisableMsg.name());
+    streamFilters_->measureFilter_->AppendNewMeasureData(EnumMeasureFilter::CLOCK_DISABLE, clockDisableMsg.cpu_id(),
+                                                         nameIndex, event.msgPtr->timestamp(), clockDisableMsg.state());
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_CLOCK_DISABLE, STAT_EVENT_RECEIVED);
+    return true;
+}
+bool CpuDetailParser::RegulatorSetVoltageEvent(const RawTraceEventInfo &event) const
+{
+    Unused(event);
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_REGULATOR_SET_VOLTAGE, STAT_EVENT_NOTSUPPORTED);
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_REGULATOR_SET_VOLTAGE, STAT_EVENT_RECEIVED);
+    return true;
+}
+bool CpuDetailParser::RegulatorSetVoltageCompleteEvent(const RawTraceEventInfo &event) const
+{
+    Unused(event);
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_REGULATOR_SET_VOLTAGE_COMPLETE,
+                                                    STAT_EVENT_NOTSUPPORTED);
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_REGULATOR_SET_VOLTAGE_COMPLETE, STAT_EVENT_RECEIVED);
+    return true;
+}
+bool CpuDetailParser::RegulatorDisableEvent(const RawTraceEventInfo &event) const
+{
+    Unused(event);
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_REGULATOR_DISABLE, STAT_EVENT_NOTSUPPORTED);
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_REGULATOR_DISABLE, STAT_EVENT_RECEIVED);
+    return true;
+}
+bool CpuDetailParser::RegulatorDisableCompleteEvent(const RawTraceEventInfo &event) const
+{
+    Unused(event);
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_REGULATOR_DISABLE_COMPLETE, STAT_EVENT_NOTSUPPORTED);
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_REGULATOR_DISABLE_COMPLETE, STAT_EVENT_RECEIVED);
+    return true;
+}
+
+bool CpuDetailParser::TimerfdWakeupEvent(const RawTraceEventInfo &event) const
+{
+    auto timerfdWakeupMsg = event.msgPtr->timerfd_wakeup_format();
+    traceDataCache_->GetStatAndInfo()->IncreaseStat(TRACE_EVENT_TIMERFD_WAKEUP, STAT_EVENT_RECEIVED);
+    auto pid = timerfdWakeupMsg.thread_pid();
+    auto tid = timerfdWakeupMsg.thread_tid();
+    auto threadNameIndex = traceDataCache_->GetDataIndex(timerfdWakeupMsg.thread_name());
+    auto interval = timerfdWakeupMsg.interval();
+    auto curr_mono = timerfdWakeupMsg.curr_mono();
+    auto expire_mono = timerfdWakeupMsg.expire_mono();
+    TimerfdWakeupRow timerfdWakeupEvent = {
+        event.msgPtr->timestamp(), pid, tid, threadNameIndex, interval, curr_mono, expire_mono};
+    streamFilters_->timerfdWakeupFilter_->AppendTimerfdWakeupEventRow(timerfdWakeupEvent);
+    return true;
+}
+
+void CpuDetailParser::ParseDev(uint64_t dev, uint32_t &mainDev, uint32_t &subDev) const
+{
+    mainDev = static_cast<uint32_t>(dev >> DEV_MAJOR_SHIFT);
+    subDev = static_cast<uint32_t>(dev & DEV_MINOR_MASK);
+}
+
+bool CpuDetailParser::BlockRqIssueEvent(const RawTraceEventInfo &event) const
+{
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BLOCK_RQ_ISSUE, STAT_EVENT_RECEIVED);
+    const auto &msg = event.msgPtr->block_rq_issue_format();
+    uint32_t mainDev = 0;
+    uint32_t subDev = 0;
+    ParseDev(msg.dev(), mainDev, subDev);
+    InternalTid itid = streamFilters_->processFilter_->UpdateOrCreateThread(event.msgPtr->timestamp(), eventTid_);
+    std::string rwbs = msg.rwbs();
+    bool isWrite = (rwbs.find('W') != std::string::npos);
+    std::string cmd = msg.cmd();
+    BlockIoIssueEvent params = {event.msgPtr->timestamp(), itid,        mainDev, subDev, msg.sector(),
+                                msg.nr_sector(),           msg.bytes(), rwbs,    cmd,    isWrite};
+    streamFilters_->fileSystemIoFilter_->ProcessBlockRqIssue(params);
+    return true;
+}
+
+bool CpuDetailParser::BlockRqCompleteEvent(const RawTraceEventInfo &event) const
+{
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_BLOCK_RQ_COMPLETE, STAT_EVENT_RECEIVED);
+    const auto &msg = event.msgPtr->block_rq_complete_format();
+    uint32_t mainDev = 0;
+    uint32_t subDev = 0;
+    ParseDev(msg.dev(), mainDev, subDev);
+    std::string rwbs = msg.rwbs();
+    bool isWrite = (rwbs.find('W') != std::string::npos);
+    std::string cmd = msg.cmd();
+    BlockIoCompleteEvent params = {
+        event.msgPtr->timestamp(), mainDev, subDev, msg.sector(), msg.nr_sector(), msg.error(), rwbs, cmd, isWrite};
+    streamFilters_->fileSystemIoFilter_->ProcessBlockRqComplete(params);
+    return true;
+}
+
+bool CpuDetailParser::HmfsReadEnterEvent(const RawTraceEventInfo &event) const
+{
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_READ_ENTER, STAT_EVENT_RECEIVED);
+    const auto &msg = event.msgPtr->hmfs_read_enter_format();
+    uint32_t mainDev = 0;
+    uint32_t subDev = 0;
+    ParseDev(msg.dev(), mainDev, subDev);
+    InternalTid itid = streamFilters_->processFilter_->UpdateOrCreateThread(event.msgPtr->timestamp(), eventTid_);
+    DataIndex fileId = INVALID_DATAINDEX;
+    if (!msg.name().empty()) {
+        fileId = traceDataCache_->GetDataIndex(msg.name());
+    }
+    HmfsIoEnterEvent params = {event.msgPtr->timestamp(),
+                               itid,
+                               mainDev,
+                               subDev,
+                               msg.ino(),
+                               msg.i_size(),
+                               msg.off(),
+                               msg.size(),
+                               fileId,
+                               false};
+    streamFilters_->fileSystemIoFilter_->ProcessReadEnter(params);
+    return true;
+}
+
+bool CpuDetailParser::HmfsReadExitEvent(const RawTraceEventInfo &event) const
+{
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_READ_EXIT, STAT_EVENT_RECEIVED);
+    const auto &msg = event.msgPtr->hmfs_read_exit_format();
+    uint32_t mainDev = 0;
+    uint32_t subDev = 0;
+    ParseDev(msg.dev(), mainDev, subDev);
+    InternalTid itid = streamFilters_->processFilter_->UpdateOrCreateThread(event.msgPtr->timestamp(), eventTid_);
+    int64_t res = msg.res();
+    HmfsIoExitEvent params = {
+        event.msgPtr->timestamp(), itid, mainDev, subDev, msg.ino(), msg.off(), msg.size(), res, false};
+    streamFilters_->fileSystemIoFilter_->ProcessReadExit(params);
+    return true;
+}
+
+bool CpuDetailParser::HmfsWriteEnterEvent(const RawTraceEventInfo &event) const
+{
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_WRITE_ENTER, STAT_EVENT_RECEIVED);
+    const auto &msg = event.msgPtr->hmfs_write_enter_format();
+    uint32_t mainDev = 0;
+    uint32_t subDev = 0;
+    ParseDev(msg.dev(), mainDev, subDev);
+    InternalTid itid = streamFilters_->processFilter_->UpdateOrCreateThread(event.msgPtr->timestamp(), eventTid_);
+    DataIndex fileId = INVALID_DATAINDEX;
+    if (!msg.name().empty()) {
+        fileId = traceDataCache_->GetDataIndex(msg.name());
+    }
+    HmfsIoEnterEvent params = {
+        event.msgPtr->timestamp(), itid, mainDev, subDev, msg.ino(), msg.i_size(), msg.off(), msg.size(), fileId, true};
+    streamFilters_->fileSystemIoFilter_->ProcessWriteEnter(params);
+    return true;
+}
+
+bool CpuDetailParser::HmfsWriteExitEvent(const RawTraceEventInfo &event) const
+{
+    streamFilters_->statFilter_->IncreaseStat(TRACE_EVENT_HMFS_WRITE_EXIT, STAT_EVENT_RECEIVED);
+    const auto &msg = event.msgPtr->hmfs_write_exit_format();
+    uint32_t mainDev = 0;
+    uint32_t subDev = 0;
+    ParseDev(msg.dev(), mainDev, subDev);
+    InternalTid itid = streamFilters_->processFilter_->UpdateOrCreateThread(event.msgPtr->timestamp(), eventTid_);
+    int64_t res = msg.res();
+    HmfsIoExitEvent params = {
+        event.msgPtr->timestamp(), itid, mainDev, subDev, msg.ino(), msg.off(), msg.size(), res, true};
+    streamFilters_->fileSystemIoFilter_->ProcessWriteExit(params);
+    return true;
+}
+
+} // namespace TraceStreamer
+} // namespace SysTuning

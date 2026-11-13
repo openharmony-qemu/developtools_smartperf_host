@@ -1,0 +1,79 @@
+/*
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { TabPaneHangSummary } from '../../../../../../src/trace/component/trace/sheet/hang/TabPaneHangSummary';
+jest.mock('../../../../../../src/trace/component/trace/base/TraceRow', () => {
+  return {};
+});
+jest.mock('../../../../../../src/js-heap/model/DatabaseStruct', () => {
+  return {};
+});
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
+jest.mock('../../../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+  return {};
+});
+
+window.ResizeObserver =
+  window.ResizeObserver ||
+  jest.fn().mockImplementation(() => ({
+    disconnect: jest.fn(),
+    observe: jest.fn(),
+    unobserve: jest.fn(),
+  }));
+global.Worker = jest.fn();
+describe('TabPaneHangSummary Test', () => {
+  it('TabPaneHangSummaryTest01', function () {
+    let tabPane = new TabPaneHangSummary();
+    expect(tabPane.initElements()).toBeUndefined();
+  });
+
+  it('TabPaneHangSummaryTest02', function () {
+    let tabPane = new TabPaneHangSummary();
+    expect(tabPane.connectedCallback()).toBeUndefined();
+  });
+
+  it('TabPaneHangSummaryTest03', function () {
+    let tabPane = new TabPaneHangSummary();
+    expect(tabPane.initHtml()).not.toBeUndefined();
+    expect(tabPane.disconnectedCallback()).toBeUndefined();
+    expect(tabPane.expansionClickEvent()).toBeUndefined();
+  });
+
+  it('TabPaneHangSummaryTest04', function () {
+    let tabPane = new TabPaneHangSummary();
+    tabPane.initElements();
+    expect(tabPane.refreshSelectDepth([])).toBeUndefined();
+  });
+
+  it('TabPaneHangSummaryTest05', function () {
+    let tabPane = new TabPaneHangSummary();
+    tabPane.initElements();
+    expect(tabPane.changeNode(2)).toBeUndefined();
+  });
+
+  it('TabPaneHangSummaryTest06', function () {
+    let tabPane = new TabPaneHangSummary();
+    expect(tabPane.refreshRowNodeTable(false)).toBeUndefined();
+    expect(tabPane.refreshRowNodeTable(true)).toBeUndefined();
+  });
+
+  it('TabPaneHangSummaryTest07', function () {
+    let tabPane = new TabPaneHangSummary();
+    tabPane.initElements();
+    expect(tabPane.buildTreeTbhNodes([])).not.toBeUndefined();
+  });
+});

@@ -1,0 +1,10 @@
+.vscode
+.idea
+smartperf_host/trace_streamer/llvm
+ts_tmp.perf.data
+tmp_*
+build-*
+*.pro.use*
+.DS_Store
+._.DS_Store
+.history

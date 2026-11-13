@@ -6,5 +6,6 @@
   "baseline_revision": "260b028b289befa8dc2f85b98687d323c7d20fa0",
   "qemu_branch": "OpenHarmony-7.0-Release-qemu",
   "large_files": "git-lfs",
-  "bootstrap_status": "awaiting_first_upstream_sync"
+  "bootstrap_status": "official_source_imported_NOT_build_or_runtime_validated",
+  "hosted_baseline_revision": "3dc69554ba9743806fbc043d14ffbeb091d61f89"
 }

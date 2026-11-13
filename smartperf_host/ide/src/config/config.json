@@ -1,0 +1,136 @@
+{
+    "_comment": "这是动效的相关打点",
+    "Animation": {
+        "_comment": "动效过程打点线程，render_service为并行化前的打点线程，RSUniRenderThre为并行化后的打点线程",
+        "animationProcEvents_": [
+            "render_service",
+            "RSUniRenderThre"
+        ],
+        "_comment": "动效相关打点，H:LAUNCHER_APP_LAUNCH_FROM_ICON为桌面图标点击启动，H:LAUNCHER_APP_LAUNCH_FROM_NOTIFICATIONBAR为通知栏通知消息点击启动，H:LAUNCHER_APP_LAUNCH_FROM_NOTIFICATIONBAR_IN_LOCKSCREEN为锁屏通知消息点击启动,H:LAUNCHER_APP_LAUNCH_FROM_RECENT为多任务点击应用，H:LAUNCHER_APP_SWIPE_TO_HOME为HOME键返回桌面,H:LAUNCHER_APP_BACK_TO_HOME为Back键返回桌面，H:APP_TRANSITION_TO_OTHER_APP为应用切换到另一个应用,H:APP_TRANSITION_FROM_OTHER_APP为从另一个应用跳回,H:APP_LIST_FLING为应用中列表滑动",
+        "onAnimationStartEvents_": [
+            "H:LAUNCHER_APP_LAUNCH_FROM_ICON",
+            "H:LAUNCHER_APP_LAUNCH_FROM_NOTIFICATIONBAR",
+            "H:LAUNCHER_APP_LAUNCH_FROM_NOTIFICATIONBAR_IN_LOCKSCREEN",
+            "H:LAUNCHER_APP_LAUNCH_FROM_RECENT",
+            "H:LAUNCHER_APP_SWIPE_TO_HOME",
+            "H:LAUNCHER_APP_BACK_TO_HOME",
+            "H:APP_TRANSITION_TO_OTHER_APP",
+            "H:APP_TRANSITION_FROM_OTHER_APP",
+            "H:APP_LIST_FLING"
+        ],
+        "_comment": "H:GenerateVsyncCount,用于计算设备的平均帧率，累计6次后输出平均帧率",
+        "frameRateCmd_": [
+            "H:GenerateVsyncCount"
+        ],
+        "_comment": "H:RSJankStats::RecordAnimationDynamicFrameRate,用于更新动效的帧率，若存在此打点，则以这个打点为准，否则以H:Repaint为准",
+        "realFrameRateCmd_": [
+            "H:RSJankStats::RecordAnimationDynamicFrameRate"
+        ],
+        "_comment": "H:Repaint(硬件合成器合成绘制),用于计算动效帧率",
+        "frameCountCmd_": [
+            "H:Repaint"
+        ],
+        "_comment": "H:RSUniRender::Process:[WindowScene_和H:RSSurfaceRenderNodeDrawable::OnDraw:[WindowScene_用来获取动效帧数据的打点，其中H:RSUniRender::Process:[WindowScene_为并行化前打点",
+        "frameBeginCmd_": [
+            "H:RSUniRender::Process:[WindowScene_",
+            "H:RSSurfaceRenderNodeDrawable::OnDraw:[WindowScene_"
+        ],
+        "_comment": "H:RSUniRender::Process:[SCBDesktop和H:RSSurfaceRenderNodeDrawable::OnDraw:[SCBDesktop用来获取设备的宽高，其中H:RSUniRender::Process:[SCBDesktop为并行化前打点",
+        "screenSizeCmd_": [
+            "H:RSUniRender::Process:[SCBDesktop",
+            "H:RSSurfaceRenderNodeDrawable::OnDraw:[SCBDesktop"
+        ],
+        "_comment": "H:RSMainThread::DoComposition和H:RenderFrame用来获取动效帧的结束时间，其中H:RSMainThread::DoComposition为并行化前的打点",
+        "frameEndTimeCmd_": [
+            "H:RenderFrame"
+        ],
+        "_comment": "H:PostAndWait, parallel type并行化的标志",
+        "parallelTypeCmd_": [
+            "H:PostAndWait, parallel type"
+        ]
+    },
+    "_comment": "这是启动场景的相关打点",
+    "AppStartup": {
+        "_comment": "启动第一阶段，手指点击",
+        "phase1": {
+            "pName": "ProcessTouchEvent",
+            "start": [
+                "H:client dispatch touchId:"
+            ],
+            "end": [
+                "H:OHOS::ErrCode OHOS::AAFwk::AbilityManagerClient::StartUIAbilityBySCB"
+            ]
+        },
+        "_comment": "启动第二阶段，处理创建进程信息，创建窗口",
+        "phase2": {
+            "pName": "StartUIAbilityBySCB",
+            "start": [
+                "H:OHOS::ErrCode OHOS::AAFwk::AbilityManagerClient::StartUIAbilityBySCB"
+            ],
+            "end": [
+                "H:virtual void OHOS::AppExecFwk::AppMgrServiceInner::LoadAbility"
+            ]
+        },
+        "_comment": "启动第三阶段，拉起应用进程",
+        "phase3": {
+            "pName": "LoadAbility",
+            "start": [
+                "H:virtual void OHOS::AppExecFwk::AppMgrServiceInner::LoadAbility"
+            ],
+            "end": [
+                "H:virtual void OHOS::AppExecFwk::AppMgrServiceInner::AttachApplication(const pid_t, const sptr<OHOS::AppExecFwk::IAppScheduler> &)##"
+            ]
+        },
+        "_comment": "启动第四阶段，加载应用",
+        "phase4": {
+            "pName": "Application Launching",
+            "start": [
+                "H:virtual void OHOS::AppExecFwk::AppMgrServiceInner::AttachApplication(const pid_t, const sptr<OHOS::AppExecFwk::IAppScheduler> &)##"
+            ],
+            "end": [
+                "H:void OHOS::AppExecFwk::MainThread::HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &)##"
+            ]
+        },
+        "_comment": "启动第五阶段，加载 UI Ability",
+        "phase5": {
+            "pName": "UI Ability Launching",
+            "start": [
+                "H:void OHOS::AppExecFwk::MainThread::HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &)##"
+            ],
+            "end": [
+                "H:void OHOS::AbilityRuntime::FAAbilityThread::HandleAbilityTransaction(const OHOS::AbilityRuntime::Want &, const OHOS::AbilityRuntime::LifeCycleStateInfo &, sptr<AppExecFwk::SessionInfo>)##",
+                "H:void OHOS::AbilityRuntime::UIAbilityThread::HandleAbilityTransaction"
+            ]
+        },
+        "_comment": "启动第六阶段，应用进入前台",
+        "phase6": {
+            "pName": "UI Ability OnForeground",
+            "start": [
+                "H:void OHOS::AbilityRuntime::FAAbilityThread::HandleAbilityTransaction(const OHOS::AbilityRuntime::Want &, const OHOS::AbilityRuntime::LifeCycleStateInfo &, sptr<AppExecFwk::SessionInfo>)##",
+                "H:void OHOS::AbilityRuntime::UIAbilityThread::HandleAbilityTransaction"
+            ],
+            "end": [
+                "H:ReceiveVsync dataCount"
+            ]
+        }
+    },
+    "_comment": "Flag 开关",
+    "config": {
+        "TaskPool": 0,
+        "AnimationAnalysis": 0,
+        "AppStartup": 0,
+        "SchedulingAnalysis": 0,
+        "BinderRunnable": 0,
+        "FfrtConvert": 0,
+        "HMKernel": 1,
+        "VSync": 0,
+        "Hangs Detection": 0,
+        "LTPO": 0,
+        "Start&Finish Trace Category": 0,
+        "UserPluginsRow": 0,
+        "CPU by Irq": 0,
+        "RawTraceCutStartTs": 1,
+        "AI": 0,
+        "System Calls": ""
+    }
+}

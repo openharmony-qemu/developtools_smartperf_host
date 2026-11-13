@@ -1,0 +1,78 @@
+# Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("../../build/ts.gni")
+config("hiperf_config") {
+  cflags = [
+    "-D ALWAYSTRUE",
+    "-D CONFIG_NO_HILOG",
+    "-D is_mingw=${is_mingw}",
+  ]
+}
+config("hiperf_public_config") {
+  include_dirs = [
+    "linux",
+    "include",
+    "include/nonlinux",
+    "include/nonlinux/linux",
+    "${SRC}/",
+    "${SRC}/base",
+    "${SRC}/include",
+    "${SRC}/trace_streamer",
+    "${THIRD_PARTY}/bounds_checking_function/include",
+    "${THIRD_PARTY}/perf_include/libbpf",
+    "${COMMON_LIBRARY}/base/include",
+  ]
+  if (is_mingw) {
+    cflags = [ "-includeMingW64Fix.h" ]
+  }
+}
+ohos_source_set("hiperf_src") {
+  subsystem_name = "thirdparty"
+  part_name = "hiperf"
+  sources = [
+    "src/dwarf_encoding.cpp",
+    "src/option.cpp",
+    "src/perf_event_record.cpp",
+    "src/perf_file_format.cpp",
+    "src/perf_file_reader.cpp",
+    "src/register.cpp",
+    "src/report.cpp",
+    "src/subcommand.cpp",
+    "src/symbols_file.cpp",
+    "src/unique_stack_table.cpp",
+    "src/utilities.cpp",
+    "src/virtual_runtime.cpp",
+    "src/virtual_thread.cpp",
+  ]
+  configs -= [ trace_cfg_path ]
+  configs += [ "../../gn:hiperf_trace_cfg" ]
+  configs += [ ":hiperf_config" ]
+  public_configs = [ ":hiperf_public_config" ]
+  public_deps = [
+    "${THIRD_PARTY}/zlib:libz",
+    "//third_party/perf_include/hiviewdfx:libfaultloggerd",
+  ]
+  if (!use_wasm && !is_win && !is_mingw && !is_mac && !is_test) {
+    if (!is_independent_compile) {
+      if (target_cpu == "arm64") {
+        public_deps += [ "//third_party/libunwind:unwind_source_arm64_opt" ]
+      } else {
+        public_deps += [ "//third_party/libunwind:unwind_source_${target_cpu}" ]
+      }
+    } else {
+      public_deps += [ "${THIRD_PARTY}/libunwind:libunwind" ]
+    }
+  }
+}

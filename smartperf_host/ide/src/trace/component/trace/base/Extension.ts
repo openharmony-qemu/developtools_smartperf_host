@@ -1,0 +1,143 @@
+/*
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { EventCenter } from './EventCenter';
+
+declare global {
+  interface Number {
+    n2x(): number;
+  }
+
+  interface Array<T> {
+    isEmpty(): boolean;
+
+    isNotEmpty(): boolean;
+  }
+
+  interface HTMLElement {
+    containPoint(
+      ev: MouseEvent,
+      cut?: {
+        left?: number;
+        right?: number;
+        top?: number;
+        bottom?: number;
+      }
+    ): boolean;
+  }
+
+  interface Window {
+    postMessage(message: unknown, transfer?: Transferable[]): void;
+    // queryFromWasm: boolean;//use cache or query from db
+    isLastFrame: boolean; //last frame mast be draw
+    recordStartNS: number;
+    recordEndNS: number;
+    totalNS: number;
+    SmartEvent: {
+      UI: {
+        MenuTrace: string; //selected menu trace
+        RefreshCanvas: string; //selected menu trace
+        RowHeightChange: string; //function row height change
+        SliceMark: string; //Set the tag scope
+        TimeRange: string; //Set the timeline range
+        TraceRowComplete: string; //Triggered after the row component has finished loading data
+        KeyboardEnable: string; // SystemTrace Keyboard enable
+        MouseEventEnable: string; // Mouse Event Keyboard enable
+        UploadSOFile: string; // Upload so file
+        Loading: string; // Upload so file
+        Error: string; // load error
+        CheckALL: string; // Check all child chart
+        CollapseAllLane: string; //collapse/uncollapse all lane row
+        CollectGroupChange: string; //collapse/uncollapse all lane row
+        WakeupList: string; //show wakeup list table
+        DeviceConnect: string;
+        DeviceDisConnect: string;
+        HoverNull: string;
+        KeyPath: string;
+        LoadFinish: string;
+        LoadFinishFrame: string;
+        ShowBottomTab: string;
+        ImportRecord: string; //导出时间区间和泳道图收藏记录
+        ExportRecord: string; //导出时间区间和泳道图收藏记录
+      };
+    };
+
+    subscribe(evt: string, fn: (b: unknown) => void): void;
+
+    subscribeOnce(evt: string, fn: (b: unknown) => void): void;
+
+    unsubscribe(evt: string, fn: (b: unknown) => void): void;
+
+    publish(evt: string, data: unknown): void;
+
+    clearTraceRowComplete(): void;
+  }
+}
+
+HTMLElement.prototype.containPoint = function (ev, cut): boolean {
+  let rect = this.getBoundingClientRect();
+  return (
+    ev.pageX >= rect.left + (cut?.left ?? 0) &&
+    ev.pageX <= rect.right - (cut?.right ?? 0) &&
+    ev.pageY >= rect.top + (cut?.top ?? 0) &&
+    ev.pageY <= rect.bottom - (cut?.bottom ?? 0)
+  );
+};
+
+window.SmartEvent = {
+  UI: {
+    MenuTrace: 'SmartEvent-UI-MenuTrace',
+    RefreshCanvas: 'SmartEvent-UI-RefreshCanvas',
+    RowHeightChange: 'SmartEvent-UI-RowHeightChange',
+    SliceMark: 'SmartEvent-UI-SliceMark',
+    TimeRange: 'SmartEvent-UI-TimeRange',
+    TraceRowComplete: 'SmartEvent-UI-TraceRowComplete',
+    KeyboardEnable: 'SmartEvent-UI-StopWASD',
+    MouseEventEnable: 'SmartEvent-UI-StopMouseEvent',
+    UploadSOFile: 'SmartEvent-UI-UploadSoFile',
+    Loading: 'SmartEvent-UI-Loading',
+    Error: 'SmartEvent-UI-Error',
+    CheckALL: 'SmartEvent-UI-CheckALL',
+    CollapseAllLane: 'SmartEvent-UI-Collapse-All-Lane',
+    CollectGroupChange: 'SmartEvent-UI-Collect-group-change',
+    WakeupList: 'SmartEvent-UI-WakeupList',
+    DeviceConnect: 'SmartEvent-DEVICE_CONNECT',
+    DeviceDisConnect: 'SmartEvent-DEVICE_DISCONNECT',
+    HoverNull: 'SmartEvent-Hover-NULL',
+    KeyPath: 'SmartEvent-UI-UploadKeyPath',
+    LoadFinish: 'SmartEvent-UI-LoadFinish', //所有泳道刷新完成触发
+    LoadFinishFrame: 'SmartEvent-UI-LoadFinishFrame', //单个泳道刷新完成触发
+    ShowBottomTab: 'SmartEvent-UI-ShowBottomTab', // 显示底部 tab
+    ImportRecord: 'SmartEvent-UI-ImportRecord',
+    ExportRecord: 'SmartEvent-UI-ExportRecord',
+  },
+};
+Window.prototype.subscribe = (ev, fn): void => EventCenter.subscribe(ev, fn);
+Window.prototype.unsubscribe = (ev, fn): void => EventCenter.unsubscribe(ev, fn);
+Window.prototype.publish = (ev, data): void => EventCenter.publish(ev, data);
+Window.prototype.subscribeOnce = (ev, data): void => EventCenter.subscribeOnce(ev, data);
+Window.prototype.clearTraceRowComplete = (): void => EventCenter.clearTraceRowComplete();
+export {};
+
+export function dpr(): number {
+  return window.devicePixelRatio || 1;
+}
+
+export const isEmpty = function <T>(list: Array<T> | undefined): boolean {
+  return list === null || list === undefined || list.length === 0;
+};
+export const isNotEmpty = function <T>(list: Array<T> | undefined): boolean {
+  return list !== null && list !== undefined && list.length > 0;
+};

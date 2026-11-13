@@ -1,0 +1,32 @@
+diff --git a/src/utilities.cpp b/src/utilities.cpp
+index 9de04ff..9323281 100644
+--- a/src/utilities.cpp
++++ b/src/utilities.cpp
+@@ -15,7 +15,9 @@
+ 
+ #include "utilities.h"
+ 
++#if is_ohos && !is_mingw
+ #include <sys/utsname.h>
++#endif
+ #include <zlib.h>
+ #include <thread>
+ #if defined(CONFIG_HAS_SYSPARA) && defined(is_ohos) && is_ohos
+@@ -840,6 +842,7 @@ bool IsBeta()
+ 
+ bool IsHM()
+ {
++#if is_ohos && !is_mingw
+     utsname unameBuf;
+     bool isHM = false;
+     if ((uname(&unameBuf)) == 0) {
+@@ -847,6 +850,9 @@ bool IsHM()
+         isHM = osrelease.find(HMKERNEL) != std::string::npos;
+     }
+     return isHM;
++#else
++    return false;
++#endif
+ }
+ 
+ bool IsAllowProfilingUid()

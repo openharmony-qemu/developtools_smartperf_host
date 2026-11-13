@@ -1,0 +1,278 @@
+// Copyright (c) Huawei Technologies Co., Ltd. 2026. All rights reserved.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+option java_package = "ohos.devtools.datasources.transport.grpc.service";
+option optimize_for = LITE_RUNTIME;
+
+message Frame {
+    uint64 ip = 1;
+    uint64 sp = 2;
+    string symbol_name = 3;
+    string file_path = 4;
+    uint64 offset = 5;
+    uint64 symbol_offset = 6;
+    uint32 symbol_name_id = 7;
+    uint32 file_path_id = 8;
+}
+
+message AllocEvent {
+    int32 pid = 1;
+    int32 tid = 2;
+    uint64 addr = 3;
+    uint64 size = 4;
+    repeated Frame frame_info = 5;
+    uint32 thread_name_id = 6;
+    uint32 stack_id = 7;
+    uint32 node_type = 8;
+    uint64 node_id = 9;
+}
+
+message FreeEvent {
+    int32 pid = 1;
+    int32 tid = 2;
+    uint64 addr = 3;
+    repeated Frame frame_info = 4;
+    uint32 thread_name_id = 5;
+    uint32 stack_id = 6;
+}
+
+message MmapEvent {
+    int32 pid = 1;
+    int32 tid = 2;
+    uint64 addr = 3;
+    string type = 4;
+    uint64 size = 5;
+    repeated Frame frame_info = 6;
+    uint32 thread_name_id = 7;
+    uint32 stack_id = 8;
+    uint32 node_type = 9;
+    uint64 node_id = 10;
+}
+
+message MunmapEvent {
+    int32 pid = 1;
+    int32 tid = 2;
+    uint64 addr = 3;
+    uint64 size = 4;
+    repeated Frame frame_info = 5;
+    uint32 thread_name_id = 6;
+    uint32 stack_id = 7;
+}
+
+message StackMap {
+    uint32 id = 1;
+    // online symbolization, only use frame_map_id 
+    repeated uint64 frame_map_id = 2; 
+    // offline symbolization, ip sequence include fake ip(arkts frame id, etc)
+    repeated uint64 ip = 3;
+    int32 pid = 4;
+}
+
+message FrameMap {
+    uint32 id = 1;
+    Frame frame = 2;
+    int32 pid = 3;
+}
+
+message MemTagEvent {
+    uint64 addr = 1;
+    uint64 size = 2;
+    string tag = 3;
+    int32 pid = 4;
+}
+
+message FilePathMap {
+    uint32 id = 1;
+    string name = 2;
+    int32 pid = 3;
+    uint64 adlt_base = 4;
+    string build_id = 5;
+}
+
+message SymbolMap {
+    uint32 id = 1;
+    string name = 2;
+    int32 pid = 3;
+}
+
+message SMOMapEntry {
+    uint64 start_addr = 1;
+    uint64 end_addr   = 2;
+    uint32 so_index   = 3;
+}
+ 
+message SMOIdTlbEntry{
+    uint32 so_index = 1;
+    string name = 2;
+}
+ 
+message SMOMapsInfo {
+    repeated SMOMapEntry map_entries = 1;
+    repeated SMOIdTlbEntry id_tlb_entries = 2;
+    string file_path = 3;
+}
+
+message ThreadNameMap {
+    uint32 id = 1;
+    string name = 2;
+    int32 pid = 3;
+}
+
+message MapsInfo {
+    uint32 pid = 1;
+    uint64 start = 2;
+    uint64 end = 3;
+    uint64 offset = 4;
+    uint32 file_path_id = 5;
+}
+
+message SymbolTable {
+    uint32 file_path_id = 1;
+    uint64 text_exec_vaddr = 2;
+    uint64 text_exec_vaddr_file_offset = 3;
+    uint32 sym_entry_size = 4;
+    bytes sym_table = 5;
+    bytes str_table = 6;
+    int32 pid = 7;
+}
+
+enum TraceType {
+    FD = 0;
+    THREAD = 1;
+    GPU_VK = 2;
+    GPU_GLES = 3;
+    GPU_CL = 4;
+    OTHER = 5;
+    ARKTS_HEAP = 6;
+    JS_HEAP = 7;
+    KMP_HEAP = 8;
+    RN_HERMES_HEAP = 9;
+    ASHMEM = 10;
+    DMA = 11;
+    SO = 12;
+    ARK_GLOBAL_HANDLE = 13;
+    ARK_LOCAL_HANDLE = 14;
+    VMA_ARKWEB = 15;
+    DART_HEAP = 16;
+    ARKTS_STATIC_HEAP = 17;
+};
+
+message TraceAllocEvent {
+    int32 pid = 1;
+    int32 tid = 2;
+    uint64 addr = 3;
+    TraceType trace_type = 4;
+    string tag_name = 5;
+    uint64 size = 6;
+    repeated Frame frame_info = 7;
+    uint32 thread_name_id = 8;
+    uint32 stack_id = 9;
+    uint32 node_type = 10;
+    uint64 node_id = 11;
+}
+
+message TraceFreeEvent {
+    int32 pid = 1;
+    int32 tid = 2;
+    uint64 addr = 3;
+    TraceType trace_type = 4;
+    string tag_name = 5;
+    repeated Frame frame_info = 6;
+    uint32 thread_name_id = 7;
+    uint32 stack_id = 8;
+}
+
+message TraceMoveEvent {
+    int32 pid = 1;
+    int32 tid = 2; 
+    uint64 addr = 3;
+    uint64 new_addr = 4;
+    TraceType trace_type = 5;
+    uint64 size = 6;
+}
+
+message TraceFreeRegionEvent {
+    int32 pid = 1;
+    int32 tid = 2; 
+    uint64 addr = 3;
+    TraceType trace_type = 4;
+    uint64 size = 5;
+}
+
+message RecordStatisticsEvent {
+    uint32 pid = 1;
+    uint32 callstack_id = 2;
+    enum MemoryType {
+        MALLOC = 0;
+        MMAP = 1;
+        FILE_PAGE_MSG = 2;
+        MEMORY_USING_MSG = 3;
+        FD = 4;
+        THREAD = 5;
+        GPU_VK = 6;
+        GPU_GLES = 7;
+        GPU_CL = 8;
+        SO = 9;
+        ARKTS_HEAP = 10;
+        JS_HEAP = 11;
+        KMP_HEAP = 12;
+        RN_HERMES_HEAP = 13;
+        ASHMEM = 14;
+        DMA = 15;
+        OTHER = 16;
+        ARK_GLOBAL_HANDLE = 17;
+        ARK_LOCAL_HANDLE = 18;
+        VMA_ARKWEB = 19;
+        DART_HEAP = 20;
+        ARKTS_STATIC_HEAP = 21;
+    };
+    MemoryType type = 3;
+    uint64 apply_count = 4;
+    uint64 release_count = 5;
+    uint64 apply_size = 6;
+    uint64 release_size = 7;
+    string tag_name = 8;
+    uint32 node_type = 9;
+    uint64 node_id = 10;
+}
+
+message NativeHookData {
+    uint64 tv_sec = 1;
+    uint64 tv_nsec = 2;
+    oneof event {
+        AllocEvent alloc_event = 3;
+        FreeEvent free_event = 4;
+        MmapEvent mmap_event = 5;
+        MunmapEvent munmap_event = 6;
+        MemTagEvent tag_event = 7;
+        FilePathMap file_path = 8;
+        SymbolMap symbol_name = 9;
+        ThreadNameMap thread_name_map = 10;
+        MapsInfo maps_info = 11;
+        SymbolTable symbol_tab = 12;
+        FrameMap frame_map = 13;
+        StackMap stack_map = 14;
+        RecordStatisticsEvent statistics_event = 15;
+        TraceAllocEvent trace_alloc_event = 16;
+        TraceFreeEvent trace_free_event = 17;
+        SMOMapsInfo smo_map = 18;
+        TraceMoveEvent trace_move_event = 19;
+        TraceFreeRegionEvent trace_free_region_event = 20;
+    }
+}
+
+message BatchNativeHookData {
+    repeated NativeHookData events = 1;
+}

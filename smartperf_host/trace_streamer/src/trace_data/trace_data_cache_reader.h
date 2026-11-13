@@ -1,0 +1,150 @@
+/*
+ * Copyright (c) Huawei Technologies Co., Ltd. 2023-2026. All rights reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef TRACE_DATA_CACHE_READER_H
+#define TRACE_DATA_CACHE_READER_H
+
+#include "activity_monitor_stdtype.h"
+#include "animation_stdtype.h"
+#include "app_startup_stdtype.h"
+#include "arkts_stdtype.h"
+#include "base_stdtype.h"
+#include "callstack_stdtype.h"
+#include "common_stdtype.h"
+#include "ebpf_stdtype.h"
+#include "hilog_stdtype.h"
+#include "hiperf_stdtype.h"
+#include "hisysevent_stdtype.h"
+#include "measure_stdtype.h"
+#include "native_memory_stdtype.h"
+#include "render_service_stdtype.h"
+#include "sched_stdtype.h"
+#include "syscall_stdtype.h"
+#include "task_pool_stdtype.h"
+#include "trace_data_cache_base.h"
+#include "xpower_stdtype.h"
+#include "timerfd_wakeup_stdtype.h"
+
+namespace SysTuning {
+namespace TraceStreamer {
+using namespace TraceStdtype;
+class TraceDataCacheReader : virtual public TraceDataCacheBase {
+public:
+    TraceDataCacheReader() = default;
+    TraceDataCacheReader(const TraceDataCacheReader &) = delete;
+    TraceDataCacheReader &operator=(const TraceDataCacheReader &) = delete;
+    ~TraceDataCacheReader() override;
+
+public:
+    const std::string &GetDataFromDict(DataIndex id) const;
+    const Process &GetConstProcessData(InternalPid internalPid) const;
+    const std::deque<Process> &GetConstProcessData() const;
+    const Thread &GetConstThreadData(InternalTid internalTid) const;
+    const std::deque<Thread> &GetConstThreadData() const;
+    const CallStack &GetConstInternalSlicesData() const;
+    const CallStack &GetConstIrqData() const;
+    const Filter &GetConstFilterData() const;
+    const Raw &GetConstRawTableData() const;
+    const Measure &GetConstMeasureData() const;
+    const Measure &GetConstSysMemMeasureData() const;
+    const Measure &GetConstProcessMeasureData() const;
+    const Measure &GetConstXpowerMeasureData() const;
+    const ThreadStateData &GetConstThreadStateData() const;
+    const SchedSlice &GetConstSchedSliceData() const;
+    const CpuMeasureFilter &GetConstCpuMeasuresData() const;
+    const Instants &GetConstInstantsData() const;
+    const ProcessMeasureFilter &GetConstProcessMeasureFilterData() const;
+    const ClockEventData &GetConstClockEventFilterData() const;
+    const ClkEventData &GetConstClkEventFilterData() const;
+    const std::string &GetConstSchedStateData(uint64_t rowId) const;
+    uint64_t TraceStartTime() const;
+    uint64_t TraceEndTime() const;
+    const StatAndInfo &GetConstStatAndInfo() const;
+    const MetaData &GetConstMetaData() const;
+    const SymbolsData &GetConstSymbolsData() const;
+    const SysCall &GetConstSysCallData() const;
+    const LogInfo &GetConstHilogData() const;
+    const NativeHook &GetConstNativeHookData() const;
+    const NativeHookFrame &GetConstNativeHookFrameData() const;
+    const NativeHookStatistic &GetConstNativeHookStatisticData() const;
+    const Hidump &GetConstHidumpData() const;
+    const PerfCallChain &GetConstPerfCallChainData() const;
+    const PerfFiles &GetConstPerfFilesData() const;
+    const PerfSample &GetConstPerfSampleData() const;
+    const PerfThread &GetConstPerfThreadData() const;
+    const PerfReport &GetConstPerfReportData() const;
+    const PerfNapiAsync &GetConstPerfNapiAsyncData() const;
+    const ArgSet &GetConstArgSetData() const;
+    const DataType &GetConstDataTypeData() const;
+    const SysMeasureFilter &GetConstSysMeasureFilterData() const;
+    const NetDetailData &GetConstNetworkData() const;
+    const CpuUsageDetailData &GetConstCpuUsageInfoData() const;
+    const DiskIOData &GetConstDiskIOData() const;
+    const LiveProcessDetailData &GetConstLiveProcessData() const;
+    const FileSystemSample &GetConstFileSystemSample() const;
+    const HiSysEventDeviceStateData &GetConstHiSysEventDeviceStateData() const;
+    const EbpfCallStackData &GetConstEbpfCallStackData() const;
+    const PagedMemorySampleData &GetConstPagedMemorySampleData() const;
+    const HiSysEventSubkeys &GetConstHiSysEventSubkeysData() const;
+    const HiSysEventMeasureData &GetConstHiSyseventMeasureData() const;
+    const TraceConfig &GetConstTraceConfigData() const;
+    const HiSysEventAllEventData &GetConstHiSysEventAllEventData() const;
+    const SmapsData &GetConstSmapsData() const;
+    const BioLatencySampleData &GetConstBioLatencySampleData() const;
+    const ClockSnapshotData &GetConstClockSnapshotData() const;
+    const DataSourceClockIdData &GetConstDataSourceClockIdData() const;
+    const FrameSlice &GetConstFrameSliceData() const;
+    const FrameMaps &GetConstFrameMapsData() const;
+    const GPUSlice &GetConstGPUSliceData() const;
+    const DmaFence &GetConstDmaFenceData() const;
+    const TaskPoolInfo &GetConstTaskPoolData() const;
+    const JsHeapFiles &GetConstJsHeapFilesData() const;
+    const JsHeapEdges &GetConstJsHeapEdgesData() const;
+    const JsHeapInfo &GetConstJsHeapInfoData() const;
+    const JsHeapLocation &GetConstJsHeapLocationData() const;
+    const JsHeapNodes &GetConstJsHeapNodesData() const;
+    const JsHeapSample &GetConstJsHeapSampleData() const;
+    const JsHeapString &GetConstJsHeapStringData() const;
+    const JsHeapTraceFuncInfo &GetConstJsHeapTraceFuncInfoData() const;
+    const JsHeapTraceNode &GetConstJsHeapTraceNodeData() const;
+    const JsCpuProfilerNode &GetConstJsCpuProfilerNodeData() const;
+    const JsCpuProfilerSample &GetConstJsCpuProfilerSampleData() const;
+    const JsConfig &GetConstJsConfigData() const;
+    const AppStartup &GetConstAppStartupData() const;
+    const SoStaticInitalization &GetConstSoStaticInitalizationData() const;
+    const Animation &GetConstAnimation() const;
+    const DeviceInfo &GetConstDeviceInfo() const;
+    const DynamicFrame &GetConstDynamicFrame() const;
+    const AshMemData &GetConstAshMemData() const;
+    const DmaMemData &GetConstDmaMemData() const;
+    const GpuProcessMemData &GetConstGpuProcessMemData() const;
+    const GpuWindowMemData &GetConstGpuWindowMemData() const;
+    const CpuDumpInfo &GetConstCpuDumpInfo() const;
+    const ProfileMemInfo &GetConstProfileMemInfo() const;
+    const RSImageDumpInfo &GetConstRSImageDumpInfo() const;
+    const XPowerAppStatistic &GetConstXPowerAppStatisticInfo() const;
+    const XPowerAppDetailCPU &GetConstXPowerAppDetailCPUInfo() const;
+    const XPowerAppDetailGPU &GetConstXPowerAppDetailGPUInfo() const;
+    const XPowerAppDetailWifi &GetConstXPowerAppDetailWifiInfo() const;
+    const XPowerAppDetailDisplay &GetConstXPowerAppDetailDisplayInfo() const;
+    const XPowerComponentTop &GetConstXPowerComponentTopInfo() const;
+    const TimerfdWakeup &GetConstTimerfdWakeupData() const;
+    const NetworkTimeInformationData &GetConstNetworkTimeInformationData() const;
+    const NetworkInformationData &GetConstNetworkInformationData() const;
+    const FileSystemIo &GetConstFileSystemIoData() const;
+};
+} // namespace TraceStreamer
+} // namespace SysTuning
+#endif

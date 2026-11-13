@@ -1,0 +1,46 @@
+/*
+ * Copyright (C) 2022 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+import { cpuProfilerDataSender } from '../../../../src/trace/database/data-trafic/ArkTsSender';
+import { threadPool } from '../../../../src/trace/database/SqlLite';
+import { TraceRow } from '../../../../src/trace/component/trace/base/TraceRow';
+import { JsCpuProfilerStruct } from '../../../../src/trace/database/ui-worker/ProcedureWorkerCpuProfiler';
+jest.mock('../../../../src/js-heap/model/DatabaseStruct', () => {});
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorkerSnapshot', () => {
+  return {};
+});
+jest.mock('../../../../src/trace/database/ui-worker/ProcedureWorker', () => {
+  return {};
+});
+
+describe('cpuProfilerDataSender Test', () => {
+  let cpuProfilerData = {
+    column: [25, 30],
+    depth: [0, 1],
+    samplesIds: [[1, 2], [3, 4]],
+    childrenIds: [[5, 6], [7, 8]],
+    maxDepth: 5,
+  };
+  it('cpuProfilerDataSenderTest01', () => {
+    threadPool.submitProto = jest.fn((query: number, params: any, callback: Function) => {
+      callback(cpuProfilerData, 1, true);
+    });
+    let cpuProfilerDataTraceRow = TraceRow.skeleton<JsCpuProfilerStruct>();
+    cpuProfilerDataSender(cpuProfilerDataTraceRow).then(result => {
+      expect(result).toBeTruthy();
+    });
+  });
+});
